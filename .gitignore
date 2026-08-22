@@ -1,0 +1,7 @@
+# Godot 4 editor cache + per-machine credentials
+.godot/
+# Godot may store signing/keystore paths here; uncomment if it ever holds secrets
+# export_presets.cfg
+
+# macOS
+.DS_Store
