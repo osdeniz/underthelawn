@@ -191,7 +191,36 @@ character instance on every switch.
 Sign note: §8 rotations are SceneKit eulers; limbs here hang along -Y, so
 forward is +X rotation for limbs and -X for the torso. Magnitudes are §8's.
 
-## Not in G1-G4
+## Sprint G5 — neighborhood and environment (done)
 
-Pool art and the neighbourhood (house/road/trees/fence/cars/clouds). These
-come in later sprints, in the order the sprint briefs arrive.
+`scripts/environment_builder.gd` builds §11 + §12 as one static node
+(`Neighborhood` in Main.tscn): primitives only, textures from `textures/` via
+TextureLibrary with flat-colour fallbacks.
+
+* **House** at z=-16.8: siding body 13x3.2x4.2, SurfaceTool pyramid shingle
+  roof, chimney, panelled door + doormat, two windows (frame, dark interior,
+  curtains, reflective glass, muntins, sill), porch (deck, posts, railing,
+  eave, step), five bushes, wall contact-shadow band. The G4 sitter now sits ON
+  the porch (`CHAR_BENCH_POS`).
+* **Pool** (§11): 16x12-segment water plane with the vertex wave, semi-
+  transparent turquoise over the pool-floor tint, cream stone border; wooden
+  lounger + orange towel on the sunbed cell facing west. The stone and the
+  flowerbed soil replace their grey placeholders too (placeholders hidden).
+* **Fence**: one MultiMesh for all ~113 posts (single draw call) + three beam
+  boxes; per-post height/tilt jitter.
+* **Trees** x3 (§12 spots): leaning bark trunk, two branches, nine deformed
+  clumps (dark low / light high), ground shadow blot offset from the sun.
+* **Road**: jointed sidewalk, textured asphalt, dashed centre line; **cars**:
+  blue sedan + red pickup with glasshouse, side windows, door seams, plates,
+  mirrors, emissive head/tail lights, rimmed wheels.
+* **Neighbours** x3 low-detail beyond the road, softened by the §13 fog.
+* **Smalls**: mailbox, coiled hose, flowerbed + two garden clusters (daisy /
+  tulip / lavender, ±0.06 rad sway at ~1.9 s), four drifting cloud billboards.
+
+`tools/gen_assets.gd` now also writes siding, shingles, bark, wood, asphalt,
+dirt and cloud textures (same skip-if-exists rule).
+
+## Not in G1-G5
+
+Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
+lives in future briefs.
