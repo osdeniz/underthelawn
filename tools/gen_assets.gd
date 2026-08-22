@@ -78,10 +78,11 @@ func _grass_albedo(size: int) -> void:
 	if _skip("res://textures/grass_albedo.png"):
 		return
 	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
-	var dark := Color(0.121, 0.243, 0.086)
-	var mid := Color(0.204, 0.373, 0.129)
-	var light := Color(0.310, 0.494, 0.180)
-	var dry := Color(0.541, 0.522, 0.267)
+	# Green-dominant rather than olive: red pulled down, green pushed up.
+	var dark := Color(0.098, 0.255, 0.072)
+	var mid := Color(0.180, 0.420, 0.125)
+	var light := Color(0.270, 0.560, 0.180)
+	var dry := Color(0.470, 0.520, 0.230)
 
 	for y in size:
 		for x in size:
@@ -95,7 +96,7 @@ func _grass_albedo(size: int) -> void:
 			col = col.lerp(light, clampf((t - 0.55) * 1.9, 0.0, 1.0))
 			# Dry yellow tips where the fine grain peaks.
 			var dryness := clampf((grain - 0.74) * 3.4, 0.0, 1.0)
-			col = col.lerp(dry, dryness * 0.55)
+			col = col.lerp(dry, dryness * 0.35)   # less dry-yellow dirt
 			# Faint clipping scratches: thin high-frequency streaks.
 			var streak := _wrapped_noise(u * 0.35 + v * 2.4, v * 9.0, 64, 91)
 			if streak > 0.86:

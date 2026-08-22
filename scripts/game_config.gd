@@ -22,13 +22,17 @@ const STRIPE_NORTH := 0
 const STRIPE_EAST := 1
 const STRIPE_SOUTH := 2
 const STRIPE_WEST := 3
+## Multiplied over the grass albedo, so these carry the LIGHTNESS ladder
+## (N brightest -> S darkest) while red and blue are pulled down to saturate the
+## result. §4's originals were near-neutral, which read as olive once multiplied.
 const TINT_STRIPE: Array[Color] = [
-	Color(1.00, 1.00, 0.92),   # N — lightest
-	Color(0.90, 0.95, 0.82),   # E
-	Color(0.66, 0.75, 0.58),   # S — darkest
-	Color(0.77, 0.85, 0.67),   # W
+	Color(0.86, 1.00, 0.72),   # N — lightest
+	Color(0.76, 0.94, 0.62),   # E
+	Color(0.50, 0.70, 0.38),   # S — darkest
+	Color(0.62, 0.82, 0.48),   # W
 ]
-const TINT_TALL := Color(0.62, 0.64, 0.44)
+## Uncut grass: richer, slightly darker natural green instead of §5's olive.
+const TINT_TALL := Color(0.42, 0.58, 0.30)
 const TINT_SOIL := Color(0.52, 0.38, 0.26)
 const TINT_POOL_FLOOR := Color(0.70, 0.92, 0.95)
 

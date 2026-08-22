@@ -19,7 +19,7 @@ uniform float edge_fade = 0.03;
 // The card art is lit as if horizontal (normals forced up, §5's grass-card
 // trick), so it renders brighter than the ground. This tint pulls it back into
 // the same value range as the TALL ground tint.
-uniform vec3 tuft_tint : source_color = vec3(0.70, 0.76, 0.55);
+uniform vec3 tuft_tint : source_color = vec3(0.60, 0.82, 0.44);
 
 void vertex() {
 	vec3 pos = VERTEX;

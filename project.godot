@@ -1,5 +1,10 @@
-; Under The Lawn — Godot 4 port of the LastLawn SceneKit prototype.
 ; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
@@ -19,9 +24,6 @@ AudioDirector="*res://scripts/audio_director.gd"
 
 [display]
 
-; Portrait, 1170x2532 base resolution (iPhone). 3D game, so stretch mode is
-; viewport rather than canvas_items. The window overrides only affect desktop
-; testing; the logical viewport stays 1170x2532.
 window/size/viewport_width=1170
 window/size/viewport_height=2532
 window/size/window_width_override=390
@@ -37,9 +39,6 @@ pointing/emulate_touch_from_mouse=true
 [rendering]
 
 renderer/rendering_method="mobile"
-renderer/rendering_method.mobile="mobile"
 textures/vram_compression/import_etc2_astc=true
-textures/default_filters/anisotropic_filtering_level=2
-anti_aliasing/quality/msaa_3d=2
 lights_and_shadows/directional_shadow/size=1024
-lights_and_shadows/directional_shadow/soft_shadow_filter_quality=2
+anti_aliasing/quality/msaa_3d=2
