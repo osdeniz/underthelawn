@@ -199,6 +199,69 @@ const HAPTIC_MEDIUM_MS := 25       # secret uncovered
 ## Secret collected and 100% complete: two medium pulses.
 const HAPTIC_SUCCESS_GAP := 0.08
 
+# ---------------------------------------------------------------- character (§8)
+## No skeleton: joints are separate Node3D pivots, animation is sine/lerp.
+## Height ~1.55, head/height ~1/7. Root pivot sits at the waist.
+const CHAR_SHIRT := Color(0.92, 0.50, 0.18)
+const CHAR_SKIN := Color(0.87, 0.67, 0.52)
+const CHAR_JEANS := Color(0.28, 0.36, 0.52)
+## "Haki" hat and the dark brow band have no numeric colours in §8.
+const CHAR_HAT := Color(0.55, 0.52, 0.34)
+const CHAR_BAND := Color(0.13, 0.11, 0.09)
+const CHAR_BOOT := Color(0.20, 0.15, 0.11)
+
+const CHAR_TORSO_SIZE := Vector3(0.34, 0.44, 0.20)
+const CHAR_HEAD_RADIUS := 0.115
+const CHAR_BAND_SIZE := Vector2(0.16, 0.035)
+const CHAR_HAT_BRIM_RADIUS := 0.175
+const CHAR_HAT_TOP_RADIUS := 0.10
+const CHAR_SHOULDER := Vector2(0.21, 0.42)     # +/-x, y — on the torso
+const CHAR_UPPER_ARM := 0.24
+const CHAR_LOWER_ARM := 0.22
+const CHAR_HIP_X := 0.09
+const CHAR_UPPER_LEG := 0.36
+const CHAR_LOWER_LEG := 0.34
+const CHAR_BOOT_SIZE := Vector3(0.11, 0.09, 0.22)
+const CHAR_AO_SIZE := 0.7                      # NOT in §8 — small contact shadow
+
+# Push mode (§8): walks behind the mower.
+const CHAR_PUSH_SEAT := Vector3(0.0, 0.79, 1.45)
+const CHAR_PUSH_LEAN := 0.12                   # torso forward lean
+const CHAR_PUSH_ARM_X := 0.85                  # arms forward-down to the handle
+const CHAR_PUSH_ARM_INWARD := 0.12             # "hafif içe" — no number in §8
+const WALK_MIN_SPEED := 0.06
+const WALK_PHASE_BASE := 5.0
+const WALK_PHASE_GAIN := 3.5
+const WALK_LEG_SWING := 0.48
+const WALK_KNEE_BEND := 0.55
+const WALK_TORSO_ROLL := 0.045
+const WALK_BOB := 0.022
+const IDLE_RECOVER_RATE := 8.0
+const BREATH_FREQ := 2.2
+const BREATH_AMP := 0.008
+
+# Tractor mode (§8): sits on the seat.
+const CHAR_TRACTOR_SEAT := Vector3(0.0, 0.80, 0.42)
+const CHAR_SIT_THIGH := 1.35                   # thighs horizontal
+const CHAR_SIT_SHIN := 1.15                    # shins down
+const CHAR_WHEEL_ARM_X := 1.35                 # arms to the wheel
+const CHAR_WHEEL_ARM_INWARD := 0.28
+const STEER_TORSO_YAW := 0.18                  # torso yaw target = -steer * this
+const STEER_TORSO_LERP := 6.0
+const STEER_HEAD_FACTOR := 0.6
+const STEER_ARM_Z_BASE := 0.10
+const STEER_ARM_Z_GAIN := 0.12
+const ENGINE_VIB_FREQ := 40.0
+const ENGINE_VIB_AMP := 0.004
+
+# Robot mode: the character sits at a fixed spot near the north edge and
+# watches. Placeholder until the G5 porch exists — move only this constant then.
+# Kept just INSIDE the lawn: outside it there is no ground to sit on until G5.
+const CHAR_BENCH_POS := Vector3(2.0, 0.0, -11.3)
+const CHAR_BENCH_YAW := PI                     # spec yaw: facing south, at the lawn
+## Sitting on the ground puts the waist roughly a shin's height up.
+const CHAR_BENCH_WAIST_Y := 0.42
+
 # ---------------------------------------------------------------- clippings (§9)
 ## Sprayed from the mower's RIGHT side: right = (cos yaw, 0, sin yaw).
 const CLIP_SIDE_OFFSET := 0.45

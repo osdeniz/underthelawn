@@ -16,6 +16,7 @@ extends Node3D
 
 var model: LawnModel
 var mower: MowerController
+var character: Character
 
 var _mowers: Array[MowerController] = []
 var _active_index := GameConfig.MOWER_PUSH
@@ -43,6 +44,12 @@ func _ready() -> void:
 	var tractor := _mowers[GameConfig.MOWER_TRACTOR] as TractorMower
 	if tractor:
 		tractor.joystick = hud.joystick
+
+	# The driver (§8): walks behind the push mower, rides the tractor, and sits
+	# at the lawn edge watching the robot.
+	character = Character.new()
+	character.name = "Driver"
+	add_child(character)
 
 	model.completed.connect(_on_completed)
 	model.secret_revealed.connect(_on_secret_uncovered)
@@ -107,6 +114,20 @@ func _activate(index: int, initial: bool) -> void:
 	AudioDirector.set_engine_profile(index)
 	hud.set_joystick_visible(index == GameConfig.MOWER_TRACTOR)
 	hud.selector.set_current(index)
+	_place_character(index)
+
+
+## §8 integration: the driver follows the mower choice.
+func _place_character(index: int) -> void:
+	if character == null:
+		return
+	match index:
+		GameConfig.MOWER_PUSH:
+			character.set_mode(Character.Mode.PUSH, mower, mower)
+		GameConfig.MOWER_TRACTOR:
+			character.set_mode(Character.Mode.TRACTOR, mower, mower)
+		GameConfig.MOWER_ROBOT:
+			character.set_mode(Character.Mode.SIT, null, self)
 
 
 # ---------------------------------------------------------------- input

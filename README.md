@@ -173,7 +173,25 @@ viewport is 1170 px wide, so `GameConfig.POINT_SCALE` is 3. G1 read the 8 pt
 drag threshold as 8 *pixels*, which triggered steering almost instantly; it is
 now 8 pt = 24 px. The robot's 60 pt swipe threshold uses the same conversion.
 
-## Not in G1/G2/G3
+## Sprint G4 — driver character (done)
 
-Driver character, pool art, neighbourhood (house/road/trees/fence/cars),
-clouds. These come in later sprints, in the order the sprint briefs arrive.
+`scripts/character.gd` builds the §8 driver entirely from primitives: no
+skeleton, every joint its own Node3D pivot, all animation sine/lerp. One shared
+material set, shadows on, a small ground-hugging fake-AO decal.
+
+| Mode | Where | Behaviour |
+| --- | --- | --- |
+| Push | child of the push mower at (0, 0.79, 1.45) | leans into the handle; walks when speed > 0.06 (legs opposite phase, knees fold only on the back swing, torso roll + bob); idle recovers at 8/s and breathes |
+| Tractor | child of the tractor at (0, 0.80, 0.42) | seated, hands on the wheel; torso yaw answers steering (-steer × 0.18 at 6/s), head follows at 0.6, arms shift with it, 40 Hz engine shiver |
+| Robot | scene root, `CHAR_BENCH_POS` | sits at the lawn's north edge watching; breath only. The constant moves to the G5 porch later |
+
+The mower picker drives the mode: `Game._place_character` reparents the one
+character instance on every switch.
+
+Sign note: §8 rotations are SceneKit eulers; limbs here hang along -Y, so
+forward is +X rotation for limbs and -X for the torso. Magnitudes are §8's.
+
+## Not in G1-G4
+
+Pool art and the neighbourhood (house/road/trees/fence/cars/clouds). These
+come in later sprints, in the order the sprint briefs arrive.
