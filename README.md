@@ -1,149 +1,71 @@
 # Under The Lawn
 
-A Godot **4.2+** 3D mobile prototype (built and verified on **4.7.2**): drive a lawn mower with a virtual joystick,
-cut a procedurally generated lawn, watch the completion percentage climb, and
-uncover the first thing buried under the grass.
+Godot 4 port of the **LastLawn** SwiftUI + SceneKit prototype. The full
+specification lives in [REFERENCE.md](REFERENCE.md) (§1-§19) and is the source
+of truth for every number; [SPRINT_G1.md](SPRINT_G1.md) is the current sprint
+brief. Built and verified on **Godot 4.7.2**.
 
-## Run it
+## Run
 
-1. Open Godot 4.2 or newer → **Import** → pick this folder's `project.godot`.
-2. Press **F5**. `scenes/Main.tscn` is the main scene.
-
-**Controls**
-
-| Input | Action |
-| --- | --- |
-| Drag anywhere on the left ~half of the screen | Steer + throttle (dynamic joystick) |
-| Arrow keys / gamepad left stick | Same, for desktop testing |
-| Reset button (top right) | Restart the lawn |
-
-Mouse dragging works in the editor because `pointing/emulate_touch_from_mouse`
-is enabled, so the same touch code path is exercised on desktop.
-
-## How it is built
-
-```
-project.godot          mobile renderer, landscape, zero gravity, touch emulation
-scenes/Main.tscn       world, sun/sky, lawn, mower, camera rig, UI layer
-scenes/Mower.tscn      mower model, collision, clipping + dust particles, engine audio
-scripts/lawn_manager.gd  the lawn: grid state, cut mask, ground, grass MultiMesh, hedges
-scripts/mower.gd         driving, the cutting sweep, engine/FX/camera feedback
-scripts/virtual_joystick.gd  touch stick (class TouchJoystick), drawn with _draw()
-scripts/camera_rig.gd    smoothed top-down chase cam with cut shake
-scripts/secret_object.gd first secret: buried stone hatch that emerges as grass falls
-scripts/engine_audio.gd  runtime engine synth (AudioStreamGenerator)
-scripts/sfx.gd           runtime chime/thud generation (AudioStreamWAV)
-scripts/hud.gd           completion meter, secret toast, finish banner (built in code)
-shaders/lawn_ground.gdshader  uncut/cut ground colour + mown stripes
-shaders/grass_blade.gdshader  per-blade cut collapse, wind sway, parting around the mower
+```bash
+open -a Godot "/Users/omersalihdeniz/Desktop/Under The Lawn/project.godot"
 ```
 
-### The grass tiles
+Press **F5**. Portrait, 1170x2532 logical viewport (the window opens at 390x844
+on desktop). Drag anywhere on the lawn to drive: hold to throttle, drag to
+steer. Mouse drag works because `emulate_touch_from_mouse` is on.
 
-The lawn is a `grid_width × grid_depth` grid of tiles (default 26×26 at 1.2 m =
-31.2 m square, 676 tiles). Two things render it:
+## Sprint G1 — core feel (done)
 
-* **One ground plane** with `lawn_ground.gdshader`.
-* **One MultiMesh** of grass clumps (6 clumps/tile × 3 blades = ~12,000 blades),
-  shadow casting off.
+| Area | Where | Spec |
+| --- | --- | --- |
+| Data model | `scripts/lawn_model.gd` | §3 — 16x24, CellState, mow(), obstacles, secret placement |
+| Ground + striping | `scripts/lawn_view.gd`, `shaders/lawn_ground.gdshader` | §4, §5 — one plane, 16x24 tint texture, 4 direction tones, re-striping |
+| Tufts | `scripts/tuft_field.gd`, `shaders/grass_tuft.gdshader` | §5 — 8 MultiMesh variants, 7 tufts x 2 crossed quads, GPU wind, 0.1 s topple |
+| Push mower | `scenes/Mower.tscn`, `scripts/mower.gd` | §6, §7 — primitives, throttle/coast, smooth steering, wall + obstacle response |
+| Camera | `scripts/camera_rig.gd` | §10 — chase, mid preset, bird's-eye reward |
+| Light + atmosphere | `scenes/Main.tscn` | §13 — sun, sky gradient, ambient, depth fog, fake AO (no SSAO) |
+| HUD | `ui/hud.tscn`, `scripts/hud.gd` | §16 — percentage, capsule, mute, LAWN COMPLETE |
+| Audio | `scripts/audio_director.gd` | §14 — file based, no runtime synthesis |
+| Haptics | `scripts/haptics.gd` | §15 — light/medium/success, one per frame |
+| Config | `scripts/game_config.gd` | §17 — every tunable number |
 
-Tile state lives in a 26×26 `RGBA8` texture, the **cut mask**:
+Autoloads: `GameState`, `Haptics`, `AudioDirector`.
 
-* `R` = cut animation progress, `0` (standing) → `1` (cut)
-* `G` = the mow direction captured when that tile was cut
+### Deliberate platform deviations
 
-Both shaders sample the mask, so **cutting a tile is one pixel write** — there is
-no per-blade CPU work and no per-tile node. `filter_linear` on the mask makes the
-boundary between cut and uncut grass soft and organic rather than blocky.
+* **No SSAO** — it does not work in the Mobile renderer. §13's fake AO (radial
+  dark decal under the mower) is the only contact shading.
+* **No runtime audio synthesis** — `AudioDirector` loads the four `.ogg` files
+  named in `audio/README.md`; missing files warn to the console and the game
+  runs silent.
+* **Spec yaw kept as-is** — the spec's yaw grows clockwise, Godot's grows
+  counter-clockwise, so `mower.yaw` stays in spec space and is applied as
+  `rotation.y = -yaw`. Every §7 formula is therefore verbatim.
 
-### Uncut → cut transition
+## Assets still needed
 
-`Mower._do_cutting()` hands the lawn an oriented rectangle in front of the deck
-each physics tick; `LawnManager.cut_rect()` flips every uncut tile whose centre
-falls inside it and pushes it onto a small "animating" list. Only tiles cut in
-the last ~0.2 s are updated per frame.
+Drop these in and they are picked up automatically, no code change:
 
-What you see for each tile, all driven by that one mask value:
+* `textures/grass_albedo.png`, `grass_normal.png` — ground currently uses a flat
+  colour fallback.
+* `textures/grass_blade_tuft.png` — a procedural 14-blade silhouette stands in.
+* `audio/mower_engine_loop.ogg`, `grass_cut.ogg`, `discovery_chime.ogg`,
+  `ambient_birds_loop.ogg`.
 
-* Blades **fall over** in the direction of the pass (cubic ease), then shrink to
-  stubble (`cut_height`).
-* Standing blades **part around the chassis** as it approaches.
-* The ground blends from deep, patchy green to bright cut green with **mown
-  stripes** whose axis flips with the direction of the pass — back-and-forth
-  passes therefore alternate light/dark, like a real lawn.
-* A short **fresh-clipping flash** brightens the ground right after the blades pass.
-* Clipping and dust **particles** spray up and back off the deck.
-* A small **camera shake** scales with how many tiles were cut this tick.
+## Verification
 
-### Completion tracking
-
-`LawnManager` emits `completion_changed(percent, cut_tiles, total_tiles)` on
-every change and `lawn_completed` at 100%. The HUD shows a meter, a tile count,
-a popping percentage, and a finish banner. Hedge walls are placed so 100% is
-actually reachable in every corner.
-
-### Audio
-
-No audio files. `engine_audio.gd` synthesises the engine in `_process()` with an
-`AudioStreamGenerator`: a wobbling fundamental (42–96 Hz) plus saw/square/sine
-harmonics, intake noise, and a high-passed hiss layer that rises with `cut_load`
-so the engine audibly bogs down and shreds while it is actually cutting.
-`sfx.gd` generates the secret's chime and a thud into `AudioStreamWAV` buffers at
-load time.
-
-### The first secret
-
-`scenes/Main.tscn → Secrets/StoneHatch` is a `SecretObject`: an "Ancient Stone
-Hatch" hidden under the grass at `(-7.2, 0, -6.6)`.
-
-`LawnManager` finds every node in the `secret` group, precomputes the tiles
-inside its `reveal_radius`, and pushes the cut ratio of that patch to
-`set_exposure()`. The hatch fades in and rises out of the soil as its grass is
-cut; at `reveal_threshold` (80%) it **pops**: elastic scale, rune ring glow,
-omni light, a particle burst, a chime, a camera shake, and a HUD toast.
-
-**Adding another secret:** duplicate the `StoneHatch` node, move it, and set
-`display_name` / `reveal_radius`. Anything in the `secret` group implementing
-`set_exposure(ratio: float)` is picked up automatically.
-
-## Tuning
-
-| Where | Knob |
-| --- | --- |
-| `Lawn` node | `grid_width`, `grid_depth`, `tile_size`, `clumps_per_tile`, blade heights, `cut_anim_speed` |
-| `Mower` node | `max_speed`, `turn_speed`, `turn_drag`, `cut_width`, `cut_length` |
-| `CameraRig` | `height`, `back_offset`, `smoothing`, `max_shake` |
-| `Joystick` | `base_radius`, `knob_radius`, `deadzone`, `rest_anchor` |
-| Shader uniforms | blade/ground colours, `cut_height`, `cut_lean`, `wind_strength`, `stripe_width` |
-
-Lower `clumps_per_tile` to 3–4 for weaker devices; the shaders themselves are
-cheap (no branching per fragment, one texture fetch).
-
-## Verified
-
-Checked against Godot **4.7.2** on macOS:
-
-* `--headless --editor --quit` → no parse errors, all global classes register.
-* `--headless --quit-after 150` → no runtime errors; the mower cuts the two
-  tiles under its deck at spawn as expected.
-* Rendered frame sequences (`--write-movie`) → shaders compile, grass/stripes/
-  clippings/HUD all draw, and a scripted drive reached 13% completion.
-* Forced reveal → hatch pop, particle burst, omni light, HUD toast all fire.
-* Movie-mode WAV output → engine synth is audible at about -22 dBFS RMS,
-  peaking near -13 dBFS (no clipping).
-
-Useful while iterating:
-
-```
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --quit-after 150
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tests/model_check.gd
 ```
 
-## Notes / not done
+34 assertions over §3: grid size, obstacle cells, the pool's single collision
+rect, cell centre maths, stripe buckets, secret placement rules, mow results,
+re-striping, completion, restart. Plus `--headless --editor --quit` for parse
+errors and `--write-movie` renders for visual checks.
 
-* The joystick class is named `TouchJoystick`, not `VirtualJoystick` — Godot 4.7
-  has a native class by the latter name.
-* `GPUParticles3D.amount_ratio` is used to scale the clipping spray, which needs
-  Godot **4.2+**.
-* Single secret only, as asked. No save/load, no scoring, no menus.
-* Not tested on a real phone yet: mobile export needs export templates plus the
-  Android SDK or Xcode.
+## Not in G1
+
+Tractor, robot, driver character, pool art, neighbourhood (house/road/trees/
+fence/cars), secret discovery flow, clipping particles, clouds. These come in
+later sprints, in the order the sprint briefs arrive.

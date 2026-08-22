@@ -1,85 +1,64 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=8 format=3]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
-[ext_resource type="Script" path="res://scripts/lawn_manager.gd" id="2_lawn"]
+; Sprint G1 main scene. Light and atmosphere follow REFERENCE.md §13; SSAO is
+; deliberately never enabled (it does not work on the Mobile renderer) and fake
+; AO decals are used instead.
+
+[ext_resource type="Script" path="res://scripts/game.gd" id="1_game"]
+[ext_resource type="Script" path="res://scripts/lawn_view.gd" id="2_lawn"]
 [ext_resource type="PackedScene" path="res://scenes/Mower.tscn" id="3_mower"]
-[ext_resource type="Script" path="res://scripts/camera_rig.gd" id="4_rig"]
-[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="5_joystick"]
-[ext_resource type="Script" path="res://scripts/hud.gd" id="6_hud"]
-[ext_resource type="Script" path="res://scripts/secret_object.gd" id="7_secret"]
+[ext_resource type="Script" path="res://scripts/camera_rig.gd" id="4_cam"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="5_hud"]
 
-[sub_resource type="ProceduralSkyMaterial" id="SkyMat_1"]
-sky_top_color = Color(0.24, 0.45, 0.78, 1)
-sky_horizon_color = Color(0.72, 0.82, 0.88, 1)
-sky_curve = 0.13
-ground_bottom_color = Color(0.16, 0.19, 0.15, 1)
-ground_horizon_color = Color(0.55, 0.62, 0.5, 1)
-sun_angle_max = 25.0
-sun_curve = 0.1
+[sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
+sky_top_color = Color(0.45, 0.7, 0.95, 1)
+sky_horizon_color = Color(0.8, 0.9, 0.98, 1)
+sky_curve = 0.18
+ground_horizon_color = Color(0.8, 0.9, 0.98, 1)
+ground_bottom_color = Color(0.62, 0.68, 0.6, 1)
 
-[sub_resource type="Sky" id="Sky_1"]
-sky_material = SubResource("SkyMat_1")
+[sub_resource type="Sky" id="Sky"]
+sky_material = SubResource("SkyMat")
 
-[sub_resource type="Environment" id="Env_1"]
+[sub_resource type="Environment" id="Env"]
 background_mode = 2
-sky = SubResource("Sky_1")
-ambient_light_source = 3
-ambient_light_sky_contribution = 1.0
+sky = SubResource("Sky")
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.62, 0.7, 1)
+ambient_light_energy = 0.42
+reflected_light_source = 2
 tonemap_mode = 2
-fog_enabled = false
-glow_enabled = true
-glow_intensity = 0.55
-glow_bloom = 0.02
-glow_hdr_threshold = 1.15
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.8, 0.88, 0.95, 1)
+fog_depth_begin = 26.0
+fog_depth_end = 70.0
+fog_depth_curve = 1.5
 
 [node name="Main" type="Node3D"]
-script = ExtResource("1_main")
+script = ExtResource("1_game")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Env_1")
+environment = SubResource("Env")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.95, -0.62, 0)
-light_color = Color(1, 0.97, 0.89, 1)
-light_energy = 1.15
+rotation = Vector3(-0.9, -0.6, 0)
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 1.0
 shadow_enabled = true
-directional_shadow_max_distance = 55.0
+shadow_blur = 2.0
+directional_shadow_max_distance = 60.0
 
 [node name="Lawn" type="Node3D" parent="."]
 script = ExtResource("2_lawn")
-grid_width = 26
-grid_depth = 26
-tile_size = 1.2
-clumps_per_tile = 6
-
-[node name="Secrets" type="Node3D" parent="."]
-
-[node name="StoneHatch" type="Node3D" parent="Secrets"]
-position = Vector3(-7.2, 0, -6.6)
-script = ExtResource("7_secret")
-display_name = "Ancient Stone Hatch"
-reveal_radius = 2.4
-reveal_threshold = 0.8
 
 [node name="Mower" parent="." instance=ExtResource("3_mower")]
-position = Vector3(0, 0, 12)
 
-[node name="CameraRig" type="Node3D" parent="."]
-script = ExtResource("4_rig")
-
-[node name="Camera3D" type="Camera3D" parent="CameraRig"]
-rotation = Vector3(-1.02, 0, 0)
-fov = 62.0
-far = 200.0
+[node name="Camera3D" type="Camera3D" parent="."]
+fov = 55.0
+far = 220.0
+script = ExtResource("4_cam")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
-[node name="Joystick" type="Control" parent="UI"]
-anchor_right = 0.55
-anchor_bottom = 1.0
-script = ExtResource("5_joystick")
-
-[node name="HUD" type="Control" parent="UI"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-script = ExtResource("6_hud")
+[node name="HUD" parent="UI" instance=ExtResource("5_hud")]

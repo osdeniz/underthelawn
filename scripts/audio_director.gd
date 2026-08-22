@@ -5,9 +5,9 @@ extends Node
 ## from res://audio/ if present; a missing file is a console warning and the game
 ## continues silently so the audio pass can land later.
 ##
-## Mixing behaviour (engine idle/moving lerp, cut pitch variance) is
-## REFERENCE.md §14. The mechanism is here; the numbers marked TODO §14 are
-## placeholders and must be replaced from the spec.
+## Mixing follows REFERENCE.md §14: engine volume 0.28 idle <-> 0.45 moving,
+## pitch 0.82 <-> 1.0 with up to +0.12 while turning, ~4/s lerp; cut sound at
+## 0.6 with three pitch variants over a three-voice pool; ambient at 0.18.
 
 const PATHS := {
 	"engine": "res://audio/mower_engine_loop.ogg",
@@ -16,16 +16,7 @@ const PATHS := {
 	"ambient": "res://audio/ambient_birds_loop.ogg",
 }
 
-const CUT_VOICES := 4
-
-# TODO §14 — placeholders, not from the spec.
-const ENGINE_IDLE_DB := -14.0
-const ENGINE_MOVING_DB := -6.0
-const ENGINE_IDLE_PITCH := 0.9
-const ENGINE_MOVING_PITCH := 1.12
-const ENGINE_LERP := 5.0
-const CUT_PITCH_MIN := 0.92
-const CUT_PITCH_MAX := 1.10
+const CUT_VOICES := GameConfig.CUT_VOICES
 
 var muted: bool = false:
 	set(value):
@@ -41,6 +32,7 @@ var _cut_players: Array[AudioStreamPlayer] = []
 var _cut_index := 0
 var _engine_target := 0.0
 var _engine_mix := 0.0
+var _turn_amount := 0.0
 var _cut_frame := -1
 var _rng := RandomNumberGenerator.new()
 
@@ -97,12 +89,15 @@ func toggle_mute() -> bool:
 
 func start_ambient() -> void:
 	if _ambient_player.stream != null and not _ambient_player.playing:
+		_ambient_player.volume_db = GameConfig.linear_to_db_safe(GameConfig.AMBIENT_GAIN)
 		_ambient_player.play()
 
 
-## 0.0 = idle, 1.0 = mowing at full speed. Smoothed in _process.
-func set_engine_throttle(value: float) -> void:
-	_engine_target = clampf(value, 0.0, 1.0)
+## speed_fraction 0 = idle, 1 = full speed. turn_amount 0..1 adds the pitch
+## boost the spec asks for while cornering (§14).
+func set_engine_state(speed_fraction: float, turn_amount: float = 0.0) -> void:
+	_engine_target = clampf(speed_fraction, 0.0, 1.0)
+	_turn_amount = clampf(turn_amount, 0.0, 1.0)
 	if _engine_player.stream != null and not _engine_player.playing:
 		_engine_player.play()
 
@@ -117,7 +112,9 @@ func play_cut() -> void:
 	_cut_frame = frame
 	var p := _cut_players[_cut_index]
 	_cut_index = (_cut_index + 1) % _cut_players.size()
-	p.pitch_scale = _rng.randf_range(CUT_PITCH_MIN, CUT_PITCH_MAX)
+	p.pitch_scale = GameConfig.CUT_PITCH_VARIANTS[
+		_rng.randi_range(0, GameConfig.CUT_PITCH_VARIANTS.size() - 1)]
+	p.volume_db = GameConfig.linear_to_db_safe(GameConfig.CUT_GAIN)
 	p.play()
 
 
@@ -132,6 +129,10 @@ func play_discovery() -> void:
 func _process(delta: float) -> void:
 	if _engine_player == null or _engine_player.stream == null:
 		return
-	_engine_mix = lerpf(_engine_mix, _engine_target, clampf(delta * ENGINE_LERP, 0.0, 1.0))
-	_engine_player.volume_db = lerpf(ENGINE_IDLE_DB, ENGINE_MOVING_DB, _engine_mix)
-	_engine_player.pitch_scale = lerpf(ENGINE_IDLE_PITCH, ENGINE_MOVING_PITCH, _engine_mix)
+	_engine_mix = lerpf(_engine_mix, _engine_target,
+		clampf(delta * GameConfig.ENGINE_MIX_LERP, 0.0, 1.0))
+	_engine_player.volume_db = GameConfig.linear_to_db_safe(
+		lerpf(GameConfig.ENGINE_GAIN_IDLE, GameConfig.ENGINE_GAIN_MOVING, _engine_mix))
+	_engine_player.pitch_scale = lerpf(
+		GameConfig.ENGINE_PITCH_IDLE, GameConfig.ENGINE_PITCH_MOVING, _engine_mix) \
+		+ GameConfig.ENGINE_PITCH_TURN_BOOST * _turn_amount

@@ -1,47 +1,69 @@
 class_name CameraRig
-extends Node3D
-## Smoothed top-down chase camera with a little shake for cutting feedback.
+extends Camera3D
+## Chase camera — REFERENCE.md §10. Mid zoom preset is the active one.
+##
+## Uses the spec yaw convention: forward(yaw) = (sin(yaw), 0, -cos(yaw)).
 
-@export var target: Node3D
-@export var height: float = 13.5
-@export var back_offset: float = 8.0
-@export var smoothing: float = 6.0
-@export var max_shake: float = 0.22
+@export var back: float = GameConfig.CAMERA_BACK
+@export var height: float = GameConfig.CAMERA_HEIGHT
+@export var look_ahead: float = GameConfig.CAMERA_LOOK_AHEAD
 
-var _shake: float = 0.0
-var _cam: Camera3D
-var _rng := RandomNumberGenerator.new()
+var target: Mower
+## Camera yaw in spec space — the mower reads this so drag steering stays
+## camera-relative (§18 trap 2).
+var yaw: float = 0.0
+
+var _focus := Vector3.ZERO
+var _bird_view := false
 
 
 func _ready() -> void:
-	_cam = get_node_or_null("Camera3D") as Camera3D
-	_rng.randomize()
+	fov = GameConfig.CAMERA_FOV
 	if target:
-		global_position = target.global_position + Vector3(0.0, height, back_offset)
+		snap_to_target()
+
+
+func snap_to_target() -> void:
+	if target == null:
+		return
+	_focus = target.position
+	yaw = target.yaw
+	_place()
+
+
+func set_bird_view(enabled: bool) -> void:
+	_bird_view = enabled
 
 
 func _process(delta: float) -> void:
-	if target:
-		var desired := target.global_position + Vector3(0.0, height, back_offset)
-		var t := 1.0 - exp(-smoothing * delta)
-		global_position = global_position.lerp(desired, t)
+	if _bird_view:
+		var t := 1.0 - exp(-GameConfig.CAMERA_WIN_LERP * delta)
+		position = position.lerp(GameConfig.CAMERA_WIN_POS, t)
+		_look(Vector3.ZERO)
+		return
 
-	_shake = maxf(_shake - delta * 0.9, 0.0)
-	if _cam:
-		if _shake > 0.0:
-			_cam.position = Vector3(
-				_rng.randf_range(-1.0, 1.0) * _shake,
-				_rng.randf_range(-1.0, 1.0) * _shake,
-				0.0)
-		elif _cam.position != Vector3.ZERO:
-			_cam.position = Vector3.ZERO
+	if target == null:
+		return
+	# Focus follows at 4.0/s, camera yaw lags the mower at 2.6/s.
+	_focus = _focus.lerp(target.position, 1.0 - exp(-GameConfig.CAMERA_FOCUS_LERP * delta))
+	yaw += wrapf(target.yaw - yaw, -PI, PI) * (1.0 - exp(-GameConfig.CAMERA_YAW_LERP * delta))
+	_place()
 
 
-## Jump straight to the follow position (used after the target is assigned).
-func snap_to_target() -> void:
-	if target:
-		global_position = target.global_position + Vector3(0.0, height, back_offset)
+func _place() -> void:
+	var fwd := Vector3(sin(yaw), 0.0, -cos(yaw))
+	position = _focus - fwd * back + Vector3(0.0, height, 0.0)
+	_look(_focus + fwd * look_ahead + Vector3(0.0, GameConfig.CAMERA_LOOK_UP, 0.0))
 
 
-func add_shake(amount: float) -> void:
-	_shake = minf(_shake + amount, max_shake)
+func _look(at: Vector3) -> void:
+	var dir := at - position
+	if dir.length_squared() < 0.0001:
+		return
+	# A near-vertical view makes up parallel to the look direction and look_at
+	# degenerates (the bird's-eye reward shot rolled over). North is up there.
+	# The chase camera's dot is about 0.64, so this never fires during play.
+	var up := Vector3.UP
+	if absf(dir.normalized().dot(Vector3.UP)) > 0.9:
+		up = Vector3(0.0, 0.0, -1.0)
+	look_at(at, up)

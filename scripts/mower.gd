@@ -1,117 +1,241 @@
 class_name Mower
-extends CharacterBody3D
-## Arcade lawn mower. The joystick vector is treated as a world-space heading
-## (the camera is top-down, so screen up = away from the player); the mower
-## turns toward it and drives forward. Cutting is an oriented rectangle in front
-## of the chassis handed to the LawnManager every physics tick.
+extends Node3D
+## Push mower — REFERENCE.md §6 (parameters) and §7 (movement + control).
+##
+## COORDINATE NOTE: the spec's convention is yaw = 0 -> north with
+## forward = (sin(yaw), 0, -cos(yaw)) and increasing yaw turning right. Godot's
+## rotation.y turns the other way, so `yaw` is kept in spec space and applied as
+## rotation.y = -yaw. Every formula below is therefore verbatim from the spec.
 
-@export_group("Driving")
-@export var max_speed: float = 5.6
-@export var acceleration: float = 11.0
-@export var braking: float = 16.0
-@export var turn_speed: float = 5.5
-## Speed is scaled down while turning hard, so corners feel weighty.
-@export var turn_drag: float = 0.45
+signal cells_mown(count: int)
+signal secret_uncovered(col: int, row: int)
 
-@export_group("Cutting")
-@export var cut_width: float = 2.0
-@export var cut_length: float = 1.0
-@export var deck_forward_offset: float = 0.75
+@export var max_speed: float = GameConfig.PUSH_SPEED
+@export var deck_radius: float = GameConfig.PUSH_DECK_RADIUS
+@export var max_turn: float = GameConfig.PUSH_MAX_TURN
+@export var body_radius: float = GameConfig.PUSH_BODY_RADIUS
 
-@export_group("References")
-@export var lawn: LawnManager
-@export var joystick: TouchJoystick
-@export var camera_rig: CameraRig
+var model: LawnModel
+var tuft_field: TuftField
+## Camera yaw in spec space; drag steering is camera-relative (§18 trap 2).
+var camera_yaw: float = 0.0
 
+var yaw: float = 0.0
 var speed: float = 0.0
-var cut_rate: float = 0.0            ## Smoothed tiles-per-second being cut.
+var omega: float = 0.0
+var throttle: float = 0.0
 
-var _emit_hold: float = 0.0
-var _bob_time: float = 0.0
-var _turn_signed: float = 0.0
-
-var _chassis: Node3D
-var _grass_fx: GPUParticles3D
-var _dust_fx: GPUParticles3D
-var _engine: MowerEngine
+var _target_yaw: float = 0.0
+var _has_target := false
+var _touch_index := -1
+var _touch_origin := Vector2.ZERO
+var _shake_time := 0.0
+var _body: Node3D
 
 
 func _ready() -> void:
-	_chassis = get_node_or_null("Chassis") as Node3D
-	_grass_fx = get_node_or_null("GrassParticles") as GPUParticles3D
-	_dust_fx = get_node_or_null("DustParticles") as GPUParticles3D
-	_engine = get_node_or_null("Engine") as MowerEngine
-	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
+	_body = get_node_or_null("Body") as Node3D
+	_add_fake_ao()
+	reset_to_start()
 
+
+func reset_to_start() -> void:
+	yaw = 0.0                       # facing north, towards the house
+	speed = 0.0
+	omega = 0.0
+	throttle = 0.0
+	_has_target = false
+	_touch_index = -1
+	position = Vector3(GameConfig.MOWER_START.x, 0.0, GameConfig.MOWER_START.y)
+	_apply_yaw()
+
+
+func forward() -> Vector3:
+	return Vector3(sin(yaw), 0.0, -cos(yaw))
+
+
+func speed_fraction() -> float:
+	return absf(speed) / max_speed
+
+
+# ---------------------------------------------------------------- input (§7 Push)
+
+func touch_pressed(index: int, screen_pos: Vector2) -> void:
+	if _touch_index != -1:
+		return
+	_touch_index = index
+	_touch_origin = screen_pos
+	_has_target = false
+	throttle = 1.0
+
+
+func touch_dragged(index: int, screen_pos: Vector2) -> void:
+	if index != _touch_index:
+		return
+	var drag := screen_pos - _touch_origin
+	if drag.length() < GameConfig.DRAG_THRESHOLD_PX:
+		return
+	# Camera-relative: screen up (-y) means "away from the player".
+	_target_yaw = camera_yaw + atan2(drag.x, -drag.y)
+	_has_target = true
+
+
+func touch_released(index: int) -> void:
+	if index != _touch_index:
+		return
+	_touch_index = -1
+	throttle = 0.0
+
+
+# ---------------------------------------------------------------- movement (§7)
 
 func _physics_process(delta: float) -> void:
-	var stick := Vector2.ZERO
-	if joystick:
-		stick = joystick.get_value()
+	_update_speed(delta)
+	_update_steering(delta)
 
-	# Screen down (+y on the stick) maps to world +z under the top-down camera.
-	var desired := Vector3(stick.x, 0.0, stick.y)
-	var throttle := clampf(desired.length(), 0.0, 1.0)
+	position += forward() * speed * delta
+	_resolve_walls()
+	_resolve_obstacles()
+	_apply_yaw()
 
-	if throttle > 0.05:
-		var target_yaw := atan2(-desired.x, -desired.z)
-		var delta_yaw := wrapf(target_yaw - rotation.y, -PI, PI)
-		_turn_signed = clampf(delta_yaw / PI, -1.0, 1.0)
-		rotation.y = lerp_angle(rotation.y, target_yaw, clampf(turn_speed * delta, 0.0, 1.0))
-		var target_speed := max_speed * throttle * (1.0 - turn_drag * absf(_turn_signed))
-		speed = move_toward(speed, target_speed, acceleration * delta)
-	else:
-		_turn_signed = lerpf(_turn_signed, 0.0, clampf(delta * 6.0, 0.0, 1.0))
-		speed = move_toward(speed, 0.0, braking * delta)
-
-	var forward := -global_transform.basis.z
-	velocity = forward * speed
-	move_and_slide()
-	global_position.y = 0.0
-
-	_do_cutting(delta, forward)
-	_update_feel(delta, throttle)
+	_mow(delta)
+	_idle_shake(delta)
 
 
-func _do_cutting(delta: float, forward: Vector3) -> void:
-	var newly := 0
-	if lawn:
-		lawn.set_mower_position(global_position)
-		var deck := global_position + forward * deck_forward_offset
-		newly = lawn.cut_rect(deck, forward, cut_width * 0.5, cut_length * 0.5)
-
-	# Smooth the raw per-tick count into a rate so audio/FX do not flicker.
-	var instant := float(newly) / maxf(delta, 0.0001)
-	cut_rate = lerpf(cut_rate, instant, clampf(delta * 7.0, 0.0, 1.0))
-
-	if newly > 0:
-		_emit_hold = 0.16
-		if camera_rig:
-			camera_rig.add_shake(0.012 * float(newly))
-	else:
-		_emit_hold = maxf(_emit_hold - delta, 0.0)
-
-	var cutting := _emit_hold > 0.0
-	if _grass_fx:
-		_grass_fx.emitting = cutting
-		_grass_fx.amount_ratio = clampf(0.35 + cut_rate / 22.0, 0.0, 1.0)
-	if _dust_fx:
-		_dust_fx.emitting = cutting
+func _update_speed(delta: float) -> void:
+	var target := max_speed * throttle
+	# rate = maxSpeed / time, applied per direction (0.4 s up, 0.55 s down).
+	var seconds := GameConfig.ACCEL_TIME if target > speed else GameConfig.DECEL_TIME
+	var rate := max_speed / seconds
+	speed += clampf(target - speed, -rate * delta, rate * delta)
 
 
-func _update_feel(delta: float, throttle: float) -> void:
-	var speed_ratio := clampf(speed / maxf(max_speed, 0.001), 0.0, 1.0)
-	var w := clampf(delta * 5.0, 0.0, 1.0)
+func _update_steering(delta: float) -> void:
+	var desired := 0.0
+	if _has_target and throttle > 0.0:
+		desired = clampf(_shortest_angle(yaw, _target_yaw) * GameConfig.STEER_ERROR_GAIN,
+			-max_turn, max_turn)
+	omega += (desired - omega) * minf(1.0, GameConfig.STEER_SMOOTHING * delta)
+	# Faster travel widens the turning radius by up to 45%.
+	yaw += omega * (1.0 - GameConfig.STEER_SPEED_RADIUS_FACTOR * speed_fraction()) * delta
 
-	if _engine:
-		_engine.throttle = clampf(0.12 + speed_ratio * 0.88 + throttle * 0.1, 0.0, 1.0)
-		_engine.cut_load = clampf(cut_rate / 18.0, 0.0, 1.0)
 
-	if _chassis:
-		# Engine idle shudder, stronger under load.
-		_bob_time += delta * (7.0 + 12.0 * speed_ratio)
-		_chassis.position.y = (0.006 + 0.012 * speed_ratio) * sin(_bob_time * 3.1)
-		# Nose up under power, roll into the turn.
-		_chassis.rotation.x = lerpf(_chassis.rotation.x, -0.05 * speed_ratio, w)
-		_chassis.rotation.z = lerpf(_chassis.rotation.z,
-			0.18 * _turn_signed * speed_ratio, w)
+static func _shortest_angle(from_angle: float, to_angle: float) -> float:
+	return wrapf(to_angle - from_angle, -PI, PI)
+
+
+func _apply_yaw() -> void:
+	rotation.y = -yaw
+
+
+## Position is clipped to the lawn; sliding along the wall falls out for free,
+## and there is deliberately no auto-turn (§7).
+func _resolve_walls() -> void:
+	var inset := body_radius * GameConfig.WALL_INSET_FACTOR
+	position.x = clampf(position.x, -GameConfig.HALF_X + inset, GameConfig.HALF_X - inset)
+	position.z = clampf(position.z, -GameConfig.HALF_Z + inset, GameConfig.HALF_Z - inset)
+
+
+## Circle vs rectangle closest-point test, pushed out along the normal by the
+## penetration depth. No bounce (§7).
+func _resolve_obstacles() -> void:
+	if model == null:
+		return
+	for rect in model.collision_rects:
+		var p := Vector2(position.x, position.z)
+		var closest := Vector2(
+			clampf(p.x, rect.position.x, rect.end.x),
+			clampf(p.y, rect.position.y, rect.end.y))
+		var away := p - closest
+		var dist := away.length()
+		if dist >= body_radius:
+			continue
+		if dist < 0.0001:
+			# Dead centre: leave along the shallowest axis.
+			var to_left := absf(p.x - rect.position.x)
+			var to_right := absf(rect.end.x - p.x)
+			var to_top := absf(p.y - rect.position.y)
+			var to_bottom := absf(rect.end.y - p.y)
+			var smallest := minf(minf(to_left, to_right), minf(to_top, to_bottom))
+			if smallest == to_left:
+				position.x = rect.position.x - body_radius
+			elif smallest == to_right:
+				position.x = rect.end.x + body_radius
+			elif smallest == to_top:
+				position.z = rect.position.y - body_radius
+			else:
+				position.z = rect.end.y + body_radius
+			continue
+		var push := away / dist * (body_radius - dist)
+		position.x += push.x
+		position.z += push.y
+
+
+# ---------------------------------------------------------------- mowing (§4)
+
+## Every cell whose centre falls inside the deck radius is mown. At most one
+## haptic and one cut sound per frame, however many cells fall.
+func _mow(_delta: float) -> void:
+	if model == null:
+		return
+	var stripe := LawnModel.stripe_bucket(forward())
+	var center := Vector2(position.x, position.z)
+	var origin := LawnModel.cell_at(position - Vector3(deck_radius, 0.0, deck_radius))
+	var limit := LawnModel.cell_at(position + Vector3(deck_radius, 0.0, deck_radius))
+
+	var mown := 0
+	var revealed: Array[Vector2i] = []
+	for row in range(origin.y, limit.y + 1):
+		for col in range(origin.x, limit.x + 1):
+			if not LawnModel.in_bounds(col, row):
+				continue
+			var cc := LawnModel.cell_center(col, row)
+			if Vector2(cc.x, cc.z).distance_to(center) > deck_radius:
+				continue
+			var result := model.mow(col, row, stripe)
+			if result == LawnModel.MowResult.NONE:
+				continue
+			mown += 1
+			if tuft_field:
+				tuft_field.cut_cell(col, row, rotation.y)
+			if result == LawnModel.MowResult.SECRET_REVEALED:
+				revealed.append(Vector2i(col, row))
+
+	if mown > 0:
+		Haptics.light()
+		AudioDirector.play_cut()
+		cells_mown.emit(mown)
+	for cell in revealed:
+		secret_uncovered.emit(cell.x, cell.y)
+
+
+# ---------------------------------------------------------------- feel (§6)
+
+func _idle_shake(delta: float) -> void:
+	if _body == null:
+		return
+	_shake_time += delta
+	var phase := fmod(_shake_time, GameConfig.IDLE_SHAKE_PERIOD) / GameConfig.IDLE_SHAKE_PERIOD
+	var wave := sin(phase * TAU)
+	_body.position = Vector3(
+		GameConfig.IDLE_SHAKE.x * wave, GameConfig.IDLE_SHAKE.y * wave, 0.0)
+
+
+## Radial dark circle under the mower — contact shading, since SSAO is
+## unavailable on the Mobile renderer (§13).
+func _add_fake_ao() -> void:
+	var quad := QuadMesh.new()
+	quad.size = Vector2(GameConfig.FAKE_AO_MOWER_SIZE, GameConfig.FAKE_AO_MOWER_SIZE)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = TextureLibrary.ao_radial()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mi := MeshInstance3D.new()
+	mi.name = "FakeAO"
+	mi.mesh = quad
+	mi.material_override = mat
+	mi.rotation.x = -PI * 0.5
+	mi.position = Vector3(0.0, 0.02, 0.0)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
