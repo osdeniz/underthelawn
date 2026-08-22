@@ -69,10 +69,41 @@ brief forbids runtime synthesis). Regenerate with:
 | --- | --- |
 | `textures/grass_albedo.png` 512 | seamless wrapped fbm: green patchiness, blade grain, dry yellow tips, faint clipping streaks |
 | `textures/grass_normal.png` 256 | normal from the same fine grain height field |
-| `textures/grass_blade_tuft.png` 512 | 22 tapered blades, dark green root to lighter tip |
+| `textures/grass_blade_tuft.png` 512 | **supplied artwork**, processed by `tools/import_tuft.gd` (see below) |
 | `audio/mower_engine_loop.wav` 1.00 s | 85 Hz + 6 harmonics at 1/k, 10% AM at 13 Hz, tanh saturation — seamless (85 and 13 both close in 1 s) |
 | `audio/grass_cut.wav` 0.16 s | white noise, one-pole lowpass sweeping 2800 → 500 Hz, fast attack + exponential decay |
 | `audio/discovery_chime.wav` 0.70 s | E6 then B6 after 0.12 s, exponential decay |
+
+The generator **never overwrites an existing file** — real art or recordings
+dropped into `textures/` or `audio/` are safe. Delete a file first if you want
+its placeholder back.
+
+### Importing supplied artwork
+
+`tools/import_tuft.py` (needs Pillow) turns a supplied grass PNG into a
+Godot-ready alpha card:
+
+```bash
+python3 tools/import_tuft.py ~/Downloads/grass_blade_tuft.png textures/grass_blade_tuft.png
+```
+
+It fixes the two things image generators get wrong:
+
+1. **No alpha channel.** Generated "transparent" PNGs often have the
+   transparency *checkerboard drawn into the pixels*, or a flat white/black
+   backdrop. The backdrop is keyed out by **saturation** — grey is background,
+   green is grass — which handles checker, white and black alike.
+2. **Backdrop bleeding into antialiased edges.** Edge pixels are un-mixed
+   against the measured backdrop colour, so no white or dark halo survives.
+
+Then it crops to the artwork, keeps the aspect ratio and resizes to 512 tall.
+It prints `KART_ENBOY` (the cropped aspect) — put that in
+`GameConfig.TUFT_CARD_ASPECT` so quad width follows the art and the blades are
+never squashed.
+
+The current card is 368x512, roughly 16% covered, one tuft of ~9 blades. If a
+future card is a dense grass *wall* instead of a single tuft, the field needs
+the opposite treatment (fewer, wider quads and UV slicing).
 
 `ambient_birds_loop` is intentionally NOT generated — §14 says it is never
 synthesised. Drop in a real recording and it plays at 18%.

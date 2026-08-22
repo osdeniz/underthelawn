@@ -75,14 +75,18 @@ func _make_cluster(rng: RandomNumberGenerator) -> ArrayMesh:
 			0.0,
 			rng.randf_range(-GameConfig.TUFT_CLUSTER_SPREAD, GameConfig.TUFT_CLUSTER_SPREAD))
 		var height := rng.randf_range(GameConfig.TUFT_HEIGHT_MIN, GameConfig.TUFT_HEIGHT_MAX)
-		var width := rng.randf_range(GameConfig.TUFT_WIDTH_MIN, GameConfig.TUFT_WIDTH_MAX)
+		# The card holds ONE tuft, so each quad shows all of it and the width
+		# follows the card's aspect ratio to keep the blades in proportion.
+		var width := height * GameConfig.TUFT_CARD_ASPECT * rng.randf_range(
+			GameConfig.TUFT_WIDTH_JITTER_MIN, GameConfig.TUFT_WIDTH_JITTER_MAX)
 		var yaw := rng.randf() * TAU
 		_add_quad(st, offset, yaw, width, height)
 		_add_quad(st, offset, yaw + PI * 0.5, width, height)
 	return st.commit()
 
 
-func _add_quad(st: SurfaceTool, offset: Vector3, yaw: float, width: float, height: float) -> void:
+func _add_quad(st: SurfaceTool, offset: Vector3, yaw: float, width: float,
+		height: float, u_min: float = 0.0, u_max: float = 1.0) -> void:
 	var side := Vector3(cos(yaw), 0.0, sin(yaw))
 	var half_bottom := side * width * 0.5
 	var half_top := side * width * GameConfig.TUFT_TOP_TAPER * 0.5
@@ -93,18 +97,19 @@ func _add_quad(st: SurfaceTool, offset: Vector3, yaw: float, width: float, heigh
 	var tl := offset + up - half_top
 	var tr := offset + up + half_top
 
-	# Root is the bottom of the silhouette image, so v = 1 at the root.
-	_vertex(st, bl, Vector2(0.0, 1.0))
-	_vertex(st, br, Vector2(1.0, 1.0))
-	_vertex(st, tr, Vector2(1.0, 0.0))
-	_vertex(st, bl, Vector2(0.0, 1.0))
-	_vertex(st, tr, Vector2(1.0, 0.0))
-	_vertex(st, tl, Vector2(0.0, 0.0))
+	# Root is the bottom of the card image, so v = 1 at the root.
+	_vertex(st, bl, Vector2(u_min, 1.0), Vector2(0.0, 1.0))
+	_vertex(st, br, Vector2(u_max, 1.0), Vector2(1.0, 1.0))
+	_vertex(st, tr, Vector2(u_max, 0.0), Vector2(1.0, 0.0))
+	_vertex(st, bl, Vector2(u_min, 1.0), Vector2(0.0, 1.0))
+	_vertex(st, tr, Vector2(u_max, 0.0), Vector2(1.0, 0.0))
+	_vertex(st, tl, Vector2(u_min, 0.0), Vector2(0.0, 0.0))
 
 
-func _vertex(st: SurfaceTool, pos: Vector3, uv: Vector2) -> void:
+func _vertex(st: SurfaceTool, pos: Vector3, uv: Vector2, quad_uv: Vector2) -> void:
 	st.set_normal(Vector3.UP)
 	st.set_uv(uv)
+	st.set_uv2(quad_uv)
 	st.add_vertex(pos)
 
 
@@ -139,7 +144,7 @@ func _assign_cells(seed_value: int) -> void:
 			_cell_origin[i] = LawnModel.cell_center(col, row) + Vector3(
 				rng.randf_range(-0.15, 0.15), 0.0, rng.randf_range(-0.15, 0.15))
 			# Brightness plus a nudge towards dry yellow or deep green.
-			var bright := rng.randf_range(0.82, 1.14)
+			var bright := rng.randf_range(0.86, 1.08)
 			var dryness := rng.randf_range(-0.06, 0.09)
 			_cell_color[i] = Color(
 				clampf(bright + dryness, 0.6, 1.3),

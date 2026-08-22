@@ -9,8 +9,18 @@ extends SceneTree
 const SR := 44100
 
 
+## Existing files are left alone: real art or recordings dropped into
+## textures/ or audio/ must never be overwritten by the placeholder generator.
+## Delete a file first if you want it regenerated.
+static func _skip(path: String) -> bool:
+	if FileAccess.file_exists(path):
+		print("  atlandi (dosya var): %s" % path.get_file())
+		return true
+	return false
+
+
 func _initialize() -> void:
-	print("--- asset uretimi ---")
+	print("--- asset uretimi (var olan dosyalara dokunulmaz) ---")
 	_grass_albedo(512)
 	_grass_normal(256)
 	_tuft_silhouette(512)
@@ -64,6 +74,8 @@ func _fbm(u: float, v: float, base_period: int, octaves: int, seed_value: int) -
 
 ## Green blotches + clipping scratches + dry yellow tips, seamless.
 func _grass_albedo(size: int) -> void:
+	if _skip("res://textures/grass_albedo.png"):
+		return
 	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
 	var dark := Color(0.121, 0.243, 0.086)
 	var mid := Color(0.204, 0.373, 0.129)
@@ -96,6 +108,8 @@ func _grass_albedo(size: int) -> void:
 
 ## Normal map derived from the same fine grain height field.
 func _grass_normal(size: int) -> void:
+	if _skip("res://textures/grass_normal.png"):
+		return
 	var img := Image.create(size, size, false, Image.FORMAT_RGB8)
 	var strength := 2.4
 	for y in size:
@@ -115,6 +129,8 @@ func _grass_normal(size: int) -> void:
 
 ## Dense pointed-blade silhouette on transparent ground, rooted at the bottom.
 func _tuft_silhouette(size: int) -> void:
+	if _skip("res://textures/grass_blade_tuft.png"):
+		return
 	var img := Image.create(size, size, true, Image.FORMAT_RGBA8)
 	img.fill(Color(0.0, 0.0, 0.0, 0.0))
 	var rng := RandomNumberGenerator.new()
@@ -180,6 +196,8 @@ func _write_wav(path: String, samples: PackedFloat32Array, gain: float) -> void:
 ## at 13 Hz ("pat-pat") + tanh saturation. Exactly 1 s, so it loops seamlessly:
 ## 85 and 13 both complete whole cycles in one second.
 func _engine_loop() -> void:
+	if _skip("res://audio/mower_engine_loop.wav"):
+		return
 	var count := SR
 	var out := PackedFloat32Array()
 	out.resize(count)
@@ -196,6 +214,8 @@ func _engine_loop() -> void:
 ## 0.16 s white noise through a one-pole lowpass sweeping 2800 -> 500 Hz, fast
 ## attack and exponential decay.
 func _grass_cut() -> void:
+	if _skip("res://audio/grass_cut.wav"):
+		return
 	var count := int(SR * 0.16)
 	var out := PackedFloat32Array()
 	out.resize(count)
@@ -215,6 +235,8 @@ func _grass_cut() -> void:
 
 ## E6 (1318.5 Hz) then B6 (1975.5 Hz) 0.12 s later, exponential decay, 0.7 s.
 func _discovery_chime() -> void:
+	if _skip("res://audio/discovery_chime.wav"):
+		return
 	var count := int(SR * 0.7)
 	var out := PackedFloat32Array()
 	out.resize(count)

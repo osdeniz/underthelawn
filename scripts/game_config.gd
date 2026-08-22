@@ -39,12 +39,14 @@ const GROUND_NORMAL_STRENGTH := 0.6
 const GROUND_ROUGHNESS := 0.95
 
 const TUFT_VARIANTS := 8
-## §5 says 7; raised on request for a denser lawn.
-const TUFTS_PER_CLUSTER := 11
+const TUFTS_PER_CLUSTER := 7
 const TUFT_HEIGHT_MIN := 0.30
 const TUFT_HEIGHT_MAX := 0.66
-const TUFT_WIDTH_MIN := 0.26
-const TUFT_WIDTH_MAX := 0.46
+## Quad width follows the tuft card's own aspect ratio so the blades are never
+## squashed; tools/import_tuft.py prints it as KART_ENBOY after cropping.
+const TUFT_CARD_ASPECT := 0.72
+const TUFT_WIDTH_JITTER_MIN := 0.92
+const TUFT_WIDTH_JITTER_MAX := 1.12
 ## §5 says 0.34; widened so clusters cross cell borders and the grid
 ## pattern of gaps disappears.
 const TUFT_CLUSTER_SPREAD := 0.44

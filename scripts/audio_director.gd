@@ -98,7 +98,10 @@ static func _force_loop(stream: AudioStream) -> void:
 	if wav != null:
 		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
 		wav.loop_begin = 0
-		wav.loop_end = wav.data.size() / 2   # 16-bit mono
+		# NOT data.size() / 2: Godot's WAV importer compresses (QOA/IMA-ADPCM),
+		# so the byte count is not the frame count. get_length() is correct for
+		# every format, and a short loop_end would loop a fragment.
+		wav.loop_end = int(round(wav.get_length() * float(wav.mix_rate)))
 		return
 	var mp3 := stream as AudioStreamMP3
 	if mp3 != null:
