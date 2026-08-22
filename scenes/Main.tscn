@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 ; Sprint G1 main scene. Light and atmosphere follow REFERENCE.md §13; SSAO is
 ; deliberately never enabled (it does not work on the Mobile renderer) and fake
@@ -6,7 +6,9 @@
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_game"]
 [ext_resource type="Script" path="res://scripts/lawn_view.gd" id="2_lawn"]
-[ext_resource type="PackedScene" path="res://scenes/Mower.tscn" id="3_mower"]
+[ext_resource type="PackedScene" path="res://scenes/PushMower.tscn" id="3_mower"]
+[ext_resource type="PackedScene" path="res://scenes/Tractor.tscn" id="6_tractor"]
+[ext_resource type="PackedScene" path="res://scenes/Robot.tscn" id="7_robot"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="4_cam"]
 [ext_resource type="PackedScene" path="res://ui/hud.tscn" id="5_hud"]
 
@@ -54,7 +56,13 @@ script = ExtResource("2_lawn")
 
 [node name="Effects" type="Node3D" parent="."]
 
-[node name="Mower" parent="." instance=ExtResource("3_mower")]
+[node name="Mowers" type="Node3D" parent="."]
+
+[node name="PushMower" parent="Mowers" instance=ExtResource("3_mower")]
+
+[node name="Tractor" parent="Mowers" instance=ExtResource("6_tractor")]
+
+[node name="Robot" parent="Mowers" instance=ExtResource("7_robot")]
 
 [node name="Camera3D" type="Camera3D" parent="."]
 fov = 55.0

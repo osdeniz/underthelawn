@@ -1,22 +1,25 @@
 class_name Game
 extends Node3D
-## Sprint G1 + G2 wiring: model -> view -> mower -> camera -> HUD, plus the
-## secret discovery flow (§9, §16).
+## Sprints G1-G3 wiring: model -> view -> the selected mower -> camera -> HUD,
+## the secret discovery flow (§9, §16) and the three-way mower picker.
 ##
-## Touch input arrives through _unhandled_input, so anything the HUD swallows
-## never reaches the lawn. A press first tests the secret glows; only if it
-## misses does it become a mower command.
+## All three mowers live under Mowers; only one is visible and simulated. Touch
+## input arrives through _unhandled_input (so HUD taps never reach the lawn),
+## is offered to the secret shimmers first, and otherwise goes to the active
+## mower, which interprets it according to its own control scheme (§7).
 
 @onready var lawn: LawnView = $Lawn
-@onready var mower: Mower = $Mower
 @onready var cam: CameraRig = $Camera3D
 @onready var hud: Hud = $UI/HUD
 @onready var _fx_root: Node3D = $Effects
+@onready var _mower_root: Node3D = $Mowers
 
 var model: LawnModel
+var mower: MowerController
 
+var _mowers: Array[MowerController] = []
+var _active_index := GameConfig.MOWER_PUSH
 var _glows: Array[SecretGlow] = []
-## One { emoji, name } per collected item, in collection order.
 var _collected: Array = []
 var _complete_shown := false
 
@@ -25,51 +28,107 @@ func _ready() -> void:
 	model = LawnModel.new()
 	lawn.setup(model)
 
-	mower.model = model
-	mower.tuft_field = lawn.tuft_field
-	mower.reset_to_start()
+	for child in _mower_root.get_children():
+		var controller := child as MowerController
+		if controller == null:
+			continue
+		controller.model = model
+		controller.tuft_field = lawn.tuft_field
+		controller.cells_mown.connect(_on_cells_mown)
+		controller.set_active(false)
+		_mowers.append(controller)
+	_mowers.sort_custom(func(a: MowerController, b: MowerController) -> bool:
+		return a.type_index() < b.type_index())
 
-	cam.target = mower
-	cam.snap_to_target()
+	var tractor := _mowers[GameConfig.MOWER_TRACTOR] as TractorMower
+	if tractor:
+		tractor.joystick = hud.joystick
 
 	model.completed.connect(_on_completed)
-	mower.cells_mown.connect(_on_cells_mown)
-	# The model is the single source of truth: any path that mows a secret cell
-	# raises the shimmer, not just the mower's own sweep.
 	model.secret_revealed.connect(_on_secret_uncovered)
 	hud.restart_pressed.connect(_restart)
+	hud.selector.mower_chosen.connect(select_mower)
 
 	hud.set_progress(0.0)
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
+
+	_activate(GameConfig.MOWER_PUSH, true)
 	GameState.start_run()
 	AudioDirector.start_ambient()
 
 
 func _process(_delta: float) -> void:
-	# Steering is camera-relative, so the mower needs the camera's yaw.
+	if mower == null:
+		return
+	# Steering and swipes are camera-relative, so every mower needs the yaw.
 	mower.camera_yaw = cam.yaw
-	var turn := clampf(absf(mower.omega) / GameConfig.PUSH_MAX_TURN, 0.0, 1.0)
+	mower.camera = cam
+	var turn := clampf(absf(mower.omega) / mower.max_turn(), 0.0, 1.0)
 	AudioDirector.set_engine_state(mower.speed_fraction(), turn)
+
+
+# ---------------------------------------------------------------- mower switching
+
+## Switches type in place: the new mower inherits position and heading, speed
+## resets, the camera keeps lerping, and the robot replans from the current lawn.
+func select_mower(index: int) -> void:
+	if index == _active_index and mower != null:
+		return
+	_activate(index, false)
+	Haptics.light()
+
+
+func _activate(index: int, initial: bool) -> void:
+	index = clampi(index, 0, _mowers.size() - 1)
+	var previous := mower
+	var carry_position := Vector3(GameConfig.MOWER_START.x, 0.0, GameConfig.MOWER_START.y)
+	var carry_yaw := 0.0
+	if previous != null:
+		carry_position = previous.position
+		carry_yaw = previous.yaw
+		previous.set_active(false)
+
+	_active_index = index
+	mower = _mowers[index]
+	mower.camera_yaw = cam.yaw
+	mower.camera = cam
+	if initial:
+		mower.reset_to_start()
+	else:
+		mower.adopt_state(carry_position, carry_yaw)
+	mower.set_active(true)
+
+	cam.target = mower
+	var gain := GameConfig.TRACTOR_LOOKAHEAD_GAIN if index == GameConfig.MOWER_TRACTOR else 0.0
+	cam.set_preset(GameConfig.MOWER_CAMERA[index], gain)
+	if initial:
+		cam.snap_to_target()
+
+	AudioDirector.set_engine_profile(index)
+	hud.set_joystick_visible(index == GameConfig.MOWER_TRACTOR)
+	hud.selector.set_current(index)
 
 
 # ---------------------------------------------------------------- input
 
 func _unhandled_input(event: InputEvent) -> void:
+	if mower == null:
+		return
 	var touch := event as InputEventScreenTouch
 	if touch != null:
 		if touch.pressed:
-			# A tap on a shimmer collects it instead of driving the mower.
+			# A tap on a shimmer collects it instead of commanding the mower.
 			var glow := _pick_glow(touch.position)
 			if glow != null:
 				_collect(glow)
 				return
-			mower.touch_pressed(touch.index, touch.position)
+			mower.on_touch_pressed(touch.index, touch.position)
 		else:
-			mower.touch_released(touch.index)
+			mower.on_touch_released(touch.index, touch.position)
 		return
 	var drag := event as InputEventScreenDrag
 	if drag != null:
-		mower.touch_dragged(drag.index, drag.position)
+		mower.on_touch_dragged(drag.index, drag.position)
 
 
 ## Ray/sphere test against every live shimmer (§16 uses camera.project_ray).
@@ -158,7 +217,7 @@ func _on_completed() -> void:
 
 
 ## Restart: model reset (secrets redistributed), tint map cleared, tufts back
-## up, shimmers and items cleared.
+## up, shimmers and items cleared, back to the push mower.
 func _restart() -> void:
 	for glow in _glows:
 		if glow != null and is_instance_valid(glow):
@@ -171,9 +230,8 @@ func _restart() -> void:
 
 	model.reset()
 	lawn.on_model_reset()
-	mower.reset_to_start()
 	cam.set_bird_view(false)
-	cam.snap_to_target()
+	_activate(GameConfig.MOWER_PUSH, true)
 	hud.hide_complete()
 	hud.set_progress(0.0)
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)

@@ -70,13 +70,80 @@ const PUSH_PAINT_ROUGHNESS := 0.28
 const IDLE_SHAKE := Vector2(0.004, 0.007)
 const IDLE_SHAKE_PERIOD := 0.045
 
+# ---------------------------------------------------------------- mower types (§6)
+const MOWER_PUSH := 0
+const MOWER_TRACTOR := 1
+const MOWER_ROBOT := 2
+
+## §6 table, verbatim. `reverse` is the reverse-gear speed factor (0 = none).
+const MOWER_TYPES: Array[Dictionary] = [
+	{
+		"id": "push", "emoji": "🔴", "label": "Push",
+		"speed": 3.0, "deck": 0.7, "max_turn": 1.7, "body": 0.55, "reverse": 0.0,
+	},
+	{
+		"id": "tractor", "emoji": "🚜", "label": "Traktör",
+		"speed": 4.8, "deck": 1.1, "max_turn": 1.5, "body": 0.85, "reverse": 0.5,
+	},
+	{
+		"id": "robot", "emoji": "🤖", "label": "Robot",
+		"speed": 2.1, "deck": 0.7, "max_turn": 2.6, "body": 0.45, "reverse": 0.0,
+	},
+]
+
+## Chase camera per type: back, height, lookAhead (§10 presets).
+const MOWER_CAMERA: Array[Vector3] = [
+	Vector3(5.0, 4.2, 2.2),   # push  -> mid
+	Vector3(5.0, 4.2, 2.2),   # tractor -> mid, lookAhead grows with speed
+	Vector3(6.0, 5.0, 2.4),   # robot -> near the far preset, spectator view
+]
+## Tractor only: lookAhead += this * speedFraction so the road shows up at speed.
+const TRACTOR_LOOKAHEAD_GAIN := 0.6
+
+## Engine mix per type: idle gain, moving gain, idle pitch, moving pitch, turn boost.
+## Push and robot are §14 verbatim. For the tractor §14 gives no profile; the
+## sprint brief says "pitch slightly lower, 0.9 base, fuller feel" — read here as
+## a range shifted below push's, with 0.9 as the ceiling. One-line change if the
+## intent was 0.9 as the floor instead.
+const ENGINE_PROFILES: Array[Dictionary] = [
+	{ "idle_gain": 0.28, "move_gain": 0.45, "idle_pitch": 0.82, "move_pitch": 1.00, "turn": 0.12 },
+	{ "idle_gain": 0.28, "move_gain": 0.45, "idle_pitch": 0.78, "move_pitch": 0.90, "turn": 0.12 },
+	{ "idle_gain": 0.08, "move_gain": 0.13, "idle_pitch": 1.90, "move_pitch": 1.90, "turn": 0.10 },
+]
+
+# ---------------------------------------------------------------- units
+## The spec measures touch distances in SwiftUI points on a 390 pt wide screen;
+## the viewport is 1170 px wide, so one point is three pixels.
+const POINT_SCALE := 3.0
+
+# ---------------------------------------------------------------- tractor joystick (§7)
+const JOYSTICK_BASE_RADIUS_PT := 55.0
+const JOYSTICK_KNOB_RADIUS_PT := 24.0
+const JOYSTICK_DEADZONE := 0.25
+## NOT in §7 — spring return duration for the knob.
+const JOYSTICK_RETURN_TIME := 0.18
+
+# ---------------------------------------------------------------- robot (§7)
+const ROBOT_ARRIVE_DISTANCE := 0.35
+const ROBOT_NUDGE_DISTANCE := 3.5
+const ROBOT_SWIPE_THRESHOLD_PT := 60.0
+## Detour search range when a serpentine cell is blocked: +/-1..4 rows.
+const ROBOT_DETOUR_RANGE := 4
+const ROBOT_LED_COLOR := Color(0.2, 0.85, 0.9)
+const ROBOT_LED_PERIOD := 0.9
+
+# ---------------------------------------------------------------- tractor model (§6)
+const TRACTOR_BODY_COLOR := Color(0.22, 0.45, 0.16)
+const TRACTOR_ACCENT_COLOR := Color(0.95, 0.78, 0.15)
+
 # ---------------------------------------------------------------- movement (§7)
 const ACCEL_TIME := 0.4
 const DECEL_TIME := 0.55
 const STEER_SMOOTHING := 9.0
 const STEER_SPEED_RADIUS_FACTOR := 0.45
 const STEER_ERROR_GAIN := 5.0                 # shortestAngle * 5 -> desiredOmega
-const DRAG_THRESHOLD_PX := 8.0
+## §7's threshold is 8 POINTS, not pixels; multiply by POINT_SCALE.
+const DRAG_THRESHOLD_PT := 8.0
 const WALL_INSET_FACTOR := 0.6                # inset = bodyRadius * 0.6
 
 # ---------------------------------------------------------------- camera (§10)

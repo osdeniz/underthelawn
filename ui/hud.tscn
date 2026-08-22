@@ -1,9 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 ; HUD for sprints G1 + G2 (§16), laid out for the 1170 x 2532 portrait viewport.
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
 [ext_resource type="Shader" path="res://shaders/screen_overlay.gdshader" id="2_overlay"]
+[ext_resource type="Script" path="res://scripts/tractor_joystick.gd" id="3_joystick"]
+[ext_resource type="Script" path="res://scripts/mower_selector.gd" id="4_selector"]
 
 [sub_resource type="ShaderMaterial" id="Mat_overlay"]
 shader = ExtResource("2_overlay")
@@ -229,6 +231,27 @@ focus_mode = 0
 text = "RESTART"
 theme_override_styles/normal = SubResource("Sb_button")
 theme_override_font_sizes/font_size = 52
+
+[node name="Joystick" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = -654.0
+offset_right = 514.0
+offset_bottom = -180.0
+script = ExtResource("3_joystick")
+
+[node name="Selector" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -172.0
+offset_bottom = -56.0
+alignment = 1
+script = ExtResource("4_selector")
 
 [node name="Flash" type="ColorRect" parent="."]
 unique_name_in_owner = true

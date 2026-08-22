@@ -4,7 +4,7 @@
 ; Deck 0.72 x 0.16 x 0.95, tire radius 0.13, handle tilted +0.9 rad on X so the
 ; top end leans backwards. The Body node carries the idle vibration.
 
-[ext_resource type="Script" path="res://scripts/mower.gd" id="1_mower"]
+[ext_resource type="Script" path="res://scripts/push_mower.gd" id="1_mower"]
 [ext_resource type="Texture2D" path="res://textures/leaf_particle.png" id="2_leaf"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_clipping"]

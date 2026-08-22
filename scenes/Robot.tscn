@@ -1,0 +1,147 @@
+[gd_scene load_steps=15 format=3]
+
+; Robot mower, REFERENCE.md §6. Flat dark cylinder base r0.42 x 0.12, flattened
+; hemisphere shell r0.40 at y-scale 0.42, emissive cyan LED torus that breathes
+; over 0.9 s, a front sensor eye and a red-tipped antenna.
+
+[ext_resource type="Script" path="res://scripts/robot_mower.gd" id="1_robot"]
+[ext_resource type="Texture2D" path="res://textures/leaf_particle.png" id="2_leaf"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark"]
+albedo_color = Color(0.13, 0.14, 0.16, 1)
+metallic = 0.3
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="Mat_shell"]
+albedo_color = Color(0.22, 0.24, 0.27, 1)
+metallic = 0.4
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Mat_led"]
+albedo_color = Color(0.2, 0.85, 0.9, 1)
+emission_enabled = true
+emission = Color(0.2, 0.85, 0.9, 1)
+emission_energy_multiplier = 1.2
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Mat_eye"]
+albedo_color = Color(0.05, 0.06, 0.08, 1)
+metallic = 0.8
+roughness = 0.1
+
+[sub_resource type="StandardMaterial3D" id="Mat_red"]
+albedo_color = Color(0.82, 0.15, 0.12, 1)
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_steel"]
+albedo_color = Color(0.6, 0.62, 0.65, 1)
+metallic = 0.85
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="Cyl_base"]
+top_radius = 0.42
+bottom_radius = 0.42
+height = 0.12
+radial_segments = 24
+rings = 1
+
+[sub_resource type="SphereMesh" id="Sphere_shell"]
+radius = 0.4
+height = 0.8
+radial_segments = 24
+rings = 10
+is_hemisphere = true
+
+[sub_resource type="TorusMesh" id="Torus_led"]
+inner_radius = 0.355
+outer_radius = 0.405
+rings = 32
+ring_segments = 8
+
+[sub_resource type="SphereMesh" id="Sphere_eye"]
+radius = 0.055
+height = 0.11
+radial_segments = 12
+rings = 6
+
+[sub_resource type="CylinderMesh" id="Cyl_antenna"]
+top_radius = 0.006
+bottom_radius = 0.011
+height = 0.3
+radial_segments = 6
+rings = 1
+
+[sub_resource type="SphereMesh" id="Sphere_tip"]
+radius = 0.025
+height = 0.05
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Mat_clipping"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+billboard_mode = 3
+albedo_texture = ExtResource("2_leaf")
+
+[sub_resource type="QuadMesh" id="Quad_clipping"]
+material = SubResource("Mat_clipping")
+size = Vector2(0.045, 0.12)
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_clipping"]
+direction = Vector3(0.7809, 0.6247, 0)
+spread = 55.0
+initial_velocity_min = 1.2
+initial_velocity_max = 3.6
+gravity = Vector3(0, -9.8, 0)
+angular_velocity_min = 120.0
+angular_velocity_max = 480.0
+scale_min = 0.8
+scale_max = 1.25
+
+[node name="Robot" type="Node3D"]
+script = ExtResource("1_robot")
+
+[node name="Body" type="Node3D" parent="."]
+
+[node name="Base" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.06, 0)
+mesh = SubResource("Cyl_base")
+material_override = SubResource("Mat_dark")
+
+[node name="Shell" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.12, 0)
+scale = Vector3(1, 0.42, 1)
+mesh = SubResource("Sphere_shell")
+material_override = SubResource("Mat_shell")
+
+[node name="Led" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.135, 0)
+mesh = SubResource("Torus_led")
+material_override = SubResource("Mat_led")
+
+[node name="Eye" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.17, -0.36)
+mesh = SubResource("Sphere_eye")
+material_override = SubResource("Mat_eye")
+
+[node name="Antenna" type="MeshInstance3D" parent="Body"]
+position = Vector3(0.19, 0.36, 0.1)
+rotation = Vector3(0, 0, -0.32)
+mesh = SubResource("Cyl_antenna")
+material_override = SubResource("Mat_steel")
+
+[node name="AntennaTip" type="MeshInstance3D" parent="Body"]
+position = Vector3(0.235, 0.5, 0.1)
+mesh = SubResource("Sphere_tip")
+material_override = SubResource("Mat_red")
+
+[node name="Clippings" type="GPUParticles3D" parent="."]
+position = Vector3(0.45, 0.14, 0)
+emitting = false
+amount = 54
+lifetime = 0.6
+lifetime_randomness = 0.4167
+local_coords = false
+process_material = SubResource("PPM_clipping")
+draw_pass_1 = SubResource("Quad_clipping")

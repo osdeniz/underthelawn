@@ -36,6 +36,7 @@ var _cut_index := 0
 var _engine_target := 0.0
 var _engine_mix := 0.0
 var _turn_amount := 0.0
+var _profile: Dictionary = GameConfig.ENGINE_PROFILES[GameConfig.MOWER_PUSH]
 var _cut_frame := -1
 var _suspended := false
 var _rng := RandomNumberGenerator.new()
@@ -122,6 +123,13 @@ func start_ambient() -> void:
 		_ambient_player.play()
 
 
+## Swaps the engine mix when the player changes mower: push and tractor share
+## the loop at different pitches, the robot uses it as a quiet high whine (§14).
+func set_engine_profile(type_index: int) -> void:
+	_profile = GameConfig.ENGINE_PROFILES[clampi(type_index, 0,
+		GameConfig.ENGINE_PROFILES.size() - 1)]
+
+
 ## speed_fraction 0 = idle, 1 = full speed. turn_amount 0..1 adds the pitch
 ## boost the spec asks for while cornering (§14).
 func set_engine_state(speed_fraction: float, turn_amount: float = 0.0) -> void:
@@ -181,7 +189,7 @@ func _process(delta: float) -> void:
 	_engine_mix = lerpf(_engine_mix, _engine_target,
 		clampf(delta * GameConfig.ENGINE_MIX_LERP, 0.0, 1.0))
 	_engine_player.volume_db = GameConfig.linear_to_db_safe(
-		lerpf(GameConfig.ENGINE_GAIN_IDLE, GameConfig.ENGINE_GAIN_MOVING, _engine_mix))
+		lerpf(_profile["idle_gain"], _profile["move_gain"], _engine_mix))
 	_engine_player.pitch_scale = lerpf(
-		GameConfig.ENGINE_PITCH_IDLE, GameConfig.ENGINE_PITCH_MOVING, _engine_mix) \
-		+ GameConfig.ENGINE_PITCH_TURN_BOOST * _turn_amount
+		_profile["idle_pitch"], _profile["move_pitch"], _engine_mix) \
+		+ float(_profile["turn"]) * _turn_amount

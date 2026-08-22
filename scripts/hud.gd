@@ -25,6 +25,8 @@ signal restart_pressed()
 @onready var _collection: HBoxContainer = %Collection
 @onready var _missed_label: Label = %MissedLabel
 @onready var _flash: ColorRect = %Flash
+@onready var joystick: TractorJoystick = %Joystick
+@onready var selector: MowerSelector = %Selector
 
 var _shown_percent := 0.0
 var _target_percent := 0.0
@@ -39,6 +41,7 @@ func _ready() -> void:
 	_secret_card.visible = false
 	_missed_label.visible = false
 	_flash.modulate.a = 0.0
+	joystick.visible = false
 	_mute_button.pressed.connect(_on_mute_pressed)
 	(%RestartButton as Button).pressed.connect(func() -> void: restart_pressed.emit())
 	_refresh_mute_label()
@@ -124,6 +127,16 @@ func show_secret_card(emoji: String, item_name: String, line: String,
 
 # ---------------------------------------------------------------- completion
 
+## The joystick only exists for the tractor (§7); the selector hides once the
+## lawn is finished (§16).
+func set_joystick_visible(value: bool) -> void:
+	joystick.visible = value
+
+
+func set_selector_visible(value: bool) -> void:
+	selector.visible = value
+
+
 ## `collected` holds one entry per found item: { emoji, name }.
 func show_complete(cells: int, elapsed: String, collected: Array,
 		total_secrets: int) -> void:
@@ -148,6 +161,9 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 
 	_missed_label.visible = collected.size() < total_secrets
 	_complete_panel.visible = true
+	# The picker and the joystick go away once the lawn is done (§16).
+	selector.visible = false
+	joystick.visible = false
 
 	# Spring pop on the title (§16).
 	_complete_title.pivot_offset = _complete_title.size * 0.5
@@ -159,6 +175,7 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 
 func hide_complete() -> void:
 	_complete_panel.visible = false
+	selector.visible = true
 	_missed_label.visible = false
 	_shown_percent = 0.0
 	_target_percent = 0.0

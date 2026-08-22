@@ -1,0 +1,205 @@
+[gd_scene load_steps=20 format=3]
+
+; Ride-on tractor, REFERENCE.md §6. Faces -Z. Yellow 1.5 x 0.9 cutting deck,
+; green 0.75 x 0.3 x 1.9 chassis with a hood, steering column + torus wheel,
+; seat + backrest, rear wheels r0.30 and front r0.18 on yellow rims.
+; Body colour (0.22,0.45,0.16), accent (0.95,0.78,0.15).
+
+[ext_resource type="Script" path="res://scripts/tractor_mower.gd" id="1_tractor"]
+[ext_resource type="Texture2D" path="res://textures/leaf_particle.png" id="2_leaf"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_body"]
+albedo_color = Color(0.22, 0.45, 0.16, 1)
+metallic = 0.45
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="Mat_accent"]
+albedo_color = Color(0.95, 0.78, 0.15, 1)
+metallic = 0.4
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="Mat_dark"]
+albedo_color = Color(0.11, 0.12, 0.13, 1)
+roughness = 0.55
+
+[sub_resource type="StandardMaterial3D" id="Mat_tire"]
+albedo_color = Color(0.07, 0.07, 0.08, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_deck"]
+size = Vector3(1.5, 0.14, 0.9)
+
+[sub_resource type="BoxMesh" id="Box_chassis"]
+size = Vector3(0.75, 0.3, 1.9)
+
+[sub_resource type="BoxMesh" id="Box_hood"]
+size = Vector3(0.62, 0.28, 0.52)
+
+[sub_resource type="BoxMesh" id="Box_seat"]
+size = Vector3(0.38, 0.09, 0.36)
+
+[sub_resource type="BoxMesh" id="Box_backrest"]
+size = Vector3(0.38, 0.36, 0.09)
+
+[sub_resource type="CylinderMesh" id="Cyl_column"]
+top_radius = 0.035
+bottom_radius = 0.045
+height = 0.44
+radial_segments = 8
+rings = 1
+
+[sub_resource type="TorusMesh" id="Torus_wheel"]
+inner_radius = 0.09
+outer_radius = 0.13
+rings = 18
+ring_segments = 8
+
+[sub_resource type="CylinderMesh" id="Cyl_rear_tire"]
+top_radius = 0.3
+bottom_radius = 0.3
+height = 0.22
+radial_segments = 18
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Cyl_rear_rim"]
+top_radius = 0.17
+bottom_radius = 0.17
+height = 0.24
+radial_segments = 14
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Cyl_front_tire"]
+top_radius = 0.18
+bottom_radius = 0.18
+height = 0.14
+radial_segments = 14
+rings = 1
+
+[sub_resource type="CylinderMesh" id="Cyl_front_rim"]
+top_radius = 0.1
+bottom_radius = 0.1
+height = 0.16
+radial_segments = 12
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="Mat_clipping"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+billboard_mode = 3
+albedo_texture = ExtResource("2_leaf")
+
+[sub_resource type="QuadMesh" id="Quad_clipping"]
+material = SubResource("Mat_clipping")
+size = Vector2(0.045, 0.12)
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_clipping"]
+direction = Vector3(0.7809, 0.6247, 0)
+spread = 55.0
+initial_velocity_min = 1.2
+initial_velocity_max = 3.6
+gravity = Vector3(0, -9.8, 0)
+angular_velocity_min = 120.0
+angular_velocity_max = 480.0
+scale_min = 0.8
+scale_max = 1.25
+
+[node name="Tractor" type="Node3D"]
+script = ExtResource("1_tractor")
+
+[node name="Body" type="Node3D" parent="."]
+
+[node name="Deck" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.18, -0.8)
+mesh = SubResource("Box_deck")
+material_override = SubResource("Mat_accent")
+
+[node name="Chassis" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.44, 0.2)
+mesh = SubResource("Box_chassis")
+material_override = SubResource("Mat_body")
+
+[node name="Hood" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.66, -0.42)
+mesh = SubResource("Box_hood")
+material_override = SubResource("Mat_body")
+
+[node name="SteeringColumn" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.78, 0.18)
+rotation = Vector3(-0.35, 0, 0)
+mesh = SubResource("Cyl_column")
+material_override = SubResource("Mat_dark")
+
+[node name="SteeringWheel" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.99, 0.26)
+rotation = Vector3(1.22, 0, 0)
+mesh = SubResource("Torus_wheel")
+material_override = SubResource("Mat_dark")
+
+[node name="Seat" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.64, 0.68)
+mesh = SubResource("Box_seat")
+material_override = SubResource("Mat_dark")
+
+[node name="Backrest" type="MeshInstance3D" parent="Body"]
+position = Vector3(0, 0.85, 0.86)
+mesh = SubResource("Box_backrest")
+material_override = SubResource("Mat_dark")
+
+[node name="TireRearLeft" type="MeshInstance3D" parent="Body"]
+position = Vector3(-0.5, 0.3, 0.72)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Cyl_rear_tire")
+material_override = SubResource("Mat_tire")
+
+[node name="RimRearLeft" type="MeshInstance3D" parent="Body"]
+position = Vector3(-0.5, 0.3, 0.72)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Cyl_rear_rim")
+material_override = SubResource("Mat_accent")
+
+[node name="TireRearRight" type="MeshInstance3D" parent="Body"]
+position = Vector3(0.5, 0.3, 0.72)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Cyl_rear_tire")
+material_override = SubResource("Mat_tire")
+
+[node name="RimRearRight" type="MeshInstance3D" parent="Body"]
+position = Vector3(0.5, 0.3, 0.72)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Cyl_rear_rim")
+material_override = SubResource("Mat_accent")
+
+[node name="TireFrontLeft" type="MeshInstance3D" parent="Body"]
+position = Vector3(-0.42, 0.18, -0.5)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Cyl_front_tire")
+material_override = SubResource("Mat_tire")
+
+[node name="RimFrontLeft" type="MeshInstance3D" parent="Body"]
+position = Vector3(-0.42, 0.18, -0.5)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Cyl_front_rim")
+material_override = SubResource("Mat_accent")
+
+[node name="TireFrontRight" type="MeshInstance3D" parent="Body"]
+position = Vector3(0.42, 0.18, -0.5)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Cyl_front_tire")
+material_override = SubResource("Mat_tire")
+
+[node name="RimFrontRight" type="MeshInstance3D" parent="Body"]
+position = Vector3(0.42, 0.18, -0.5)
+rotation = Vector3(0, 0, 1.5708)
+mesh = SubResource("Cyl_front_rim")
+material_override = SubResource("Mat_accent")
+
+[node name="Clippings" type="GPUParticles3D" parent="."]
+position = Vector3(0.8, 0.2, -0.8)
+emitting = false
+amount = 54
+lifetime = 0.6
+lifetime_randomness = 0.4167
+local_coords = false
+process_material = SubResource("PPM_clipping")
+draw_pass_1 = SubResource("Quad_clipping")
