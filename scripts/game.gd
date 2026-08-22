@@ -34,7 +34,9 @@ func _ready() -> void:
 
 	model.completed.connect(_on_completed)
 	mower.cells_mown.connect(_on_cells_mown)
-	mower.secret_uncovered.connect(_on_secret_uncovered)
+	# The model is the single source of truth: any path that mows a secret cell
+	# raises the shimmer, not just the mower's own sweep.
+	model.secret_revealed.connect(_on_secret_uncovered)
 	hud.restart_pressed.connect(_restart)
 
 	hud.set_progress(0.0)

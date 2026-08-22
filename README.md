@@ -123,8 +123,26 @@ rect, cell centre maths, stripe buckets, secret placement rules, mow results,
 re-striping, completion, restart. Plus `--headless --editor --quit` for parse
 errors and `--write-movie` renders for visual checks.
 
-## Not in G1
+## Sprint G2 — effects, audio, secret discovery (done)
 
-Tractor, robot, driver character, pool art, neighbourhood (house/road/trees/
-fence/cars), secret discovery flow, clipping particles, clouds. These come in
-later sprints, in the order the sprint briefs arrive.
+| Area | Where | Spec |
+| --- | --- | --- |
+| Clipping particles | `scenes/Mower.tscn` (Clippings), `mower.gd` | §9 — right side, 0.06 s bursts min 0.12 s apart, alpha blend not additive |
+| Audio mixing | `scripts/audio_director.gd` | §14 — engine idle/moving lerp, 3-voice cut pool, ambient, mute, background suspend |
+| Haptics | `scripts/haptics.gd` | §15 — 10 ms mow, 25 ms reveal, double pulse on collect and 100% |
+| Secret shimmer | `scripts/secret_glow.gd` | §9 — orb r0.15, float, pulse, spin, looping sparks |
+| Dig burst | `scripts/dig_burst.gd` | §9 — soil burst, 160/s over 0.15 s, gravity |
+| Secret items | `scripts/secret_item.gd` | §9 — key and radio primitives, rise/hold/drift |
+| Discovery card | `ui/hud.tscn`, `hud.gd` | §16 — card, then shrinks into the counter |
+| Collection + missed | `hud.gd` | §16 — slots, "You missed something..." |
+| Screen dressing | `shaders/screen_overlay.gdshader` | §16 — sun gradient + vignette, input-transparent |
+
+A tap is tested against the shimmers first (ray/sphere via `camera.project_ray`);
+only a miss becomes a mower command. Collecting is optional — a secret cell
+counts toward 100% as soon as it is mown, so ignoring the shimmer costs nothing.
+
+## Not in G1/G2
+
+Tractor, robot, mower selector, driver character, pool art, neighbourhood
+(house/road/trees/fence/cars), clouds. These come in later sprints, in the
+order the sprint briefs arrive.
