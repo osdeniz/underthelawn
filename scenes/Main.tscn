@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 ; Sprint G1 main scene. Light and atmosphere follow REFERENCE.md §13; SSAO is
 ; deliberately never enabled (it does not work on the Mobile renderer) and fake
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/Tractor.tscn" id="6_tractor"]
 [ext_resource type="PackedScene" path="res://scenes/Robot.tscn" id="7_robot"]
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="4_cam"]
+[ext_resource type="Script" path="res://scripts/environment_builder.gd" id="8_env"]
 [ext_resource type="PackedScene" path="res://ui/hud.tscn" id="5_hud"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
@@ -53,6 +54,9 @@ directional_shadow_max_distance = 60.0
 
 [node name="Lawn" type="Node3D" parent="."]
 script = ExtResource("2_lawn")
+
+[node name="Neighborhood" type="Node3D" parent="."]
+script = ExtResource("8_env")
 
 [node name="Effects" type="Node3D" parent="."]
 

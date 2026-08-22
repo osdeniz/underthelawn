@@ -25,6 +25,13 @@ func _initialize() -> void:
 	_grass_normal(256)
 	_tuft_silhouette(512)
 	_leaf_particle()
+	_siding(256)
+	_shingles(256)
+	_bark(256)
+	_wood(256)
+	_asphalt(512)
+	_dirt(256)
+	_cloud_billboard(256)
 	_engine_loop()
 	_grass_cut()
 	_discovery_chime()
@@ -198,6 +205,147 @@ func _leaf_particle() -> void:
 			img.set_pixel(x, y, Color(col.r, col.g, col.b, edge))
 	var err := img.save_png("res://textures/leaf_particle.png")
 	print("  leaf_particle.png %dx%d -> %s" % [w, h, "ok" if err == OK else str(err)])
+
+
+## Horizontal siding panels, 32 px rows with a shadow line between (§5).
+func _siding(size: int) -> void:
+	if _skip("res://textures/siding_albedo.png"):
+		return
+	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
+	var base := Color(0.78, 0.77, 0.72)
+	for y in size:
+		var row := y % 32
+		var shade := 1.0 - 0.16 * (float(row) / 31.0)
+		if row >= 30:
+			shade = 0.62   # gap shadow
+		for x in size:
+			var n := _fbm(float(x) / size, float(y) / size, 24, 2, 51) * 0.08
+			var c := base * (shade - n)
+			img.set_pixel(x, y, c)
+	img.generate_mipmaps()
+	print("  siding_albedo.png -> %s" % ("ok" if img.save_png("res://textures/siding_albedo.png") == OK else "HATA"))
+
+
+## Shingle rows, every other row offset half a tile (§5).
+func _shingles(size: int) -> void:
+	if _skip("res://textures/roof_shingles_albedo.png"):
+		return
+	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
+	var base := Color(0.42, 0.26, 0.20)
+	var row_h := 24
+	var tile_w := 42
+	for y in size:
+		var row := y / row_h
+		var in_row := y % row_h
+		for x in size:
+			var off := (tile_w / 2) if row % 2 == 1 else 0
+			var in_tile := (x + off) % tile_w
+			var shade := 1.0 - 0.22 * (float(in_row) / float(row_h - 1))
+			if in_row >= row_h - 3 or in_tile < 2:
+				shade = 0.55
+			var n := _hash2(x / 7, y / 7, 77) * 0.10
+			img.set_pixel(x, y, base * (shade - n + 0.05))
+	img.generate_mipmaps()
+	print("  roof_shingles_albedo.png -> %s" % ("ok" if img.save_png("res://textures/roof_shingles_albedo.png") == OK else "HATA"))
+
+
+## Vertically streaked bark (§5).
+func _bark(size: int) -> void:
+	if _skip("res://textures/bark_albedo.png"):
+		return
+	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
+	var dark := Color(0.24, 0.17, 0.11)
+	var light := Color(0.42, 0.32, 0.22)
+	for y in size:
+		for x in size:
+			# Stretch noise vertically for streaks.
+			var n := _fbm(float(x) / size, float(y) / size * 0.18, 18, 3, 33)
+			var ridge := absf(sin(float(x) * 0.35 + n * 6.0))
+			img.set_pixel(x, y, dark.lerp(light, clampf(n * 0.6 + ridge * 0.35, 0.0, 1.0)))
+	img.generate_mipmaps()
+	print("  bark_albedo.png -> %s" % ("ok" if img.save_png("res://textures/bark_albedo.png") == OK else "HATA"))
+
+
+## Grainy fence wood, horizontal grain (§5).
+func _wood(size: int) -> void:
+	if _skip("res://textures/wood_albedo.png"):
+		return
+	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
+	var dark := Color(0.45, 0.33, 0.20)
+	var light := Color(0.66, 0.52, 0.34)
+	for y in size:
+		for x in size:
+			var n := _fbm(float(x) / size * 0.15, float(y) / size, 20, 3, 91)
+			var grain := sin(float(y) * 0.22 + n * 9.0) * 0.5 + 0.5
+			img.set_pixel(x, y, dark.lerp(light, clampf(n * 0.5 + grain * 0.4, 0.0, 1.0)))
+	img.generate_mipmaps()
+	print("  wood_albedo.png -> %s" % ("ok" if img.save_png("res://textures/wood_albedo.png") == OK else "HATA"))
+
+
+## Dark asphalt with faint cracks (§5).
+func _asphalt(size: int) -> void:
+	if _skip("res://textures/asphalt_albedo.png"):
+		return
+	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
+	var base := Color(0.16, 0.16, 0.17)
+	for y in size:
+		for x in size:
+			var u := float(x) / size
+			var v := float(y) / size
+			var n := _fbm(u, v, 40, 3, 13) * 0.10
+			var crack := _wrapped_noise(u * 3.0, v * 3.0, 12, 57)
+			var c := base + Color(n, n, n)
+			if crack > 0.485 and crack < 0.515:
+				c = c * 0.55
+			img.set_pixel(x, y, c)
+	img.generate_mipmaps()
+	print("  asphalt_albedo.png -> %s" % ("ok" if img.save_png("res://textures/asphalt_albedo.png") == OK else "HATA"))
+
+
+## Earthy dirt (§5).
+func _dirt(size: int) -> void:
+	if _skip("res://textures/dirt_albedo.png"):
+		return
+	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
+	var dark := Color(0.30, 0.21, 0.13)
+	var light := Color(0.48, 0.36, 0.24)
+	for y in size:
+		for x in size:
+			var n := _fbm(float(x) / size, float(y) / size, 14, 4, 29)
+			var pebble := _hash2(x / 5, y / 5, 43)
+			var c := dark.lerp(light, n)
+			if pebble > 0.93:
+				c = c.lerp(Color(0.55, 0.50, 0.44), 0.5)
+			img.set_pixel(x, y, c)
+	img.generate_mipmaps()
+	print("  dirt_albedo.png -> %s" % ("ok" if img.save_png("res://textures/dirt_albedo.png") == OK else "HATA"))
+
+
+## Soft radial blob cluster for the cloud billboards (§12).
+func _cloud_billboard(size: int) -> void:
+	if _skip("res://textures/cloud_billboard.png"):
+		return
+	var img := Image.create(size, size, true, Image.FORMAT_RGBA8)
+	img.fill(Color(1, 1, 1, 0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 314159
+	var blobs: Array[Vector3] = []
+	for b in 9:
+		blobs.append(Vector3(
+			rng.randf_range(0.22, 0.78),
+			rng.randf_range(0.38, 0.62),
+			rng.randf_range(0.10, 0.22)))
+	for y in size:
+		for x in size:
+			var uv := Vector2(float(x) / size, float(y) / size)
+			var a := 0.0
+			for blob in blobs:
+				var d := uv.distance_to(Vector2(blob.x, blob.y)) / blob.z
+				a += exp(-d * d * 1.6)
+			a = clampf(a * 0.55, 0.0, 0.92)
+			img.set_pixel(x, y, Color(1.0, 1.0, 0.99, a))
+	img.generate_mipmaps()
+	print("  cloud_billboard.png -> %s" % ("ok" if img.save_png("res://textures/cloud_billboard.png") == OK else "HATA"))
 
 
 # ---------------------------------------------------------------- audio (§14)

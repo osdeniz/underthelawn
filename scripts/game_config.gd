@@ -199,6 +199,60 @@ const HAPTIC_MEDIUM_MS := 25       # secret uncovered
 ## Secret collected and 100% complete: two medium pulses.
 const HAPTIC_SUCCESS_GAP := 0.08
 
+# ---------------------------------------------------------------- neighborhood (§2, §12)
+const HOUSE_POS_Z := -16.8                     # z = -(12 + 4.8)
+const HOUSE_BODY := Vector3(13.0, 3.2, 4.2)
+const HOUSE_ROOF := Vector3(14.2, 2.4, 5.4)
+const FENCE_SIDE_X := 9.6
+const FENCE_SOUTH_Z := 13.6
+const FENCE_POST := Vector3(0.14, 0.85, 0.06)
+const FENCE_SPACING := 0.62
+const FENCE_HEIGHT_JITTER := 0.05
+const FENCE_ANGLE_JITTER := 0.025
+const SIDEWALK_Z := 15.2
+const SIDEWALK_DEPTH := 2.2
+const ROAD_Z := 19.4
+const ROAD_DEPTH := 6.5
+const ROAD_WIDTH := 60.0
+const ROAD_DASH := Vector2(1.6, 0.14)          # size; 4 units apart
+const ROAD_DASH_GAP := 4.0
+const NEIGHBOR_Z := 28.4
+const NEIGHBOR_X: Array[float] = [-11.0, 0.5, 11.5]
+## §12 tree placements: (x, z) and scale.
+const TREES: Array[Vector3] = [
+	Vector3(-9.3, -10.8, 1.0),
+	Vector3(9.1, -2.0, 0.85),
+	Vector3(-9.2, 8.0, 0.9),
+]
+const TREE_LEAF_DARK := Color(0.20, 0.42, 0.16)
+const TREE_LEAF_LIGHT := Color(0.33, 0.57, 0.25)
+const CAR_SEDAN_COLOR := Color(0.25, 0.42, 0.62)
+const CAR_PICKUP_COLOR := Color(0.62, 0.28, 0.22)
+const CAR_PAINT_METALLIC := 0.55
+const CAR_PAINT_ROUGHNESS := 0.3
+
+# ---------------------------------------------------------------- pool visuals (§11)
+const POOL_WATER_COLOR := Color(0.30, 0.75, 0.82, 0.72)
+const POOL_WATER_ROUGHNESS := 0.12
+const POOL_BORDER_COLOR := Color(0.90, 0.88, 0.82)
+const POOL_BORDER_SIZE := Vector2(0.35, 0.12)  # thickness, height
+## Water wave, verbatim: y += sin(TIME*1.8 + x*3.0 + z*2.2) * 0.02
+const POOL_WAVE_SPEED := 1.8
+const POOL_WAVE_AMP := 0.02
+
+# ---------------------------------------------------------------- flowers (§12)
+const FLOWER_SWAY_AMP := 0.06
+const FLOWER_SWAY_PERIOD := 1.9
+
+# ---------------------------------------------------------------- clouds (§12)
+const CLOUD_COUNT := 4
+const CLOUD_SIZE_MIN := 13.0
+const CLOUD_SIZE_MAX := 20.0
+const CLOUD_Y_MIN := 24.0
+const CLOUD_Y_MAX := 30.0
+const CLOUD_DRIFT := 2.5
+const CLOUD_PERIOD := 30.0
+
 # ---------------------------------------------------------------- character (§8)
 ## No skeleton: joints are separate Node3D pivots, animation is sine/lerp.
 ## Height ~1.55, head/height ~1/7. Root pivot sits at the waist.
@@ -254,13 +308,12 @@ const STEER_ARM_Z_GAIN := 0.12
 const ENGINE_VIB_FREQ := 40.0
 const ENGINE_VIB_AMP := 0.004
 
-# Robot mode: the character sits at a fixed spot near the north edge and
-# watches. Placeholder until the G5 porch exists — move only this constant then.
-# Kept just INSIDE the lawn: outside it there is no ground to sit on until G5.
-const CHAR_BENCH_POS := Vector3(2.0, 0.0, -11.3)
+# Robot mode: the character sits on the porch watching the lawn (moved from the
+# lawn edge when the G5 house landed). x avoids the door path and the posts.
+const CHAR_BENCH_POS := Vector3(1.5, 0.0, -13.9)
 const CHAR_BENCH_YAW := PI                     # spec yaw: facing south, at the lawn
-## Sitting on the ground puts the waist roughly a shin's height up.
-const CHAR_BENCH_WAIST_Y := 0.42
+## Waist height: porch platform (0.28) plus a seated shin (0.42).
+const CHAR_BENCH_WAIST_Y := 0.70
 
 # ---------------------------------------------------------------- clippings (§9)
 ## Sprayed from the mower's RIGHT side: right = (cos yaw, 0, sin yaw).
