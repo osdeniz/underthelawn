@@ -22,10 +22,11 @@ void vertex() {
 
 void fragment() {
 	vec4 tex = texture(tuft_texture, UV);
-	ALBEDO = tex.rgb;
+	// COLOR is the MultiMesh per-instance tint (clump-to-clump variation).
+	ALBEDO = tex.rgb * COLOR.rgb;
 	// Alpha-to-coverage lets MSAA antialias the blade edges instead of the
 	// hard stair-step a scissor gives. Remap so thin tips stay visible.
-	ALPHA = smoothstep(alpha_cutoff * 0.5, alpha_cutoff * 1.6, tex.a);
+	ALPHA = smoothstep(alpha_cutoff * 0.75, alpha_cutoff * 1.25, tex.a);
 	ROUGHNESS = 0.95;
 	NORMAL = vec3(0.0, 1.0, 0.0);
 }

@@ -45,7 +45,9 @@ const TUFT_HEIGHT_MIN := 0.30
 const TUFT_HEIGHT_MAX := 0.66
 const TUFT_WIDTH_MIN := 0.26
 const TUFT_WIDTH_MAX := 0.46
-const TUFT_CLUSTER_SPREAD := 0.34             # in-cluster offset, +/-
+## §5 says 0.34; widened so clusters cross cell borders and the grid
+## pattern of gaps disappears.
+const TUFT_CLUSTER_SPREAD := 0.44
 const TUFT_TOP_TAPER := 0.75                  # upper edge narrows to 75%
 const TUFT_CELL_SCALE_MIN := 0.9
 const TUFT_CELL_SCALE_MAX := 1.1

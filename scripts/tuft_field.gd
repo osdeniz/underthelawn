@@ -21,6 +21,8 @@ var _cell_slot: PackedInt32Array = PackedInt32Array()
 var _cell_yaw: PackedFloat32Array = PackedFloat32Array()
 var _cell_scale: PackedFloat32Array = PackedFloat32Array()
 var _cell_origin: PackedVector3Array = PackedVector3Array()
+## Slight per-cluster tint so the lawn is not one flat green.
+var _cell_color: PackedColorArray = PackedColorArray()
 
 ## [{ cell, yaw, t }] — only cells cut in the last 0.1 s.
 var _animating: Array = []
@@ -49,6 +51,7 @@ func _build_variants(seed_value: int) -> void:
 		rng.seed = seed_value + v * 7919
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_colors = true
 		mm.mesh = _make_cluster(rng)
 		mm.instance_count = 0
 		_meshes.append(mm)
@@ -112,6 +115,7 @@ func _assign_cells(seed_value: int) -> void:
 	_cell_yaw.resize(count)
 	_cell_scale.resize(count)
 	_cell_origin.resize(count)
+	_cell_color.resize(count)
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
@@ -134,6 +138,13 @@ func _assign_cells(seed_value: int) -> void:
 			# In-cell jitter; cluster spread is +/-0.34 so +/-0.15 keeps it inside.
 			_cell_origin[i] = LawnModel.cell_center(col, row) + Vector3(
 				rng.randf_range(-0.15, 0.15), 0.0, rng.randf_range(-0.15, 0.15))
+			# Brightness plus a nudge towards dry yellow or deep green.
+			var bright := rng.randf_range(0.82, 1.14)
+			var dryness := rng.randf_range(-0.06, 0.09)
+			_cell_color[i] = Color(
+				clampf(bright + dryness, 0.6, 1.3),
+				clampf(bright + dryness * 0.45, 0.6, 1.3),
+				clampf(bright - dryness * 1.5, 0.55, 1.3), 1.0)
 
 	for v in GameConfig.TUFT_VARIANTS:
 		_meshes[v].instance_count = counts[v]
@@ -149,6 +160,7 @@ func refresh_all() -> void:
 			var i := LawnModel.index_of(col, row)
 			if _cell_slot[i] < 0:
 				continue
+			_meshes[int(_cell_variant[i])].set_instance_color(_cell_slot[i], _cell_color[i])
 			if _model.is_cut(col, row):
 				_write(i, HIDDEN, 0.0, 0.0)
 			else:

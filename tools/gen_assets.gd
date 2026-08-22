@@ -119,16 +119,18 @@ func _tuft_silhouette(size: int) -> void:
 	img.fill(Color(0.0, 0.0, 0.0, 0.0))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 20260822
-	var blades := 26
+	var blades := 22
 
 	for b in blades:
 		var root_x := (float(b) + rng.randf_range(0.15, 0.85)) / float(blades)
 		var fan := (root_x - 0.5) * rng.randf_range(0.20, 0.44)
 		var tip_x := clampf(root_x + fan, 0.01, 0.99)
 		var height := rng.randf_range(0.45, 1.0)
-		var half_w := rng.randf_range(0.011, 0.022)
-		var root_col := Color(0.114, 0.278, 0.078).lerp(Color(0.180, 0.353, 0.110), rng.randf())
-		var tip_col := Color(0.400, 0.549, 0.180).lerp(Color(0.588, 0.588, 0.278), rng.randf())
+		var half_w := rng.randf_range(0.019, 0.033)
+		# Dark green at the root, brighter green at the tip; only a hint of dry
+		# yellow so the clump reads as grass rather than straw.
+		var root_col := Color(0.063, 0.169, 0.043).lerp(Color(0.110, 0.235, 0.075), rng.randf())
+		var tip_col := Color(0.267, 0.451, 0.145).lerp(Color(0.365, 0.478, 0.180), rng.randf())
 
 		var steps := size * 3
 		for s in steps:
@@ -146,7 +148,7 @@ func _tuft_silhouette(size: int) -> void:
 				if xi < 0 or xi >= size or yi < 0 or yi >= size:
 					continue
 				var edge := clampf(1.0 - absf(float(dx)) / (float(span) + 1.0), 0.0, 1.0)
-				var a := clampf(edge * 1.9, 0.0, 1.0)
+				var a := clampf(edge * 2.6, 0.0, 1.0)
 				var prev := img.get_pixel(xi, yi)
 				if a > prev.a:
 					img.set_pixel(xi, yi, Color(col.r, col.g, col.b, a))
@@ -208,7 +210,7 @@ func _grass_cut() -> void:
 		lp += (rng.randf_range(-1.0, 1.0) - lp) * a
 		var attack := clampf(t / 0.004, 0.0, 1.0)
 		out[i] = lp * attack * exp(-t * 22.0)
-	_write_wav("res://audio/grass_cut.wav", out, 1.6)
+	_write_wav("res://audio/grass_cut.wav", out, 1.1)
 
 
 ## E6 (1318.5 Hz) then B6 (1975.5 Hz) 0.12 s later, exponential decay, 0.7 s.

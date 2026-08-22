@@ -43,15 +43,43 @@ Autoloads: `GameState`, `Haptics`, `AudioDirector`.
   counter-clockwise, so `mower.yaw` stays in spec space and is applied as
   `rotation.y = -yaw`. Every §7 formula is therefore verbatim.
 
-## Assets still needed
+### Requested deviations from the spec
 
-Drop these in and they are picked up automatically, no code change:
+Asked for after the first G1 pass, so these override §5 on purpose:
 
-* `textures/grass_albedo.png`, `grass_normal.png` — ground currently uses a flat
-  colour fallback.
-* `textures/grass_blade_tuft.png` — a procedural 14-blade silhouette stands in.
-* `audio/mower_engine_loop.ogg`, `grass_cut.ogg`, `discovery_chime.ogg`,
-  `ambient_birds_loop.ogg`.
+* `TUFTS_PER_CLUSTER` 7 → **11** (denser lawn).
+* `TUFT_CLUSTER_SPREAD` 0.34 → **0.44**, so clusters cross cell borders and the
+  grid pattern of gaps disappears.
+* Per-cluster colour variation on the tuft MultiMesh (brightness 0.82-1.14 plus
+  a nudge towards dry yellow or deep green) so the lawn is not one flat green.
+* MSAA **4x**, anisotropic filtering **4x**, and `alpha_to_coverage` on the tuft
+  shader so blade edges are antialiased instead of stair-stepped.
+
+## Generated placeholder assets
+
+`tools/gen_assets.gd` writes the textures §5 describes and the sounds §14
+describes to disk as **real files**, so the game only ever loads files (the
+brief forbids runtime synthesis). Regenerate with:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/gen_assets.gd
+```
+
+| File | Recipe |
+| --- | --- |
+| `textures/grass_albedo.png` 512 | seamless wrapped fbm: green patchiness, blade grain, dry yellow tips, faint clipping streaks |
+| `textures/grass_normal.png` 256 | normal from the same fine grain height field |
+| `textures/grass_blade_tuft.png` 512 | 22 tapered blades, dark green root to lighter tip |
+| `audio/mower_engine_loop.wav` 1.00 s | 85 Hz + 6 harmonics at 1/k, 10% AM at 13 Hz, tanh saturation — seamless (85 and 13 both close in 1 s) |
+| `audio/grass_cut.wav` 0.16 s | white noise, one-pole lowpass sweeping 2800 → 500 Hz, fast attack + exponential decay |
+| `audio/discovery_chime.wav` 0.70 s | E6 then B6 after 0.12 s, exponential decay |
+
+`ambient_birds_loop` is intentionally NOT generated — §14 says it is never
+synthesised. Drop in a real recording and it plays at 18%.
+
+`AudioDirector` accepts `.ogg`, `.wav` or `.mp3` by base name, so replacing any
+of these with a real recording of the same name needs no code change. Same for
+the textures via `TextureLibrary`.
 
 ## Verification
 
