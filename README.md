@@ -141,8 +141,39 @@ A tap is tested against the shimmers first (ray/sphere via `camera.project_ray`)
 only a miss becomes a mower command. Collecting is optional — a secret cell
 counts toward 100% as soon as it is mown, so ignoring the shimmer costs nothing.
 
-## Not in G1/G2
+## Sprint G3 — tractor, robot, mower picker (done)
 
-Tractor, robot, mower selector, driver character, pool art, neighbourhood
-(house/road/trees/fence/cars), clouds. These come in later sprints, in the
-order the sprint briefs arrive.
+The movement core was lifted out of the push mower into a shared base first, so
+all three types run the *same* §7 maths and differ only in parameters, input
+source and model.
+
+| File | Role |
+| --- | --- |
+| `scripts/mower_controller.gd` | Shared core: throttle, 0.4 s/0.55 s ramps, steering smoothing 9.0, speed-widened turns, wall clip, circle-rect obstacle push-out, deck sweep, clippings, fake AO |
+| `scripts/push_mower.gd` | §7 Push — hold to throttle, drag past 8 pt to steer |
+| `scripts/tractor_mower.gd` | §7 Tractor — joystick Y throttle (reverse 0.5x), X steering with sign flip in reverse |
+| `scripts/robot_mower.gd` | §7 Robot — boustrophedon route, tap-to-go, 60 pt swipe nudge, breathing LED |
+| `scripts/mower_math.gd` | Pure, autoload-free tractor mapping + route planner, unit tested |
+| `scripts/tractor_joystick.gd` | §7 joystick: base r55 pt, knob r24 pt, deadzone 0.25, spring return |
+| `scripts/mower_selector.gd` | §16 three-way picker, hides at 100% |
+| `scenes/PushMower.tscn` `Tractor.tscn` `Robot.tscn` | §6 models |
+
+Switching keeps position and heading, resets speed, swaps the camera preset and
+the engine mix, and replans the robot route from the current lawn state.
+
+`tests/g3_check.gd` covers the §6 parameter table, the tractor mapping
+(including the reverse sign flip), and the route planner (serpentine order, no
+waypoint on an obstacle, detour around the stone, nothing inside the pool, every
+mowable cell visited).
+
+### Unit note
+
+§7 measures touch distances in SwiftUI **points** on a 390 pt wide screen. The
+viewport is 1170 px wide, so `GameConfig.POINT_SCALE` is 3. G1 read the 8 pt
+drag threshold as 8 *pixels*, which triggered steering almost instantly; it is
+now 8 pt = 24 px. The robot's 60 pt swipe threshold uses the same conversion.
+
+## Not in G1/G2/G3
+
+Driver character, pool art, neighbourhood (house/road/trees/fence/cars),
+clouds. These come in later sprints, in the order the sprint briefs arrive.

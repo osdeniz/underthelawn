@@ -30,23 +30,20 @@ func _initialize() -> void:
 	print("--- §7 traktor girdi eslemesi ---")
 	var turn: float = GameConfig.MOWER_TYPES[1]["max_turn"]
 	var rev: float = GameConfig.MOWER_TYPES[1]["reverse"]
-	var fwd := TractorMower.map_input(Vector2(0.0, 1.0), turn, rev, 2.0)
+	var fwd := MowerMath.tractor_input(Vector2(0.0, 1.0), turn, rev, 2.0)
 	ck("tam ileri -> throttle 1", is_equal_approx(fwd.x, 1.0), str(fwd))
-	var back := TractorMower.map_input(Vector2(0.0, -1.0), turn, rev, -1.0)
+	var back := MowerMath.tractor_input(Vector2(0.0, -1.0), turn, rev, -1.0)
 	ck("tam geri -> throttle -0.5 (0.5x)", is_equal_approx(back.x, -0.5), str(back))
-	var right_fwd := TractorMower.map_input(Vector2(1.0, 1.0), turn, rev, 2.0)
+	var right_fwd := MowerMath.tractor_input(Vector2(1.0, 1.0), turn, rev, 2.0)
 	ck("ileri saga -> +maxTurn", is_equal_approx(right_fwd.y, turn), str(right_fwd))
-	var right_back := TractorMower.map_input(Vector2(1.0, -1.0), turn, rev, -1.0)
+	var right_back := MowerMath.tractor_input(Vector2(1.0, -1.0), turn, rev, -1.0)
 	ck("geri saga -> isaret TERS", is_equal_approx(right_back.y, -turn), str(right_back))
-	var idle := TractorMower.map_input(Vector2.ZERO, turn, rev, 0.0)
+	var idle := MowerMath.tractor_input(Vector2.ZERO, turn, rev, 0.0)
 	ck("birakinca throttle 0 ve steer 0", idle == Vector2.ZERO, str(idle))
 
 	print("--- robot boustrophedon rotasi ---")
 	var m := LawnModel.new(4242)
-	var robot := RobotMower.new()
-	robot.model = m
-	robot.plan_route()
-	var route: Array[Vector2i] = robot.route
+	var route := MowerMath.build_robot_route(m)
 	ck("rota bos degil", route.size() > 0, str(route.size()))
 
 	# Serpentine: row 0 runs west->east, row 1 east->west.
@@ -107,6 +104,5 @@ func _initialize() -> void:
 		and is_equal_approx(float(robot_profile["move_gain"]), 0.13))
 	ck("robot pitch 1.9", is_equal_approx(float(robot_profile["idle_pitch"]), 1.9))
 
-	robot.free()
 	print("--- %s ---" % ("TUM G3 TESTLERI GECTI" if fails == 0 else "%d TEST BASARISIZ" % fails))
 	quit(fails)

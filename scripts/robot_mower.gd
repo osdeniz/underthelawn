@@ -55,36 +55,10 @@ func _on_reset() -> void:
 
 # ---------------------------------------------------------------- route (§7)
 
+## Planned from the CURRENT lawn state; see MowerMath.build_robot_route.
 func plan_route() -> void:
-	route.clear()
+	route = MowerMath.build_robot_route(model)
 	route_index = 0
-	if model == null:
-		return
-	for row in GameConfig.GRID_ROWS:
-		var columns: Array = []
-		if row % 2 == 0:
-			for col in GameConfig.GRID_COLS:
-				columns.append(col)
-		else:
-			for i in GameConfig.GRID_COLS:
-				columns.append(GameConfig.GRID_COLS - 1 - i)
-		for col in columns:
-			if model.is_mowable(col, row):
-				route.append(Vector2i(col, row))
-				continue
-			var detour := _find_detour(col, row)
-			if detour.x >= 0:
-				route.append(detour)
-
-
-## Nearest open row in the same column, searching +/-1..4 (§7).
-func _find_detour(col: int, row: int) -> Vector2i:
-	for offset in range(1, GameConfig.ROBOT_DETOUR_RANGE + 1):
-		if model.is_mowable(col, row - offset):
-			return Vector2i(col, row - offset)
-		if model.is_mowable(col, row + offset):
-			return Vector2i(col, row + offset)
-	return Vector2i(-1, -1)
 
 
 ## Skips waypoints whose cell is already mown and returns the active target,
