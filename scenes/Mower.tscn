@@ -5,6 +5,29 @@
 ; top end leans backwards. The Body node carries the idle vibration.
 
 [ext_resource type="Script" path="res://scripts/mower.gd" id="1_mower"]
+[ext_resource type="Texture2D" path="res://textures/leaf_particle.png" id="2_leaf"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_clipping"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+billboard_mode = 3
+albedo_texture = ExtResource("2_leaf")
+
+[sub_resource type="QuadMesh" id="Quad_clipping"]
+material = SubResource("Mat_clipping")
+size = Vector2(0.045, 0.12)
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_clipping"]
+direction = Vector3(0.7809, 0.6247, 0)
+spread = 55.0
+initial_velocity_min = 1.2
+initial_velocity_max = 3.6
+gravity = Vector3(0, -9.8, 0)
+angular_velocity_min = 120.0
+angular_velocity_max = 480.0
+scale_min = 0.8
+scale_max = 1.25
 
 [sub_resource type="StandardMaterial3D" id="Mat_red"]
 albedo_color = Color(0.78, 0.16, 0.13, 1)
@@ -196,3 +219,13 @@ position = Vector3(0.33, 0.13, 0.4)
 rotation = Vector3(0, 0, 1.5708)
 mesh = SubResource("Cyl_rim")
 material_override = SubResource("Mat_steel")
+
+[node name="Clippings" type="GPUParticles3D" parent="."]
+position = Vector3(0.45, 0.18, 0)
+emitting = false
+amount = 54
+lifetime = 0.6
+lifetime_randomness = 0.4167
+local_coords = false
+process_material = SubResource("PPM_clipping")
+draw_pass_1 = SubResource("Quad_clipping")

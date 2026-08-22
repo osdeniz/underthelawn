@@ -31,10 +31,14 @@ var _touch_index := -1
 var _touch_origin := Vector2.ZERO
 var _shake_time := 0.0
 var _body: Node3D
+var _clippings: GPUParticles3D
+var _clip_window := 0.0
+var _clip_cooldown := 0.0
 
 
 func _ready() -> void:
 	_body = get_node_or_null("Body") as Node3D
+	_clippings = get_node_or_null("Clippings") as GPUParticles3D
 	_add_fake_ao()
 	reset_to_start()
 
@@ -175,6 +179,22 @@ func _resolve_obstacles() -> void:
 
 ## Every cell whose centre falls inside the deck radius is mown. At most one
 ## haptic and one cut sound per frame, however many cells fall.
+## Leaf clippings spray from the right side only while cells are actually
+## falling, in 0.06 s bursts at most every 0.12 s (§9).
+func _update_clippings(delta: float, mown: int) -> void:
+	if _clippings == null:
+		return
+	_clip_cooldown = maxf(_clip_cooldown - delta, 0.0)
+	if _clip_window > 0.0:
+		_clip_window -= delta
+		if _clip_window <= 0.0:
+			_clippings.emitting = false
+	if mown > 0 and _clip_cooldown <= 0.0:
+		_clippings.emitting = true
+		_clip_window = GameConfig.CLIP_EMIT_TIME
+		_clip_cooldown = GameConfig.CLIP_MIN_INTERVAL
+
+
 func _mow(_delta: float) -> void:
 	if model == null:
 		return
@@ -200,6 +220,8 @@ func _mow(_delta: float) -> void:
 				tuft_field.cut_cell(col, row, rotation.y)
 			if result == LawnModel.MowResult.SECRET_REVEALED:
 				revealed.append(Vector2i(col, row))
+
+	_update_clippings(_delta, mown)
 
 	if mown > 0:
 		Haptics.light()

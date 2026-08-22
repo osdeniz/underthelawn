@@ -24,6 +24,7 @@ func _initialize() -> void:
 	_grass_albedo(512)
 	_grass_normal(256)
 	_tuft_silhouette(512)
+	_leaf_particle()
 	_engine_loop()
 	_grass_cut()
 	_discovery_chime()
@@ -172,6 +173,30 @@ func _tuft_silhouette(size: int) -> void:
 	img.generate_mipmaps()
 	var err := img.save_png("res://textures/grass_blade_tuft.png")
 	print("  grass_blade_tuft.png %dx%d, %d bicak -> %s" % [size, size, blades, "ok" if err == OK else str(err)])
+
+
+## 12x32 thin leaf for the clipping particles (§9).
+func _leaf_particle() -> void:
+	if _skip("res://textures/leaf_particle.png"):
+		return
+	var w := 12
+	var h := 32
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.0, 0.0, 0.0, 0.0))
+	for y in h:
+		var v := float(y) / float(h - 1)
+		var taper: float = sin(v * PI)
+		var half := taper * float(w) * 0.34
+		var center := float(w) * 0.5 + sin(v * PI * 0.8) * 0.9
+		var col := Color(0.24, 0.46, 0.13).lerp(Color(0.51, 0.62, 0.20), v)
+		for x in w:
+			var d: float = absf(float(x) + 0.5 - center)
+			if d > half:
+				continue
+			var edge: float = clampf((half - d) / maxf(half, 0.001) * 2.2, 0.0, 1.0)
+			img.set_pixel(x, y, Color(col.r, col.g, col.b, edge))
+	var err := img.save_png("res://textures/leaf_particle.png")
+	print("  leaf_particle.png %dx%d -> %s" % [w, h, "ok" if err == OK else str(err)])
 
 
 # ---------------------------------------------------------------- audio (§14)

@@ -82,6 +82,37 @@ static func tuft_silhouette(size: int = 128) -> Texture2D:
 	return tex
 
 
+## Thin leaf silhouette for the clipping particles, 12x32 per §9.
+static func leaf_particle() -> Texture2D:
+	var found := find("leaf_particle")
+	if found != null:
+		return found
+	warn_missing("leaf_particle", "prosedurel yaprak uretiliyor")
+	if _cache.has("__leaf_generated"):
+		return _cache["__leaf_generated"]
+
+	var w := 12
+	var h := 32
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.0, 0.0, 0.0, 0.0))
+	for y in h:
+		var v := float(y) / float(h - 1)
+		# Pointed at both ends, widest a third of the way up.
+		var taper: float = sin(v * PI)
+		var half := taper * float(w) * 0.34
+		var center := float(w) * 0.5 + sin(v * PI * 0.8) * 0.9
+		var col := Color(0.24, 0.46, 0.13).lerp(Color(0.51, 0.62, 0.20), v)
+		for x in w:
+			var d: float = absf(float(x) + 0.5 - center)
+			if d > half:
+				continue
+			var edge: float = clampf((half - d) / maxf(half, 0.001) * 2.2, 0.0, 1.0)
+			img.set_pixel(x, y, Color(col.r, col.g, col.b, edge))
+	var tex := ImageTexture.create_from_image(img)
+	_cache["__leaf_generated"] = tex
+	return tex
+
+
 ## Radial black gradient used for every fake contact shadow (§13).
 static func ao_radial(size: int = 128) -> Texture2D:
 	var found := find("ao_radial")

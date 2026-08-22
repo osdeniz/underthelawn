@@ -1,8 +1,12 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
-; Sprint G1 HUD (§16), laid out for the 1170 x 2532 portrait viewport.
+; HUD for sprints G1 + G2 (§16), laid out for the 1170 x 2532 portrait viewport.
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Shader" path="res://shaders/screen_overlay.gdshader" id="2_overlay"]
+
+[sub_resource type="ShaderMaterial" id="Mat_overlay"]
+shader = ExtResource("2_overlay")
 
 [sub_resource type="StyleBoxFlat" id="Sb_track"]
 bg_color = Color(0.05, 0.11, 0.06, 0.75)
@@ -34,6 +38,22 @@ content_margin_top = 56.0
 content_margin_right = 60.0
 content_margin_bottom = 56.0
 
+[sub_resource type="StyleBoxFlat" id="Sb_card"]
+bg_color = Color(0.09, 0.07, 0.03, 0.92)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.82, 0.25, 0.85)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+content_margin_left = 48.0
+content_margin_top = 40.0
+content_margin_right = 48.0
+content_margin_bottom = 40.0
+
 [sub_resource type="StyleBoxFlat" id="Sb_button"]
 bg_color = Color(0.24, 0.55, 0.2, 1)
 corner_radius_top_left = 28
@@ -51,6 +71,13 @@ anchor_bottom = 1.0
 mouse_filter = 2
 script = ExtResource("1_hud")
 
+[node name="Overlay" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+material = SubResource("Mat_overlay")
+color = Color(1, 1, 1, 1)
+
 [node name="TopBar" type="Control" parent="."]
 anchor_right = 1.0
 offset_left = 56.0
@@ -61,13 +88,29 @@ mouse_filter = 2
 
 [node name="PercentLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
-offset_right = 620.0
+offset_right = 560.0
 offset_bottom = 74.0
 text = "%0 biçildi"
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0.1, 0, 0.7)
 theme_override_constants/outline_size = 10
 theme_override_font_sizes/font_size = 56
+mouse_filter = 2
+
+[node name="SecretCounter" type="Label" parent="TopBar"]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -460.0
+offset_right = -160.0
+offset_bottom = 74.0
+text = "🔍 0/2"
+horizontal_alignment = 2
+vertical_alignment = 1
+theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.07, 0, 0.7)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 48
 mouse_filter = 2
 
 [node name="Progress" type="ProgressBar" parent="TopBar"]
@@ -92,6 +135,39 @@ focus_mode = 0
 text = "🔊"
 theme_override_font_sizes/font_size = 56
 
+[node name="SecretCard" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -190.0
+offset_right = 430.0
+offset_bottom = 10.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Sb_card")
+
+[node name="Rows" type="VBoxContainer" parent="SecretCard"]
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="CardTitle" type="Label" parent="SecretCard/Rows"]
+unique_name_in_owner = true
+text = "🔑 Paslı Anahtar"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.91, 0.62, 1)
+theme_override_font_sizes/font_size = 62
+
+[node name="CardLine" type="Label" parent="SecretCard/Rows"]
+unique_name_in_owner = true
+text = "It looks old."
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.82, 0.7, 1)
+theme_override_font_sizes/font_size = 38
+
 [node name="CompletePanel" type="Control" parent="."]
 unique_name_in_owner = true
 anchor_right = 1.0
@@ -109,17 +185,18 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -480.0
-offset_top = -380.0
-offset_right = 480.0
-offset_bottom = 260.0
+offset_left = -490.0
+offset_top = -470.0
+offset_right = 490.0
+offset_bottom = 400.0
 theme_override_styles/panel = SubResource("Sb_panel")
 
 [node name="Rows" type="VBoxContainer" parent="CompletePanel/Card"]
-theme_override_constants/separation = 48
+theme_override_constants/separation = 40
 alignment = 1
 
 [node name="Title" type="Label" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
 text = "LAWN COMPLETE"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.93, 1, 0.72, 1)
@@ -133,9 +210,30 @@ autowrap_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.9, 0.78, 1)
 theme_override_font_sizes/font_size = 44
 
+[node name="Collection" type="HBoxContainer" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+theme_override_constants/separation = 56
+alignment = 1
+
+[node name="MissedLabel" type="Label" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+visible = false
+text = "You missed something..."
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 40
+
 [node name="RestartButton" type="Button" parent="CompletePanel/Card/Rows"]
 unique_name_in_owner = true
 focus_mode = 0
 text = "RESTART"
 theme_override_styles/normal = SubResource("Sb_button")
 theme_override_font_sizes/font_size = 52
+
+[node name="Flash" type="ColorRect" parent="."]
+unique_name_in_owner = true
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+modulate = Color(1, 1, 1, 0)

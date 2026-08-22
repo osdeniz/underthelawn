@@ -122,8 +122,75 @@ const CUT_VOICES := 3
 const AMBIENT_GAIN := 0.18
 
 # ---------------------------------------------------------------- haptics (§15)
-const HAPTIC_LIGHT_MS := 10
-const HAPTIC_MEDIUM_MS := 25
+const HAPTIC_ENABLED := true
+const HAPTIC_LIGHT_MS := 10        # cell mown, mower commands
+const HAPTIC_MEDIUM_MS := 25       # secret uncovered
+## Secret collected and 100% complete: two medium pulses.
+const HAPTIC_SUCCESS_GAP := 0.08
+
+# ---------------------------------------------------------------- clippings (§9)
+## Sprayed from the mower's RIGHT side: right = (cos yaw, 0, sin yaw).
+const CLIP_SIDE_OFFSET := 0.45
+const CLIP_DIR_UP := 0.8
+const CLIP_SPREAD_DEG := 55.0
+const CLIP_SPEED := 2.4
+const CLIP_SPEED_SPREAD := 1.2
+const CLIP_GRAVITY := -9.8
+const CLIP_LIFETIME := 0.6
+const CLIP_LIFETIME_SPREAD := 0.25
+const CLIP_SIZE := 0.045
+const CLIP_SPIN_DEG := 300.0
+const CLIP_SPIN_SPREAD_DEG := 180.0
+const CLIP_BIRTH_RATE := 90.0
+const CLIP_EMIT_TIME := 0.06
+## Never spray more often than this, however fast cells fall.
+const CLIP_MIN_INTERVAL := 0.12
+
+# ---------------------------------------------------------------- secret glow (§9)
+const GLOW_RADIUS := 0.15
+const GLOW_COLOR := Color(1.0, 0.82, 0.25)
+const GLOW_FLOAT_AMPLITUDE := 0.16
+const GLOW_FLOAT_PERIOD := 0.8
+const GLOW_PULSE_MIN := 1.0
+const GLOW_PULSE_MAX := 1.3
+const GLOW_PULSE_PERIOD := 0.5
+const SPARK_BIRTH_RATE := 10.0
+const SPARK_SIZE := 0.035
+## NOT in §9 — needed to place and tap the orb. Tune freely.
+const GLOW_HOVER_HEIGHT := 0.38
+const GLOW_SPIN_RATE := 1.3
+const GLOW_TAP_RADIUS := 0.65
+
+# ---------------------------------------------------------------- dig burst (§9)
+const DIG_BIRTH_RATE := 160.0
+const DIG_EMIT_TIME := 0.15
+const DIG_LIFETIME := 0.5
+const DIG_COLOR := Color(0.52, 0.38, 0.26)
+
+# ---------------------------------------------------------------- secret item (§9)
+const ITEM_RISE_FROM := -0.15
+const ITEM_RISE_TO := 0.7
+const ITEM_RISE_TIME := 0.7
+const ITEM_HOLD_TIME := 1.4
+const KEY_COLOR := Color(0.62, 0.48, 0.22)
+const KEY_METALLIC := 0.8
+const KEY_TORUS_RADIUS := 0.11
+const RADIO_BOX := Vector3(0.44, 0.28, 0.14)
+## NOT in §9 — "drifts up and fades" has no stated duration.
+const ITEM_FADE_TIME := 0.9
+const ITEM_FADE_RISE := 0.9
+const ITEM_SPIN_RATE := 1.6
+
+# ---------------------------------------------------------------- secret UI (§16)
+const SECRET_TOTAL := SECRET_COUNT
+const CARD_SHOW_TIME := 2.0
+## NOT in §16 — the flight to the counter has no stated duration.
+const CARD_FLY_TIME := 0.55
+
+# ---------------------------------------------------------------- overlay (§16)
+const VIGNETTE_STRENGTH := 0.16
+const SUN_OVERLAY_WARM := 0.10
+const SUN_OVERLAY_COOL := 0.08
 
 # ---------------------------------------------------------------- secrets (§3)
 const SECRET_COUNT := 2

@@ -24,7 +24,7 @@ const CUT_VOICES := GameConfig.CUT_VOICES
 var muted: bool = false:
 	set(value):
 		muted = value
-		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), value)
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), value or _suspended)
 		GameState.set_setting("audio", "muted", value)
 
 var _streams := {}
@@ -37,6 +37,7 @@ var _engine_target := 0.0
 var _engine_mix := 0.0
 var _turn_amount := 0.0
 var _cut_frame := -1
+var _suspended := false
 var _rng := RandomNumberGenerator.new()
 
 
@@ -152,6 +153,26 @@ func play_discovery() -> void:
 	_one_shot.stream = _streams["discovery"]
 	_one_shot.pitch_scale = 1.0
 	_one_shot.play()
+
+
+## Suspends the whole audio bus while the app is backgrounded (§14).
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+			_set_suspended(true)
+		NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_WM_WINDOW_FOCUS_IN:
+			_set_suspended(false)
+
+
+func _set_suspended(value: bool) -> void:
+	if _suspended == value:
+		return
+	_suspended = value
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), value or muted)
+	if _engine_player:
+		_engine_player.stream_paused = value
+	if _ambient_player:
+		_ambient_player.stream_paused = value
 
 
 func _process(delta: float) -> void:

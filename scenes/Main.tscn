@@ -52,6 +52,8 @@ directional_shadow_max_distance = 60.0
 [node name="Lawn" type="Node3D" parent="."]
 script = ExtResource("2_lawn")
 
+[node name="Effects" type="Node3D" parent="."]
+
 [node name="Mower" parent="." instance=ExtResource("3_mower")]
 
 [node name="Camera3D" type="Camera3D" parent="."]

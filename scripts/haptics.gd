@@ -10,13 +10,13 @@ extends Node
 ## pulses. The gap between the two success pulses is the only number not given;
 ## SUCCESS_GAP_S below is a placeholder and should be corrected from §15.
 
-const LIGHT_MS := 10
-const MEDIUM_MS := 25
-const SUCCESS_PULSE_MS := 10
-const SUCCESS_GAP_S := 0.08  # TODO §15: not specified in the brief
+const LIGHT_MS := GameConfig.HAPTIC_LIGHT_MS
+const MEDIUM_MS := GameConfig.HAPTIC_MEDIUM_MS
+const SUCCESS_PULSE_MS := GameConfig.HAPTIC_MEDIUM_MS
+const SUCCESS_GAP_S := GameConfig.HAPTIC_SUCCESS_GAP
 
-## Turned off by the mute preference and unavailable on desktop anyway.
-var enabled := true
+## Master switch (GameConfig.HAPTIC_ENABLED). Also a no-op on desktop.
+var enabled := GameConfig.HAPTIC_ENABLED
 
 var _claimed_frame: int = -1
 
@@ -31,7 +31,8 @@ func medium() -> void:
 		Input.vibrate_handheld(MEDIUM_MS)
 
 
-## Two short pulses. Awaits internally; callers do not need to await it.
+## Two medium pulses 80 ms apart: secret collected, and 100% complete (§15).
+## Awaits internally; callers do not need to await it.
 func success() -> void:
 	if not _claim_frame():
 		return
