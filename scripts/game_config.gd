@@ -39,7 +39,8 @@ const GROUND_NORMAL_STRENGTH := 0.6
 const GROUND_ROUGHNESS := 0.95
 
 const TUFT_VARIANTS := 8
-const TUFTS_PER_CLUSTER := 7
+## §5 says 7; raised on request for a denser lawn.
+const TUFTS_PER_CLUSTER := 11
 const TUFT_HEIGHT_MIN := 0.30
 const TUFT_HEIGHT_MAX := 0.66
 const TUFT_WIDTH_MIN := 0.26

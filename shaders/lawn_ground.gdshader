@@ -9,8 +9,8 @@ render_mode diffuse_burley, specular_schlick_ggx;
 // Tint texel (col, row) maps to UV (col/16, row/24); row 0 is north (-Z), which
 // matches PlaneMesh UV v=0 at z=-12. Verify on first run (§18 trap 5).
 
-uniform sampler2D grass_albedo : source_color, filter_linear_mipmap, repeat_enable;
-uniform sampler2D grass_normal : hint_roughness_normal, filter_linear_mipmap, repeat_enable;
+uniform sampler2D grass_albedo : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D grass_normal : hint_roughness_normal, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D cell_tint : source_color, filter_linear, repeat_disable;
 
 uniform bool has_albedo = false;

@@ -9,12 +9,15 @@ extends Node
 ## pitch 0.82 <-> 1.0 with up to +0.12 while turning, ~4/s lerp; cut sound at
 ## 0.6 with three pitch variants over a three-voice pool; ambient at 0.18.
 
+## Base names; any of AUDIO_EXTENSIONS is accepted, so a real .ogg recording
+## dropped in later silently replaces the generated .wav placeholder.
 const PATHS := {
-	"engine": "res://audio/mower_engine_loop.ogg",
-	"cut": "res://audio/grass_cut.ogg",
-	"discovery": "res://audio/discovery_chime.ogg",
-	"ambient": "res://audio/ambient_birds_loop.ogg",
+	"engine": "res://audio/mower_engine_loop",
+	"cut": "res://audio/grass_cut",
+	"discovery": "res://audio/discovery_chime",
+	"ambient": "res://audio/ambient_birds_loop",
 }
+const AUDIO_EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
 
 const CUT_VOICES := GameConfig.CUT_VOICES
 
@@ -47,13 +50,18 @@ func _ready() -> void:
 func _load_streams() -> void:
 	var missing: Array[String] = []
 	for key in PATHS:
-		var path: String = PATHS[key]
-		if ResourceLoader.exists(path):
-			var stream := load(path) as AudioStream
+		var base: String = PATHS[key]
+		var found := false
+		for ext in AUDIO_EXTENSIONS:
+			if not ResourceLoader.exists(base + ext):
+				continue
+			var stream := load(base + ext) as AudioStream
 			if stream != null:
 				_streams[key] = stream
-				continue
-		missing.append(path.get_file())
+				found = true
+				break
+		if not found:
+			missing.append(base.get_file() + ".ogg")
 	if not missing.is_empty():
 		push_warning("AudioDirector: audio/ dosyalari eksik, sessiz devam: %s"
 			% ", ".join(missing))
@@ -73,11 +81,28 @@ func _make_player(node_name: String, key: String, looping: bool) -> AudioStreamP
 	p.name = node_name
 	if key != "" and _streams.has(key):
 		p.stream = _streams[key]
-		var ogg := p.stream as AudioStreamOggVorbis
-		if ogg != null and looping:
-			ogg.loop = true
+		if looping:
+			_force_loop(p.stream)
 	add_child(p)
 	return p
+
+
+## The generated placeholders are .wav files with no loop metadata, so looping
+## is set on the resource here rather than relying on the import settings.
+static func _force_loop(stream: AudioStream) -> void:
+	var ogg := stream as AudioStreamOggVorbis
+	if ogg != null:
+		ogg.loop = true
+		return
+	var wav := stream as AudioStreamWAV
+	if wav != null:
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		wav.loop_begin = 0
+		wav.loop_end = wav.data.size() / 2   # 16-bit mono
+		return
+	var mp3 := stream as AudioStreamMP3
+	if mp3 != null:
+		mp3.loop = true
 
 
 # ---------------------------------------------------------------- public API

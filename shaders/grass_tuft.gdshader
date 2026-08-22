@@ -1,7 +1,7 @@
 shader_type spatial;
 // Grass-card trick (§5): double sided, normals forced UP so the back face is
 // not dark and the tufts light like the ground. Alpha-scissored silhouette.
-render_mode cull_disabled, diffuse_burley, specular_disabled, depth_prepass_alpha;
+render_mode cull_disabled, diffuse_burley, specular_disabled, alpha_to_coverage;
 
 uniform sampler2D tuft_texture : source_color, filter_linear_mipmap;
 uniform float alpha_cutoff = 0.25;
@@ -23,8 +23,9 @@ void vertex() {
 void fragment() {
 	vec4 tex = texture(tuft_texture, UV);
 	ALBEDO = tex.rgb;
-	ALPHA = tex.a;
-	ALPHA_SCISSOR_THRESHOLD = alpha_cutoff;
+	// Alpha-to-coverage lets MSAA antialias the blade edges instead of the
+	// hard stair-step a scissor gives. Remap so thin tips stay visible.
+	ALPHA = smoothstep(alpha_cutoff * 0.5, alpha_cutoff * 1.6, tex.a);
 	ROUGHNESS = 0.95;
 	NORMAL = vec3(0.0, 1.0, 0.0);
 }
