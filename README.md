@@ -391,7 +391,48 @@ of eyeballed.
   `TextureLibrary.find()` silently misses and the material renders untextured.
   Run `--headless --editor --quit` between generating and testing.
 
-## Not in G1-G6.9
+## G6.10 — chakram traced from the reference
+
+`textures/chakram1.0.svg` (a potrace line trace of the reference photo) turned
+"looks like it" into "is it". `tools/trace_chakram.gd` rasterises the SVG,
+finds the filled centroid, polar-marches 720 angles for the outer radius,
+averages the four sectors so the result is exactly 4-fold symmetric, and scales
+the peak to `BLADE_ARM_REACH`. It prints a 128-point `PLATE_OUTLINE`, which now
+lives in `blade_mower.gd`.
+
+The payoff of tracing: because the plate mesh is measured from the SAME svg
+that `gen_assets._chakram_plate()` colourises into `chakram_plate.png`, a plain
+top-down UV (`_plate_uv`, fixed divisor `HALF_EXTENT = 1.30`) registers every
+engraved line — arm arcs, hub diamond frame, square windows, crescent horn
+detail — pixel-for-pixel with the silhouette. No hand-fitting.
+
+Consequences of the single-plate rebuild:
+
+* The four separate extruded arms, `ARM_SIDE`/`ARM_NOTCH` and `_arm_color` are
+  gone; one extruded plate replaces them.
+* The hub hole is real geometry, punched with `TRANSPARENCY_ALPHA_SCISSOR`
+  inside `BLADE_HUB_INNER` — you can see grass through it.
+* The hub torus shrank to a narrow raised lip and the diamond bars were
+  deleted, because both hid the engraved frame the texture already draws.
+* Gems moved inward to radius 0.165-0.300 and up to y=0.062: the traced outline
+  dips to ~0.29 at 45 degrees, so anything further out poked past the
+  silhouette, and anything lower was swallowed by the domed plate.
+
+### Shape and palette pass
+
+`BLADE_PLATE_SHARPEN` (1.32) remaps each outline radius as
+`r' = reach * (r/reach)^g`, which pulls the waist in and leaves the horn tips
+where they are, so the corners read sharp instead of rounded. The exponent is
+faded in with `smoothstep(0.34, 0.62, r)` — applied flat it collapses the
+engraved hub frame into the centre hole, and at 2.1 the whole plate degenerates
+into four thin propeller blades. UVs are taken from the UNSHARPENED trace point
+so the engraved rim line still lands on the rim.
+
+Palette: `BLADE_GOLD`/`BLADE_CREAM` darkened, gold now carries the plate out to
+r=0.30 (cream only takes the outer third, silver just the horns), and
+`BLADE_GEM` is a glowing purple at emission energy 1.6.
+
+## Not in G1-G6.10
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

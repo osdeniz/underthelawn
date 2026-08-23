@@ -372,10 +372,12 @@ const BLADE_ARM_REACH := 1.02            # horn tip radius; overall span ~2.0
 const BLADE_HUB_OUTER := 0.24
 const BLADE_HUB_INNER := 0.13
 const BLADE_PLATE_THICK := 0.035
-const BLADE_GOLD := Color(0.86, 0.70, 0.26)
-const BLADE_CREAM := Color(0.90, 0.84, 0.58)
+# >1 pushes the horns out and pulls the waist in, so corners read sharp.
+const BLADE_PLATE_SHARPEN := 1.32
+const BLADE_GOLD := Color(0.62, 0.44, 0.09)
+const BLADE_CREAM := Color(0.78, 0.66, 0.34)
 const BLADE_SILVER := Color(0.80, 0.80, 0.76)
-const BLADE_GEM := Color(0.03, 0.42, 0.18)
+const BLADE_GEM := Color(0.42, 0.10, 0.72)
 const BLADE_SPARK_COOLDOWN := 0.5
 ## Uniform grow factor: chakram mesh, deck radius and body radius all scale
 ## from this one number (future Size upgrades hook in here). 1.0 for now.

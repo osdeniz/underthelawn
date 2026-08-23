@@ -32,7 +32,7 @@ func _initialize() -> void:
 	_asphalt(512)
 	_dirt(256)
 	_cloud_billboard(256)
-	_chakram_arm(512)
+	_chakram_plate(1024)
 	_engine_loop()
 	_grass_cut()
 	_discovery_chime()
@@ -421,6 +421,69 @@ func _chakram_arm(size: int) -> void:
 	img.generate_mipmaps()
 	var err := img.save_png("res://textures/chakram_arm.png")
 	print("  chakram_arm.png %dx%d -> %s" % [size, size, "ok" if err == OK else str(err)])
+
+
+## Colourises the supplied line-art trace (textures/chakram1.0.svg) into the
+## chakram's plate texture (G6.10). Because the plate MESH is measured from the
+## same SVG, a plain top-down UV lands every engraved line exactly where it
+## belongs — no hand-authored map can match that registration.
+##
+## Alpha is punched out inside the hub so the centre hole is a REAL hole.
+func _chakram_plate(size: int) -> void:
+	if _skip("res://textures/chakram_plate.png"):
+		return
+	var svg := load("res://textures/chakram1.0.svg") as Texture2D
+	if svg == null:
+		print("  chakram_plate: chakram1.0.svg yok, atlandi")
+		return
+	var src := svg.get_image()
+	src.decompress()
+	src.convert(Image.FORMAT_RGBA8)
+	var sw := src.get_width()
+	var sh := src.get_height()
+
+	var img := Image.create(size, size, true, Image.FORMAT_RGBA8)
+	# Trace metrics from tools/trace_chakram.gd: centroid and units-per-pixel.
+	var cx := 0.49163
+	var cy := 0.48843
+	var span := 1.02 / 334.2          # units per source pixel
+	var half_extent := 1.30           # world half-size the texture covers
+
+	for y in size:
+		for x in size:
+			var u := float(x) / float(size - 1)
+			var v := float(y) / float(size - 1)
+			# Texture space -> world units -> source pixel.
+			var wx := (u - 0.5) * 2.0 * half_extent
+			var wz := (v - 0.5) * 2.0 * half_extent
+			var sx := int(round(cx * float(sw) + wx / span))
+			var sy := int(round(cy * float(sh) + wz / span))
+
+			var line := 0.0
+			if sx >= 0 and sy >= 0 and sx < sw and sy < sh:
+				var c := src.get_pixel(sx, sy)
+				# potrace ink: dark where alpha covers.
+				line = c.a * (1.0 - (c.r + c.g + c.b) / 3.0)
+
+			var radius := sqrt(wx * wx + wz * wz)
+			# Radial palette: rich gold at the hub, cream body, silver at the horns.
+			# Gold carries most of the plate, as in the reference; cream only takes
+			# over on the outer third and silver just at the horns.
+			var base := GameConfig.BLADE_GOLD.lerp(GameConfig.BLADE_CREAM,
+				clampf((radius - 0.30) / 0.50, 0.0, 1.0))
+			base = base.lerp(GameConfig.BLADE_SILVER,
+				clampf((radius - 0.88) / 0.16, 0.0, 1.0) * 0.85)
+			# Engraved ink darkens toward deep gold rather than pure black.
+			var ink := GameConfig.BLADE_GOLD.darkened(0.62)
+			var col := base.lerp(ink, clampf(line * 0.82, 0.0, 1.0))
+
+			# Punch the hub hole so the centre really is see-through.
+			var alpha := 1.0 if radius > GameConfig.BLADE_HUB_INNER else 0.0
+			img.set_pixel(x, y, Color(col.r, col.g, col.b, alpha))
+
+	img.generate_mipmaps()
+	var err := img.save_png("res://textures/chakram_plate.png")
+	print("  chakram_plate.png %dx%d (SVG'den) -> %s" % [size, size, "ok" if err == OK else str(err)])
 
 
 # ---------------------------------------------------------------- audio (§14)

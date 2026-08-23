@@ -181,7 +181,7 @@ func _build_model() -> void:
 	_disk.scale = Vector3.ONE * GameConfig.BLADE_SCALE
 	body.add_child(_disk)
 
-	_build_arms()
+	_build_plate()
 	_build_gems()
 	_build_hub()
 
@@ -196,150 +196,132 @@ func _build_model() -> void:
 	add_child(_spark_audio)
 
 
-## Half of one arm's outline, from the hub out to the horn tip. Mirrored to make
-## the full closed silhouette. x = radius, y = lateral half-width.
-const ARM_SIDE: Array[Vector2] = [
-	Vector2(0.26, 0.105),
-	Vector2(0.40, 0.150),
-	Vector2(0.56, 0.185),
-	Vector2(0.72, 0.225),
-	Vector2(0.86, 0.272),
-	Vector2(0.97, 0.300),
-	Vector2(1.02, 0.246),   # horn tip
+## Outer silhouette MEASURED from the supplied line-art trace
+## (textures/chakram1.0.svg) by tools/trace_chakram.gd, in world units. The
+## shape is star-shaped about its centre, so a polar sweep captures it exactly —
+## crescent notches included — and the four sectors were averaged to force exact
+## 4-fold symmetry. Regenerate by re-running the tracer.
+const PLATE_OUTLINE: Array[Vector2] = [
+	Vector2(0.9658, 0.0000), Vector2(0.9372, 0.0460), Vector2(0.9870, 0.0972), Vector2(1.0067, 0.1493), 
+	Vector2(0.9877, 0.1965), Vector2(0.9643, 0.2415), Vector2(0.9315, 0.2826), Vector2(0.8964, 0.3208), 
+	Vector2(0.7239, 0.2998), Vector2(0.6876, 0.3252), Vector2(0.6533, 0.3492), Vector2(0.4443, 0.2663), 
+	Vector2(0.3375, 0.2255), Vector2(0.2672, 0.1981), Vector2(0.2536, 0.2081), Vector2(0.2414, 0.2188), 
+	Vector2(0.2303, 0.2303), Vector2(0.2183, 0.2408), Vector2(0.2071, 0.2524), Vector2(0.2181, 0.2941), 
+	Vector2(0.2064, 0.3089), Vector2(0.2632, 0.4391), Vector2(0.2888, 0.5403), Vector2(0.3193, 0.6752), 
+	Vector2(0.2952, 0.7126), Vector2(0.3172, 0.8864), Vector2(0.2799, 0.9228), Vector2(0.2391, 0.9547), 
+	Vector2(0.1954, 0.9824), Vector2(0.1488, 1.0029), Vector2(0.0972, 0.9870), Vector2(0.0469, 0.9555), 
+	Vector2(0.0000, 0.9658), Vector2(-0.0460, 0.9372), Vector2(-0.0972, 0.9870), Vector2(-0.1493, 1.0067), 
+	Vector2(-0.1968, 0.9892), Vector2(-0.2415, 0.9643), Vector2(-0.2826, 0.9315), Vector2(-0.3208, 0.8964), 
+	Vector2(-0.2998, 0.7239), Vector2(-0.3252, 0.6876), Vector2(-0.3492, 0.6533), Vector2(-0.2663, 0.4443), 
+	Vector2(-0.2255, 0.3375), Vector2(-0.1981, 0.2672), Vector2(-0.2081, 0.2536), Vector2(-0.2188, 0.2414), 
+	Vector2(-0.2303, 0.2303), Vector2(-0.2408, 0.2183), Vector2(-0.2524, 0.2071), Vector2(-0.2941, 0.2181), 
+	Vector2(-0.3089, 0.2064), Vector2(-0.4391, 0.2632), Vector2(-0.5403, 0.2888), Vector2(-0.6752, 0.3193), 
+	Vector2(-0.7126, 0.2952), Vector2(-0.8864, 0.3172), Vector2(-0.9228, 0.2799), Vector2(-0.9547, 0.2391), 
+	Vector2(-0.9787, 0.1947), Vector2(-1.0029, 0.1488), Vector2(-0.9870, 0.0972), Vector2(-0.9555, 0.0469), 
+	Vector2(-0.9658, 0.0000), Vector2(-0.9372, -0.0460), Vector2(-0.9870, -0.0972), Vector2(-1.0067, -0.1493), 
+	Vector2(-0.9877, -0.1965), Vector2(-0.9643, -0.2415), Vector2(-0.9315, -0.2826), Vector2(-0.8964, -0.3208), 
+	Vector2(-0.7239, -0.2998), Vector2(-0.6876, -0.3252), Vector2(-0.6533, -0.3492), Vector2(-0.4443, -0.2663), 
+	Vector2(-0.3375, -0.2255), Vector2(-0.2672, -0.1981), Vector2(-0.2536, -0.2081), Vector2(-0.2414, -0.2188), 
+	Vector2(-0.2303, -0.2303), Vector2(-0.2183, -0.2408), Vector2(-0.2071, -0.2524), Vector2(-0.2181, -0.2941), 
+	Vector2(-0.2064, -0.3089), Vector2(-0.2632, -0.4391), Vector2(-0.2888, -0.5403), Vector2(-0.3193, -0.6752), 
+	Vector2(-0.2952, -0.7126), Vector2(-0.3172, -0.8864), Vector2(-0.2799, -0.9228), Vector2(-0.2391, -0.9547), 
+	Vector2(-0.1947, -0.9787), Vector2(-0.1488, -1.0029), Vector2(-0.0972, -0.9870), Vector2(-0.0469, -0.9555), 
+	Vector2(-0.0000, -0.9658), Vector2(0.0460, -0.9372), Vector2(0.0972, -0.9870), Vector2(0.1493, -1.0067), 
+	Vector2(0.1968, -0.9892), Vector2(0.2415, -0.9643), Vector2(0.2826, -0.9315), Vector2(0.3208, -0.8964), 
+	Vector2(0.2998, -0.7239), Vector2(0.3252, -0.6876), Vector2(0.3492, -0.6533), Vector2(0.2663, -0.4443), 
+	Vector2(0.2255, -0.3375), Vector2(0.1981, -0.2672), Vector2(0.2081, -0.2536), Vector2(0.2188, -0.2414), 
+	Vector2(0.2303, -0.2303), Vector2(0.2408, -0.2183), Vector2(0.2524, -0.2071), Vector2(0.2941, -0.2181), 
+	Vector2(0.3089, -0.2064), Vector2(0.4391, -0.2632), Vector2(0.5403, -0.2888), Vector2(0.6752, -0.3193), 
+	Vector2(0.7126, -0.2952), Vector2(0.8864, -0.3172), Vector2(0.9228, -0.2799), Vector2(0.9547, -0.2391), 
+	Vector2(0.9787, -0.1947), Vector2(1.0029, -0.1488), Vector2(0.9870, -0.0972), Vector2(0.9555, -0.0469), 
 ]
-## The crescent notch cutting back in between the two horns.
-const ARM_NOTCH: Array[Vector2] = [
-	Vector2(0.925, 0.150),
-	Vector2(0.860, 0.070),
-	Vector2(0.840, 0.000),
-]
 
 
-func _build_arms() -> void:
-	var outline: Array[Vector2] = []
-	for pt in ARM_SIDE:
-		outline.append(pt)
-	for pt in ARM_NOTCH:
-		outline.append(pt)
-	for i in range(ARM_NOTCH.size() - 2, -1, -1):
-		outline.append(Vector2(ARM_NOTCH[i].x, -ARM_NOTCH[i].y))
-	for i in range(ARM_SIDE.size() - 1, -1, -1):
-		outline.append(Vector2(ARM_SIDE[i].x, -ARM_SIDE[i].y))
-
+## One extruded plate for the whole chakram. The plate texture is colourised
+## from the SAME SVG, so a plain top-down UV registers every engraved line with
+## the geometry — that alignment is the whole point of tracing.
+func _build_plate() -> void:
 	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	# Low metallic: at 0.45 the arms mirrored the bright sky and read as white
-	# plastic instead of painted gold.
-	mat.metallic = 0.12
-	mat.roughness = 0.38
-	# G6.9: the engraving lives in a mostly-white texture that MULTIPLIES over
-	# the vertex banding — vertex colours cannot carry line work at 40 verts.
-	var line_art := TextureLibrary.find("chakram_arm")
-	if line_art != null:
-		mat.albedo_texture = line_art
+	mat.metallic = 0.16
+	mat.roughness = 0.34
+	var plate_tex := TextureLibrary.find("chakram_plate")
+	if plate_tex != null:
+		mat.albedo_texture = plate_tex
+		# The texture punches alpha out inside the hub, making the centre a real
+		# hole rather than a painted one.
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		mat.alpha_scissor_threshold = 0.5
 	else:
-		TextureLibrary.warn_missing("chakram_arm", "duz plaka, oyma cizgisi yok")
+		TextureLibrary.warn_missing("chakram_plate", "duz altin plaka")
+		mat.albedo_color = GameConfig.BLADE_CREAM
+
+	var half := GameConfig.BLADE_PLATE_THICK * 0.5
+	var count := PLATE_OUTLINE.size()
+	var top: Array[Vector3] = []
+	var bottom: Array[Vector3] = []
+	var uvs: Array[Vector2] = []
+	var flat := PackedVector2Array()
+
+	for raw in PLATE_OUTLINE:
+		# Sharpen: keep the horn tips, squeeze everything nearer the hub inward.
+		var reach := GameConfig.BLADE_ARM_REACH
+		var pt := raw
+		var rr := raw.length()
+		if rr > 0.0001:
+			# Fade the squeeze in past the hub, or the engraved hub frame
+			# collapses into the centre hole.
+			var g := lerpf(1.0, GameConfig.BLADE_PLATE_SHARPEN,
+				smoothstep(0.34, 0.62, rr))
+			pt = raw * (reach * pow(minf(rr / reach, 1.0), g) / rr)
+		var radius := pt.length()
+		# Gentle dome: thicker toward the hub, thinning at the horns.
+		var crown := half + (1.0 - clampf(radius / 1.02, 0.0, 1.0)) * 0.05
+		top.append(Vector3(pt.x, crown, pt.y))
+		bottom.append(Vector3(pt.x, -half, pt.y))
+		# UV from the untouched trace, so the engraved rim line still lands
+		# exactly on the rim after sharpening.
+		uvs.append(_plate_uv(raw.x, raw.y))
+		flat.append(pt)
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for arm in 4:
-		_extrude_arm(st, outline, TAU * float(arm) / 4.0)
-	var mi := MeshInstance3D.new()
-	mi.name = "Arms"
-	mi.mesh = st.commit()
-	mi.material_override = mat
-	# Nothing on the chakram casts: the plate would paint hard black swirls on
-	# the blur halo 3 cm below it.
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_disk.add_child(mi)
-
-
-## Concentric colour bands along the arm: rich gold at the root, cream across
-## the body, silver at the horns. Banding is keyed to RADIUS because the
-## silhouette has no vertices on the spine — a lateral gradient had nothing to
-## paint and every arm came out flat cream.
-static func _arm_color(radius: float, lateral: float, half_width: float) -> Color:
-	var col: Color
-	# The gold band has to reach past r~0.47, where the hub's diamond bars stop
-	# covering the arm, or it is never seen.
-	if radius < 0.74:
-		col = GameConfig.BLADE_GOLD.lerp(GameConfig.BLADE_CREAM,
-			clampf((radius - 0.30) / 0.44, 0.0, 1.0))
-	else:
-		col = GameConfig.BLADE_CREAM.lerp(GameConfig.BLADE_SILVER,
-			clampf((radius - 0.80) / 0.20, 0.0, 1.0))
-	# Two darker rings standing in for the reference's engraved arcs; the radii
-	# sit on outline vertex rings so they actually land.
-	var arc := exp(-pow((radius - 0.57) / 0.055, 2.0)) \
-		+ exp(-pow((radius - 0.87) / 0.055, 2.0))
-	col = col.darkened(clampf(arc, 0.0, 1.0) * 0.26)
-	# Rim shading: the outer edge of each arm catches a warmer line.
-	var edge := absf(lateral) / maxf(half_width, 0.001)
-	return col.lerp(GameConfig.BLADE_GOLD.darkened(0.15),
-		clampf(edge - 0.74, 0.0, 1.0) * 0.7)
-
-
-func _extrude_arm(st: SurfaceTool, outline: Array[Vector2], rot: float) -> void:
-	var half := GameConfig.BLADE_PLATE_THICK * 0.5
-	var cs := cos(rot)
-	var sn := sin(rot)
-	var count := outline.size()
-
-	# Flat outline -> 3D, rotated into place around the hub.
-	var top: Array[Vector3] = []
-	var bottom: Array[Vector3] = []
-	var cols: Array[Color] = []
-	var uvs: Array[Vector2] = []
-	var flat := PackedVector2Array()
-	for pt in outline:
-		var x := pt.x * cs - pt.y * sn
-		var z := pt.x * sn + pt.y * cs
-		# The spine is raised, giving the arm a shallow roof like the reference.
-		var crown := half + (1.0 - clampf(absf(pt.y) / 0.30, 0.0, 1.0)) * 0.075
-		top.append(Vector3(x, crown, z))
-		bottom.append(Vector3(x, -half, z))
-		cols.append(_arm_color(pt.x, pt.y, 0.30))
-		# u across the arm (0.5 = spine), v along the radius (0 = hub).
-		#
-		# NOTE: this divides by a FIXED width on purpose. Normalising by the
-		# local half-width would make the stripes follow the taper exactly, but
-		# the plate is a triangulated outline with NO interior vertices, so every
-		# boundary vertex would land on u=0 or u=1 and most triangles would be
-		# UV-degenerate — the line work vanished entirely. Following the taper
-		# properly needs a gridded arm mesh; see the G6.9 note in the README.
-		uvs.append(Vector2(
-			clampf(pt.y / 0.62 + 0.5, 0.0, 1.0),
-			clampf((pt.x - 0.26) / (GameConfig.BLADE_ARM_REACH - 0.26), 0.0, 1.0)))
-		flat.append(pt)
-
-	# Triangulate the concave silhouette once, reuse for both faces.
 	var tris := Geometry2D.triangulate_polygon(flat)
 	for i in range(0, tris.size(), 3):
 		var a: int = tris[i]
 		var b: int = tris[i + 1]
 		var c: int = tris[i + 2]
-		_face(st, top[a], top[b], top[c], cols[a], cols[b], cols[c], Vector3.UP,
-			uvs[a], uvs[b], uvs[c])
+		_face(st, top[a], top[b], top[c], Color.WHITE, Color.WHITE, Color.WHITE,
+			Vector3.UP, uvs[a], uvs[b], uvs[c])
 		_face(st, bottom[a], bottom[b], bottom[c],
-			cols[a].darkened(0.45), cols[b].darkened(0.45), cols[c].darkened(0.45),
+			Color(0.45, 0.40, 0.30), Color(0.45, 0.40, 0.30), Color(0.45, 0.40, 0.30),
 			Vector3.DOWN, uvs[a], uvs[b], uvs[c])
 
-	# Rim walls all the way round.
+	# Rim wall around the whole silhouette.
 	for i in count:
 		var j := (i + 1) % count
 		var wall := (top[j] - top[i]).cross(Vector3.UP)
 		if wall.length_squared() < 0.000001:
 			continue
 		wall = wall.normalized()
-		var edge_col := cols[i].lerp(GameConfig.BLADE_SILVER, 0.5)
-		var edge_col_j := cols[j].lerp(GameConfig.BLADE_SILVER, 0.5)
-		# Rim walls sample the texture's darkened border strip.
-		var rim_i := Vector2(0.015, uvs[i].y)
-		var rim_j := Vector2(0.015, uvs[j].y)
-		_face(st, top[i], top[j], bottom[j], edge_col, edge_col_j, edge_col_j, wall,
-			rim_i, rim_j, rim_j)
-		_face(st, top[i], bottom[j], bottom[i], edge_col, edge_col_j, edge_col, wall,
-			rim_i, rim_j, rim_i)
+		_face(st, top[i], top[j], bottom[j], Color.WHITE, Color.WHITE, Color.WHITE,
+			wall, uvs[i], uvs[j], uvs[j])
+		_face(st, top[i], bottom[j], bottom[i], Color.WHITE, Color.WHITE, Color.WHITE,
+			wall, uvs[i], uvs[j], uvs[i])
+
+	var mi := MeshInstance3D.new()
+	mi.name = "Plate"
+	mi.mesh = st.commit()
+	mi.material_override = mat
+	# Nothing on the chakram casts: the plate would paint hard swirls on the
+	# blur halo a few centimetres below it.
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_disk.add_child(mi)
+
+
+## Top-down UV using the tracer's own metrics, so texture and mesh share a frame.
+static func _plate_uv(x: float, z: float) -> Vector2:
+	const HALF_EXTENT := 1.30
+	return Vector2(x / (2.0 * HALF_EXTENT) + 0.5, z / (2.0 * HALF_EXTENT) + 0.5)
 
 
 ## Four green gems set into the gaps between arms, pointing outward.
@@ -350,7 +332,7 @@ func _build_gems() -> void:
 	mat.roughness = 0.22
 	mat.emission_enabled = true
 	mat.emission = GameConfig.BLADE_GEM
-	mat.emission_energy_multiplier = 0.35
+	mat.emission_energy_multiplier = 1.6
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -359,16 +341,19 @@ func _build_gems() -> void:
 		var cs := cos(a)
 		var sn := sin(a)
 		# Kite shape: narrow at the hub, wide shoulders, sharp point outward.
+		# The traced silhouette narrows to ~0.29 between arms, so the gems have
+		# to sit inside that or they poke out past the plate.
 		var pts: Array[Vector2] = [
-			Vector2(0.20, 0.0), Vector2(0.34, 0.10),
-			Vector2(0.52, 0.0), Vector2(0.34, -0.10),
+			Vector2(0.165, 0.0), Vector2(0.235, 0.058),
+			Vector2(0.300, 0.0), Vector2(0.235, -0.058),
 		]
 		var ring: Array[Vector3] = []
 		for pt in pts:
-			ring.append(Vector3(pt.x * cs - pt.y * sn, 0.0, pt.x * sn + pt.y * cs))
-		var peak := Vector3(0.34 * cs, 0.055, 0.34 * sn)
+			# Above the plate crown, or the plate swallows them.
+			ring.append(Vector3(pt.x * cs - pt.y * sn, 0.062, pt.x * sn + pt.y * cs))
+		var peak := Vector3(0.235 * cs, 0.108, 0.235 * sn)
 		var col := GameConfig.BLADE_GEM
-		var bright := GameConfig.BLADE_GEM.lightened(0.35)
+		var bright := GameConfig.BLADE_GEM.lightened(0.55)
 		for k in 4:
 			var p0: Vector3 = ring[k]
 			var p1: Vector3 = ring[(k + 1) % 4]
@@ -394,20 +379,14 @@ func _build_hub() -> void:
 	deep.metallic = 0.65
 	deep.roughness = 0.4
 
+	# A narrow raised lip only. A full-width torus buried the hub frame that the
+	# plate texture already draws from the reference.
 	var ring := TorusMesh.new()
-	ring.inner_radius = GameConfig.BLADE_HUB_INNER
-	ring.outer_radius = GameConfig.BLADE_HUB_OUTER
+	ring.inner_radius = GameConfig.BLADE_HUB_INNER - 0.005
+	ring.outer_radius = GameConfig.BLADE_HUB_INNER + 0.038
 	ring.rings = 32
-	ring.ring_segments = 10
-	_hub_piece(ring, gold, Vector3(0.0, 0.03, 0.0))
-
-	# Stepped collar just inside the ring: the notched lip of the reference.
-	var collar := CylinderMesh.new()
-	collar.top_radius = GameConfig.BLADE_HUB_INNER + 0.02
-	collar.bottom_radius = GameConfig.BLADE_HUB_INNER + 0.035
-	collar.height = 0.05
-	collar.radial_segments = 24
-	_hub_piece(collar, deep, Vector3(0.0, 0.02, 0.0))
+	ring.ring_segments = 8
+	_hub_piece(ring, gold, Vector3(0.0, 0.026, 0.0))
 
 	# G6.9 item 4: fine radial teeth around the ring's inner mouth — small, but
 	# it is the detail that sells the hub as machined rather than a plain donut.
@@ -416,18 +395,12 @@ func _build_hub() -> void:
 	for i in 24:
 		var a := TAU * float(i) / 24.0
 		var mi := _hub_piece(tooth, deep, Vector3(
-			cos(a) * (GameConfig.BLADE_HUB_INNER + 0.012), 0.042,
-			sin(a) * (GameConfig.BLADE_HUB_INNER + 0.012)))
+			cos(a) * (GameConfig.BLADE_HUB_INNER + 0.006), 0.040,
+			sin(a) * (GameConfig.BLADE_HUB_INNER + 0.006)))
 		mi.rotation.y = -a
 
-	# Diamond frame: four bars set at 45 deg, leaving square gaps at the corners.
-	var bar := BoxMesh.new()
-	bar.size = Vector3(0.34, 0.03, 0.055)
-	for i in 4:
-		var a := TAU * (float(i) + 0.5) / 4.0
-		var mi := _hub_piece(bar, gold,
-			Vector3(cos(a) * 0.30, 0.005, sin(a) * 0.30))
-		mi.rotation.y = -a + PI * 0.5
+	# The diamond frame and its square windows come from the plate texture now,
+	# traced from the reference — no need to model bars over the top of them.
 
 
 func _hub_piece(mesh: Mesh, mat: Material, pos: Vector3) -> MeshInstance3D:
