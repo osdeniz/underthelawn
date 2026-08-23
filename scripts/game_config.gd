@@ -164,9 +164,10 @@ const MOWER_ROBOT := 2
 const MOWER_TYPES: Array[Dictionary] = [
 	{
 		"id": "push", "emoji": "🔴", "label": "Push",
-		"speed": 3.0, "deck": 0.7, "max_turn": 1.7, "body": 0.55, "reverse": 0.0,
-		# §7 defaults: the push mower is the reference feel.
-		"steer_gain": 5.0, "turn_drag": 0.45,
+		"speed": 3.0, "deck": 0.75, "max_turn": 2.6, "body": 0.55, "reverse": 0.45,
+		# G6.12: §7's 1.7 rad/s + 0.45 drag turned like a bus. 2.6 and 0.26
+		# let it pivot in about a cell and a half.
+		"steer_gain": 5.0, "turn_drag": 0.26,
 	},
 	{
 		"id": "tractor", "emoji": "🚜", "label": "Traktör",
@@ -177,7 +178,7 @@ const MOWER_TYPES: Array[Dictionary] = [
 	},
 	{
 		"id": "robot", "emoji": "🤖", "label": "Robot",
-		"speed": 2.1, "deck": 0.7, "max_turn": 2.6, "body": 0.45, "reverse": 0.0,
+		"speed": 2.1, "deck": 0.75, "max_turn": 2.6, "body": 0.45, "reverse": 0.45,
 		# G6.7: the robot chases waypoints, so it needs to snap onto a heading
 		# quickly; its own 2.6 rad/s ceiling still bounds the rate.
 		"steer_gain": 7.0, "turn_drag": 0.30,
@@ -186,7 +187,7 @@ const MOWER_TYPES: Array[Dictionary] = [
 		# G6 Blade: yaw-free, follows the finger. max_turn is a dummy (never
 		# steers) kept non-zero so speed/turn ratios stay divide-safe.
 		"id": "blade", "emoji": "⚙️", "label": "Blade",
-		"speed": 5.0, "deck": 0.55, "max_turn": 1.0, "body": 0.40, "reverse": 0.0,
+		"speed": 5.0, "deck": 0.95, "max_turn": 1.0, "body": 0.40, "reverse": 0.0,
 		# Yaw-free: it never steers, so these are inert.
 		"steer_gain": 0.0, "turn_drag": 0.0,
 	},
@@ -249,6 +250,8 @@ const STEER_SPEED_RADIUS_FACTOR := 0.45
 const STEER_ERROR_GAIN := 5.0                 # shortestAngle * 5 -> desiredOmega
 ## §7's threshold is 8 POINTS, not pixels; multiply by POINT_SCALE.
 const DRAG_THRESHOLD_PT := 8.0
+## Drag distance (in points) for full stick deflection on the shared drag pad.
+const DRAG_FULL_PT := 34.0
 const WALL_INSET_FACTOR := 0.6                # inset = bodyRadius * 0.6
 
 # ---------------------------------------------------------------- camera (§10)
@@ -359,7 +362,6 @@ const MOWER_BLADE := 3
 ## G6.8: the follow is PROPORTIONAL — desired speed = distance * gain, capped.
 ## A small finger move drifts, a big sweep accelerates. The old flat 9 u/s felt
 ## like a teleport.
-const BLADE_FOLLOW_GAIN := 3.2           # 1/s: desired speed per unit of distance
 const BLADE_MAX_SPEED := 5.0             # u/s ceiling
 const BLADE_GLIDE_TIME := 0.35           # coast after the finger lifts
 ## Spin idles lazily and revs up with motion (G6.8).

@@ -1,16 +1,12 @@
 class_name BladeMower
 extends MowerController
 ## G6 Blade: a free-roaming saw disk, the fantasy/flair mower. Unlike the other
-## three it has NO heading — while a finger holds on or near the disk, the disk
-## chases the finger's ground point at BLADE_FOLLOW_SPEED, glides to a stop
-## when the finger lifts, and never steers. Wall clipping, obstacle push-out
+## three it has NO heading — the shared drag pad's stick becomes its travel
+## direction directly (camera-relative), it glides to a stop when the finger
+## lifts, and it never steers. Wall clipping, obstacle push-out
 ## and the deck sweep all come from the MowerController core.
 
-const GRAB_RADIUS := 2.5      # how close (world units) a press must land
-
-var _target := Vector3.ZERO
 var _has_finger := false
-var _touch_index := -1
 var _velocity := Vector3.ZERO
 var _glide := 0.0
 
@@ -44,7 +40,6 @@ func _ready() -> void:
 
 func _on_active_changed(value: bool) -> void:
 	_has_finger = false
-	_touch_index = -1
 	_velocity = Vector3.ZERO
 	if not value and _trail:
 		_trail.emitting = false
@@ -52,27 +47,20 @@ func _on_active_changed(value: bool) -> void:
 
 # ---------------------------------------------------------------- input
 
+## G6.12: driven by the shared drag pad like every other mower, so a press
+## anywhere on screen works — the disk no longer has to be grabbed.
 func on_touch_pressed(index: int, screen_pos: Vector2) -> void:
-	if _touch_index != -1:
-		return
-	var hit := ground_point(screen_pos)
-	if Vector2(hit.x - position.x, hit.z - position.z).length() > GRAB_RADIUS:
-		return
-	_touch_index = index
-	_has_finger = true
-	_target = hit
+	if pad_press(index, screen_pos):
+		_has_finger = true
 
 
 func on_touch_dragged(index: int, screen_pos: Vector2) -> void:
-	if index != _touch_index:
-		return
-	_target = ground_point(screen_pos)
+	pad_drag(index, screen_pos)
 
 
 func on_touch_released(index: int, _screen_pos: Vector2) -> void:
-	if index != _touch_index:
+	if not pad_release(index):
 		return
-	_touch_index = -1
 	_has_finger = false
 	_glide = GameConfig.BLADE_GLIDE_TIME
 
@@ -81,21 +69,18 @@ func on_touch_released(index: int, _screen_pos: Vector2) -> void:
 
 ## Fully replaces the core throttle/steering loop: direct chase, no yaw.
 func _physics_process(delta: float) -> void:
-	if _has_finger:
-		var to_target := _target - position
-		to_target.y = 0.0
-		var dist := to_target.length()
-		if dist > 0.01:
-			# Proportional chase: speed scales with how far the finger is, up to
-			# the cap. Drifts under fine control, accelerates on a big sweep.
-			var desired := minf(dist * GameConfig.BLADE_FOLLOW_GAIN,
-				GameConfig.BLADE_MAX_SPEED)
-			var step := minf(desired * delta, dist)
-			var dir := to_target / dist
-			_velocity = dir * desired
-			position += dir * step
-		else:
-			_velocity = Vector3.ZERO
+	var stick := pad_stick()
+	if _has_finger and stick != Vector2.ZERO:
+		# The stick IS the direction, taken relative to the camera as it was when
+		# the finger landed — see pad_camera_yaw(). Deflection sets the speed, so
+		# it stays proportional instead of snapping to the finger.
+		var heading := pad_camera_yaw() + atan2(stick.x, stick.y)
+		var dir := Vector3(sin(heading), 0.0, -cos(heading))
+		var desired := minf(stick.length(), 1.0) * GameConfig.BLADE_MAX_SPEED
+		_velocity = dir * desired
+		position += _velocity * delta
+	elif _has_finger:
+		_velocity = Vector3.ZERO
 	elif _glide > 0.0:
 		# Short coast after release.
 		_glide = maxf(_glide - delta, 0.0)

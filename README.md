@@ -453,7 +453,59 @@ Two fixes worth keeping in mind for any future glow:
   alpha went. A `PlaneMesh` with the feathered `cloud_billboard` texture fades
   into the grass instead.
 
-## Not in G1-G6.11
+## G6.12 — one control scheme, and the cut bug
+
+### The cut bug: cut radius vs visible footprint
+
+The blade "drove over grass without cutting it". The mow loop was fine; the
+numbers were not. The chakram plate reaches `BLADE_ARM_REACH` (~1.02) but the
+blade's deck was **0.55**, so grass under the outer half of the visible disk was
+never touched. Separately, cells are 1.0 wide, so half a cell diagonal is
+**0.708** — any deck under that can sit on a cell corner and reach no cell
+centre at all. Push and robot were at 0.7, just under the line.
+
+Decks are now push/robot 0.75 and blade 0.95, and `tests/CutCoverage.tscn`
+pins both rules. It was written to fail first: at deck 0.55 it reports
+`kesme yaricapi 0.550 < hucre kosesi 0.707, gorunen 1.02, kesen 0.55`.
+
+`_mow` also sweeps the deck along the segment travelled since the last tick
+rather than point-sampling the current centre. Worth noting honestly: at 60 Hz
+and these speeds the stride is ~0.08 units, so the sweep changes nothing today
+and is NOT what fixed the bug — it is cheap insurance if speeds ever rise.
+
+### Shared drag pad
+
+Every mower now uses one scheme, in `MowerController`: press **anywhere** on
+screen and the drag offset from that point becomes a virtual stick — up is
+forward, down is reverse, sideways steers. It runs through
+`MowerMath.tractor_input`, the §7 mapping that already handled reverse speed and
+the steering-sign flip, so all four types share one set of rules.
+
+* Push dropped its absolute-heading steering for the pad.
+* The tractor's HUD joystick still works; a drag anywhere else drives the same
+  mapping.
+* The robot keeps tap-to-go and swipe-to-nudge, but a drag that leaves the dead
+  zone takes it off its route and drives it by hand until release.
+* The blade no longer has to be grabbed (`GRAB_RADIUS` is gone) and no longer
+  snaps to the finger: the stick is its travel direction and its deflection is
+  its speed.
+
+Push also turns much tighter — `max_turn` 1.7 -> 2.6 and `turn_drag` 0.45 ->
+0.26. §7's values turned like a bus on a 16x24 lawn. `tests/g3_check.gd` pins
+the deviations so a later drift still trips.
+
+**The trap: camera-relative control plus a camera that follows you.** The
+camera yaw chases the mower's yaw, and the blade derived its heading from the
+live camera yaw — so every direction except straight ahead curved away, in a
+feedback spiral. Straight ahead is the loop's fixed point, which is exactly why
+it was the only direction that looked correct. `pad_camera_yaw()` latches the
+camera yaw when the finger lands and holds it for the gesture.
+
+Both new suites are `tests/CutCoverage.tscn` and `tests/DragPad.tscn`; the
+latter drives each mower through the real touch entry points from a press in a
+screen corner.
+
+## Not in G1-G6.12
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

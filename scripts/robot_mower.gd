@@ -19,6 +19,7 @@ var _override: Vector3 = Vector3.ZERO
 var _has_override := false
 var _touch_index := -1
 var _touch_origin := Vector2.ZERO
+var _pad_driving := false
 
 var _led_material: StandardMaterial3D
 var _led_time := 0.0
@@ -96,6 +97,12 @@ func _nearest_pending() -> Vector2i:
 # ---------------------------------------------------------------- driving
 
 func _gather_input(_delta: float) -> void:
+	# G6.12: a held drag takes the robot off its route and drives it by hand,
+	# with the same stick mapping as the other three. Letting go hands it back
+	# to the boustrophedon route.
+	if _pad_driving:
+		drive_from_pad()
+		return
 	if model == null:
 		throttle = 0.0
 		desired_omega = 0.0
@@ -165,12 +172,28 @@ func on_touch_pressed(index: int, screen_pos: Vector2) -> void:
 		return
 	_touch_index = index
 	_touch_origin = screen_pos
+	_pad_driving = false
+	pad_press(index, screen_pos)
+
+
+func on_touch_dragged(index: int, screen_pos: Vector2) -> void:
+	pad_drag(index, screen_pos)
+	if index == _touch_index and pad_stick() != Vector2.ZERO:
+		_pad_driving = true
 
 
 func on_touch_released(index: int, screen_pos: Vector2) -> void:
 	if index != _touch_index:
 		return
 	_touch_index = -1
+	pad_release(index)
+	if _pad_driving:
+		# Manual drive: hand the route back, no tap/swipe interpretation.
+		_pad_driving = false
+		throttle = 0.0
+		desired_omega = 0.0
+		Haptics.light()
+		return
 	var swipe := screen_pos - _touch_origin
 	if swipe.length() >= GameConfig.ROBOT_SWIPE_THRESHOLD_PT * GameConfig.POINT_SCALE:
 		_nudge(swipe)

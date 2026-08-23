@@ -13,10 +13,17 @@ func ck(label: String, ok: bool, extra := "") -> void:
 
 func _initialize() -> void:
 	print("--- §6 parametre setleri ---")
+	# §7's table, with the G6.12 deviations pinned so a later drift still trips:
+	#  - push max_turn 1.7 -> 2.6 and turn_drag 0.45 -> 0.26: §7's radius turned
+	#    like a bus on a 16x24 lawn.
+	#  - push/robot deck 0.7 -> 0.75: 0.7 is under half a cell diagonal (0.708),
+	#    so the deck could straddle a cell corner and cut nothing.
+	#  - push/robot reverse 0.0 -> 0.45: the shared drag pad gives every mower a
+	#    reverse, so pulling the finger back has to do something.
 	var expected := [
-		{ "speed": 3.0, "deck": 0.7, "max_turn": 1.7, "body": 0.55, "reverse": 0.0 },
+		{ "speed": 3.0, "deck": 0.75, "max_turn": 2.6, "body": 0.55, "reverse": 0.45 },
 		{ "speed": 4.8, "deck": 1.1, "max_turn": 1.5, "body": 0.85, "reverse": 0.5 },
-		{ "speed": 2.1, "deck": 0.7, "max_turn": 2.6, "body": 0.45, "reverse": 0.0 },
+		{ "speed": 2.1, "deck": 0.75, "max_turn": 2.6, "body": 0.45, "reverse": 0.45 },
 	]
 	for i in 3:
 		var got: Dictionary = GameConfig.MOWER_TYPES[i]

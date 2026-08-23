@@ -21,6 +21,21 @@ var model: LawnModel
 var tuft_field: TuftField
 ## Camera yaw in spec space; drag/swipe input is camera-relative (§18 trap 2).
 var camera_yaw: float = 0.0
+
+# Shared drag pad state (G6.12).
+var _pad_index := -1
+var _pad_origin := Vector2.ZERO
+var _pad_stick := Vector2.ZERO
+# Camera yaw LATCHED when the finger went down. The camera yaw chases the
+# mower's own yaw, so a mower that derives its heading from the live camera yaw
+# (the blade) feeds back into itself and spirals — every direction but straight
+# ahead curved away. Freezing the frame for the duration of the gesture breaks
+# the loop.
+var _pad_camera_yaw := 0.0
+
+# Previous deck centre, for the swept mow (G6.12).
+var _mow_from := Vector2.ZERO
+var _mow_valid := false
 ## The active Camera3D, for ray picks (robot ground taps).
 var camera: Camera3D
 
@@ -108,6 +123,8 @@ func set_active(value: bool) -> void:
 		omega = 0.0
 		throttle = 0.0
 		desired_omega = 0.0
+		_pad_index = -1
+		_pad_stick = Vector2.ZERO
 		if _clippings:
 			_clippings.emitting = false
 	_on_active_changed(value)
@@ -126,6 +143,8 @@ func adopt_state(from_position: Vector3, from_yaw: float) -> void:
 	omega = 0.0
 	throttle = 0.0
 	desired_omega = 0.0
+	# Do NOT sweep from where the previous mower stood.
+	_mow_valid = false
 	_apply_yaw()
 
 
@@ -177,6 +196,17 @@ func _update_steering(delta: float) -> void:
 	omega += (desired_omega - omega) * minf(1.0, GameConfig.STEER_SMOOTHING * delta)
 	# Faster travel widens the turning radius by up to 45%.
 	yaw += omega * (1.0 - turn_drag() * speed_fraction()) * delta
+
+
+## Distance from `point` to the segment a->b; falls back to the point distance
+## when the mower did not move this tick.
+static func _segment_distance(point: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab := b - a
+	var len_sq := ab.length_squared()
+	if len_sq < 0.000001:
+		return point.distance_to(a)
+	var t := clampf((point - a).dot(ab) / len_sq, 0.0, 1.0)
+	return point.distance_to(a + ab * t)
 
 
 static func shortest_angle(from_angle: float, to_angle: float) -> float:
@@ -246,8 +276,17 @@ func _mow(delta: float) -> void:
 	var radius := deck_radius()
 	var stripe := LawnModel.stripe_bucket(forward())
 	var center := Vector2(position.x, position.z)
-	var origin := LawnModel.cell_at(position - Vector3(radius, 0.0, radius))
-	var limit := LawnModel.cell_at(position + Vector3(radius, 0.0, radius))
+	# Sweep the deck along the segment travelled since the last tick. A point
+	# sample leaves gaps: cells are 1.0 wide, so a deck under 0.708 (half the
+	# cell diagonal) can sit on a cell corner and reach no centre at all, and a
+	# fast mower can step clean past a centre between two frames.
+	var from := _mow_from if _mow_valid else center
+	_mow_from = center
+	_mow_valid = true
+	var box_lo := Vector3(minf(from.x, center.x), 0.0, minf(from.y, center.y))
+	var box_hi := Vector3(maxf(from.x, center.x), 0.0, maxf(from.y, center.y))
+	var origin := LawnModel.cell_at(box_lo - Vector3(radius, 0.0, radius))
+	var limit := LawnModel.cell_at(box_hi + Vector3(radius, 0.0, radius))
 
 	var mown := 0
 	var revealed: Array[Vector2i] = []
@@ -257,7 +296,7 @@ func _mow(delta: float) -> void:
 			if not LawnModel.in_bounds(col, row):
 				continue
 			var cc := LawnModel.cell_center(col, row)
-			if Vector2(cc.x, cc.z).distance_to(center) > radius:
+			if _segment_distance(Vector2(cc.x, cc.z), from, center) > radius:
 				continue
 			# Clippings inherit the clump's colour (read before it is cut).
 			if mown == 0 and tuft_field:
@@ -337,17 +376,81 @@ func _add_fake_ao() -> void:
 
 # ---------------------------------------------------------------- input routing
 
-## Game forwards raw touches; each type consumes what it needs.
-func on_touch_pressed(_index: int, _screen_pos: Vector2) -> void:
-	pass
+## Game forwards raw touches; each type consumes what it needs. The default is
+## the shared drag pad (G6.12): press ANYWHERE on screen, and the drag offset
+## from that point becomes a virtual stick — up is forward, down is reverse,
+## sideways steers. Every mower type uses it, so the control never changes when
+## you switch vehicles.
+func on_touch_pressed(index: int, screen_pos: Vector2) -> void:
+	pad_press(index, screen_pos)
 
 
-func on_touch_dragged(_index: int, _screen_pos: Vector2) -> void:
-	pass
+func on_touch_dragged(index: int, screen_pos: Vector2) -> void:
+	pad_drag(index, screen_pos)
 
 
-func on_touch_released(_index: int, _screen_pos: Vector2) -> void:
-	pass
+func on_touch_released(index: int, _screen_pos: Vector2) -> void:
+	pad_release(index)
+
+
+## True while a finger is down on the pad.
+func pad_engaged() -> bool:
+	return _pad_index != -1
+
+
+## The virtual stick: x = right, y = forward, each -1..1. Zero inside the
+## §7 drag threshold so a plain tap does not twitch the mower.
+func pad_stick() -> Vector2:
+	return _pad_stick
+
+
+## Camera yaw as it was when this gesture started. See _pad_camera_yaw.
+func pad_camera_yaw() -> float:
+	return _pad_camera_yaw
+
+
+func pad_press(index: int, screen_pos: Vector2) -> bool:
+	if _pad_index != -1:
+		return false
+	_pad_index = index
+	_pad_origin = screen_pos
+	_pad_stick = Vector2.ZERO
+	_pad_camera_yaw = camera_yaw
+	return true
+
+
+func pad_drag(index: int, screen_pos: Vector2) -> bool:
+	if index != _pad_index:
+		return false
+	var drag := screen_pos - _pad_origin
+	var dead := GameConfig.DRAG_THRESHOLD_PT * GameConfig.POINT_SCALE
+	if drag.length() <= dead:
+		_pad_stick = Vector2.ZERO
+		return true
+	var full := GameConfig.DRAG_FULL_PT * GameConfig.POINT_SCALE
+	# Measure past the dead zone so the stick starts at zero, not at a jump.
+	var mag := minf((drag.length() - dead) / maxf(full - dead, 1.0), 1.0)
+	var dir := drag.normalized()
+	# Screen y grows downward, so up (-y) is forward.
+	_pad_stick = Vector2(dir.x, -dir.y) * mag
+	return true
+
+
+func pad_release(index: int) -> bool:
+	if index != _pad_index:
+		return false
+	_pad_index = -1
+	_pad_stick = Vector2.ZERO
+	return true
+
+
+## Shared pad -> throttle/steering, using the same §7 rules as the tractor
+## joystick (reverse runs at `reverse` speed and flips the steering sign).
+func drive_from_pad() -> void:
+	var mapped := MowerMath.tractor_input(
+		_pad_stick, max_turn(), reverse_factor(), speed)
+	throttle = mapped.x
+	desired_omega = mapped.y
 
 
 ## Ray/plane intersection with the ground, clamped inside the lawn.

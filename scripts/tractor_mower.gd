@@ -14,12 +14,13 @@ func type_index() -> int:
 
 
 func _gather_input(_delta: float) -> void:
-	if joystick == null:
-		throttle = 0.0
-		desired_omega = 0.0
-		return
+	# G6.12: the HUD joystick still works, but a drag anywhere else on screen
+	# drives the same mapping, so the tractor controls like the other three.
+	var stick := joystick.get_value() if joystick != null else Vector2.ZERO
+	if stick == Vector2.ZERO and pad_engaged():
+		stick = pad_stick()
 	# x = right, y = up (forward). MowerMath.tractor_input holds the §7 rules.
 	var mapped := MowerMath.tractor_input(
-		joystick.get_value(), max_turn(), reverse_factor(), speed)
+		stick, max_turn(), reverse_factor(), speed)
 	throttle = mapped.x
 	desired_omega = mapped.y
