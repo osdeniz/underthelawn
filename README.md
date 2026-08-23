@@ -276,7 +276,44 @@ fix would change robot feel and needs its own approval).
 
 Desktop FPS with the new grass: 120 (vsync cap). Phone knob: TUFTS_PER_CLUSTER.
 
-## Not in G1-G6.5
+## Sprint G6.6 — grass palette system, carpet density, chakram (done)
+
+**A) Palette infrastructure.** `GameConfig.GRASS_PALETTES` defines a whole grass
+look in one place: `cluster_base`/`cluster_tip` (the vertex gradient), weighted
+`accents` (dry 15%, flowered 5%), `ground_mowed` stripe ladder and `clipping`.
+`ground_tall_tint()` DERIVES the uncut ground from the cluster family, so the
+ground always reads as the base of the grass — new palettes get a correct ground
+for free. Every grass colour in the codebase now reads from the palette; no
+hard-coded grass colour remains. `ACTIVE_GRASS_PALETTE` is the single switch;
+a `PURPLE` palette is defined as proof and verified by screenshot, then reverted
+to `GREEN`.
+
+Prerequisite fix: `grass_albedo.png` is regenerated as NEUTRAL luminance detail.
+It used to bake green in, so a purple palette could never multiply to purple.
+
+**B) Carpet density.** Each cell's mesh now holds `TUFTS_PER_CLUSTER` (9) clumps
+spread across the cell with baked bimodal heights (70% short filler, 30% tall
+spikes, 0.4-0.9 band), so instance scale no longer shrinks footprints. Uncut
+ground is essentially invisible from the air; it only appears where mowed.
+Triangles 169k, 254 draw calls, 91 FPS on desktop.
+
+**C) Blade → chakram.** Blue donut hub (section r0.07, hole in the middle) with
+seven dark rivets, six white-cream sickle blades sweeping back 25° per segment
+as SOLID slabs with glowing blue tips, diameter ~1.1, translucent white-blue
+spin-blur disk beneath. `BLADE_SCALE` grows mesh, cut radius and body radius
+together for future Size upgrades. Mechanics unchanged.
+
+Debug note worth keeping: the sickles rendered BLACK through four wrong
+hypotheses (normals, cull mode, geometry, shadows). Measuring the mesh proved
+normals/material/environment were all fine; the cause is that **Godot treats
+CLOCKWISE winding as front-facing**, so the auto-correction was culling exactly
+the faces it meant to keep and showing the slab's unlit underside.
+
+### Grass knobs
+`ACTIVE_GRASS_PALETTE`, `TUFTS_PER_CLUSTER` (9→7→5), `CLUMP_BLADES` (6),
+`CLUMP_HEIGHT_MIN/MAX`, `CLUMP_TALL_CHANCE`, `BLADE_SCALE`.
+
+## Not in G1-G6.6
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

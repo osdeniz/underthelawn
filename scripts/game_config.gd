@@ -124,7 +124,7 @@ static func clump_variants() -> Array:
 ## G6.6 density: carpet, not islands — the ground should barely show through
 ## uncut grass. Knob ladder for phone calibration: 9 -> 7 -> 5.
 const TUFTS_PER_CLUSTER := 9
-const CLUMP_BLADES := 7
+const CLUMP_BLADES := 6
 const CLUMP_HEIGHT_MIN := 0.4
 const CLUMP_HEIGHT_MAX := 0.9
 ## 70% short filler, 30% tall spikes out of the band above.
