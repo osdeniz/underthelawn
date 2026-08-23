@@ -8,6 +8,11 @@ extends Node3D
 var _mats := {}
 var _sway: Array = []      # { node, phase }
 var _clouds: Array = []    # { node, base_x, phase }
+var _canopies: Array = []  # { node, phase } — G6 micro-motion
+var _flag: Node3D
+var _flag_timer := 0.0
+var _bird: AudioStreamPlayer
+var _bird_timer := 0.0
 var _time := 0.0
 var _rng := RandomNumberGenerator.new()
 
@@ -25,6 +30,11 @@ func _ready() -> void:
 	_build_neighbors()
 	_build_smalls()
 	_build_clouds()
+	if GameConfig.SKY_HIGH_CLOUDS_ENABLED:
+		_build_high_clouds()
+	_build_driveways()
+	_setup_bird()
+	_flag_timer = _rng.randf_range(GameConfig.FLAG_INTERVAL_MIN, GameConfig.FLAG_INTERVAL_MAX)
 	# LawnView builds its grey placeholders in Game._ready, after this node's
 	# _ready — hide them once the real props exist.
 	_hide_placeholders.call_deferred()
@@ -46,6 +56,35 @@ func _process(delta: float) -> void:
 		var node: Node3D = entry["node"]
 		node.position.x = entry["base_x"] + sin(_time * TAU / GameConfig.CLOUD_PERIOD
 			+ entry["phase"]) * GameConfig.CLOUD_DRIFT
+	if GameConfig.MICRO_MOTION_ENABLED:
+		_micro_motion(delta)
+
+
+## G6: slow canopy sway, the occasional mailbox flag salute, a rare single bird.
+func _micro_motion(delta: float) -> void:
+	for entry in _canopies:
+		var node: Node3D = entry["node"]
+		node.rotation.z = sin(_time * TAU / GameConfig.CANOPY_SWAY_PERIOD
+			+ entry["phase"]) * GameConfig.CANOPY_SWAY_AMP
+
+	if _flag != null:
+		_flag_timer -= delta
+		if _flag_timer <= 0.0:
+			_flag_timer = _rng.randf_range(GameConfig.FLAG_INTERVAL_MIN,
+				GameConfig.FLAG_INTERVAL_MAX)
+			var tw := create_tween()
+			tw.tween_property(_flag, "rotation:z", -PI * 0.5, 1.2) \
+				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tw.tween_interval(4.0)
+			tw.tween_property(_flag, "rotation:z", 0.0, 1.2) \
+				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	if _bird != null:
+		_bird_timer -= delta
+		if _bird_timer <= 0.0:
+			_bird_timer = _rng.randf_range(GameConfig.BIRD_INTERVAL_MIN,
+				GameConfig.BIRD_INTERVAL_MAX)
+			_bird.play()
 
 
 # ---------------------------------------------------------------- materials
@@ -189,11 +228,11 @@ func _build_house() -> void:
 		Vector3(3.0, 1.0, 1.0))
 	var shingles := _tex_mat("shingles", "roof_shingles_albedo",
 		Color(0.42, 0.26, 0.20), 0.9, Vector3(2.0, 2.0, 1.0))
-	var trim := _flat("trim", Color(0.93, 0.92, 0.88), 0.7)
+	var trim := _flat("trim", Color(0.93, 0.92, 0.88), 0.82)
 	var dark_interior := _flat("interior", Color(0.05, 0.05, 0.07), 0.9)
 	var curtain := _flat("curtain", Color(0.92, 0.88, 0.78), 0.9)
 	var brick := _flat("brick", Color(0.52, 0.28, 0.20), 0.9)
-	var door_mat := _flat("door", Color(0.36, 0.22, 0.13), 0.6)
+	var door_mat := _flat("door", Color(0.36, 0.22, 0.13), 0.75)
 	var bush := _flat("bush", Color(0.14, 0.30, 0.12), 1.0)
 	var wood := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
 
@@ -211,7 +250,7 @@ func _build_house() -> void:
 	# Door: frame + two recessed panels + doormat on the porch.
 	_box(house, Vector3(1.16, 2.16, 0.06), trim, Vector3(0.0, 1.08, wall_z))
 	_box(house, Vector3(1.0, 2.0, 0.06), door_mat, Vector3(0.0, 1.0, wall_z + 0.03))
-	_box(house, Vector3(0.68, 0.7, 0.03), _flat("door_panel", Color(0.30, 0.18, 0.10), 0.6),
+	_box(house, Vector3(0.68, 0.7, 0.03), _flat("door_panel", Color(0.30, 0.18, 0.10), 0.75),
 		Vector3(0.0, 1.42, wall_z + 0.065))
 	_box(house, Vector3(0.68, 0.7, 0.03), _mats["door_panel"], Vector3(0.0, 0.58, wall_z + 0.065))
 	_box(house, Vector3(0.9, 0.02, 0.55), _flat("mat", Color(0.42, 0.32, 0.22), 1.0),
@@ -265,6 +304,8 @@ func _build_pool() -> void:
 	# Grid rect (10,17,4,3) -> world x 2..6, z 5..8.
 	var center := Vector3(4.0, 0.0, 6.5)
 	var size := Vector2(4.0, 3.0)
+	var hx := size.x * 0.5
+	var hz := size.y * 0.5
 
 	var water_mesh := PlaneMesh.new()
 	water_mesh.size = size - Vector2(0.2, 0.2)
@@ -276,15 +317,37 @@ func _build_pool() -> void:
 	water_mat.set_shader_parameter("water_roughness", GameConfig.POOL_WATER_ROUGHNESS)
 	water_mat.set_shader_parameter("wave_speed", GameConfig.POOL_WAVE_SPEED)
 	water_mat.set_shader_parameter("wave_amp", GameConfig.POOL_WAVE_AMP)
+	water_mat.set_shader_parameter("fancy", GameConfig.WATER_FANCY_ENABLED)
+	water_mat.set_shader_parameter("wave2_speed", GameConfig.WATER_WAVE2_SPEED)
+	water_mat.set_shader_parameter("wave2_freq", GameConfig.WATER_WAVE2_FREQ)
+	water_mat.set_shader_parameter("wave2_amp", GameConfig.WATER_WAVE2_AMP)
+	water_mat.set_shader_parameter("fresnel_power", GameConfig.WATER_FRESNEL_POWER)
+	water_mat.set_shader_parameter("alpha_facing", GameConfig.WATER_ALPHA_FACING)
+	water_mat.set_shader_parameter("alpha_grazing", GameConfig.WATER_ALPHA_GRAZING)
 	var water := _mesh(pool, water_mesh, water_mat, center + Vector3(0.0, 0.07, 0.0))
 	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	# Tiled pool bottom with a refraction wobble, just above the lawn tint (G6).
+	var floor_mesh := PlaneMesh.new()
+	floor_mesh.size = size - Vector2(0.2, 0.2)
+	var floor_mat := ShaderMaterial.new()
+	floor_mat.shader = load("res://shaders/pool_floor.gdshader")
+	floor_mat.set_shader_parameter("fancy", GameConfig.WATER_FANCY_ENABLED)
+	var floor := _mesh(pool, floor_mesh, floor_mat, center + Vector3(0.0, 0.012, 0.0))
+	floor.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	# Dark wet band on the border's inner lip (G6).
+	var wet := _flat("wet_band", Color(0.55, 0.55, 0.52), 0.35)
+	var wb := 0.06
+	_box(pool, Vector3(size.x, 0.1, wb), wet, center + Vector3(0.0, 0.055, -hz + wb * 0.5))
+	_box(pool, Vector3(size.x, 0.1, wb), wet, center + Vector3(0.0, 0.055, hz - wb * 0.5))
+	_box(pool, Vector3(wb, 0.1, size.y), wet, center + Vector3(-hx + wb * 0.5, 0.055, 0.0))
+	_box(pool, Vector3(wb, 0.1, size.y), wet, center + Vector3(hx - wb * 0.5, 0.055, 0.0))
 
 	# Cream stone border on all four edges (§11).
 	var border := _flat("pool_border", GameConfig.POOL_BORDER_COLOR, 0.8)
 	var bt := GameConfig.POOL_BORDER_SIZE.x
 	var bh := GameConfig.POOL_BORDER_SIZE.y
-	var hx := size.x * 0.5
-	var hz := size.y * 0.5
 	_box(pool, Vector3(size.x + bt * 2.0, bh, bt), border,
 		center + Vector3(0.0, bh * 0.5, -hz - bt * 0.5))
 	_box(pool, Vector3(size.x + bt * 2.0, bh, bt), border,
@@ -301,7 +364,8 @@ func _build_obstacle_props() -> void:
 	# Sun lounger at cell (14,18) = world (6.5, 6.5), facing west (§11).
 	var lounger := Node3D.new()
 	lounger.name = "Lounger"
-	lounger.position = Vector3(6.5, 0.0, 6.5)
+	# Nudged east so the frame clears the pool border (cell centre is 6.5).
+	lounger.position = Vector3(6.95, 0.0, 6.5)
 	lounger.rotation.y = PI * 0.5   # -Z model faces west
 	add_child(lounger)
 	var wood := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
@@ -401,13 +465,19 @@ func _build_trees() -> void:
 			Vector3(0.35, 0.0, 0.5))
 
 		# Nine deformed leaf clumps in a ring: lower ones dark, upper light,
-		# random per-axis scale (§12).
+		# random per-axis scale (§12). All under one canopy pivot so G6 can sway
+		# the whole crown cheaply.
+		var canopy := Node3D.new()
+		canopy.name = "Canopy"
+		canopy.position = Vector3(0.0, 0.0, 0.0)
+		tree.add_child(canopy)
+		_canopies.append({ "node": canopy, "phase": _rng.randf() * TAU })
 		for i in 9:
 			var a := TAU * float(i) / 9.0
 			var ring_r := 0.55 + _rng.randf_range(-0.15, 0.25)
 			var y := 2.6 + (0.9 if i % 3 == 0 else 0.35) + _rng.randf_range(-0.15, 0.2)
 			var mat: StandardMaterial3D = leaf_light if y > 3.2 else leaf_dark
-			_ball(tree, 0.55, mat,
+			_ball(canopy, 0.55, mat,
 				Vector3(cos(a) * ring_r, y, sin(a) * ring_r),
 				Vector3(_rng.randf_range(0.8, 1.3), _rng.randf_range(0.6, 1.0),
 					_rng.randf_range(0.8, 1.3)))
@@ -526,7 +596,7 @@ func _build_neighbors() -> void:
 	]
 	var shingles := _tex_mat("shingles", "roof_shingles_albedo",
 		Color(0.42, 0.26, 0.20), 0.9)
-	var trim := _flat("trim", Color(0.93, 0.92, 0.88), 0.7)
+	var trim := _flat("trim", Color(0.93, 0.92, 0.88), 0.82)
 	var dark := _flat("interior", Color(0.05, 0.05, 0.07), 0.9)
 
 	for i in GameConfig.NEIGHBOR_X.size():
@@ -555,8 +625,13 @@ func _build_smalls() -> void:
 	_cyl(mailbox, 0.045, 0.055, 1.05, bark, Vector3(0.0, 0.52, 0.0))
 	_box(mailbox, Vector3(0.26, 0.22, 0.42), _flat("mailbox", Color(0.14, 0.20, 0.42), 0.5),
 		Vector3(0.0, 1.15, 0.0))
-	_box(mailbox, Vector3(0.03, 0.16, 0.05), _flat("flag", Color(0.85, 0.12, 0.10), 0.6),
-		Vector3(0.15, 1.3, -0.12))
+	# Flag on a hinge pivot so G6 can raise and lower it now and then.
+	_flag = Node3D.new()
+	_flag.name = "FlagHinge"
+	_flag.position = Vector3(0.15, 1.22, -0.12)
+	mailbox.add_child(_flag)
+	_box(_flag, Vector3(0.03, 0.16, 0.05), _flat("flag", Color(0.85, 0.12, 0.10), 0.6),
+		Vector3(0.0, 0.08, 0.0))
 
 	# Garden hose: three green tori stacked by the east house wall.
 	var hose_mat := _flat("hose", Color(0.16, 0.42, 0.16), 0.6)
@@ -619,6 +694,53 @@ func _flower(kind: int, pos: Vector3) -> void:
 
 
 # ---------------------------------------------------------------- clouds (§12)
+
+## Thin, wide, static cirrus far above the billboard clouds (G6).
+func _build_high_clouds() -> void:
+	var tex := TextureLibrary.find("cloud_billboard")
+	var mat := StandardMaterial3D.new()
+	if tex != null:
+		mat.albedo_texture = tex
+	mat.albedo_color = Color(1, 1, 1, 0.35)
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	for i in GameConfig.HIGH_CLOUD_COUNT:
+		var quad := QuadMesh.new()
+		quad.size = Vector2(34.0, 7.0)
+		quad.material = mat
+		var mi := MeshInstance3D.new()
+		mi.mesh = quad
+		mi.position = Vector3(-26.0 + float(i) * 26.0, GameConfig.HIGH_CLOUD_Y,
+			_rng.randf_range(-46.0, -20.0))
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(mi)
+
+
+## Concrete driveways from the road up to each neighbour house (G6 traffic).
+func _build_driveways() -> void:
+	var concrete := _flat("concrete", Color(0.62, 0.61, 0.58), 0.95)
+	for x in GameConfig.NEIGHBOR_X:
+		_ground_quad(self, Vector2(2.6, 3.8), concrete,
+			Vector3(x + 2.4, -0.015, 24.7))
+
+
+## Rare single bird chirp over the ambient loop (G6).
+func _setup_bird() -> void:
+	var base := "res://audio/bird_single"
+	for ext in [".ogg", ".wav", ".mp3"]:
+		if ResourceLoader.exists(base + ext):
+			var stream := load(base + ext) as AudioStream
+			if stream != null:
+				_bird = AudioStreamPlayer.new()
+				_bird.stream = stream
+				_bird.volume_db = -14.0
+				add_child(_bird)
+				break
+	if _bird == null:
+		print("[Neighborhood] audio/bird_single.ogg yok - tekil kus sesi devre disi")
+	_bird_timer = _rng.randf_range(GameConfig.BIRD_INTERVAL_MIN, GameConfig.BIRD_INTERVAL_MAX)
+
 
 func _build_clouds() -> void:
 	var tex := TextureLibrary.find("cloud_billboard")

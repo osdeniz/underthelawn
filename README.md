@@ -220,7 +220,63 @@ TextureLibrary with flat-colour fallbacks.
 `tools/gen_assets.gd` now also writes siding, shingles, bark, wood, asphalt,
 dirt and cloud textures (same skip-if-exists rule).
 
-## Not in G1-G5
+## Sprint G6 — living neighborhood: traffic, water, sky, Blade (done)
+
+New content beyond REFERENCE.md, layered on top without touching G1-G5 systems.
+
+* **Traffic** (`scripts/traffic_controller.gd`): pooled sedan/pickup/SUV/van
+  variants with random colours cross the road both ways (right-hand lanes,
+  6-8 u/s, 8-20 s apart); every 90-120 s one pulls into a neighbour driveway,
+  kills its lights, waits 10 s, backs out and leaves. Per-car
+  AudioStreamPlayer3D plays `audio/car_pass.ogg` when present.
+* **Water**: second fast ripple layer, fresnel alpha/specular (clear from
+  above, bright at grazing angles), two counter-scrolling normal fields for
+  crawling sun glints, tiled pool floor with refraction wobble
+  (`shaders/pool_floor.gdshader`), dark wet band on the border lip.
+* **Sky/light**: warm-horizon/saturated-top gradient, static cirrus layer at
+  y=40, shadow blur 3.0 + runtime 2048 atlas, subtle additive bloom (threshold
+  1.25, intensity 0.35), roughness pass on trim/door/boots.
+* **Micro-motion**: canopy sway (±0.02 rad, 3.5 s), mailbox flag salute every
+  60-90 s, rare single bird (`audio/bird_single.ogg` when present).
+* **Blade** (`scripts/blade_mower.gd`, 4th selector entry ⚙️): yaw-free saw
+  disk that chases the finger at 9 u/s within a 2.5-unit grab radius, glides
+  0.3 s on release; spinning disk (720°/s +20% with motion), omnidirectional
+  double-density clippings, counter-rotating blur ring, green speed trail,
+  orange sparks + clink + 25 ms haptic when grinding the stone; engine loop at
+  pitch 2.6 (a real `audio/blade_spin.ogg` is preferred when present); the
+  driver watches from the porch, camera wide with low lookAhead.
+
+### G6 quality switches (game_config.gd)
+
+`TRAFFIC_ENABLED`, `WATER_FANCY_ENABLED`, `SKY_HIGH_CLOUDS_ENABLED`,
+`GLOW_ENABLED`, `SHADOW_MAP_2048`, `MICRO_MOTION_ENABLED`, `BLADE_FX_ENABLED`.
+
+## Sprint G6.5 — grass overhaul + Blade repair (done)
+
+**Grass**: the alpha-card tufts are replaced by VOLUMETRIC opaque clumps
+(`shaders/grass_clump.gdshader`, rebuilt `tuft_field.gd`): 5-7 V-folded
+two-segment blades per clump, baked root->tip vertex-colour gradients
+(converted sRGB->linear — raw values rendered washed-out), 8 weighted variants
+(5 vivid greens, 2 dry-yellow, 1 light green with tiny white flower
+octahedra). No texture, no alpha. Density knob: `TUFTS_PER_CLUSTER` (5).
+Cut feedback: clippings inherit the cut clump's colour, and a freshly cut cell
+flashes bright for 0.4 s before settling into its stripe tone.
+
+**Blade repair**: root cause was NOT code — the editor had rewritten Main.tscn
+and dropped the externally added Blade node, so ⚙️ silently activated the robot
+through `clampi`. Fixes: `Game._ensure_all_mowers()` spawns any missing
+GameConfig mower type from code (with a console note), and `_activate` warns
+instead of silently clamping. The input chain was traced end-to-end and is
+sound. Trail softened to fading round puffs.
+
+`tests/FourMowers.tscn` drives all four mowers in one automated scene run and
+fails unless each cuts ≥5 cells (the robot gets a longer window: its §7
+executor zeroes throttle at every waypoint, so it averages ~0.8 u/s — a pace
+fix would change robot feel and needs its own approval).
+
+Desktop FPS with the new grass: 120 (vsync cap). Phone knob: TUFTS_PER_CLUSTER.
+
+## Not in G1-G6.5
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

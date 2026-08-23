@@ -22,17 +22,8 @@ const STRIPE_NORTH := 0
 const STRIPE_EAST := 1
 const STRIPE_SOUTH := 2
 const STRIPE_WEST := 3
-## Multiplied over the grass albedo, so these carry the LIGHTNESS ladder
-## (N brightest -> S darkest) while red and blue are pulled down to saturate the
-## result. §4's originals were near-neutral, which read as olive once multiplied.
-const TINT_STRIPE: Array[Color] = [
-	Color(0.86, 1.00, 0.72),   # N — lightest
-	Color(0.76, 0.94, 0.62),   # E
-	Color(0.50, 0.70, 0.38),   # S — darkest
-	Color(0.62, 0.82, 0.48),   # W
-]
-## Uncut grass: richer, slightly darker natural green instead of §5's olive.
-const TINT_TALL := Color(0.42, 0.58, 0.30)
+## G6.6: stripe and tall tints now live in GRASS_PALETTES above — use
+## stripe_tint(), ground_tall_tint().
 const TINT_SOIL := Color(0.52, 0.38, 0.26)
 const TINT_POOL_FLOOR := Color(0.70, 0.92, 0.95)
 
@@ -42,21 +33,111 @@ const GROUND_UV_REPEAT_Z := 10.5
 const GROUND_NORMAL_STRENGTH := 0.6
 const GROUND_ROUGHNESS := 0.95
 
-const TUFT_VARIANTS := 8
-const TUFTS_PER_CLUSTER := 7
-const TUFT_HEIGHT_MIN := 0.30
-const TUFT_HEIGHT_MAX := 0.66
-## Quad width follows the tuft card's own aspect ratio so the blades are never
-## squashed; tools/import_tuft.py prints it as KART_ENBOY after cropping.
-const TUFT_CARD_ASPECT := 0.72
-const TUFT_WIDTH_JITTER_MIN := 0.92
-const TUFT_WIDTH_JITTER_MAX := 1.12
-## §5 says 0.34; widened so clusters cross cell borders and the grid
-## pattern of gaps disappears.
+## G6.6 grass palette system: every grass colour in the game reads from the
+## ACTIVE palette below. Levels can later swap palettes with ONE line. The
+## ground albedo texture is NEUTRAL luminance detail; all hue lives in tints,
+## so any palette family renders correctly.
+const ACTIVE_GRASS_PALETTE := "GREEN"
+
+const GRASS_PALETTES := {
+	"GREEN": {
+		"cluster_base": Color(0.075, 0.26, 0.055),
+		"cluster_tip": Color(0.33, 0.70, 0.20),
+		# Accent clumps: colour pair, spawn weight, and whether they flower.
+		"accents": [
+			{ "base": Color(0.16, 0.26, 0.06), "tip": Color(0.62, 0.63, 0.24),
+				"weight": 0.15, "flowers": false },
+			{ "base": Color(0.11, 0.32, 0.08), "tip": Color(0.48, 0.80, 0.32),
+				"weight": 0.05, "flowers": true },
+		],
+		# Mowed stripe ladder N/E/S/W, calibrated against the neutral albedo.
+		"ground_mowed": [
+			Color(0.27, 0.68, 0.16), Color(0.24, 0.63, 0.135),
+			Color(0.16, 0.48, 0.09), Color(0.20, 0.56, 0.11),
+		],
+		"clipping": Color(0.40, 0.72, 0.22),
+	},
+	# Proof-of-infrastructure palette; NOT active. Switching is one line above.
+	"PURPLE": {
+		"cluster_base": Color(0.13, 0.055, 0.24),
+		"cluster_tip": Color(0.60, 0.36, 0.92),
+		"accents": [
+			{ "base": Color(0.26, 0.07, 0.20), "tip": Color(0.92, 0.44, 0.74),
+				"weight": 0.15, "flowers": false },
+			{ "base": Color(0.20, 0.12, 0.34), "tip": Color(0.80, 0.64, 0.98),
+				"weight": 0.05, "flowers": true },
+		],
+		"ground_mowed": [
+			Color(0.58, 0.38, 0.84), Color(0.52, 0.33, 0.78),
+			Color(0.36, 0.21, 0.58), Color(0.44, 0.27, 0.68),
+		],
+		"clipping": Color(0.62, 0.40, 0.90),
+	},
+}
+
+
+static func grass_palette() -> Dictionary:
+	return GRASS_PALETTES[ACTIVE_GRASS_PALETTE]
+
+
+## RULE: the uncut ground tint is ALWAYS derived from the cluster family — the
+## ground must read as the base of the grass, never a foreign colour. New
+## palettes get a correct ground automatically.
+static func ground_tall_tint() -> Color:
+	var pal := grass_palette()
+	var base: Color = pal["cluster_base"]
+	var tip: Color = pal["cluster_tip"]
+	return base.lerp(tip, 0.5) * 1.05
+
+
+static func stripe_tint(direction: int) -> Color:
+	var tones: Array = grass_palette()["ground_mowed"]
+	return tones[clampi(direction, 0, tones.size() - 1)]
+
+
+static func clipping_color() -> Color:
+	return grass_palette()["clipping"]
+
+
+## Clump variant list built from the palette: 5 main variants (slight
+## deterministic brightness spread) plus the palette's accents.
+## Entries: { base, tip, flowers, weight }.
+static func clump_variants() -> Array:
+	var pal := grass_palette()
+	var base: Color = pal["cluster_base"]
+	var tip: Color = pal["cluster_tip"]
+	var accents: Array = pal["accents"]
+	var accent_weight := 0.0
+	for a in accents:
+		accent_weight += a["weight"]
+	var main_weight := (1.0 - accent_weight) / 5.0
+	var out: Array = []
+	for spread: float in [1.0, 0.88, 1.12, 0.94, 1.06]:
+		out.append({ "base": base * spread, "tip": tip * spread,
+			"flowers": false, "weight": main_weight })
+	for a in accents:
+		out.append({ "base": a["base"], "tip": a["tip"],
+			"flowers": a["flowers"], "weight": a["weight"] })
+	return out
+
+
+## G6.6 density: carpet, not islands — the ground should barely show through
+## uncut grass. Knob ladder for phone calibration: 9 -> 7 -> 5.
+const TUFTS_PER_CLUSTER := 9
+const CLUMP_BLADES := 7
+const CLUMP_HEIGHT_MIN := 0.4
+const CLUMP_HEIGHT_MAX := 0.9
+## 70% short filler, 30% tall spikes out of the band above.
+const CLUMP_TALL_CHANCE := 0.3
+const CLUMP_BASE_MIN := 0.45
+const CLUMP_BASE_MAX := 0.62
 const TUFT_CLUSTER_SPREAD := 0.44
-const TUFT_TOP_TAPER := 0.75                  # upper edge narrows to 75%
+## In-cell jitter: clumps cross cell borders, killing any grid feel.
+const CLUMP_JITTER := 0.45
 const TUFT_CELL_SCALE_MIN := 0.9
 const TUFT_CELL_SCALE_MAX := 1.1
+## Brief 0.4 s bright wash on a freshly cut cell before the stripe tone lands.
+const FRESH_FLASH_TIME := 0.4
 const WIND_AMPLITUDE := 0.06
 const WIND_SPEED := 2.0
 ## Cut tuft topples forward this far, over MOW_ANIM_TIME, then hides.
@@ -93,6 +174,12 @@ const MOWER_TYPES: Array[Dictionary] = [
 		"id": "robot", "emoji": "🤖", "label": "Robot",
 		"speed": 2.1, "deck": 0.7, "max_turn": 2.6, "body": 0.45, "reverse": 0.0,
 	},
+	{
+		# G6 Blade: yaw-free, follows the finger. max_turn is a dummy (never
+		# steers) kept non-zero so speed/turn ratios stay divide-safe.
+		"id": "blade", "emoji": "⚙️", "label": "Blade",
+		"speed": 9.0, "deck": 0.55, "max_turn": 1.0, "body": 0.40, "reverse": 0.0,
+	},
 ]
 
 ## Chase camera per type: back, height, lookAhead (§10 presets).
@@ -100,6 +187,7 @@ const MOWER_CAMERA: Array[Vector3] = [
 	Vector3(5.0, 4.2, 2.2),   # push  -> mid
 	Vector3(5.0, 4.2, 2.2),   # tractor -> mid, lookAhead grows with speed
 	Vector3(6.0, 5.0, 2.4),   # robot -> near the far preset, spectator view
+	Vector3(6.0, 4.6, 1.2),   # blade -> wide finger-roaming view, low lookAhead
 ]
 ## Tractor only: lookAhead += this * speedFraction so the road shows up at speed.
 const TRACTOR_LOOKAHEAD_GAIN := 0.6
@@ -113,6 +201,7 @@ const ENGINE_PROFILES: Array[Dictionary] = [
 	{ "idle_gain": 0.28, "move_gain": 0.45, "idle_pitch": 0.82, "move_pitch": 1.00, "turn": 0.12 },
 	{ "idle_gain": 0.28, "move_gain": 0.45, "idle_pitch": 0.78, "move_pitch": 0.90, "turn": 0.12 },
 	{ "idle_gain": 0.08, "move_gain": 0.13, "idle_pitch": 1.90, "move_pitch": 1.90, "turn": 0.10 },
+	{ "idle_gain": 0.20, "move_gain": 0.30, "idle_pitch": 2.60, "move_pitch": 2.60, "turn": 0.00 },
 ]
 
 # ---------------------------------------------------------------- units
@@ -198,6 +287,72 @@ const HAPTIC_LIGHT_MS := 10        # cell mown, mower commands
 const HAPTIC_MEDIUM_MS := 25       # secret uncovered
 ## Secret collected and 100% complete: two medium pulses.
 const HAPTIC_SUCCESS_GAP := 0.08
+
+# ---------------------------------------------------------------- G6 quality switches
+## Every G6 visual feature has a switch, for FPS calibration on the phone.
+const TRAFFIC_ENABLED := true
+const WATER_FANCY_ENABLED := true        # two-layer waves, fresnel, glints
+const SKY_HIGH_CLOUDS_ENABLED := true    # thin static cirrus layer at y~40
+const GLOW_ENABLED := true               # subtle bloom on bright spots only
+const SHADOW_MAP_2048 := true            # false drops back to 1024
+const MICRO_MOTION_ENABLED := true       # canopy sway, mailbox flag, single bird
+const BLADE_FX_ENABLED := true           # trail, blur ring, sparks
+
+# ---------------------------------------------------------------- G6 traffic
+const TRAFFIC_POOL_SIZE := 5
+const TRAFFIC_INTERVAL_MIN := 8.0
+const TRAFFIC_INTERVAL_MAX := 20.0
+const TRAFFIC_SPEED_MIN := 6.0
+const TRAFFIC_SPEED_MAX := 8.0
+const TRAFFIC_SPAWN_X := 34.0            # off-scene on both sides
+## Right-hand traffic: heading east uses the south lane, west the north lane.
+const TRAFFIC_LANE_EAST_Z := 21.0
+const TRAFFIC_LANE_WEST_Z := 17.8
+const TRAFFIC_DRIVEWAY_MIN := 90.0       # rare pull-in event interval
+const TRAFFIC_DRIVEWAY_MAX := 120.0
+const TRAFFIC_DRIVEWAY_WAIT := 10.0
+## Vehicle variants: body style + colour options, assigned at random.
+const TRAFFIC_COLORS: Array = [
+	[Color(0.25, 0.42, 0.62), Color(0.72, 0.73, 0.75), Color(0.20, 0.35, 0.22)],  # sedan
+	[Color(0.62, 0.28, 0.22), Color(0.30, 0.30, 0.32), Color(0.75, 0.55, 0.20)],  # pickup
+	[Color(0.24, 0.26, 0.30), Color(0.55, 0.12, 0.14), Color(0.82, 0.80, 0.76)],  # suv
+	[Color(0.86, 0.86, 0.84), Color(0.32, 0.44, 0.58), Color(0.62, 0.58, 0.30)],  # van
+]
+
+# ---------------------------------------------------------------- G6 water
+const WATER_WAVE2_SPEED := 4.2
+const WATER_WAVE2_FREQ := 7.0
+const WATER_WAVE2_AMP := 0.008
+const WATER_FRESNEL_POWER := 3.0
+const WATER_ALPHA_FACING := 0.55         # transparent looking straight down
+const WATER_ALPHA_GRAZING := 0.92        # near-opaque at grazing angles
+
+# ---------------------------------------------------------------- G6 sky/light
+const SHADOW_BLUR := 3.0
+const GLOW_INTENSITY := 0.35
+const GLOW_HDR_THRESHOLD := 1.25
+const HIGH_CLOUD_COUNT := 3
+const HIGH_CLOUD_Y := 40.0
+
+# ---------------------------------------------------------------- G6 micro-motion
+const CANOPY_SWAY_AMP := 0.02
+const CANOPY_SWAY_PERIOD := 3.5
+const BIRD_INTERVAL_MIN := 20.0
+const BIRD_INTERVAL_MAX := 40.0
+const FLAG_INTERVAL_MIN := 60.0
+const FLAG_INTERVAL_MAX := 90.0
+
+# ---------------------------------------------------------------- G6 blade (4th mower)
+const MOWER_BLADE := 3
+const BLADE_FOLLOW_SPEED := 9.0          # units/s toward the finger point
+const BLADE_GLIDE_TIME := 0.3            # coast after the finger lifts
+const BLADE_DISK_RADIUS := 0.45
+const BLADE_SPIN_DEG := 720.0            # visual spin; +20% with motion
+const BLADE_TEETH := 14
+const BLADE_SPARK_COOLDOWN := 0.5
+## Uniform grow factor: chakram mesh, deck radius and body radius all scale
+## from this one number (future Size upgrades hook in here). 1.0 for now.
+const BLADE_SCALE := 1.0
 
 # ---------------------------------------------------------------- neighborhood (§2, §12)
 const HOUSE_POS_Z := -16.8                     # z = -(12 + 4.8)

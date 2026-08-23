@@ -50,11 +50,11 @@ func _initialize() -> void:
 	ck("count incremented", m.mowed_count == 1, str(m.mowed_count))
 	ck("mow again same dir -> NONE", m.mow(0, 0, 0) == LawnModel.MowResult.NONE)
 	ck("count unchanged", m.mowed_count == 1, str(m.mowed_count))
-	ck("tint = north tone", m.tint_for(0, 0) == GameConfig.TINT_STRIPE[0], str(m.tint_for(0, 0)))
-	ck("re-stripe south -> NONE but tone changes", m.mow(0, 0, 2) == LawnModel.MowResult.NONE and m.tint_for(0, 0) == GameConfig.TINT_STRIPE[2])
+	ck("tint = north tone", m.tint_for(0, 0) == GameConfig.stripe_tint(0), str(m.tint_for(0, 0)))
+	ck("re-stripe south -> NONE but tone changes", m.mow(0, 0, 2) == LawnModel.MowResult.NONE and m.tint_for(0, 0) == GameConfig.stripe_tint(2))
 	ck("count still unchanged", m.mowed_count == 1, str(m.mowed_count))
 	ck("mow obstacle -> NONE", m.mow(11, 9, 0) == LawnModel.MowResult.NONE)
-	ck("uncut cell tint = TALL", m.tint_for(1, 1) == GameConfig.TINT_TALL)
+	ck("uncut cell tint = TALL", m.tint_for(1, 1) == GameConfig.ground_tall_tint())
 	ck("pool cell tint = pool floor", m.tint_for(11, 18) == GameConfig.TINT_POOL_FLOOR)
 
 	# secret reveal + completion

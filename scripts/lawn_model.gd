@@ -235,9 +235,9 @@ func tint_for(col: int, row: int) -> Color:
 			return GameConfig.TINT_SOIL
 		CellState.MOWED:
 			var s := stripe_at(col, row)
-			return GameConfig.TINT_STRIPE[s] if s >= 0 else GameConfig.TINT_TALL
+			return GameConfig.stripe_tint(s) if s >= 0 else GameConfig.ground_tall_tint()
 		_:
-			return GameConfig.TINT_TALL
+			return GameConfig.ground_tall_tint()
 
 
 func _is_pool(col: int, row: int) -> bool:

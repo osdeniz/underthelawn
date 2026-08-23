@@ -243,6 +243,7 @@ func _mow(delta: float) -> void:
 
 	var mown := 0
 	var revealed: Array[Vector2i] = []
+	var clip_tint := GameConfig.clipping_color()
 	for row in range(origin.y, limit.y + 1):
 		for col in range(origin.x, limit.x + 1):
 			if not LawnModel.in_bounds(col, row):
@@ -250,6 +251,9 @@ func _mow(delta: float) -> void:
 			var cc := LawnModel.cell_center(col, row)
 			if Vector2(cc.x, cc.z).distance_to(center) > radius:
 				continue
+			# Clippings inherit the clump's colour (read before it is cut).
+			if mown == 0 and tuft_field:
+				clip_tint = tuft_field.clump_tint(col, row)
 			var result := model.mow(col, row, stripe)
 			if result == LawnModel.MowResult.NONE:
 				continue
@@ -259,6 +263,10 @@ func _mow(delta: float) -> void:
 			if result == LawnModel.MowResult.SECRET_REVEALED:
 				revealed.append(Vector2i(col, row))
 
+	if mown > 0 and _clippings:
+		var pm := _clippings.process_material as ParticleProcessMaterial
+		if pm:
+			pm.color = clip_tint
 	_update_clippings(delta, mown)
 
 	if mown > 0:

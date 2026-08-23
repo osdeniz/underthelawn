@@ -1,24 +1,21 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene format=3 uid="uid://b7ta03pkfqg5v"]
 
-; Sprint G1 main scene. Light and atmosphere follow REFERENCE.md §13; SSAO is
-; deliberately never enabled (it does not work on the Mobile renderer) and fake
-; AO decals are used instead.
-
-[ext_resource type="Script" path="res://scripts/game.gd" id="1_game"]
-[ext_resource type="Script" path="res://scripts/lawn_view.gd" id="2_lawn"]
+[ext_resource type="Script" uid="uid://ba3spiu7xlcqd" path="res://scripts/game.gd" id="1_game"]
+[ext_resource type="Script" uid="uid://c6nkqd65ljoko" path="res://scripts/lawn_view.gd" id="2_lawn"]
 [ext_resource type="PackedScene" path="res://scenes/PushMower.tscn" id="3_mower"]
+[ext_resource type="Script" uid="uid://cju4xtkfps221" path="res://scripts/camera_rig.gd" id="4_cam"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" path="res://scenes/Tractor.tscn" id="6_tractor"]
 [ext_resource type="PackedScene" path="res://scenes/Robot.tscn" id="7_robot"]
-[ext_resource type="Script" path="res://scripts/camera_rig.gd" id="4_cam"]
-[ext_resource type="Script" path="res://scripts/environment_builder.gd" id="8_env"]
-[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="5_hud"]
+[ext_resource type="Script" uid="uid://gjmyj30yy578" path="res://scripts/environment_builder.gd" id="8_env"]
+[ext_resource type="Script" uid="uid://d1nm0sl5f8wwo" path="res://scripts/traffic_controller.gd" id="9_traffic"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
-sky_top_color = Color(0.45, 0.7, 0.95, 1)
-sky_horizon_color = Color(0.8, 0.9, 0.98, 1)
-sky_curve = 0.18
-ground_horizon_color = Color(0.8, 0.9, 0.98, 1)
+sky_top_color = Color(0.28, 0.56, 0.94, 1)
+sky_horizon_color = Color(0.93, 0.89, 0.78, 1)
+sky_curve = 0.14
 ground_bottom_color = Color(0.62, 0.68, 0.6, 1)
+ground_horizon_color = Color(0.93, 0.89, 0.78, 1)
 
 [sub_resource type="Sky" id="Sky"]
 sky_material = SubResource("SkyMat")
@@ -34,45 +31,52 @@ tonemap_mode = 2
 fog_enabled = true
 fog_mode = 1
 fog_light_color = Color(0.8, 0.88, 0.95, 1)
+fog_density = 1.0
+fog_depth_curve = 1.5
 fog_depth_begin = 26.0
 fog_depth_end = 70.0
-fog_depth_curve = 1.5
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=1744788868]
 script = ExtResource("1_game")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1378052527]
 environment = SubResource("Env")
 
-[node name="Sun" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.9, -0.6, 0)
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=858560604]
+transform = Transform3D(0.8253356, 0.44229966, -0.3509874, 0, 0.62161, 0.7833269, 0.5646425, -0.6465076, 0.51303685, 0, 0, 0)
 light_color = Color(1, 0.96, 0.88, 1)
-light_energy = 1.0
 shadow_enabled = true
-shadow_blur = 2.0
+shadow_blur = 3.0
 directional_shadow_max_distance = 60.0
 
-[node name="Lawn" type="Node3D" parent="."]
+[node name="Lawn" type="Node3D" parent="." unique_id=177138340]
 script = ExtResource("2_lawn")
 
-[node name="Neighborhood" type="Node3D" parent="."]
+[node name="Neighborhood" type="Node3D" parent="." unique_id=1003093828]
 script = ExtResource("8_env")
 
-[node name="Effects" type="Node3D" parent="."]
+[node name="Traffic" type="Node3D" parent="." unique_id=2106778675]
+script = ExtResource("9_traffic")
 
-[node name="Mowers" type="Node3D" parent="."]
+[node name="Effects" type="Node3D" parent="." unique_id=230329125]
 
-[node name="PushMower" parent="Mowers" instance=ExtResource("3_mower")]
+[node name="Mowers" type="Node3D" parent="." unique_id=1138762119]
 
-[node name="Tractor" parent="Mowers" instance=ExtResource("6_tractor")]
+[node name="PushMower" parent="Mowers" unique_id=1904741338 instance=ExtResource("3_mower")]
 
-[node name="Robot" parent="Mowers" instance=ExtResource("7_robot")]
+[node name="Tractor" parent="Mowers" unique_id=232413074 instance=ExtResource("6_tractor")]
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Robot" parent="Mowers" unique_id=105053997 instance=ExtResource("7_robot")]
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1685260611]
 fov = 55.0
 far = 220.0
 script = ExtResource("4_cam")
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=2139641479]
 
-[node name="HUD" parent="UI" instance=ExtResource("5_hud")]
+[node name="HUD" parent="UI" unique_id=1514123614 instance=ExtResource("5_hud")]
+layout_mode = 3
+anchors_preset = 15
+grow_horizontal = 2
+grow_vertical = 2

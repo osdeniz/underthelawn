@@ -40,6 +40,7 @@ func _ready() -> void:
 		_mowers.append(controller)
 	_mowers.sort_custom(func(a: MowerController, b: MowerController) -> bool:
 		return a.type_index() < b.type_index())
+	_ensure_all_mowers()
 
 	var tractor := _mowers[GameConfig.MOWER_TRACTOR] as TractorMower
 	if tractor:
@@ -59,6 +60,7 @@ func _ready() -> void:
 	hud.set_progress(0.0)
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
 
+	_apply_quality()
 	_activate(GameConfig.MOWER_PUSH, true)
 	GameState.start_run()
 	AudioDirector.start_ambient()
@@ -74,6 +76,49 @@ func _process(_delta: float) -> void:
 	AudioDirector.set_engine_state(mower.speed_fraction(), turn)
 
 
+## The scene is the editor's territory and it has eaten externally-added nodes
+## before (the Blade node vanished exactly that way, silently degrading ⚙️ to
+## the robot via clampi). Any GameConfig mower type missing from the scene is
+## spawned from code here, with a console note, so the picker always matches.
+func _ensure_all_mowers() -> void:
+	for i in GameConfig.MOWER_TYPES.size():
+		if i < _mowers.size() and _mowers[i].type_index() == i:
+			continue
+		var built: MowerController = null
+		match i:
+			GameConfig.MOWER_BLADE:
+				built = BladeMower.new()
+				built.name = "Blade"
+			GameConfig.MOWER_PUSH:
+				built = (load("res://scenes/PushMower.tscn") as PackedScene).instantiate()
+			GameConfig.MOWER_TRACTOR:
+				built = (load("res://scenes/Tractor.tscn") as PackedScene).instantiate()
+			GameConfig.MOWER_ROBOT:
+				built = (load("res://scenes/Robot.tscn") as PackedScene).instantiate()
+		if built == null:
+			continue
+		print("[Game] sahnede eksik mower koddan eklendi: %s" % GameConfig.MOWER_TYPES[i]["id"])
+		_mower_root.add_child(built)
+		built.model = model
+		built.tuft_field = lawn.tuft_field
+		built.cells_mown.connect(_on_cells_mown)
+		built.set_active(false)
+		_mowers.insert(i, built)
+
+
+## G6 quality switches (game_config): shadow atlas size, subtle bloom.
+func _apply_quality() -> void:
+	RenderingServer.directional_shadow_atlas_set_size(
+		2048 if GameConfig.SHADOW_MAP_2048 else 1024, true)
+	var env := ($WorldEnvironment as WorldEnvironment).environment
+	env.glow_enabled = GameConfig.GLOW_ENABLED
+	if GameConfig.GLOW_ENABLED:
+		env.glow_intensity = GameConfig.GLOW_INTENSITY
+		env.glow_bloom = 0.0
+		env.glow_hdr_threshold = GameConfig.GLOW_HDR_THRESHOLD
+		env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+
+
 # ---------------------------------------------------------------- mower switching
 
 ## Switches type in place: the new mower inherits position and heading, speed
@@ -86,7 +131,9 @@ func select_mower(index: int) -> void:
 
 
 func _activate(index: int, initial: bool) -> void:
-	index = clampi(index, 0, _mowers.size() - 1)
+	if index >= _mowers.size() or _mowers[index].type_index() != index:
+		push_warning("Game: mower %d sahnede yok, secim yok sayildi" % index)
+		return
 	var previous := mower
 	var carry_position := Vector3(GameConfig.MOWER_START.x, 0.0, GameConfig.MOWER_START.y)
 	var carry_yaw := 0.0
@@ -126,7 +173,8 @@ func _place_character(index: int) -> void:
 			character.set_mode(Character.Mode.PUSH, mower, mower)
 		GameConfig.MOWER_TRACTOR:
 			character.set_mode(Character.Mode.TRACTOR, mower, mower)
-		GameConfig.MOWER_ROBOT:
+		GameConfig.MOWER_ROBOT, GameConfig.MOWER_BLADE:
+			# Nothing to push or ride: the driver watches from the porch.
 			character.set_mode(Character.Mode.SIT, null, self)
 
 

@@ -47,6 +47,13 @@ func _ready() -> void:
 	_load_streams()
 	_build_players()
 	muted = bool(GameState.get_setting("audio", "muted", false))
+	# Optional G6 stream: no warning when absent, the pitched loop covers it.
+	for ext in AUDIO_EXTENSIONS:
+		if ResourceLoader.exists("res://audio/blade_spin" + ext):
+			var stream := load("res://audio/blade_spin" + ext) as AudioStream
+			if stream != null:
+				_streams["blade_spin"] = stream
+				break
 
 
 func _load_streams() -> void:
@@ -128,6 +135,16 @@ func start_ambient() -> void:
 func set_engine_profile(type_index: int) -> void:
 	_profile = GameConfig.ENGINE_PROFILES[clampi(type_index, 0,
 		GameConfig.ENGINE_PROFILES.size() - 1)]
+	# G6: a real blade_spin recording is preferred over the loop at pitch 2.6.
+	if _engine_player == null:
+		return
+	var want: AudioStream = _streams.get("engine")
+	if type_index == GameConfig.MOWER_BLADE and _streams.has("blade_spin"):
+		want = _streams["blade_spin"]
+	if want != null and _engine_player.stream != want:
+		_engine_player.stream = want
+		_force_loop(want)
+		_engine_player.play()
 
 
 ## speed_fraction 0 = idle, 1 = full speed. turn_amount 0..1 adds the pitch

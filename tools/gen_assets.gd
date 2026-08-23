@@ -80,39 +80,34 @@ func _fbm(u: float, v: float, base_period: int, octaves: int, seed_value: int) -
 
 # ---------------------------------------------------------------- textures (§5)
 
-## Green blotches + clipping scratches + dry yellow tips, seamless.
+## G6.6: NEUTRAL luminance detail — all hue lives in the palette tints so any
+## grass palette (green, purple, ...) multiplies to a correct ground. Structure:
+## broad patchiness, fine blade grain, multi-tone speckle, faint streaks.
 func _grass_albedo(size: int) -> void:
 	if _skip("res://textures/grass_albedo.png"):
 		return
 	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
-	# Green-dominant rather than olive: red pulled down, green pushed up.
-	var dark := Color(0.098, 0.255, 0.072)
-	var mid := Color(0.180, 0.420, 0.125)
-	var light := Color(0.270, 0.560, 0.180)
-	var dry := Color(0.470, 0.520, 0.230)
-
 	for y in size:
 		for x in size:
 			var u := float(x) / float(size)
 			var v := float(y) / float(size)
-			# Broad patchiness, then fine blade grain.
 			var patch := _fbm(u, v, 4, 4, 11)
 			var grain := _fbm(u, v, 48, 3, 27)
-			var t := clampf(patch * 0.65 + grain * 0.45, 0.0, 1.0)
-			var col := dark.lerp(mid, clampf(t * 1.6, 0.0, 1.0))
-			col = col.lerp(light, clampf((t - 0.55) * 1.9, 0.0, 1.0))
-			# Dry yellow tips where the fine grain peaks.
-			var dryness := clampf((grain - 0.74) * 3.4, 0.0, 1.0)
-			col = col.lerp(dry, dryness * 0.35)   # less dry-yellow dirt
-			# Faint clipping scratches: thin high-frequency streaks.
+			var lum := 0.42 + patch * 0.22 + grain * 0.20
+			# Multi-tone speckle: scattered light and dark flecks.
+			var fleck := _hash2(x / 3, y / 3, 63)
+			if fleck > 0.955:
+				lum += 0.14
+			elif fleck < 0.03:
+				lum -= 0.10
 			var streak := _wrapped_noise(u * 0.35 + v * 2.4, v * 9.0, 64, 91)
 			if streak > 0.86:
-				col = col.lerp(light, (streak - 0.86) * 4.0)
-			img.set_pixel(x, y, col)
-
+				lum += 0.08
+			lum = clampf(lum, 0.30, 0.95)
+			img.set_pixel(x, y, Color(lum, lum, lum))
 	img.generate_mipmaps()
 	var err := img.save_png("res://textures/grass_albedo.png")
-	print("  grass_albedo.png %dx%d -> %s" % [size, size, "ok" if err == OK else str(err)])
+	print("  grass_albedo.png %dx%d NOTR -> %s" % [size, size, "ok" if err == OK else str(err)])
 
 
 ## Normal map derived from the same fine grain height field.

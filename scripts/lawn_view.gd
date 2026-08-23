@@ -13,6 +13,9 @@ var _tint_image: Image
 var _tint_texture: ImageTexture
 var _ground_material: ShaderMaterial
 var _tint_dirty := false
+## Freshly cut cells flash bright for FRESH_FLASH_TIME before settling into
+## their stripe tone (G6.5). Entries: { col, row, t }.
+var _flashes: Array = []
 
 
 func setup(lawn_model: LawnModel) -> void:
@@ -33,7 +36,7 @@ func setup(lawn_model: LawnModel) -> void:
 func _build_tint() -> void:
 	_tint_image = Image.create(GameConfig.GRID_COLS, GameConfig.GRID_ROWS,
 		false, Image.FORMAT_RGBA8)
-	_tint_image.fill(GameConfig.TINT_TALL)
+	_tint_image.fill(GameConfig.ground_tall_tint())
 	_tint_texture = ImageTexture.create_from_image(_tint_image)
 
 
@@ -109,11 +112,18 @@ func _build_obstacle_placeholders() -> void:
 
 func _on_cell_tint_changed(col: int, row: int) -> void:
 	# Image row 0 == texture v 0 == z -12 == grid row 0 == north (§18 trap 5).
-	_tint_image.set_pixel(col, row, model.tint_for(col, row))
+	# The cell starts on a bright wash and eases into its real tone (G6.5).
+	_flashes.append({ "col": col, "row": row, "t": 0.0 })
+	_tint_image.set_pixel(col, row, _flash_color(model.tint_for(col, row)))
 	_tint_dirty = true
 
 
+static func _flash_color(final: Color) -> Color:
+	return (final * 1.4 + Color(0.12, 0.14, 0.06)).clamp()
+
+
 func repaint_all() -> void:
+	_flashes.clear()
 	for row in GameConfig.GRID_ROWS:
 		for col in GameConfig.GRID_COLS:
 			_tint_image.set_pixel(col, row, model.tint_for(col, row))
@@ -121,7 +131,21 @@ func repaint_all() -> void:
 	_tint_dirty = false
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if not _flashes.is_empty():
+		var still: Array = []
+		for f in _flashes:
+			var progress: float = f["t"] + delta / GameConfig.FRESH_FLASH_TIME
+			var final := model.tint_for(f["col"], f["row"])
+			if progress >= 1.0:
+				_tint_image.set_pixel(f["col"], f["row"], final)
+			else:
+				f["t"] = progress
+				_tint_image.set_pixel(f["col"], f["row"],
+					_flash_color(final).lerp(final, progress))
+				still.append(f)
+		_flashes = still
+		_tint_dirty = true
 	if _tint_dirty:
 		_tint_texture.update(_tint_image)
 		_tint_dirty = false

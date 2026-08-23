@@ -247,7 +247,7 @@ func _build() -> void:
 	var jeans := _mat("jeans", GameConfig.CHAR_JEANS)
 	var hat := _mat("hat", GameConfig.CHAR_HAT)
 	var band := _mat("band", GameConfig.CHAR_BAND)
-	var boot := _mat("boot", GameConfig.CHAR_BOOT, 0.7)
+	var boot := _mat("boot", GameConfig.CHAR_BOOT, 0.82)
 
 	# Torso pivots at the waist; the box sits above it.
 	_torso = _pivot(self, "Torso", Vector3.ZERO)
