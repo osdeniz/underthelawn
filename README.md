@@ -432,7 +432,28 @@ Palette: `BLADE_GOLD`/`BLADE_CREAM` darkened, gold now carries the plate out to
 r=0.30 (cream only takes the outer third, silver just the horns), and
 `BLADE_GEM` is a glowing purple at emission energy 1.6.
 
-## Not in G1-G6.10
+### G6.11 — thinner, sharper, purple
+
+* `BLADE_ARM_TAPER` (0.68) pulls each outline point's ANGLE toward its own arm
+  axis. The radial sharpen alone thins the waist but leaves the arms fat; the
+  angular squeeze is what turns them into spikes. Both fade in with the same
+  `smoothstep(0.34, 0.62, r)` so the hub survives.
+* Gems roughly doubled (0.140-0.355 radius, +/-0.100 wide, peak y 0.150). The
+  outer tip has to stay under ~0.36 or it overhangs the now-thinner plate.
+* `BLADE_SHIMMER` purple: the motion halo is tinted with it and a rim-emitted
+  particle ring throws purple sparkles whenever the plate is really turning
+  (gated at speed > 0.6 rather than > 4.0, so it shows during normal play).
+
+Two fixes worth keeping in mind for any future glow:
+
+* **Additive, not alpha.** Purple alpha-blended over green grass averages to a
+  muddy grey — exactly the "grey" complaint. `BLEND_MODE_ADD` makes it glow.
+* **No hard-edged disks.** The halo was a `CylinderMesh`, and its perfect
+  circular edge read as a pancake lying on the lawn no matter how low the
+  alpha went. A `PlaneMesh` with the feathered `cloud_billboard` texture fades
+  into the grass instead.
+
+## Not in G1-G6.11
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

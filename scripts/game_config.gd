@@ -373,7 +373,11 @@ const BLADE_HUB_OUTER := 0.24
 const BLADE_HUB_INNER := 0.13
 const BLADE_PLATE_THICK := 0.035
 # >1 pushes the horns out and pulls the waist in, so corners read sharp.
-const BLADE_PLATE_SHARPEN := 1.32
+const BLADE_PLATE_SHARPEN := 1.62
+# <1 pulls each outline point toward its arm axis, narrowing the arms to spikes.
+const BLADE_ARM_TAPER := 0.68
+# Purple shimmer thrown off the spinning plate.
+const BLADE_SHIMMER := Color(0.66, 0.30, 0.95)
 const BLADE_GOLD := Color(0.62, 0.44, 0.09)
 const BLADE_CREAM := Color(0.78, 0.66, 0.34)
 const BLADE_SILVER := Color(0.80, 0.80, 0.76)

@@ -115,7 +115,9 @@ func _physics_process(delta: float) -> void:
 	_check_spark(delta)
 
 	if _trail:
-		_trail.emitting = GameConfig.BLADE_FX_ENABLED and speed > 4.0
+		# Shimmer tracks the SPIN, so it shows up whenever the plate is really
+		# turning, not only at top speed.
+		_trail.emitting = GameConfig.BLADE_FX_ENABLED and speed > 0.6
 
 
 func _process(delta: float) -> void:
@@ -132,7 +134,7 @@ func _process(delta: float) -> void:
 		# The blur halo only earns its keep once the thing is really moving.
 		var mat := _blur_ring.material_override as StandardMaterial3D
 		if mat:
-			mat.albedo_color.a = 0.20 * speed_fraction()
+			mat.albedo_color.a = 0.10 + 0.30 * speed_fraction()
 
 
 ## No engine body shudder; the disk spin IS the life.
@@ -268,11 +270,17 @@ func _build_plate() -> void:
 		var pt := raw
 		var rr := raw.length()
 		if rr > 0.0001:
-			# Fade the squeeze in past the hub, or the engraved hub frame
+			# Fade both squeezes in past the hub, or the engraved hub frame
 			# collapses into the centre hole.
-			var g := lerpf(1.0, GameConfig.BLADE_PLATE_SHARPEN,
-				smoothstep(0.34, 0.62, rr))
-			pt = raw * (reach * pow(minf(rr / reach, 1.0), g) / rr)
+			var fade := smoothstep(0.34, 0.62, rr)
+			var g := lerpf(1.0, GameConfig.BLADE_PLATE_SHARPEN, fade)
+			var rad := reach * pow(minf(rr / reach, 1.0), g)
+			# Narrow the arms: pull each point's angle toward its own arm axis.
+			# The radial squeeze alone thins the waist but leaves fat arms.
+			var ang := atan2(raw.y, raw.x)
+			var axis: float = round(ang / (TAU / 4.0)) * (TAU / 4.0)
+			ang = axis + (ang - axis) * lerpf(1.0, GameConfig.BLADE_ARM_TAPER, fade)
+			pt = Vector2(cos(ang), sin(ang)) * rad
 		var radius := pt.length()
 		# Gentle dome: thicker toward the hub, thinning at the horns.
 		var crown := half + (1.0 - clampf(radius / 1.02, 0.0, 1.0)) * 0.05
@@ -344,14 +352,14 @@ func _build_gems() -> void:
 		# The traced silhouette narrows to ~0.29 between arms, so the gems have
 		# to sit inside that or they poke out past the plate.
 		var pts: Array[Vector2] = [
-			Vector2(0.165, 0.0), Vector2(0.235, 0.058),
-			Vector2(0.300, 0.0), Vector2(0.235, -0.058),
+			Vector2(0.140, 0.0), Vector2(0.255, 0.100),
+			Vector2(0.355, 0.0), Vector2(0.255, -0.100),
 		]
 		var ring: Array[Vector3] = []
 		for pt in pts:
 			# Above the plate crown, or the plate swallows them.
 			ring.append(Vector3(pt.x * cs - pt.y * sn, 0.062, pt.x * sn + pt.y * cs))
-		var peak := Vector3(0.235 * cs, 0.108, 0.235 * sn)
+		var peak := Vector3(0.255 * cs, 0.150, 0.255 * sn)
 		var col := GameConfig.BLADE_GEM
 		var bright := GameConfig.BLADE_GEM.lightened(0.55)
 		for k in 4:
@@ -441,16 +449,19 @@ func _build_fx(body: Node3D) -> void:
 	# Faint counter-rotating streak ring under the disk: motion-blur feel.
 	# Translucent white-blue disk under the chakram: the spin smears into a
 	# faint halo the eye reads as motion.
-	var blur := CylinderMesh.new()
-	blur.top_radius = 0.95
-	blur.bottom_radius = 0.95
-	blur.height = 0.004
-	blur.radial_segments = 32
+	# A flat quad with the soft cloud texture, NOT a cylinder: a solid disk has a
+	# hard circular edge that reads as a pancake laid on the lawn. The feathered
+	# texture makes the halo fade out into the grass.
+	var blur := PlaneMesh.new()
+	blur.size = Vector2(2.0, 2.0)
 	var blur_mat := StandardMaterial3D.new()
-	blur_mat.albedo_color = Color(0.82, 0.94, 1.0, 0.0)
-	blur_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	blur_mat.albedo_color = Color(GameConfig.BLADE_SHIMMER, 0.0)
 	blur_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	blur_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	# Additive, not alpha: blending purple OVER green muddied into grey. Adding
+	# it makes the halo glow instead of tinting the grass.
+	blur_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	blur_mat.albedo_texture = TextureLibrary.find("cloud_billboard")
 	_blur_ring = MeshInstance3D.new()
 	_blur_ring.mesh = blur
 	_blur_ring.material_override = blur_mat
@@ -461,14 +472,21 @@ func _build_fx(body: Node3D) -> void:
 
 	# Short green trail while moving fast: soft fading blobs, not hard quads.
 	var pm := ParticleProcessMaterial.new()
+	# Thrown off the rim of the plate, not out of a point at the centre, so the
+	# shimmer reads as coming off the spinning edge.
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+	pm.emission_ring_radius = 0.92 * GameConfig.BLADE_SCALE
+	pm.emission_ring_inner_radius = 0.55 * GameConfig.BLADE_SCALE
+	pm.emission_ring_height = 0.03
+	pm.emission_ring_axis = Vector3(0, 1, 0)
 	pm.direction = Vector3(0, 1, 0)
-	pm.spread = 12.0
-	pm.initial_velocity_min = 0.02
-	pm.initial_velocity_max = 0.08
+	pm.spread = 35.0
+	pm.initial_velocity_min = 0.15
+	pm.initial_velocity_max = 0.55
 	pm.gravity = Vector3.ZERO
 	pm.scale_min = 0.5
 	pm.scale_max = 0.9
-	pm.color = Color(0.45, 0.85, 0.35, 0.35)
+	pm.color = Color(GameConfig.BLADE_SHIMMER, 0.42)
 	# Fade out over the particle's life.
 	var ramp := Gradient.new()
 	ramp.set_color(0, Color(1, 1, 1, 1))
@@ -477,10 +495,11 @@ func _build_fx(body: Node3D) -> void:
 	ramp_tex.gradient = ramp
 	pm.color_ramp = ramp_tex
 	var quad := QuadMesh.new()
-	quad.size = Vector2(0.4, 0.4)
+	quad.size = Vector2(0.15, 0.15)
 	var qm := StandardMaterial3D.new()
 	qm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	qm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	qm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	qm.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	qm.vertex_color_use_as_albedo = true
 	# The soft cloud blob makes each puff round and feathered.
@@ -489,7 +508,7 @@ func _build_fx(body: Node3D) -> void:
 	_trail = GPUParticles3D.new()
 	_trail.process_material = pm
 	_trail.draw_pass_1 = quad
-	_trail.amount = 20
+	_trail.amount = 34
 	_trail.lifetime = 0.3
 	_trail.local_coords = false
 	_trail.emitting = false
