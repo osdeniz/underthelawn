@@ -186,7 +186,7 @@ const MOWER_TYPES: Array[Dictionary] = [
 		# G6 Blade: yaw-free, follows the finger. max_turn is a dummy (never
 		# steers) kept non-zero so speed/turn ratios stay divide-safe.
 		"id": "blade", "emoji": "⚙️", "label": "Blade",
-		"speed": 9.0, "deck": 0.55, "max_turn": 1.0, "body": 0.40, "reverse": 0.0,
+		"speed": 5.0, "deck": 0.55, "max_turn": 1.0, "body": 0.40, "reverse": 0.0,
 		# Yaw-free: it never steers, so these are inert.
 		"steer_gain": 0.0, "turn_drag": 0.0,
 	},
@@ -356,11 +356,26 @@ const FLAG_INTERVAL_MAX := 90.0
 
 # ---------------------------------------------------------------- G6 blade (4th mower)
 const MOWER_BLADE := 3
-const BLADE_FOLLOW_SPEED := 9.0          # units/s toward the finger point
-const BLADE_GLIDE_TIME := 0.3            # coast after the finger lifts
-const BLADE_DISK_RADIUS := 0.45
-const BLADE_SPIN_DEG := 720.0            # visual spin; +20% with motion
-const BLADE_TEETH := 14
+## G6.8: the follow is PROPORTIONAL — desired speed = distance * gain, capped.
+## A small finger move drifts, a big sweep accelerates. The old flat 9 u/s felt
+## like a teleport.
+const BLADE_FOLLOW_GAIN := 3.2           # 1/s: desired speed per unit of distance
+const BLADE_MAX_SPEED := 5.0             # u/s ceiling
+const BLADE_GLIDE_TIME := 0.35           # coast after the finger lifts
+## Spin idles lazily and revs up with motion (G6.8).
+const BLADE_SPIN_IDLE_DEG := 70.0
+const BLADE_SPIN_FAST_DEG := 1000.0
+const BLADE_SPIN_LERP := 3.0             # how quickly the spin rate responds
+
+## Ceremonial chakram proportions (G6.8 reference art).
+const BLADE_ARM_REACH := 1.02            # horn tip radius; overall span ~2.0
+const BLADE_HUB_OUTER := 0.24
+const BLADE_HUB_INNER := 0.13
+const BLADE_PLATE_THICK := 0.035
+const BLADE_GOLD := Color(0.86, 0.70, 0.26)
+const BLADE_CREAM := Color(0.90, 0.84, 0.58)
+const BLADE_SILVER := Color(0.80, 0.80, 0.76)
+const BLADE_GEM := Color(0.03, 0.42, 0.18)
 const BLADE_SPARK_COOLDOWN := 0.5
 ## Uniform grow factor: chakram mesh, deck radius and body radius all scale
 ## from this one number (future Size upgrades hook in here). 1.0 for now.

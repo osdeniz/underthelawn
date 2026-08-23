@@ -20,6 +20,7 @@ var _trail: GPUParticles3D
 var _sparks: GPUParticles3D
 var _spark_audio: AudioStreamPlayer3D
 var _spark_cooldown := 0.0
+var _spin_rate := GameConfig.BLADE_SPIN_IDLE_DEG
 
 
 func type_index() -> int:
@@ -84,10 +85,17 @@ func _physics_process(delta: float) -> void:
 		var to_target := _target - position
 		to_target.y = 0.0
 		var dist := to_target.length()
-		var step := minf(GameConfig.BLADE_FOLLOW_SPEED * delta, dist)
-		_velocity = to_target.normalized() * (step / maxf(delta, 0.0001)) \
-			if dist > 0.01 else Vector3.ZERO
-		position += to_target.normalized() * step if dist > 0.01 else Vector3.ZERO
+		if dist > 0.01:
+			# Proportional chase: speed scales with how far the finger is, up to
+			# the cap. Drifts under fine control, accelerates on a big sweep.
+			var desired := minf(dist * GameConfig.BLADE_FOLLOW_GAIN,
+				GameConfig.BLADE_MAX_SPEED)
+			var step := minf(desired * delta, dist)
+			var dir := to_target / dist
+			_velocity = dir * desired
+			position += dir * step
+		else:
+			_velocity = Vector3.ZERO
 	elif _glide > 0.0:
 		# Short coast after release.
 		_glide = maxf(_glide - delta, 0.0)
@@ -111,12 +119,20 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(delta: float) -> void:
-	# The disk never stops spinning; motion adds up to 20%.
+	# Idles lazily, revs up with motion, and eases between the two so the change
+	# reads as spin-up rather than a snap (G6.8).
+	var target_rate := lerpf(GameConfig.BLADE_SPIN_IDLE_DEG,
+		GameConfig.BLADE_SPIN_FAST_DEG, speed_fraction())
+	_spin_rate = lerpf(_spin_rate, target_rate,
+		minf(1.0, GameConfig.BLADE_SPIN_LERP * delta))
 	if _disk:
-		_disk.rotation.y += deg_to_rad(GameConfig.BLADE_SPIN_DEG) \
-			* (1.0 + 0.2 * speed_fraction()) * delta
+		_disk.rotation.y += deg_to_rad(_spin_rate) * delta
 	if _blur_ring:
-		_blur_ring.rotation.y -= deg_to_rad(GameConfig.BLADE_SPIN_DEG) * 0.6 * delta
+		_blur_ring.rotation.y -= deg_to_rad(_spin_rate) * 0.6 * delta
+		# The blur halo only earns its keep once the thing is really moving.
+		var mat := _blur_ring.material_override as StandardMaterial3D
+		if mat:
+			mat.albedo_color.a = 0.20 * speed_fraction()
 
 
 ## No engine body shudder; the disk spin IS the life.
@@ -147,11 +163,13 @@ func _check_spark(delta: float) -> void:
 	Haptics.medium()
 
 
-# ---------------------------------------------------------------- model (G6.6)
+# ---------------------------------------------------------------- model (G6.8)
 
-## Chakram / shuriken form: a thick blue donut ring with dark rivets, and six
-## white sickle blades sweeping backwards from it with blue-glowing tips.
-## Diameter ~1.1, riding 0.15 above the ground, spinning at BLADE_SPIN_DEG.
+## Ceremonial chakram from the reference art: four cream-and-gold arms ending in
+## crescent horns, four green gems set between them, and an ornate pierced gold
+## hub. Arms are extruded 2D silhouettes (triangulated), so the concave crescent
+## notch comes out clean; colour banding is baked into vertex colours instead of
+## textures. Span ~2.0, riding 0.15 above the ground.
 func _build_model() -> void:
 	var body := Node3D.new()
 	body.name = "Body"
@@ -163,77 +181,9 @@ func _build_model() -> void:
 	_disk.scale = Vector3.ONE * GameConfig.BLADE_SCALE
 	body.add_child(_disk)
 
-	var blue := StandardMaterial3D.new()
-	blue.albedo_color = Color(0.25, 0.60, 0.95)
-	blue.metallic = 0.55
-	blue.roughness = 0.30
-	var rivet := StandardMaterial3D.new()
-	rivet.albedo_color = Color(0.10, 0.14, 0.20)
-	rivet.metallic = 0.7
-	rivet.roughness = 0.35
-	var steel := StandardMaterial3D.new()
-	steel.albedo_color = Color(0.95, 0.95, 0.92)
-	steel.metallic = 0.4
-	steel.roughness = 0.25
-	var edge := StandardMaterial3D.new()
-	edge.albedo_color = Color(0.60, 0.85, 1.0)
-	edge.emission_enabled = true
-	edge.emission = Color(0.35, 0.72, 1.0)
-	edge.emission_energy_multiplier = 2.2
-
-	# Hub ring: a real donut — hole in the middle, section radius 0.07.
-	var ring := TorusMesh.new()
-	ring.inner_radius = 0.08
-	ring.outer_radius = 0.22
-	ring.rings = 28
-	ring.ring_segments = 10
-	var ring_mi := MeshInstance3D.new()
-	ring_mi.mesh = ring
-	ring_mi.material_override = blue
-	ring_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_disk.add_child(ring_mi)
-
-	# Seven dark rivets pressed into the ring's top face.
-	var rivet_mesh := SphereMesh.new()
-	rivet_mesh.radius = 0.028
-	rivet_mesh.height = 0.056
-	rivet_mesh.radial_segments = 8
-	rivet_mesh.rings = 4
-	for i in 7:
-		var a := TAU * float(i) / 7.0
-		var mi := MeshInstance3D.new()
-		mi.mesh = rivet_mesh
-		mi.material_override = rivet
-		mi.position = Vector3(cos(a) * 0.15, 0.052, sin(a) * 0.15)
-		mi.scale = Vector3(1.0, 0.55, 1.0)
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_disk.add_child(mi)
-
-	# Six sickle blades, built as one mesh, plus their glowing tips.
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var tips: Array[Vector3] = []
-	for i in 6:
-		tips.append(_add_sickle(st, TAU * float(i) / 6.0))
-	var blades_mi := MeshInstance3D.new()
-	blades_mi.name = "Sickles"
-	blades_mi.mesh = st.commit()
-	blades_mi.material_override = steel
-	# No shadow casting anywhere on the chakram: the blades sit 3.5 cm above the
-	# translucent blur disk and were painting hard black swirls onto it. The disk
-	# spins at 720 deg/s and has its own fake-AO decal for grounding.
-	blades_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_disk.add_child(blades_mi)
-
-	var tip_mesh := BoxMesh.new()
-	tip_mesh.size = Vector3(0.05, 0.012, 0.05)
-	for tip in tips:
-		var mi := MeshInstance3D.new()
-		mi.mesh = tip_mesh
-		mi.material_override = edge
-		mi.position = tip
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_disk.add_child(mi)
+	_build_arms()
+	_build_gems()
+	_build_hub()
 
 	if GameConfig.BLADE_FX_ENABLED:
 		_build_fx(body)
@@ -246,93 +196,230 @@ func _build_model() -> void:
 	add_child(_spark_audio)
 
 
-## One sickle: a 4-segment SOLID slab stepping outward from the ring while
-## turning ~25 deg backwards per segment, tapering to a point and lifting
-## slightly for the twist. Built with real thickness and outward normals — a
-## single-sided strip with cull_disabled renders its back faces unlit (they came
-## out black), and a solid also just reads better. Returns the tip position.
-func _add_sickle(st: SurfaceTool, start_angle: float) -> Vector3:
-	var segments := 4
-	var r0 := 0.20
-	var r1 := 0.55                       # diameter ~1.1
-	var back_turn := deg_to_rad(25.0)    # per segment
-	var half_width := 0.105
-	var half_thick := 0.011
+## Half of one arm's outline, from the hub out to the horn tip. Mirrored to make
+## the full closed silhouette. x = radius, y = lateral half-width.
+const ARM_SIDE: Array[Vector2] = [
+	Vector2(0.26, 0.105),
+	Vector2(0.40, 0.150),
+	Vector2(0.56, 0.185),
+	Vector2(0.72, 0.225),
+	Vector2(0.86, 0.272),
+	Vector2(0.97, 0.300),
+	Vector2(1.02, 0.246),   # horn tip
+]
+## The crescent notch cutting back in between the two horns.
+const ARM_NOTCH: Array[Vector2] = [
+	Vector2(0.925, 0.150),
+	Vector2(0.860, 0.070),
+	Vector2(0.840, 0.000),
+]
 
-	var rows: Array = []                 # [lt, rt, lb, rb, up]
-	var tip := Vector3.ZERO
-	for s in segments + 1:
-		var f := float(s) / float(segments)
-		var radius := lerpf(r0, r1, f)
-		var angle := start_angle + back_turn * float(s)
-		var out_dir := Vector3(cos(angle), 0.0, sin(angle))
-		var side := Vector3(-sin(angle), 0.0, cos(angle))
-		var center := out_dir * radius + Vector3(0.0, f * 0.035, 0.0)
-		var w := half_width * (1.0 - f * f)
-		# Twist: the blade rolls a little around its own radial axis.
-		var roll := f * 0.35
-		var up := (Vector3.UP * cos(roll) + side * sin(roll)).normalized()
-		var across := side * cos(roll) - Vector3.UP * sin(roll)
-		if s == segments:
-			tip = center
-		rows.append([
-			center - across * w + up * half_thick,
-			center + across * w + up * half_thick,
-			center - across * w - up * half_thick,
-			center + across * w - up * half_thick,
-			up])
 
-	for s in segments:
-		var a: Array = rows[s]
-		var b: Array = rows[s + 1]
-		var up_a: Vector3 = a[4]
-		var up_b: Vector3 = b[4]
-		if s == segments - 1:
-			# Close into the point: top and bottom triangles plus two edges.
-			_tri_n(st, a[0], a[1], tip, up_a)
-			_tri_n(st, a[3], a[2], tip, -up_a)
-			var e0: Vector3 = a[0]
-			var e1: Vector3 = a[1]
-			var edge_n := (e1 - e0).normalized()
-			_tri_n(st, a[1], a[3], tip, edge_n)
-			_tri_n(st, a[2], a[0], tip, -edge_n)
+func _build_arms() -> void:
+	var outline: Array[Vector2] = []
+	for pt in ARM_SIDE:
+		outline.append(pt)
+	for pt in ARM_NOTCH:
+		outline.append(pt)
+	for i in range(ARM_NOTCH.size() - 2, -1, -1):
+		outline.append(Vector2(ARM_NOTCH[i].x, -ARM_NOTCH[i].y))
+	for i in range(ARM_SIDE.size() - 1, -1, -1):
+		outline.append(Vector2(ARM_SIDE[i].x, -ARM_SIDE[i].y))
+
+	var mat := StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	# Low metallic: at 0.45 the arms mirrored the bright sky and read as white
+	# plastic instead of painted gold.
+	mat.metallic = 0.12
+	mat.roughness = 0.38
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for arm in 4:
+		_extrude_arm(st, outline, TAU * float(arm) / 4.0)
+	var mi := MeshInstance3D.new()
+	mi.name = "Arms"
+	mi.mesh = st.commit()
+	mi.material_override = mat
+	# Nothing on the chakram casts: the plate would paint hard black swirls on
+	# the blur halo 3 cm below it.
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_disk.add_child(mi)
+
+
+## Concentric colour bands along the arm: rich gold at the root, cream across
+## the body, silver at the horns. Banding is keyed to RADIUS because the
+## silhouette has no vertices on the spine — a lateral gradient had nothing to
+## paint and every arm came out flat cream.
+static func _arm_color(radius: float, lateral: float, half_width: float) -> Color:
+	var col: Color
+	# The gold band has to reach past r~0.47, where the hub's diamond bars stop
+	# covering the arm, or it is never seen.
+	if radius < 0.74:
+		col = GameConfig.BLADE_GOLD.lerp(GameConfig.BLADE_CREAM,
+			clampf((radius - 0.30) / 0.44, 0.0, 1.0))
+	else:
+		col = GameConfig.BLADE_CREAM.lerp(GameConfig.BLADE_SILVER,
+			clampf((radius - 0.80) / 0.20, 0.0, 1.0))
+	# Two darker rings standing in for the reference's engraved arcs; the radii
+	# sit on outline vertex rings so they actually land.
+	var arc := exp(-pow((radius - 0.57) / 0.055, 2.0)) \
+		+ exp(-pow((radius - 0.87) / 0.055, 2.0))
+	col = col.darkened(clampf(arc, 0.0, 1.0) * 0.26)
+	# Rim shading: the outer edge of each arm catches a warmer line.
+	var edge := absf(lateral) / maxf(half_width, 0.001)
+	return col.lerp(GameConfig.BLADE_GOLD.darkened(0.15),
+		clampf(edge - 0.74, 0.0, 1.0) * 0.7)
+
+
+func _extrude_arm(st: SurfaceTool, outline: Array[Vector2], rot: float) -> void:
+	var half := GameConfig.BLADE_PLATE_THICK * 0.5
+	var cs := cos(rot)
+	var sn := sin(rot)
+	var count := outline.size()
+
+	# Flat outline -> 3D, rotated into place around the hub.
+	var top: Array[Vector3] = []
+	var bottom: Array[Vector3] = []
+	var cols: Array[Color] = []
+	var flat := PackedVector2Array()
+	for pt in outline:
+		var x := pt.x * cs - pt.y * sn
+		var z := pt.x * sn + pt.y * cs
+		# The spine is raised, giving the arm a shallow roof like the reference.
+		var crown := half + (1.0 - clampf(absf(pt.y) / 0.30, 0.0, 1.0)) * 0.075
+		top.append(Vector3(x, crown, z))
+		bottom.append(Vector3(x, -half, z))
+		cols.append(_arm_color(pt.x, pt.y, 0.30))
+		flat.append(pt)
+
+	# Triangulate the concave silhouette once, reuse for both faces.
+	var tris := Geometry2D.triangulate_polygon(flat)
+	for i in range(0, tris.size(), 3):
+		var a: int = tris[i]
+		var b: int = tris[i + 1]
+		var c: int = tris[i + 2]
+		_face(st, top[a], top[b], top[c], cols[a], cols[b], cols[c], Vector3.UP)
+		_face(st, bottom[a], bottom[b], bottom[c],
+			cols[a].darkened(0.45), cols[b].darkened(0.45), cols[c].darkened(0.45),
+			Vector3.DOWN)
+
+	# Rim walls all the way round.
+	for i in count:
+		var j := (i + 1) % count
+		var wall := (top[j] - top[i]).cross(Vector3.UP)
+		if wall.length_squared() < 0.000001:
 			continue
-		# Top and bottom faces.
-		_quad_n(st, a[0], a[1], b[1], b[0], up_a, up_b)
-		_quad_n(st, b[2], b[3], a[3], a[2], -up_b, -up_a)
-		# Outer and inner edges.
-		var a1: Vector3 = a[1]
-		var a0: Vector3 = a[0]
-		var out_n := (a1 - a0).normalized()
-		_quad_n(st, a[1], a[3], b[3], b[1], out_n, out_n)
-		_quad_n(st, b[0], b[2], a[2], a[0], -out_n, -out_n)
-	return tip
+		wall = wall.normalized()
+		var edge_col := cols[i].lerp(GameConfig.BLADE_SILVER, 0.5)
+		var edge_col_j := cols[j].lerp(GameConfig.BLADE_SILVER, 0.5)
+		_face(st, top[i], top[j], bottom[j], edge_col, edge_col_j, edge_col_j, wall)
+		_face(st, top[i], bottom[j], bottom[i], edge_col, edge_col_j, edge_col, wall)
 
 
-func _quad_n(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3,
-		n_ab: Vector3, n_cd: Vector3) -> void:
-	var n := (n_ab + n_cd).normalized()
-	_tri_n(st, a, b, c, n)
-	_tri_n(st, a, c, d, n)
+## Four green gems set into the gaps between arms, pointing outward.
+func _build_gems() -> void:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = GameConfig.BLADE_GEM
+	mat.metallic = 0.05
+	mat.roughness = 0.22
+	mat.emission_enabled = true
+	mat.emission = GameConfig.BLADE_GEM
+	mat.emission_energy_multiplier = 0.35
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in 4:
+		var a := TAU * (float(i) + 0.5) / 4.0
+		var cs := cos(a)
+		var sn := sin(a)
+		# Kite shape: narrow at the hub, wide shoulders, sharp point outward.
+		var pts: Array[Vector2] = [
+			Vector2(0.20, 0.0), Vector2(0.34, 0.10),
+			Vector2(0.52, 0.0), Vector2(0.34, -0.10),
+		]
+		var ring: Array[Vector3] = []
+		for pt in pts:
+			ring.append(Vector3(pt.x * cs - pt.y * sn, 0.0, pt.x * sn + pt.y * cs))
+		var peak := Vector3(0.34 * cs, 0.055, 0.34 * sn)
+		var col := GameConfig.BLADE_GEM
+		var bright := GameConfig.BLADE_GEM.lightened(0.35)
+		for k in 4:
+			var p0: Vector3 = ring[k]
+			var p1: Vector3 = ring[(k + 1) % 4]
+			var n := (p1 - p0).cross(peak - p0).normalized()
+			_face(st, p0, p1, peak, col, col, bright, n)
+	var mi := MeshInstance3D.new()
+	mi.name = "Gems"
+	mi.mesh = st.commit()
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_disk.add_child(mi)
 
 
-## Emits one flat-shaded triangle FACING `n`. The sickle twists, so hand-reasoned
-## winding is error-prone — and Godot treats CLOCKWISE as front-facing, the
-## opposite of the usual right-hand rule. So the winding is chosen such that the
-## counter-clockwise cross product points AWAY from `n`; get it backwards and the
-## top faces are culled, leaving the slab's unlit underside on show (black).
-func _tri_n(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, n: Vector3) -> void:
+## Pierced hub: a thick gold ring, a stepped inner collar, and a diamond frame
+## whose corners read as the reference's four square windows.
+func _build_hub() -> void:
+	var gold := StandardMaterial3D.new()
+	gold.albedo_color = GameConfig.BLADE_GOLD
+	gold.metallic = 0.7
+	gold.roughness = 0.28
+	var deep := StandardMaterial3D.new()
+	deep.albedo_color = GameConfig.BLADE_GOLD.darkened(0.35)
+	deep.metallic = 0.65
+	deep.roughness = 0.4
+
+	var ring := TorusMesh.new()
+	ring.inner_radius = GameConfig.BLADE_HUB_INNER
+	ring.outer_radius = GameConfig.BLADE_HUB_OUTER
+	ring.rings = 32
+	ring.ring_segments = 10
+	_hub_piece(ring, gold, Vector3(0.0, 0.03, 0.0))
+
+	# Stepped collar just inside the ring: the notched lip of the reference.
+	var collar := CylinderMesh.new()
+	collar.top_radius = GameConfig.BLADE_HUB_INNER + 0.02
+	collar.bottom_radius = GameConfig.BLADE_HUB_INNER + 0.035
+	collar.height = 0.05
+	collar.radial_segments = 24
+	_hub_piece(collar, deep, Vector3(0.0, 0.02, 0.0))
+
+	# Diamond frame: four bars set at 45 deg, leaving square gaps at the corners.
+	var bar := BoxMesh.new()
+	bar.size = Vector3(0.34, 0.03, 0.055)
+	for i in 4:
+		var a := TAU * (float(i) + 0.5) / 4.0
+		var mi := _hub_piece(bar, gold,
+			Vector3(cos(a) * 0.30, 0.005, sin(a) * 0.30))
+		mi.rotation.y = -a + PI * 0.5
+
+
+func _hub_piece(mesh: Mesh, mat: Material, pos: Vector3) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.position = pos
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_disk.add_child(mi)
+	return mi
+
+
+## One coloured triangle facing `n`. Godot treats CLOCKWISE as front-facing, so
+## the winding is chosen to put the CCW cross product opposite `n`.
+func _face(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3,
+		ca: Color, cb: Color, cc: Color, n: Vector3) -> void:
 	if (b - a).cross(c - a).dot(n) > 0.0:
-		_v3(st, a, n)
-		_v3(st, c, n)
-		_v3(st, b, n)
+		_cv(st, a, ca, n)
+		_cv(st, c, cc, n)
+		_cv(st, b, cb, n)
 		return
-	_v3(st, a, n)
-	_v3(st, b, n)
-	_v3(st, c, n)
+	_cv(st, a, ca, n)
+	_cv(st, b, cb, n)
+	_cv(st, c, cc, n)
 
 
-func _v3(st: SurfaceTool, pos: Vector3, n: Vector3) -> void:
+func _cv(st: SurfaceTool, pos: Vector3, col: Color, n: Vector3) -> void:
+	st.set_color(col.srgb_to_linear())
 	st.set_normal(n)
 	st.set_uv(Vector2(0.5, 0.5))
 	st.add_vertex(pos)
@@ -343,12 +430,13 @@ func _build_fx(body: Node3D) -> void:
 	# Translucent white-blue disk under the chakram: the spin smears into a
 	# faint halo the eye reads as motion.
 	var blur := CylinderMesh.new()
-	blur.top_radius = 0.58
-	blur.bottom_radius = 0.58
+	blur.top_radius = 0.95
+	blur.bottom_radius = 0.95
 	blur.height = 0.004
 	blur.radial_segments = 32
 	var blur_mat := StandardMaterial3D.new()
-	blur_mat.albedo_color = Color(0.78, 0.92, 1.0, 0.16)
+	blur_mat.albedo_color = Color(0.82, 0.94, 1.0, 0.0)
+	blur_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	blur_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	blur_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_blur_ring = MeshInstance3D.new()
@@ -434,8 +522,8 @@ func _build_fx(body: Node3D) -> void:
 func _build_clippings() -> void:
 	var pm := ParticleProcessMaterial.new()
 	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
-	pm.emission_ring_radius = 0.55 * GameConfig.BLADE_SCALE
-	pm.emission_ring_inner_radius = 0.30 * GameConfig.BLADE_SCALE
+	pm.emission_ring_radius = 0.62 * GameConfig.BLADE_SCALE
+	pm.emission_ring_inner_radius = 0.32 * GameConfig.BLADE_SCALE
 	pm.emission_ring_height = 0.02
 	pm.emission_ring_axis = Vector3(0, 1, 0)
 	pm.spread = 80.0

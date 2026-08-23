@@ -337,7 +337,31 @@ vehicle tunes without touching the shared §7 core:
 `tests/PaceCheck.tscn` audits average speed against nominal for all four types
 and fails below 55%. Current: push 89%, tractor 88%, robot 89%, blade 99%.
 
-## Not in G1-G6.7
+## Sprint G6.8 — chakram redesign + blade feel (done)
+
+**Form.** The saw disk is now the ceremonial chakram from the reference art:
+four cream-and-gold arms ending in crescent horns, four emerald gems set in the
+gaps, and a pierced gold hub (ring + stepped collar + diamond frame). Arms are
+extruded 2D silhouettes run through `Geometry2D.triangulate_polygon`, so the
+concave crescent notch comes out clean; the colour banding (gold root → cream
+body → silver horns, plus two darker engraved arcs) is baked into vertex
+colours rather than textures. Span ~2.0.
+
+Two calibration notes worth keeping: the gold band has to reach past r≈0.47 or
+the hub's diamond bars hide it, and arm metallic had to drop 0.45 → 0.12
+because at 0.45 the plates mirrored the bright sky and read as white plastic.
+
+**Proportional follow.** The flat 9 u/s chase felt like a teleport. Desired
+speed is now `distance × BLADE_FOLLOW_GAIN` capped at `BLADE_MAX_SPEED` (3.2 and
+5.0), so fine finger moves drift and big sweeps accelerate.
+
+**Variable spin.** The disk idles lazily at `BLADE_SPIN_IDLE_DEG` (70°/s) and
+revs to `BLADE_SPIN_FAST_DEG` (1000°/s) with motion, eased at
+`BLADE_SPIN_LERP` so it reads as spin-up. Measured 119°/s at rest, 646°/s under
+a normal drag. The blur halo is fully transparent at rest and fades in with
+speed.
+
+## Not in G1-G6.8
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.
