@@ -361,7 +361,37 @@ revs to `BLADE_SPIN_FAST_DEG` (1000°/s) with motion, eased at
 a normal drag. The blur halo is fully transparent at rest and fades in with
 speed.
 
-## Not in G1-G6.8
+## Sprint G6.9 — chakram detail pass (items 2 + 4 of 3)
+
+**Line work (item 2).** `tools/gen_assets.gd` writes `chakram_arm.png`: a
+MOSTLY-WHITE map that MULTIPLIES over the vertex banding — vertex colours
+cannot carry engraving at ~40 verts per arm. It holds longitudinal gold lines,
+two cross bands near the hub, a spine groove, rim darkening and light
+weathering scratches. `_extrude_arm` now emits real UVs (u across the arm,
+v along the radius), so a constant-radius arc is a horizontal line in the map.
+
+**Hub teeth (item 4).** 24 radial teeth around the ring's inner mouth — small,
+but it is what sells the hub as machined rather than a plain donut.
+
+**Exact silhouette (item 1) — NOT DONE.** It needs the reference image as a
+file to trace; chat attachments cannot be read from disk. Drop it at
+`textures/ref_chakram.png` and the outline can be measured from pixels instead
+of eyeballed.
+
+### Two traps worth remembering
+
+* **UV normalisation.** Dividing the lateral coordinate by the LOCAL half-width
+  would make stripes follow the taper exactly, but the arm is a triangulated
+  outline with NO interior vertices, so every boundary vertex lands on u=0 or
+  u=1 and most triangles go UV-degenerate — the line work vanished completely.
+  A fixed divisor is used instead. Following the taper properly needs a gridded
+  arm mesh; that is the same rebuild item 1 wants, so do them together.
+* **Generated textures need an import pass.** After `gen_assets` writes a NEW
+  png, `ResourceLoader.exists()` returns false until Godot imports it, so
+  `TextureLibrary.find()` silently misses and the material renders untextured.
+  Run `--headless --editor --quit` between generating and testing.
+
+## Not in G1-G6.9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

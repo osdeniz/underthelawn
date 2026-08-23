@@ -232,6 +232,13 @@ func _build_arms() -> void:
 	# plastic instead of painted gold.
 	mat.metallic = 0.12
 	mat.roughness = 0.38
+	# G6.9: the engraving lives in a mostly-white texture that MULTIPLIES over
+	# the vertex banding — vertex colours cannot carry line work at 40 verts.
+	var line_art := TextureLibrary.find("chakram_arm")
+	if line_art != null:
+		mat.albedo_texture = line_art
+	else:
+		TextureLibrary.warn_missing("chakram_arm", "duz plaka, oyma cizgisi yok")
 
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -282,6 +289,7 @@ func _extrude_arm(st: SurfaceTool, outline: Array[Vector2], rot: float) -> void:
 	var top: Array[Vector3] = []
 	var bottom: Array[Vector3] = []
 	var cols: Array[Color] = []
+	var uvs: Array[Vector2] = []
 	var flat := PackedVector2Array()
 	for pt in outline:
 		var x := pt.x * cs - pt.y * sn
@@ -291,6 +299,17 @@ func _extrude_arm(st: SurfaceTool, outline: Array[Vector2], rot: float) -> void:
 		top.append(Vector3(x, crown, z))
 		bottom.append(Vector3(x, -half, z))
 		cols.append(_arm_color(pt.x, pt.y, 0.30))
+		# u across the arm (0.5 = spine), v along the radius (0 = hub).
+		#
+		# NOTE: this divides by a FIXED width on purpose. Normalising by the
+		# local half-width would make the stripes follow the taper exactly, but
+		# the plate is a triangulated outline with NO interior vertices, so every
+		# boundary vertex would land on u=0 or u=1 and most triangles would be
+		# UV-degenerate — the line work vanished entirely. Following the taper
+		# properly needs a gridded arm mesh; see the G6.9 note in the README.
+		uvs.append(Vector2(
+			clampf(pt.y / 0.62 + 0.5, 0.0, 1.0),
+			clampf((pt.x - 0.26) / (GameConfig.BLADE_ARM_REACH - 0.26), 0.0, 1.0)))
 		flat.append(pt)
 
 	# Triangulate the concave silhouette once, reuse for both faces.
@@ -299,10 +318,11 @@ func _extrude_arm(st: SurfaceTool, outline: Array[Vector2], rot: float) -> void:
 		var a: int = tris[i]
 		var b: int = tris[i + 1]
 		var c: int = tris[i + 2]
-		_face(st, top[a], top[b], top[c], cols[a], cols[b], cols[c], Vector3.UP)
+		_face(st, top[a], top[b], top[c], cols[a], cols[b], cols[c], Vector3.UP,
+			uvs[a], uvs[b], uvs[c])
 		_face(st, bottom[a], bottom[b], bottom[c],
 			cols[a].darkened(0.45), cols[b].darkened(0.45), cols[c].darkened(0.45),
-			Vector3.DOWN)
+			Vector3.DOWN, uvs[a], uvs[b], uvs[c])
 
 	# Rim walls all the way round.
 	for i in count:
@@ -313,8 +333,13 @@ func _extrude_arm(st: SurfaceTool, outline: Array[Vector2], rot: float) -> void:
 		wall = wall.normalized()
 		var edge_col := cols[i].lerp(GameConfig.BLADE_SILVER, 0.5)
 		var edge_col_j := cols[j].lerp(GameConfig.BLADE_SILVER, 0.5)
-		_face(st, top[i], top[j], bottom[j], edge_col, edge_col_j, edge_col_j, wall)
-		_face(st, top[i], bottom[j], bottom[i], edge_col, edge_col_j, edge_col, wall)
+		# Rim walls sample the texture's darkened border strip.
+		var rim_i := Vector2(0.015, uvs[i].y)
+		var rim_j := Vector2(0.015, uvs[j].y)
+		_face(st, top[i], top[j], bottom[j], edge_col, edge_col_j, edge_col_j, wall,
+			rim_i, rim_j, rim_j)
+		_face(st, top[i], bottom[j], bottom[i], edge_col, edge_col_j, edge_col, wall,
+			rim_i, rim_j, rim_i)
 
 
 ## Four green gems set into the gaps between arms, pointing outward.
@@ -384,6 +409,17 @@ func _build_hub() -> void:
 	collar.radial_segments = 24
 	_hub_piece(collar, deep, Vector3(0.0, 0.02, 0.0))
 
+	# G6.9 item 4: fine radial teeth around the ring's inner mouth — small, but
+	# it is the detail that sells the hub as machined rather than a plain donut.
+	var tooth := BoxMesh.new()
+	tooth.size = Vector3(0.016, 0.022, 0.030)
+	for i in 24:
+		var a := TAU * float(i) / 24.0
+		var mi := _hub_piece(tooth, deep, Vector3(
+			cos(a) * (GameConfig.BLADE_HUB_INNER + 0.012), 0.042,
+			sin(a) * (GameConfig.BLADE_HUB_INNER + 0.012)))
+		mi.rotation.y = -a
+
 	# Diamond frame: four bars set at 45 deg, leaving square gaps at the corners.
 	var bar := BoxMesh.new()
 	bar.size = Vector3(0.34, 0.03, 0.055)
@@ -407,21 +443,24 @@ func _hub_piece(mesh: Mesh, mat: Material, pos: Vector3) -> MeshInstance3D:
 ## One coloured triangle facing `n`. Godot treats CLOCKWISE as front-facing, so
 ## the winding is chosen to put the CCW cross product opposite `n`.
 func _face(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3,
-		ca: Color, cb: Color, cc: Color, n: Vector3) -> void:
+		ca: Color, cb: Color, cc: Color, n: Vector3,
+		ua := Vector2(0.5, 0.5), ub := Vector2(0.5, 0.5),
+		uc := Vector2(0.5, 0.5)) -> void:
 	if (b - a).cross(c - a).dot(n) > 0.0:
-		_cv(st, a, ca, n)
-		_cv(st, c, cc, n)
-		_cv(st, b, cb, n)
+		_cv(st, a, ca, n, ua)
+		_cv(st, c, cc, n, uc)
+		_cv(st, b, cb, n, ub)
 		return
-	_cv(st, a, ca, n)
-	_cv(st, b, cb, n)
-	_cv(st, c, cc, n)
+	_cv(st, a, ca, n, ua)
+	_cv(st, b, cb, n, ub)
+	_cv(st, c, cc, n, uc)
 
 
-func _cv(st: SurfaceTool, pos: Vector3, col: Color, n: Vector3) -> void:
+func _cv(st: SurfaceTool, pos: Vector3, col: Color, n: Vector3,
+		uv := Vector2(0.5, 0.5)) -> void:
 	st.set_color(col.srgb_to_linear())
 	st.set_normal(n)
-	st.set_uv(Vector2(0.5, 0.5))
+	st.set_uv(uv)
 	st.add_vertex(pos)
 
 

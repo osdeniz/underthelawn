@@ -32,6 +32,7 @@ func _initialize() -> void:
 	_asphalt(512)
 	_dirt(256)
 	_cloud_billboard(256)
+	_chakram_arm(512)
 	_engine_loop()
 	_grass_cut()
 	_discovery_chime()
@@ -341,6 +342,85 @@ func _cloud_billboard(size: int) -> void:
 			img.set_pixel(x, y, Color(1.0, 1.0, 0.99, a))
 	img.generate_mipmaps()
 	print("  cloud_billboard.png -> %s" % ("ok" if img.save_png("res://textures/cloud_billboard.png") == OK else "HATA"))
+
+
+## Line work for the chakram arms (G6.9). MOSTLY WHITE so it MULTIPLIES over
+## the vertex-colour banding instead of replacing it: concentric arcs, radial
+## stripes, a central spine, panel divisions and weathering scratches.
+##
+## UV convention set by BladeMower._extrude_arm:
+##   v (vertical)   = radius along the arm, 0 at the hub, 1 at the horn tip
+##   u (horizontal) = across the arm width, 0.5 on the spine
+## A constant-radius arc is therefore a HORIZONTAL line here, and a radial
+## stripe is a VERTICAL one.
+func _chakram_arm(size: int) -> void:
+	if _skip("res://textures/chakram_arm.png"):
+		return
+	var img := Image.create(size, size, true, Image.FORMAT_RGB8)
+	img.fill(Color.WHITE)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 90210
+
+	# The reference's line work runs mostly ALONG the arm; evenly spaced cross
+	# arcs at the same weight turned the plate into a plaid. So: only two cross
+	# bands, both near the hub, and longitudinal stripes carry the look.
+	var arcs: Array[float] = [0.10, 0.135]
+	var stripes: Array[float] = [0.22, 0.335, 0.665, 0.78]
+
+	for y in size:
+		var v := float(y) / float(size - 1)
+		for x in size:
+			var u := float(x) / float(size - 1)
+			var shade := 1.0
+
+			for a in arcs:
+				var d: float = absf(v - a)
+				if d < 0.008:
+					shade = minf(shade, 0.66)
+				elif d < 0.014:
+					shade = minf(shade, 0.86)
+
+			# Longitudinal stripes run the length of the arm and thin out at the
+			# horn, following the plate's taper.
+			# Wide enough to survive mipmapping at gameplay distance: 2-5 px
+			# lines averaged away to nothing.
+			var reach := clampf(1.0 - (v - 0.82) / 0.18, 0.0, 1.0)
+			for s in stripes:
+				var half_w := lerpf(0.003, 0.011, reach)
+				if absf(u - s) < half_w:
+					shade = minf(shade, lerpf(1.0, 0.70, reach))
+
+			# Central spine: a strong groove with a highlight either side.
+			var spine: float = absf(u - 0.5)
+			if spine < 0.009:
+				shade = minf(shade, 0.62)
+
+			# Rim darkening so each arm reads as a bevelled plate.
+			var rim: float = minf(u, 1.0 - u)
+			if rim < 0.045:
+				shade *= lerpf(0.74, 1.0, rim / 0.045)
+
+			img.set_pixel(x, y, Color(shade, shade, shade))
+
+	# Weathering: short dark scratches, mostly along the arm.
+	for s in 34:
+		var sx := rng.randf_range(0.06, 0.94)
+		var sy := rng.randf_range(0.02, 0.96)
+		var length := rng.randf_range(0.02, 0.09)
+		var angle := rng.randf_range(-0.5, 0.5) + (0.0 if rng.randf() < 0.7 else PI * 0.5)
+		var steps := int(length * float(size))
+		for i in steps:
+			var f := float(i) / maxf(float(steps), 1.0)
+			var px := int((sx + cos(angle) * length * f) * float(size))
+			var py := int((sy + sin(angle) * length * f) * float(size))
+			if px < 0 or py < 0 or px >= size or py >= size:
+				continue
+			var cur := img.get_pixel(px, py)
+			img.set_pixel(px, py, cur * rng.randf_range(0.58, 0.80))
+
+	img.generate_mipmaps()
+	var err := img.save_png("res://textures/chakram_arm.png")
+	print("  chakram_arm.png %dx%d -> %s" % [size, size, "ok" if err == OK else str(err)])
 
 
 # ---------------------------------------------------------------- audio (§14)
