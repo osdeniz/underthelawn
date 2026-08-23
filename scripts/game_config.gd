@@ -165,20 +165,30 @@ const MOWER_TYPES: Array[Dictionary] = [
 	{
 		"id": "push", "emoji": "🔴", "label": "Push",
 		"speed": 3.0, "deck": 0.7, "max_turn": 1.7, "body": 0.55, "reverse": 0.0,
+		# §7 defaults: the push mower is the reference feel.
+		"steer_gain": 5.0, "turn_drag": 0.45,
 	},
 	{
 		"id": "tractor", "emoji": "🚜", "label": "Traktör",
 		"speed": 4.8, "deck": 1.1, "max_turn": 1.5, "body": 0.85, "reverse": 0.5,
+		# G6.7: at 4.8 u/s the §7 0.45 drag gave a ~5.8 unit turning radius —
+		# wider than a third of the lawn. 0.28 keeps it heavy but steerable.
+		"steer_gain": 5.0, "turn_drag": 0.28,
 	},
 	{
 		"id": "robot", "emoji": "🤖", "label": "Robot",
 		"speed": 2.1, "deck": 0.7, "max_turn": 2.6, "body": 0.45, "reverse": 0.0,
+		# G6.7: the robot chases waypoints, so it needs to snap onto a heading
+		# quickly; its own 2.6 rad/s ceiling still bounds the rate.
+		"steer_gain": 7.0, "turn_drag": 0.30,
 	},
 	{
 		# G6 Blade: yaw-free, follows the finger. max_turn is a dummy (never
 		# steers) kept non-zero so speed/turn ratios stay divide-safe.
 		"id": "blade", "emoji": "⚙️", "label": "Blade",
 		"speed": 9.0, "deck": 0.55, "max_turn": 1.0, "body": 0.40, "reverse": 0.0,
+		# Yaw-free: it never steers, so these are inert.
+		"steer_gain": 0.0, "turn_drag": 0.0,
 	},
 ]
 
@@ -217,7 +227,9 @@ const JOYSTICK_DEADZONE := 0.25
 const JOYSTICK_RETURN_TIME := 0.18
 
 # ---------------------------------------------------------------- robot (§7)
-const ROBOT_ARRIVE_DISTANCE := 0.35
+## G6.7: 0.35 was tight enough that the robot orbited its target; 0.5 lets it
+## pass through cleanly at 2.1 u/s.
+const ROBOT_ARRIVE_DISTANCE := 0.5
 const ROBOT_NUDGE_DISTANCE := 3.5
 const ROBOT_SWIPE_THRESHOLD_PT := 60.0
 ## Detour search range when a serpentine cell is blocked: +/-1..4 rows.

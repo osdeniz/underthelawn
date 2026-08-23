@@ -101,27 +101,43 @@ func _gather_input(_delta: float) -> void:
 		desired_omega = 0.0
 		return
 
-	var target := _override if _has_override else _current_target()
-
-	if target == Vector3.INF:
-		# Nothing left to mow: stop.
-		throttle = 0.0
-		desired_omega = 0.0
-		return
-
-	var to_target := Vector2(target.x - position.x, target.z - position.z)
-	if to_target.length() <= GameConfig.ROBOT_ARRIVE_DISTANCE:
+	# G6.7 pace fix: arriving at a waypoint used to zero the throttle, so the
+	# 0.4 s acceleration ramp restarted at EVERY cell and the robot averaged
+	# ~0.8 u/s instead of its 2.1. Now arrival only advances the cursor and the
+	# next target is picked in the SAME tick, so it flows through the route.
+	var target := Vector3.INF
+	for _guard in 8:
+		target = _override if _has_override else _current_target()
+		if target == Vector3.INF:
+			break
+		var reach := Vector2(target.x - position.x, target.z - position.z)
+		if reach.length() > GameConfig.ROBOT_ARRIVE_DISTANCE:
+			break
 		if _has_override:
-			# Arrived at the player's point: rejoin the pattern nearby.
+			# Reached the player's point: rejoin the pattern nearby.
 			_has_override = false
 			_rejoin_nearest()
 		else:
 			route_index += 1
-		throttle = 0.0
+		target = Vector3.INF
+
+	if target == Vector3.INF:
+		# Nothing in reach this tick (route finished, or several waypoints
+		# consumed at once): coast rather than braking hard.
+		desired_omega = 0.0
+		if not _has_pending():
+			throttle = 0.0
 		return
 
+	var to_target := Vector2(target.x - position.x, target.z - position.z)
 	steer_towards(atan2(to_target.x, -to_target.y))
 	throttle = 1.0
+
+
+## Is there anything left to mow at all? Used to decide between coasting and
+## stopping when a tick consumes several waypoints.
+func _has_pending() -> bool:
+	return _nearest_pending().x >= 0
 
 
 ## Jump the route cursor to the waypoint closest to where we are now.

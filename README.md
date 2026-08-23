@@ -313,7 +313,31 @@ the faces it meant to keep and showing the slab's unlit underside.
 `ACTIVE_GRASS_PALETTE`, `TUFTS_PER_CLUSTER` (9→7→5), `CLUMP_BLADES` (6),
 `CLUMP_HEIGHT_MIN/MAX`, `CLUMP_TALL_CHANCE`, `BLADE_SCALE`.
 
-## Not in G1-G6.6
+## Sprint G6.7 — movement tuning (done)
+
+**Robot pace fix.** Arriving at a waypoint used to set `throttle = 0`, so the
+0.4 s acceleration ramp restarted at every single cell and the robot averaged
+~0.8 u/s against its 2.1 nominal. `_gather_input` now advances the route cursor
+and picks the next target **in the same tick** (bounded loop, so several
+consumed waypoints do not stall it), and only stops when nothing is left to mow.
+Measured: **0.8 → 1.89 u/s (89% of nominal)**.
+
+**Per-type steering.** `MOWER_TYPES` gained `steer_gain` and `turn_drag` so each
+vehicle tunes without touching the shared §7 core:
+
+| Type | steer_gain | turn_drag | Why |
+| --- | --- | --- | --- |
+| Push | 5.0 | 0.45 | §7 reference feel, unchanged |
+| Tractor | 5.0 | **0.28** | at 4.8 u/s the §7 0.45 gave a ~5.8 unit turning radius — wider than a third of the lawn |
+| Robot | **7.0** | 0.30 | chases waypoints, needs to snap onto a heading; its 2.6 rad/s ceiling still bounds it |
+| Blade | — | — | yaw-free, inert |
+
+`ROBOT_ARRIVE_DISTANCE` 0.35 → **0.5** (it used to orbit its target).
+
+`tests/PaceCheck.tscn` audits average speed against nominal for all four types
+and fails below 55%. Current: push 89%, tractor 88%, robot 89%, blade 99%.
+
+## Not in G1-G6.7
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

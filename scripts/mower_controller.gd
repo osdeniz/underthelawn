@@ -76,6 +76,15 @@ func reverse_factor() -> float:
 	return params["reverse"]
 
 
+## Per-type steering tuning (G6.7); falls back to §7's shared defaults.
+func steer_gain() -> float:
+	return params.get("steer_gain", GameConfig.STEER_ERROR_GAIN)
+
+
+func turn_drag() -> float:
+	return params.get("turn_drag", GameConfig.STEER_SPEED_RADIUS_FACTOR)
+
+
 func speed_fraction() -> float:
 	return absf(speed) / maxf(max_speed(), 0.001)
 
@@ -167,7 +176,7 @@ func _update_speed(delta: float) -> void:
 func _update_steering(delta: float) -> void:
 	omega += (desired_omega - omega) * minf(1.0, GameConfig.STEER_SMOOTHING * delta)
 	# Faster travel widens the turning radius by up to 45%.
-	yaw += omega * (1.0 - GameConfig.STEER_SPEED_RADIUS_FACTOR * speed_fraction()) * delta
+	yaw += omega * (1.0 - turn_drag() * speed_fraction()) * delta
 
 
 static func shortest_angle(from_angle: float, to_angle: float) -> float:
@@ -176,8 +185,7 @@ static func shortest_angle(from_angle: float, to_angle: float) -> float:
 
 ## Turn towards a world-space heading using the §7 error gain.
 func steer_towards(target_yaw: float) -> void:
-	desired_omega = clampf(
-		shortest_angle(yaw, target_yaw) * GameConfig.STEER_ERROR_GAIN,
+	desired_omega = clampf(shortest_angle(yaw, target_yaw) * steer_gain(),
 		-max_turn(), max_turn())
 
 
