@@ -644,7 +644,33 @@ for text that stayed plain English.
 4. Nothing else. Locale is never forced in code — Godot follows the OS locale
    and falls back to `en`, which is correct on a phone.
 
-## Not in G1-G7.1
+### Turkish is in (G7.2)
+
+`i18n/strings.csv` now has an `en` and a `tr` column and both are registered in
+`internationalization/locale/translations`. Verified end to end: the whole HUD,
+briefing, opening title and completion panel render Turkish, and every Turkish
+diacritic (i-dotless, s-cedilla, g-breve, dotted capital I, a-circumflex) draws
+with the default theme font — no fallback font needed for Turkish.
+
+`tests/story_check.gd` grew with the second language and now checks, per
+language:
+
+* every key is filled in for **every** column (a blank cell silently shows
+  English or the bare key)
+* the `{named}` placeholder set is identical across languages, so no language
+  can print a literal `{cells}`
+* each locale actually loads and differs from English, so a copy-pasted English
+  cell cannot pass as a translation
+* the `en` column carries no Turkish letters — checked per COLUMN, not on the
+  whole file, since the Turkish column contains them on purpose
+
+Both new failure modes were verified to trip the test: blanking a Turkish cell
+and renaming `{cells}` to `{hucre}` each produce failures.
+
+The CSV is parsed with `FileAccess.get_csv_line()`, not `split(",")` — half
+these strings contain commas inside quotes and a plain split shreds them.
+
+## Not in G1-G7.2
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.
