@@ -135,6 +135,15 @@ func _initialize() -> void:
 			ck("konusmaci adi csv'de",
 				known.has("CHAR_" + str(entry["speaker"]).to_upper()), str(entry))
 
+	# G9.3: every chapter's opening pair must exist in the csv, or that chapter
+	# silently shows the Aldridge house's 847-days line.
+	for vid: String in LevelVariant.ids():
+		var v := LevelVariant.of(vid)
+		ck("%s acilis basligi var" % vid, v.opening_headline != "", "")
+		for key in [v.opening_headline, v.opening_subline]:
+			if key != "":
+				ck("acilis anahtari csv'de: %s" % key, known.has(key), key)
+
 	# Mower labels are keys too (they show in the picker).
 	for entry: Dictionary in GameConfig.MOWER_TYPES:
 		var key := str(entry["label"])

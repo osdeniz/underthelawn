@@ -77,6 +77,7 @@ func _open_hub() -> void:
 		_hub.name = "Hub"
 		layer.add_child(_hub)
 		_hub.chapter_chosen.connect(_on_chapter_chosen)
+		_hub.replay_intro_requested.connect(_play_intro)
 	_hub.get_parent().visible = true
 	_hub.refresh()
 	AudioDirector.play_theme()

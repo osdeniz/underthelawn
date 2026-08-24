@@ -368,8 +368,17 @@
         "min_done": 0,
         "lines": [
           {
-            "speaker": "stranger",
+            "speaker": "sarah",
             "text": "DLG_TOWN_ELLIE_0A"
+          }
+        ]
+      },
+      {
+        "min_done": 1,
+        "lines": [
+          {
+            "speaker": "sarah",
+            "text": "DLG_TOWN_ELLIE_1A"
           }
         ]
       }

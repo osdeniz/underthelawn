@@ -21,8 +21,6 @@ signal exit_confirmed()
 ## The NEXT: <chapter> button on the case-notes panel (G9.2). All chapters are
 ## playable since G9, so the locked teaser became a real door.
 signal next_chapter_requested()
-## The STORY button was tapped: replay the opening (G7).
-signal replay_intro_requested()
 
 @onready var _percent_label: Label = %PercentLabel
 @onready var _secret_counter: Label = %SecretCounter
@@ -71,6 +69,9 @@ var _pad_active := false
 var _pad_origin := Vector2.ZERO
 var _pad_now := Vector2.ZERO
 var _drive_hint: Label
+# Pause overlay (G9.3): the game's first player-initiated stop.
+var _pause_layer: Control
+var _pause_button: Button
 
 
 func _ready() -> void:
@@ -87,7 +88,6 @@ func _ready() -> void:
 	(%RestartButton as Button).pressed.connect(func() -> void: restart_pressed.emit())
 	_refresh_mute_label()
 	(%RestartButton as Button).text = tr("UI_RESTART")
-	_story_button.text = tr("UI_STORY")
 	_style_case_panels()
 	_apply_story_text()
 	_opening.modulate.a = 0.0
@@ -98,9 +98,12 @@ func _ready() -> void:
 	_exit_continue.pressed.connect(_on_exit_continue)
 	_exit_keep.pressed.connect(_on_exit_keep)
 	_exit_badge.pressed.connect(_on_exit_continue)
-	_story_button.pressed.connect(func() -> void: replay_intro_requested.emit())
+	# G9.3: STORY belongs to the hub; in the game HUD it was a dead button whose
+	# signal nothing had listened to since G8 moved the intro to RootFlow.
+	_story_button.visible = false
 	_teaser.pressed.connect(_on_teaser_pressed)
 	_build_pad_ring()
+	_build_pause()
 	set_progress(0.0)
 	set_secret_count(0, GameConfig.SECRET_TOTAL)
 
@@ -358,7 +361,13 @@ func _apply_story_text() -> void:
 
 ## The "LAST MOWED" title: holds while the camera settles onto the lawn, then
 ## fades. Kept from G1 but tied to the case — the second line is the new part.
-func show_opening_title() -> void:
+func show_opening_title(headline_key := "", subline_key := "") -> void:
+	# Per-chapter openers (G9.3): the 847-days line belonged to ONE house, and
+	# every other site deserves its own condition report.
+	if headline_key != "":
+		_opening_headline.text = tr(headline_key)
+	if subline_key != "":
+		_opening_subline.text = tr(subline_key)
 	_opening.modulate.a = 0.0
 	if _opening_tween and _opening_tween.is_valid():
 		_opening_tween.kill()
@@ -367,6 +376,11 @@ func show_opening_title() -> void:
 	_opening_tween.tween_interval(GameConfig.OPENING_TITLE_HOLD)
 	_opening_tween.tween_property(_opening, "modulate:a", 0.0,
 		GameConfig.OPENING_TITLE_FADE)
+	# The case line has served its purpose once the title is gone: objectives
+	# parked over play are noise (the PowerWash lesson), and the hub repeats it.
+	var line_tween := create_tween()
+	line_tween.tween_interval(GameConfig.CASE_LINE_HOLD)
+	line_tween.tween_property(_case_line, "modulate:a", 0.0, 1.2)
 
 
 ## The opening title sits above the completion panel in the tree, so a very fast
@@ -577,3 +591,102 @@ func _draw_pad_ring() -> void:
 	if to.length() > 66.0:
 		to = to.normalized() * 66.0
 	_pad_ring.draw_circle(_pad_origin + to, 22.0, Color(1, 1, 1, 0.45))
+
+
+# ---------------------------------------------------------------- pause (G9.3)
+
+## A small ⏸ where STORY used to sit, opening a minimal sheet: resume, sound,
+## return to town, restart. Runs on PROCESS_MODE_ALWAYS so it works while the
+## tree is paused; everything else (mowers, tweens, engine audio) freezes with
+## get_tree().paused, which is exactly the point.
+func _build_pause() -> void:
+	_pause_button = Button.new()
+	_pause_button.text = "⏸"
+	_pause_button.add_theme_font_size_override("font_size", 44)
+	_pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_pause_button.offset_left = -300
+	_pause_button.offset_right = -170
+	_pause_button.offset_top = 40
+	_pause_button.offset_bottom = 130
+	_style_button(_pause_button)
+	_pause_button.pressed.connect(_open_pause)
+	add_child(_pause_button)
+
+	_pause_layer = Control.new()
+	_pause_layer.name = "PausePanel"
+	_pause_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	_pause_layer.visible = false
+	add_child(_pause_layer)
+
+	var scrim := ColorRect.new()
+	scrim.color = Color(0, 0, 0, 0.6)
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pause_layer.add_child(scrim)
+
+	var card := PanelContainer.new()
+	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	card.offset_left = -400
+	card.offset_right = 400
+	card.offset_top = -330
+	card.offset_bottom = 330
+	var style := StyleBoxFlat.new()
+	style.bg_color = GameConfig.CASE_PANEL
+	style.set_corner_radius_all(28)
+	style.set_content_margin_all(44)
+	style.border_color = Color(GameConfig.CASE_ACCENT, 0.4)
+	style.set_border_width_all(3)
+	card.add_theme_stylebox_override("panel", style)
+	_pause_layer.add_child(card)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 24)
+	card.add_child(rows)
+
+	var resume := Button.new()
+	resume.text = tr("UI_RESUME")
+	resume.add_theme_font_size_override("font_size", 46)
+	_style_primary(resume)
+	resume.pressed.connect(_close_pause)
+	rows.add_child(resume)
+
+	var sound := Button.new()
+	sound.add_theme_font_size_override("font_size", 42)
+	_style_button(sound)
+	var refresh_sound := func() -> void:
+		sound.text = "🔇" if AudioDirector.muted else "🔊"
+	refresh_sound.call()
+	sound.pressed.connect(func() -> void:
+		AudioDirector.muted = not AudioDirector.muted
+		refresh_sound.call()
+		_refresh_mute_label())
+	rows.add_child(sound)
+
+	var town := Button.new()
+	town.text = tr("UI_RETURN_TOWN")
+	town.add_theme_font_size_override("font_size", 42)
+	_style_button(town)
+	town.pressed.connect(func() -> void:
+		_close_pause()
+		return_requested.emit())
+	rows.add_child(town)
+
+	var restart := Button.new()
+	restart.text = tr("UI_RESTART")
+	restart.add_theme_font_size_override("font_size", 42)
+	_style_button(restart)
+	restart.pressed.connect(func() -> void:
+		_close_pause()
+		restart_pressed.emit())
+	rows.add_child(restart)
+
+
+func _open_pause() -> void:
+	Haptics.light()
+	_pause_layer.visible = true
+	get_tree().paused = true
+
+
+func _close_pause() -> void:
+	_pause_layer.visible = false
+	get_tree().paused = false

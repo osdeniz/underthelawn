@@ -1009,6 +1009,24 @@ safe again and the G6.12 per-gesture latch is gone.
   on a neighbor, a faded quarantine ring, a tended roadside memorial, a leaning
   blank sign. Implied past only — no text, no gore.
 
+### G9.3 — small-jobs pass (review items 5-7 + pause)
+
+* **Per-chapter openers.** The 847-days line belonged to one house; every
+  variant now carries its own `opening` key pair in levels.json (falling back to
+  story.json's default), and story_check asserts each pair exists in the csv.
+* **Case line fades** `CASE_LINE_HOLD` (6 s) after the search starts —
+  objectives parked over play are noise, and the hub repeats the case anyway.
+* **STORY moved to the hub** (a quiet card under the three tiles). In the game
+  HUD it had been a DEAD button since G8 moved the intro to RootFlow: its signal
+  had no listener. The dangling signal is deleted.
+* **Ellie's town card** speaks with her mother's voice now (it used to play a
+  stranger's shrug), and gains a post-progress line.
+* **Pause menu**: ⏸ top-right opens resume / sound / return to town / restart on
+  `PROCESS_MODE_ALWAYS`, with everything else frozen by `get_tree().paused`.
+
+Item 8 from the review (GPU profile, then maybe mesh batching) needs a real
+phone and stays open on purpose — batching without a measurement is blind.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

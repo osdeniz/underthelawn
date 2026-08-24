@@ -14,6 +14,8 @@ extends Control
 ## The player picked a chapter to search; the argument is a story.json
 ## chapters[].variant_id.
 signal chapter_chosen(variant_id: String)
+## Replay the opening cards (the STORY button moved here from the game HUD).
+signal replay_intro_requested()
 
 const PANEL_FADE := 0.22
 
@@ -167,6 +169,17 @@ func _build_tiles() -> Control:
 
 	for tile: Dictionary in Story.list("hub.tiles"):
 		column.add_child(_make_tile(tile))
+
+	var story := Button.new()
+	story.text = tr("UI_STORY")
+	story.custom_minimum_size = Vector2(0, 110)
+	story.add_theme_font_size_override("font_size", 34)
+	story.add_theme_color_override("font_color", Color(0.8, 0.8, 0.76))
+	_style_card(story, true)
+	story.pressed.connect(func() -> void:
+		Haptics.light()
+		replay_intro_requested.emit())
+	column.add_child(story)
 	return page
 
 

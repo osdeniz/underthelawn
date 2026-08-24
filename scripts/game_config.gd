@@ -501,6 +501,8 @@ const CASE_ACCENT := Color(0.95, 0.82, 0.45)
 ## Seconds the "LAST MOWED" opening title holds before it fades.
 const OPENING_TITLE_HOLD := 2.6
 const OPENING_TITLE_FADE := 1.0
+## Seconds the case line stays after the search starts before it fades out.
+const CASE_LINE_HOLD := 6.0
 ## Set true to watch the opening again on the next launch regardless of the
 ## saved flag; the STORY button in the HUD does the same thing at runtime.
 const STORY_ALWAYS_REPLAY_INTRO := false

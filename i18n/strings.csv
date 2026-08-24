@@ -97,7 +97,7 @@ DLG_TOWN_GUS_1A,Heard you found something. I'll start on the deck tomorrow.,Bir 
 DLG_TOWN_COLE_0A,I walk those fields every morning. Saw nothing.,Her sabah o tarlalarda yürürüm. Hiçbir şey görmedim.
 DLG_TOWN_COLE_0B,Doesn't mean nothing happened.,Bu bir şey olmadığı anlamına gelmez.
 DLG_TOWN_COLE_1A,East? The mill road runs that way.,Doğu mu? Değirmen yolu o tarafa gider.
-DLG_TOWN_ELLIE_0A,She isn't here. That's the whole problem.,O burada değil. Bütün sorun bu.
+DLG_TOWN_ELLIE_0A,"Her room is exactly as she left it. I won't touch it.","Odası bıraktığı gibi duruyor. Elimi süremiyorum."
 DLG_TOWN_STRANGER_0A,I only got here last week. I don't know the girl.,Geçen hafta geldim. Kızı tanımıyorum.
 DLG_TOWN_STRANGER_1A,East. Hm. I'd be careful out there.,Doğu. Hmm. Orada dikkatli olurdum.
 EXIT_ALL_FOUND,All evidence found.,Tüm kanıtlar bulundu.
@@ -166,3 +166,20 @@ DLG_DEBRIEF_CH08_FULL,Her flashlight is still warm. Go. Now.,El feneri hâlâ s�
 DLG_DEBRIEF_CH08_PART,She's close. Cut the rest and find it.,Yakında. Kalanı biç ve bul.
 UI_NEXT_CHAPTER,"NEXT: {name} →","SIRADAKİ: {name} →"
 HINT_DRIVE,Drag anywhere to drive,Sürmek için ekranın herhangi bir yerini sürükle
+OPENING_02_HEADLINE,EMPTY SINCE YEAR ONE,İLK YILDAN BERİ BOŞ
+OPENING_02_SUBLINE,They never came back for their things.,Eşyaları için bile geri dönmediler.
+OPENING_03_HEADLINE,CLOSED BY SAFETY ORDER,GÜVENLİK EMRİYLE KAPATILDI
+OPENING_03_SUBLINE,The kids came anyway. They always do.,Çocuklar yine de geldi. Hep gelirler.
+OPENING_04_HEADLINE,THE DRAIN FAILED IN SPRING,GİDER BAHARDA TIKANDI
+OPENING_04_SUBLINE,The water never left.,Su bir daha hiç çekilmedi.
+OPENING_05_HEADLINE,"GLASS BROKEN, PLANTS FED","CAMLAR KIRIK, BİTKİLER BAKIMLI"
+OPENING_05_SUBLINE,Someone still comes here.,Biri hâlâ buraya geliyor.
+OPENING_06_HEADLINE,THE WIDEST FIELD IN THE COUNTY,İLÇENİN EN GENİŞ TARLASI
+OPENING_06_SUBLINE,You can see anyone coming. Or leaving.,Gelen de giden de uzaktan görülür.
+OPENING_07_HEADLINE,THE MILL SHUT AT DUSK,DEĞİRMEN GÜN BATIMINDA KAPANDI
+OPENING_07_SUBLINE,It never reopened.,Bir daha hiç açılmadı.
+OPENING_08_HEADLINE,NO RECORD OF THIS PLACE,BU YERİN KAYDI YOK
+OPENING_08_SUBLINE,But someone kept the garden alive.,Ama biri bahçeyi yaşatmış.
+UI_RESUME,RESUME,DEVAM
+
+DLG_TOWN_ELLIE_1A,"East... then she's past the fence line. Please hurry.","Doğu... o zaman çit hattını geçmiş. Lütfen acele et."

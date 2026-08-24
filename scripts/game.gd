@@ -391,7 +391,7 @@ func _begin_search() -> void:
 		return
 	_search_started = true
 	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index], 2.4)
-	hud.show_opening_title()
+	hud.show_opening_title(variant.opening_headline, variant.opening_subline)
 	hud.show_drive_hint()
 	GameState.start_run()
 

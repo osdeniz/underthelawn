@@ -29,6 +29,9 @@ var decor_seed := 0
 var scrap_budget := 9
 var vignette := false
 var evidence_defs: Array = []
+## Per-chapter opening title keys; "" falls back to story.json's default.
+var opening_headline := ""
+var opening_subline := ""
 
 
 static func data() -> Dictionary:
@@ -65,6 +68,10 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.scrap_budget = int(spec.get("scrap_budget", variant.scrap_budget))
 	variant.vignette = bool(spec.get("vignette", false))
 	variant.evidence_defs = spec.get("evidence_defs", [])
+	var opening: Variant = spec.get("opening", {})
+	if opening is Dictionary:
+		variant.opening_headline = str((opening as Dictionary).get("headline", ""))
+		variant.opening_subline = str((opening as Dictionary).get("subline", ""))
 	return variant
 
 

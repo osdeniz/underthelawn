@@ -22,7 +22,11 @@
           "name": "EVIDENCE_RADIO_NAME",
           "flavor_text": "EVIDENCE_RADIO_LINE"
         }
-      ]
+      ],
+      "opening": {
+        "headline": "OPENING_01_HEADLINE",
+        "subline": "OPENING_01_SUBLINE"
+      }
     },
     "ch02_neighbor": {
       "palette_id": "GREEN_COOL",
@@ -45,7 +49,11 @@
           "name": "EV_CH02_B_NAME",
           "flavor_text": "EV_CH02_B_LINE"
         }
-      ]
+      ],
+      "opening": {
+        "headline": "OPENING_02_HEADLINE",
+        "subline": "OPENING_02_SUBLINE"
+      }
     },
     "ch03_playground": {
       "palette_id": "DRY_GOLD",
@@ -68,7 +76,11 @@
           "name": "EV_CH03_B_NAME",
           "flavor_text": "EV_CH03_B_LINE"
         }
-      ]
+      ],
+      "opening": {
+        "headline": "OPENING_03_HEADLINE",
+        "subline": "OPENING_03_SUBLINE"
+      }
     },
     "ch04_flooded": {
       "palette_id": "MARSH",
@@ -91,7 +103,11 @@
           "name": "EV_CH04_B_NAME",
           "flavor_text": "EV_CH04_B_LINE"
         }
-      ]
+      ],
+      "opening": {
+        "headline": "OPENING_04_HEADLINE",
+        "subline": "OPENING_04_SUBLINE"
+      }
     },
     "ch05_greenhouse": {
       "palette_id": "LUSH",
@@ -114,7 +130,11 @@
           "name": "EV_CH05_B_NAME",
           "flavor_text": "EV_CH05_B_LINE"
         }
-      ]
+      ],
+      "opening": {
+        "headline": "OPENING_05_HEADLINE",
+        "subline": "OPENING_05_SUBLINE"
+      }
     },
     "ch06_watertower": {
       "palette_id": "AMBER",
@@ -137,7 +157,11 @@
           "name": "EV_CH06_B_NAME",
           "flavor_text": "EV_CH06_B_LINE"
         }
-      ]
+      ],
+      "opening": {
+        "headline": "OPENING_06_HEADLINE",
+        "subline": "OPENING_06_SUBLINE"
+      }
     },
     "ch07_mill": {
       "palette_id": "DUSK_VIOLET",
@@ -160,7 +184,11 @@
           "name": "EV_CH07_B_NAME",
           "flavor_text": "EV_CH07_B_LINE"
         }
-      ]
+      ],
+      "opening": {
+        "headline": "OPENING_07_HEADLINE",
+        "subline": "OPENING_07_SUBLINE"
+      }
     },
     "ch08_cellar": {
       "palette_id": "EMERALD",
@@ -184,7 +212,11 @@
           "name": "EV_CH08_B_NAME",
           "flavor_text": "EV_CH08_B_LINE"
         }
-      ]
+      ],
+      "opening": {
+        "headline": "OPENING_08_HEADLINE",
+        "subline": "OPENING_08_SUBLINE"
+      }
     }
   }
 }
