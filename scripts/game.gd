@@ -64,6 +64,10 @@ func _ready() -> void:
 	scrap_field.name = "ScrapField"
 	add_child(scrap_field)
 	scrap_field.setup(model, variant.scrap_budget, variant.decor_seed)
+	var hint := RemainderHint.new()
+	hint.name = "RemainderHint"
+	add_child(hint)
+	hint.setup(model)
 	lawn.setup(model)
 
 	for child in _mower_root.get_children():
@@ -101,6 +105,7 @@ func _ready() -> void:
 
 	hud.return_requested.connect(_return_to_hub)
 	hud.exit_confirmed.connect(_confirm_exit)
+	hud.next_chapter_requested.connect(_next_chapter)
 
 	_apply_quality()
 	_activate(GameConfig.MOWER_PUSH, true)
@@ -113,6 +118,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	if mower != null and hud != null:
+		hud.set_pad_state(mower.pad_engaged(), mower._pad_origin, mower._pad_now)
 	if mower == null:
 		return
 	# Steering and swipes are camera-relative, so every mower needs the yaw.
@@ -340,7 +347,7 @@ func _on_completed() -> void:
 		hud.set_scrap(GameState.scrap_total())
 		search_finished.emit(_collected.size(), _evidence_total())
 		hud.show_complete(model.mowed_count, GameState.format_elapsed(),
-			_collected, _evidence_total(), payout))
+			_collected, _evidence_total(), payout, _next_chapter_name()))
 
 
 ## Restart: model reset (secrets redistributed), tint map cleared, tufts back
@@ -385,6 +392,7 @@ func _begin_search() -> void:
 	_search_started = true
 	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index], 2.4)
 	hud.show_opening_title()
+	hud.show_drive_hint()
 	GameState.start_run()
 
 
@@ -431,3 +439,24 @@ func _confirm_exit() -> void:
 	if _complete_shown:
 		return
 	_on_completed()
+
+
+## Display name of the chapter after this one, or "" when there is none or when
+## the scene runs standalone (tests) with no flow above it to serve it.
+func _next_chapter_name() -> String:
+	var root := get_parent()
+	if root == null or not root.has_method("start_next_chapter"):
+		return ""
+	var chapters := ChapterProgress.chapters()
+	for i in chapters.size():
+		if str(chapters[i].get("variant_id", "")) == variant_id:
+			if i + 1 < chapters.size():
+				return tr(str(chapters[i + 1].get("name", "")))
+			return ""
+	return ""
+
+
+func _next_chapter() -> void:
+	var root := get_parent()
+	if root != null and root.has_method("start_next_chapter"):
+		root.start_next_chapter(variant_id)

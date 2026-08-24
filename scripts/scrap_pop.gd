@@ -23,11 +23,12 @@ func _play() -> void:
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	mat.albedo_color = Color(0.86, 0.84, 0.78)
+	# Banknote green; reads as money at a glance even without art.
+	mat.albedo_color = Color(0.55, 0.85, 0.55)
 	mat.albedo_texture = TextureLibrary.find("scrap_bolt")
 	if mat.albedo_texture == null:
 		# No art: a bright metallic dot still reads as a pickup.
-		TextureLibrary.warn_missing("scrap_bolt", "scrap ikonu = duz nokta")
+		TextureLibrary.warn_missing("scrap_bolt", "para ikonu = yesil nokta")
 	quad.material = mat
 	var mi := MeshInstance3D.new()
 	mi.mesh = quad

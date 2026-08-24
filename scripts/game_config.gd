@@ -425,9 +425,23 @@ const CELLAR_AMBIENT_COLOR := Color(0.20, 0.30, 0.24)
 const CELLAR_VIGNETTE_MARGIN := 5.0
 const CELLAR_VIGNETTE_ALPHA := 0.92
 
+# ---------------------------------------------------------------- G9.2 assists
+## The last-5% finder (PowerWash lesson): past this completion ratio the
+## remaining uncut cells get a soft pulsing marker, because hunting the final
+## few patches by eye is the known frustration of every completion game.
+const HINT_RATIO := 0.90
+## Never mark more than this many cells; above it the field is still obvious.
+const HINT_MAX_CELLS := 40
+const HINT_COLOR := Color(1.0, 0.92, 0.55, 0.55)
+const HINT_PULSE_HZ := 1.2
+## First-run control hint: shown once until the player performs a real drag.
+const HINT_DRIVE_KEY := "hint_drive_done"
+
 # ---------------------------------------------------------------- G9 economy
 ## Scrap (the currency; nowhere to spend it until G10's Workshop).
 ## Per-pickup value range, so a run's ground haul varies a little.
+## Town-theme music level; the mix keeps it under the ambience.
+const THEME_GAIN := 0.30
 const SCRAP_PICKUP_MIN := 2
 const SCRAP_PICKUP_MAX := 5
 ## Share of a chapter's payout that comes off the ground vs the completion bonus.
@@ -442,7 +456,7 @@ const SCRAP_BONUS_FLOOR := 0.55
 ## Extra on top for a full mow, shown as its own line so the reward is legible.
 const SCRAP_THOROUGH_BONUS := 0.15
 ## Scrap pickup visuals.
-const SCRAP_ICON := "🔩"
+const SCRAP_ICON := "💵"
 const SCRAP_RISE := 1.1
 const SCRAP_FLY_TIME := 0.55
 ## Minimum cells between two pickups, so they are spread rather than clustered.
@@ -492,6 +506,10 @@ const STORY_ALWAYS_REPLAY_INTRO := false
 
 ## §7's threshold is 8 POINTS, not pixels; multiply by POINT_SCALE.
 const DRAG_THRESHOLD_PT := 8.0
+## G9.2 heading steering: past this error the mower reverses instead of turning.
+const PAD_REVERSE_ANGLE := 2.35
+## Minimum throttle while still turning toward the finger.
+const PAD_TURN_THROTTLE_FLOOR := 0.30
 ## Drag distance (in points) for full stick deflection on the shared drag pad.
 const DRAG_FULL_PT := 34.0
 const WALL_INSET_FACTOR := 0.6                # inset = bodyRadius * 0.6

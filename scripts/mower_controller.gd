@@ -28,6 +28,8 @@ var camera_yaw: float = 0.0
 var _pad_index := -1
 var _pad_origin := Vector2.ZERO
 var _pad_stick := Vector2.ZERO
+## Latest drag position, for the HUD's pad ring.
+var _pad_now := Vector2.ZERO
 # Camera yaw LATCHED when the finger went down. The camera yaw chases the
 # mower's own yaw, so a mower that derives its heading from the live camera yaw
 # (the blade) feeds back into itself and spirals — every direction but straight
@@ -424,6 +426,7 @@ func pad_press(index: int, screen_pos: Vector2) -> bool:
 	_pad_index = index
 	_pad_origin = screen_pos
 	_pad_stick = Vector2.ZERO
+	_pad_now = screen_pos
 	_pad_camera_yaw = camera_yaw
 	return true
 
@@ -431,6 +434,7 @@ func pad_press(index: int, screen_pos: Vector2) -> bool:
 func pad_drag(index: int, screen_pos: Vector2) -> bool:
 	if index != _pad_index:
 		return false
+	_pad_now = screen_pos
 	var drag := screen_pos - _pad_origin
 	var dead := GameConfig.DRAG_THRESHOLD_PT * GameConfig.POINT_SCALE
 	if drag.length() <= dead:
@@ -455,11 +459,38 @@ func pad_release(index: int) -> bool:
 
 ## Shared pad -> throttle/steering, using the same §7 rules as the tractor
 ## joystick (reverse runs at `reverse` speed and flips the steering sign).
+## Shared pad -> movement, reworked in G9.2 as HEADING steering: the mower turns
+## toward the direction the finger points, instead of the finger's x-axis being
+## a steering wheel. Rate steering read as "inconsistent" because the same drag
+## produced a different arc depending on the current heading; with heading
+## steering the finger direction IS the destination, which is what every
+## top-down mobile driver trains players to expect.
 func drive_from_pad() -> void:
-	var mapped := MowerMath.tractor_input(
-		_pad_stick, max_turn(), reverse_factor(), speed)
-	throttle = mapped.x
-	desired_omega = mapped.y
+	var stick := _pad_stick
+	if stick == Vector2.ZERO:
+		throttle = 0.0
+		desired_omega = 0.0
+		return
+	var target := camera_yaw + atan2(stick.x, stick.y)
+	var error := shortest_angle(yaw, target)
+	var mag := minf(stick.length(), 1.0)
+	if absf(error) > GameConfig.PAD_REVERSE_ANGLE and reverse_factor() > 0.0:
+		# The target is behind: back up rather than pirouetting on the spot.
+		throttle = -mag
+		desired_omega = clampf(-error * steer_gain() * 0.4,
+			-max_turn(), max_turn())
+		return
+	steer_towards(target)
+	# Throttle follows alignment, so the mower carves toward the finger instead
+	# of driving full speed at the wrong heading while it turns.
+	throttle = mag * clampf(cos(error) + GameConfig.PAD_TURN_THROTTLE_FLOOR,
+		GameConfig.PAD_TURN_THROTTLE_FLOOR, 1.0)
+
+
+## True for mowers whose camera must NOT rotate with them (the blade): a
+## yaw-free mower spinning the camera makes screen directions drift mid-drag.
+func camera_yaw_locked() -> bool:
+	return false
 
 
 ## Ray/plane intersection with the ground, clamped inside the lawn.

@@ -326,7 +326,6 @@ theme_override_font_sizes/font_size = 46
 unique_name_in_owner = true
 focus_mode = 0
 text = "RESTART"
-theme_override_styles/normal = SubResource("Sb_button")
 theme_override_font_sizes/font_size = 52
 
 [node name="Joystick" type="Control" parent="."]

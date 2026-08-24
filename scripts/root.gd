@@ -37,6 +37,7 @@ func _ready() -> void:
 
 	AudioDirector.start_ambient()
 	if GameConfig.STORY_ALWAYS_REPLAY_INTRO or not _intro_seen():
+		AudioDirector.play_theme()
 		_play_intro()
 	else:
 		_open_hub()
@@ -78,6 +79,7 @@ func _open_hub() -> void:
 		_hub.chapter_chosen.connect(_on_chapter_chosen)
 	_hub.get_parent().visible = true
 	_hub.refresh()
+	AudioDirector.play_theme()
 	_fade_in()
 
 
@@ -123,7 +125,9 @@ func _play_dialogue(lines: Array, accept_key: String, then: Callable) -> void:
 
 
 func _start_chapter() -> void:
+	AudioDirector.stop_theme()
 	_fade_out_then(func() -> void:
+		_clear_game()
 		if _hub != null and is_instance_valid(_hub):
 			_hub.get_parent().visible = false
 		_game = load(GAME_SCENE).instantiate()
@@ -144,6 +148,17 @@ func _on_search_finished(evidence: int, total: int) -> void:
 	if lines.is_empty():
 		return
 	_play_dialogue(lines, "", func() -> void: pass)
+
+
+## Called by the case-notes NEXT button: brief and start the chapter after
+## `current_id`, exactly as if it had been picked on the board.
+func start_next_chapter(current_id: String) -> void:
+	var chapters := ChapterProgress.chapters()
+	for i in chapters.size():
+		if str(chapters[i].get("variant_id", "")) == current_id:
+			if i + 1 < chapters.size():
+				_on_chapter_chosen(str(chapters[i + 1].get("variant_id", "")))
+			return
 
 
 ## Called by the game scene's RETURN TO TOWN button.

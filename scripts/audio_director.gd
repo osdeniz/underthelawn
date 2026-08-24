@@ -17,6 +17,7 @@ const PATHS := {
 	"discovery": "res://audio/discovery_chime",
 	"scrap": "res://audio/scrap_pickup",
 	"ambient": "res://audio/ambient_birds_loop",
+	"theme": "res://audio/theme_town",
 }
 const AUDIO_EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
 
@@ -181,6 +182,42 @@ func play_scrap() -> void:
 	_one_shot.stream = _streams["scrap"]
 	_one_shot.pitch_scale = randf_range(0.94, 1.08)
 	_one_shot.play()
+
+
+## Town theme, faded in over the hub and the opening cards (G9.2) and faded out
+## when a chapter starts. Silent if the file is missing, like everything here.
+var _music: AudioStreamPlayer
+var _music_tween: Tween
+
+
+func play_theme() -> void:
+	if not _streams.has("theme"):
+		return
+	if _music == null:
+		_music = AudioStreamPlayer.new()
+		_music.bus = "Master"
+		add_child(_music)
+	if _music.playing and _music.stream == _streams["theme"]:
+		return
+	_music.stream = _streams["theme"]
+	_music.volume_db = GameConfig.linear_to_db_safe(0.0001)
+	_music.play()
+	_fade_music(GameConfig.THEME_GAIN, 1.2)
+
+
+func stop_theme() -> void:
+	if _music == null or not _music.playing:
+		return
+	_fade_music(0.0001, 0.8)
+	_music_tween.tween_callback(func() -> void: _music.stop())
+
+
+func _fade_music(target_linear: float, duration: float) -> void:
+	if _music_tween and _music_tween.is_valid():
+		_music_tween.kill()
+	_music_tween = create_tween()
+	_music_tween.tween_property(_music, "volume_db",
+		GameConfig.linear_to_db_safe(target_linear), duration)
 
 
 func play_discovery() -> void:

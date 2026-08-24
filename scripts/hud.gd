@@ -18,6 +18,9 @@ signal restart_pressed()
 signal return_requested()
 ## CONTINUE THE CASE on the all-evidence card, or the badge that replaces it (G9).
 signal exit_confirmed()
+## The NEXT: <chapter> button on the case-notes panel (G9.2). All chapters are
+## playable since G9, so the locked teaser became a real door.
+signal next_chapter_requested()
 ## The STORY button was tapped: replay the opening (G7).
 signal replay_intro_requested()
 
@@ -62,6 +65,12 @@ var _card_home := Vector2.ZERO
 var _card_tween: Tween
 var _counter_tween: Tween
 var _opening_tween: Tween
+# Shared drag pad indicator (G9.2): origin ring + current-drag dot.
+var _pad_ring: Control
+var _pad_active := false
+var _pad_origin := Vector2.ZERO
+var _pad_now := Vector2.ZERO
+var _drive_hint: Label
 
 
 func _ready() -> void:
@@ -91,6 +100,7 @@ func _ready() -> void:
 	_exit_badge.pressed.connect(_on_exit_continue)
 	_story_button.pressed.connect(func() -> void: replay_intro_requested.emit())
 	_teaser.pressed.connect(_on_teaser_pressed)
+	_build_pad_ring()
 	set_progress(0.0)
 	set_secret_count(0, GameConfig.SECRET_TOTAL)
 
@@ -189,7 +199,7 @@ func set_selector_visible(value: bool) -> void:
 
 ## `collected` holds one entry per found item: { emoji, name }.
 func show_complete(cells: int, elapsed: String, collected: Array,
-		total_secrets: int, payout := {}) -> void:
+		total_secrets: int, payout := {}, next_name := "") -> void:
 	_shown_percent = 100.0
 	_apply_percent()
 	_complete_stats.text = tr("UI_STATS").format(
@@ -215,6 +225,11 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	_exit_badge.visible = false
 	_build_case_notes(collected, total_secrets)
 	_build_payout(payout)
+	# A real door when a next chapter exists; hidden when there is none (last
+	# chapter, or the scene is running standalone with no flow above it).
+	_teaser.visible = next_name != ""
+	if next_name != "":
+		_teaser.text = tr("UI_NEXT_CHAPTER").format({"name": next_name})
 	_missed_label.visible = collected.size() < total_secrets
 	_complete_panel.visible = true
 	# The picker and the joystick go away once the lawn is done (§16).
@@ -263,6 +278,25 @@ func _refresh_mute_label() -> void:
 
 ## Kept as the styling hook; the panels it used to style moved into DialogueBox
 ## when the briefing became a conversation (G8).
+## Primary: filled accent, for the action that moves the story forward.
+func _style_primary(button: Button) -> void:
+	var base := StyleBoxFlat.new()
+	base.bg_color = Color(0.72, 0.58, 0.24)
+	base.set_corner_radius_all(22)
+	base.set_content_margin_all(24)
+	base.shadow_color = Color(0, 0, 0, 0.45)
+	base.shadow_size = 8
+	button.add_theme_stylebox_override("normal", base)
+	var pressed := base.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.88, 0.72, 0.34)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("hover", pressed)
+	button.add_theme_stylebox_override("focus", base)
+	button.add_theme_color_override("font_color", Color(0.08, 0.07, 0.05))
+	button.add_theme_color_override("font_pressed_color", Color(0.08, 0.07, 0.05))
+	button.add_theme_color_override("font_hover_color", Color(0.08, 0.07, 0.05))
+
+
 func _style_case_panels() -> void:
 	# The default theme's PanelContainer and Button are nearly transparent, so
 	# anything laid over the lawn reads as a smudge rather than a card.
@@ -275,7 +309,12 @@ func _style_case_panels() -> void:
 	card.shadow_color = Color(0, 0, 0, 0.5)
 	card.shadow_size = 12
 	_exit_card.add_theme_stylebox_override("panel", card)
-	for button: Button in [_exit_continue, _exit_keep, _exit_badge]:
+	# Hierarchy: continuing the case is the primary action everywhere.
+	_style_primary(_exit_continue)
+	_style_primary(_teaser)
+	_style_primary(_return_button)
+	_style_primary(_exit_badge)
+	for button: Button in [_exit_keep, %RestartButton as Button]:
 		_style_button(button)
 
 
@@ -304,10 +343,8 @@ func _apply_story_text() -> void:
 	_missed_label.text = Story.text("complete.incomplete",
 		"The search feels incomplete...")
 	_notes_header.text = Story.text("complete.notes_header", "CASE NOTES")
-	_teaser.text = "%s\n%s" % [
-		Story.text("complete.teaser_title"),
-		Story.text("complete.teaser_line")]
-	_teaser_locked.text = Story.text("complete.teaser_locked", "Coming soon")
+
+	_teaser_locked.visible = false
 	_opening_headline.text = Story.text("opening.headline")
 	_opening_subline.text = Story.text("opening.subline")
 	_card_header.text = Story.text("evidence.card_header", "EVIDENCE FOUND")
@@ -360,16 +397,9 @@ func _build_case_notes(collected: Array, total: int) -> void:
 		else Story.text("complete.notes_partial")
 
 
-## Locked: a short shake and the "Coming soon" line, no navigation.
 func _on_teaser_pressed() -> void:
-	Haptics.light()
-	_teaser_locked.visible = true
-	var home := _teaser.position
-	var tw := create_tween()
-	for offset: float in [14.0, -11.0, 7.0, -4.0, 0.0]:
-		tw.tween_property(_teaser, "position",
-			home + Vector2(offset, 0.0), 0.055)
-	tw.tween_callback(func() -> void: _teaser.position = home)
+	Haptics.medium()
+	next_chapter_requested.emit()
 
 
 # ---------------------------------------------------------------- G9 economy
@@ -476,3 +506,71 @@ func _build_payout(payout: Dictionary) -> void:
 		line.add_child(name_label)
 		line.add_child(value_label)
 		_payout_list.add_child(line)
+
+
+# ---------------------------------------------------------------- pad ring (G9.2)
+
+## The drag pad had no visual body, so players never learned the system exists.
+## A soft ring appears where the finger lands and a dot tracks the drag — the
+## ghost-joystick every mobile driver uses.
+func _build_pad_ring() -> void:
+	_pad_ring = Control.new()
+	_pad_ring.name = "PadRing"
+	_pad_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pad_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pad_ring.draw.connect(_draw_pad_ring)
+	add_child(_pad_ring)
+	move_child(_pad_ring, 0)
+
+	_drive_hint = Label.new()
+	_drive_hint.text = tr("HINT_DRIVE")
+	_drive_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_drive_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_drive_hint.anchor_top = 0.68
+	_drive_hint.anchor_bottom = 0.68
+	_drive_hint.offset_left = -520
+	_drive_hint.offset_right = 520
+	_drive_hint.add_theme_font_size_override("font_size", 44)
+	_drive_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
+	_drive_hint.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	_drive_hint.add_theme_constant_override("shadow_offset_y", 4)
+	_drive_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_drive_hint.visible = false
+	add_child(_drive_hint)
+
+
+## Fed every frame by Game with the active mower's pad state.
+func set_pad_state(active: bool, origin: Vector2, now: Vector2) -> void:
+	if active != _pad_active or (active and now != _pad_now):
+		_pad_active = active
+		_pad_origin = origin
+		_pad_now = now
+		_pad_ring.queue_redraw()
+	if active and _drive_hint.visible \
+			and origin.distance_to(now) > GameConfig.DRAG_THRESHOLD_PT * GameConfig.POINT_SCALE:
+		# A real drag happened: the hint has done its job, forever.
+		_drive_hint.visible = false
+		GameState.set_setting("hints", GameConfig.HINT_DRIVE_KEY, true)
+
+
+## Shown by Game when the search starts, once per install.
+func show_drive_hint() -> void:
+	if bool(GameState.get_setting("hints", GameConfig.HINT_DRIVE_KEY, false)):
+		return
+	_drive_hint.visible = true
+	_drive_hint.modulate.a = 0.0
+	var tw := create_tween().set_loops()
+	tw.tween_property(_drive_hint, "modulate:a", 1.0, 0.8)
+	tw.tween_property(_drive_hint, "modulate:a", 0.45, 0.8)
+
+
+func _draw_pad_ring() -> void:
+	if not _pad_active:
+		return
+	_pad_ring.draw_circle(_pad_origin, 74.0, Color(1, 1, 1, 0.10))
+	_pad_ring.draw_arc(_pad_origin, 74.0, 0.0, TAU, 40, Color(1, 1, 1, 0.32), 4.0)
+	# The dot is clamped to the ring so a long sweep still reads as a stick.
+	var to := _pad_now - _pad_origin
+	if to.length() > 66.0:
+		to = to.normalized() * 66.0
+	_pad_ring.draw_circle(_pad_origin + to, 22.0, Color(1, 1, 1, 0.45))

@@ -19,6 +19,12 @@ var _spark_cooldown := 0.0
 var _spin_rate := GameConfig.BLADE_SPIN_IDLE_DEG
 
 
+## The blade has no heading, so a camera that chases its stripe-yaw just makes
+## the controls drift mid-drag (G9.2).
+func camera_yaw_locked() -> bool:
+	return true
+
+
 func type_index() -> int:
 	return GameConfig.MOWER_BLADE
 
@@ -71,10 +77,10 @@ func on_touch_released(index: int, _screen_pos: Vector2) -> void:
 func _physics_process(delta: float) -> void:
 	var stick := pad_stick()
 	if _has_finger and stick != Vector2.ZERO:
-		# The stick IS the direction, taken relative to the camera as it was when
-		# the finger landed — see pad_camera_yaw(). Deflection sets the speed, so
-		# it stays proportional instead of snapping to the finger.
-		var heading := pad_camera_yaw() + atan2(stick.x, stick.y)
+		# The stick IS the direction. The camera never rotates for the blade
+		# (camera_yaw_locked), so screen directions stay fixed for the whole
+		# drag; deflection sets the speed, so it stays proportional.
+		var heading := camera_yaw + atan2(stick.x, stick.y)
 		var dir := Vector3(sin(heading), 0.0, -cos(heading))
 		var desired := minf(stick.length(), 1.0) * GameConfig.BLADE_MAX_SPEED
 		_velocity = dir * desired

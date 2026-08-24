@@ -30,7 +30,8 @@ func snap_to_target() -> void:
 	if target == null:
 		return
 	_focus = target.position
-	yaw = target.yaw
+	if not target.camera_yaw_locked():
+		yaw = target.yaw
 	_place()
 
 
@@ -49,7 +50,8 @@ func _process(delta: float) -> void:
 		return
 	# Focus follows at 4.0/s, camera yaw lags the mower at 2.6/s.
 	_focus = _focus.lerp(target.position, 1.0 - exp(-GameConfig.CAMERA_FOCUS_LERP * delta))
-	yaw += wrapf(target.yaw - yaw, -PI, PI) * (1.0 - exp(-GameConfig.CAMERA_YAW_LERP * delta))
+	if not target.camera_yaw_locked():
+		yaw += wrapf(target.yaw - yaw, -PI, PI) * (1.0 - exp(-GameConfig.CAMERA_YAW_LERP * delta))
 	_place()
 
 

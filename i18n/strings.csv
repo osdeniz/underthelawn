@@ -104,7 +104,7 @@ EXIT_ALL_FOUND,All evidence found.,Tüm kanıtlar bulundu.
 EXIT_CONTINUE,CONTINUE THE CASE →,VAKAYA DEVAM ET →
 EXIT_KEEP_MOWING,KEEP MOWING,BİÇMEYE DEVAM
 EXIT_BADGE,Continue →,Devam →
-PAYOUT_GROUND,Salvage picked up,Yerden toplanan
+PAYOUT_GROUND,Cash picked up,Yerden toplanan para
 PAYOUT_BONUS,"Search bonus ({pct}% mown)","Arama primi (%{pct} biçildi)"
 PAYOUT_THOROUGH,"Thorough Search +{pct}%","Eksiksiz Arama +%{pct}"
 PAYOUT_TOTAL,Total,Toplam
@@ -164,3 +164,5 @@ DLG_BRIEF_CH08_1,Down the steps. The garden nobody was supposed to know about.,M
 DLG_BRIEF_CH08_2,"Whatever's down there, she found it first.","Aşağıda ne varsa, önce o bulmuş."
 DLG_DEBRIEF_CH08_FULL,Her flashlight is still warm. Go. Now.,El feneri hâlâ sıcak. Git. Hemen.
 DLG_DEBRIEF_CH08_PART,She's close. Cut the rest and find it.,Yakında. Kalanı biç ve bul.
+UI_NEXT_CHAPTER,"NEXT: {name} →","SIRADAKİ: {name} →"
+HINT_DRIVE,Drag anywhere to drive,Sürmek için ekranın herhangi bir yerini sürükle
