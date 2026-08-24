@@ -1137,6 +1137,13 @@ furniture. Returning players still land in the hub.
 * Tabs and lists moved down to clear the taller top bar, which they had been
   overlapping.
 
+### G10.2 — the evidence card is a beat, not a toast
+
+Nearly double the height with a poster-sized art slot showing the object itself,
+name and line at bigger sizes, and `CARD_SHOW_TIME` 2.0 -> 3.6 s so both lines
+can be read without hurrying. The emoji moved out of the title into its own
+slot, so the title is just the name.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

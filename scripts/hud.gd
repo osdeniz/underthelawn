@@ -31,6 +31,7 @@ signal board_requested()
 @onready var _secret_card: PanelContainer = %SecretCard
 @onready var _card_title: Label = %CardTitle
 @onready var _card_line: Label = %CardLine
+@onready var _card_art: Label = %CardArt
 @onready var _complete_panel: Control = %CompletePanel
 @onready var _complete_stats: Label = %CompleteStats
 @onready var _complete_title: Label = %Title
@@ -155,7 +156,8 @@ func bump_secret_counter() -> void:
 func show_secret_card(emoji: String, item_name: String, line: String,
 		on_landed: Callable) -> void:
 	_card_header.text = Story.text("evidence.card_header", "EVIDENCE FOUND")
-	_card_title.text = "%s %s" % [emoji, item_name]
+	_card_art.text = emoji
+	_card_title.text = item_name
 	_card_line.text = line
 
 	if _card_tween and _card_tween.is_valid():

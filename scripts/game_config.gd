@@ -925,7 +925,9 @@ const ITEM_SPIN_RATE := 1.6
 
 # ---------------------------------------------------------------- secret UI (§16)
 const SECRET_TOTAL := SECRET_COUNT
-const CARD_SHOW_TIME := 2.0
+## G10.2: a found piece of evidence is a story beat, not a toast. Long enough
+## to read the name AND the line without hurrying.
+const CARD_SHOW_TIME := 3.6
 ## NOT in §16 — the flight to the counter has no stated duration.
 const CARD_FLY_TIME := 0.55
 
