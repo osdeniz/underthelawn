@@ -310,11 +310,12 @@ func _style_case_panels() -> void:
 	card.shadow_size = 12
 	_exit_card.add_theme_stylebox_override("panel", card)
 	# Hierarchy: continuing the case is the primary action everywhere.
+	# One primary per screen: NEXT owns the case-notes panel, CONTINUE owns the
+	# exit card. Everything else is secondary, so the eye lands on the door.
 	_style_primary(_exit_continue)
 	_style_primary(_teaser)
-	_style_primary(_return_button)
 	_style_primary(_exit_badge)
-	for button: Button in [_exit_keep, %RestartButton as Button]:
+	for button: Button in [_exit_keep, _return_button, %RestartButton as Button]:
 		_style_button(button)
 
 
@@ -519,8 +520,10 @@ func _build_pad_ring() -> void:
 	_pad_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_pad_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pad_ring.draw.connect(_draw_pad_ring)
+	# On top of the whole HUD: it was first tried at index 0 and the Overlay
+	# vignette swallowed it. The pad only engages on lawn touches, so it can
+	# never draw over an open panel anyway.
 	add_child(_pad_ring)
-	move_child(_pad_ring, 0)
 
 	_drive_hint = Label.new()
 	_drive_hint.text = tr("HINT_DRIVE")

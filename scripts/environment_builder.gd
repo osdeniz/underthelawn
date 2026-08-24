@@ -46,6 +46,7 @@ func _ready() -> void:
 	if GameConfig.SKY_HIGH_CLOUDS_ENABLED:
 		_build_high_clouds()
 	_build_driveways()
+	_build_traces()
 	_setup_bird()
 	_flag_timer = _rng.randf_range(GameConfig.FLAG_INTERVAL_MIN, GameConfig.FLAG_INTERVAL_MAX)
 	# LawnView builds its grey placeholders in Game._ready, after this node's
@@ -1068,3 +1069,67 @@ func _apply_cellar_mood() -> void:
 		var quad := _ground_quad(ring, band[0], dark,
 			(band[1] as Vector3) + Vector3(0.0, 0.06, 0.0))
 		quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+# ---------------------------------------------------------------- traces (G9.2)
+
+## Quiet leftovers of the outbreak years, seeded per chapter so each yard keeps
+## its own history: boarded windows on a neighbor, a faded quarantine mark, a
+## small roadside memorial, a leaning weathered sign. Implied past only — no
+## text, no gore, and none of it inside the mowable lawn.
+func _build_traces() -> void:
+	var plank := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
+	var faded_paint := _flat("trace_paint", Color(0.52, 0.20, 0.16, 0.75), 0.95)
+	faded_paint.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var stone_mat := _flat("trace_stone", Color(0.62, 0.61, 0.57), 0.95)
+	var rust := _flat("trace_rust", Color(0.44, 0.30, 0.20), 0.9, 0.3)
+
+	# 1. Boarded windows on one neighbor house (~70% of chapters). The neighbors
+	# stand at neighbor_z(), so the boards go on their south face.
+	if _rng.randf() < 0.7:
+		var nx: float = GameConfig.NEIGHBOR_X[_rng.randi_range(0,
+			GameConfig.NEIGHBOR_X.size() - 1)]
+		var wall_z := GameConfig.neighbor_z() - 2.05
+		for k in 2:
+			var wx := nx + (-1.4 if k == 0 else 1.2) + _rng.randf_range(-0.2, 0.2)
+			_box(self, Vector3(1.1, 0.16, 0.05), plank,
+				Vector3(wx, 1.5, wall_z), Vector3(0.0, 0.0, 0.5))
+			_box(self, Vector3(1.1, 0.16, 0.05), plank,
+				Vector3(wx, 1.4, wall_z + 0.01), Vector3(0.0, 0.0, -0.45))
+
+	# 2. A faded painted ring on the fence or a neighbor wall: the old clearance
+	# mark, weathered to a shadow of itself (~60%).
+	if _rng.randf() < 0.6:
+		var mark_x := _rng.randf_range(-GameConfig.HALF_X * 0.6,
+			GameConfig.HALF_X * 0.6)
+		var ring := TorusMesh.new()
+		ring.inner_radius = 0.22
+		ring.outer_radius = 0.30
+		ring.rings = 12
+		ring.ring_segments = 6
+		_mesh(self, ring, faded_paint,
+			Vector3(mark_x, 1.1, GameConfig.neighbor_z() - 2.04),
+			Vector3(PI * 0.5, 0.0, 0.0))
+
+	# 3. Roadside memorial: a stone, a small board, flowers kept fresh — someone
+	# still tends it (~65%). Sits on the dirt strip between fence and sidewalk.
+	if _rng.randf() < 0.65:
+		var mem_x := _rng.randf_range(-GameConfig.HALF_X * 0.8,
+			GameConfig.HALF_X * 0.8)
+		var mem_z := GameConfig.fence_south_z() + 0.9
+		_ball(self, 0.30, stone_mat, Vector3(mem_x, 0.16, mem_z),
+			Vector3(1.1, 0.6, 0.9))
+		_box(self, Vector3(0.34, 0.5, 0.05), plank,
+			Vector3(mem_x + 0.42, 0.25, mem_z), Vector3(-0.12, 0.3, 0.0))
+		_flower(0, Vector3(mem_x - 0.35, 0.0, mem_z + 0.15))
+		_flower(1, Vector3(mem_x - 0.15, 0.0, mem_z + 0.3))
+		_ao_blob(self, Vector2(1.6, 1.0), Vector3(mem_x, 0.02, mem_z), 0.4)
+
+	# 4. A leaning weathered sign by the road, its face long since blank (~55%).
+	if _rng.randf() < 0.55:
+		var sign_x := _rng.randf_range(-GameConfig.HALF_X, GameConfig.HALF_X)
+		var sign_z := GameConfig.sidewalk_z() - 0.6
+		_cyl(self, 0.05, 0.06, 1.7, rust,
+			Vector3(sign_x, 0.85, sign_z), Vector3(0.0, 0.0, 0.14))
+		_box(self, Vector3(0.9, 0.6, 0.04), rust,
+			Vector3(sign_x + 0.22, 1.55, sign_z), Vector3(0.0, 0.1, 0.14))

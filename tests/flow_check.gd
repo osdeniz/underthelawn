@@ -11,6 +11,7 @@ func _ready() -> void:
 	await _check_hub()
 	await _check_chapter_round_trip()
 	await _check_dialogue()
+	_check_next_chain()
 	if _fails > 0:
 		push_error("%d AKIS TESTI BASARISIZ" % _fails)
 		print("--- %d AKIS TESTI BASARISIZ ---" % _fails)
@@ -100,6 +101,18 @@ func _check_chapter_round_trip() -> void:
 	ck("tekrar oynayinca kanit geri gitmiyor",
 		ChapterProgress.evidence_found("ch01_aldridge") == 1,
 		str(ChapterProgress.evidence_found("ch01_aldridge")))
+
+
+## G9.2: the NEXT button's data path — every chapter except the last must know
+## its successor, and the successor must be a defined variant.
+func _check_next_chain() -> void:
+	var chapters := ChapterProgress.chapters()
+	for i in chapters.size() - 1:
+		var next_id := str(chapters[i + 1].get("variant_id", ""))
+		ck("sonraki bolum tanimli: %s" % next_id,
+			LevelVariant.ids().has(next_id), next_id)
+		ck("sonraki bolumun adi var", str(chapters[i + 1].get("name", "")) != "",
+			str(chapters[i + 1]))
 
 
 func _check_dialogue() -> void:
