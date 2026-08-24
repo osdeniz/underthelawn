@@ -17,7 +17,9 @@ signal finished()
 
 ## Characters per second. Fast on purpose — the typewriter is texture, not a
 ## reading-speed limiter.
-const TYPE_CPS := 55.0
+## G11: 55 cps outran comfortable reading on the longer Case 1 lines. The tap
+## still completes a line instantly, so this only sets the unhurried pace.
+const TYPE_CPS := 42.0
 const FADE_TIME := 0.25
 ## Ignore taps briefly after one lands, so a double tap cannot skip a whole line
 ## plus the next one.
@@ -142,7 +144,9 @@ func _build() -> void:
 	_text_label = Label.new()
 	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# Three lines of headroom, so a long line does not resize the panel mid-read.
-	_text_label.custom_minimum_size = Vector2(0, 190)
+	# Four lines of headroom: Case 1 has lines that wrap to three, and a box
+	# that grows mid-read pushes the text under the reader's thumb.
+	_text_label.custom_minimum_size = Vector2(0, 250)
 	_text_label.add_theme_font_size_override("font_size", 44)
 	_text_label.add_theme_color_override("font_color", Color(0.94, 0.94, 0.91))
 	_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE

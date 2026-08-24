@@ -135,16 +135,23 @@ func _check_dialogue() -> void:
 	ck("6 karakter", speakers.size() == 6, str(speakers))
 	for id in ["marshal", "sarah", "gus", "cole", "ellie", "stranger"]:
 		ck("konusmaci tanimli: %s" % id, speakers.has(id), str(speakers))
-		# Town chatter must exist for everyone, or a card taps into nothing.
+		# Everyone who can be TAPPED must have something to say. Ellie is gated
+		# on the case being closed (G11), so hers is checked at full progress.
+		var gate := _requires_done(id)
 		ck("kasaba diyalogu var: %s" % id,
-			Dialogue.town_lines(id, 0).size() > 0, "")
+			Dialogue.town_lines(id, gate).size() > 0, str(gate))
 
-	# Town chatter reacts to progress: at least one person says something new.
-	var changed := false
+	# Town chatter reacts to progress. Phases are 0 / 4 / 8 since G11, so the
+	# comparison has to straddle a real phase boundary, not chapter 1.
+	var changed := 0
 	for id: String in speakers:
-		if Dialogue.town_lines(id, 1) != Dialogue.town_lines(id, 0):
-			changed = true
-	ck("kasaba ilerlemeye tepki veriyor", changed, "")
+		if _requires_done(id) > 0:
+			continue
+		if Dialogue.town_lines(id, 4) != Dialogue.town_lines(id, 0):
+			changed += 1
+		if Dialogue.town_lines(id, 8) != Dialogue.town_lines(id, 4):
+			changed += 1
+	ck("kasaba her evrede degisiyor", changed >= 8, str(changed))
 
 	# The box must survive an empty conversation instead of trapping the player.
 	var box := DialogueBox.new()
@@ -155,6 +162,14 @@ func _check_dialogue() -> void:
 	box.play([])
 	await get_tree().create_timer(0.6).timeout
 	ck("bos konusma kutuyu kapatiyor", closed.size() == 1, str(closed))
+
+
+## How much of the case must be closed before this person is in town at all.
+func _requires_done(person_id: String) -> int:
+	for person: Dictionary in Story.list("town.people"):
+		if str(person.get("id", "")) == person_id:
+			return int(person.get("requires_done", 0))
+	return 0
 
 
 func ck(label: String, passed: bool, detail: String) -> void:

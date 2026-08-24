@@ -153,11 +153,39 @@ func _start_chapter() -> void:
 func _on_search_finished(evidence: int, total: int) -> void:
 	ChapterProgress.record(_pending_variant, evidence, total)
 	var chapter := ChapterProgress.entry(_pending_variant)
+	# G11: the last chapter ends the CASE, not just a search — Ellie speaks, then
+	# the reunion card. A partial finish still gets the ordinary nudge.
+	var is_finale := _is_last_chapter(_pending_variant) and evidence >= total
+	if is_finale:
+		_play_dialogue(Dialogue.conversation("finale_case01"), "",
+			func() -> void: _show_reunion())
+		return
 	var key := "debrief_full" if evidence >= total else "debrief_partial"
 	var lines := Dialogue.conversation(str(chapter.get(key, "")))
 	if lines.is_empty():
 		return
 	_play_dialogue(lines, "", func() -> void: pass)
+
+
+func _is_last_chapter(variant_id: String) -> bool:
+	var chapters := ChapterProgress.chapters()
+	if chapters.is_empty():
+		return false
+	return str((chapters.back() as Dictionary).get("variant_id", "")) == variant_id
+
+
+## The warm close: Ellie home, the board complete, and the door to Case 02.
+func _show_reunion() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 70
+	add_child(layer)
+	var card := ReunionCard.new()
+	layer.add_child(card)
+	card.finished.connect(func() -> void:
+		layer.queue_free()
+		GameState.set_setting("story", "case01_closed", true)
+		# Straight onto the finished board: the pins ARE the ending.
+		return_to_board())
 
 
 ## Called by the case-notes NEXT button: brief and start the chapter after

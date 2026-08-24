@@ -39,8 +39,9 @@ func _check_variants() -> void:
 			landmarks[v.landmark_id] = true
 		ck("%s iki kanit tasiyor" % id, v.evidence_count() == 2,
 			str(v.evidence_count()))
+		# B8 is the short finale, so the floor is 6 (G11).
 		ck("%s scrap butcesi makul" % id,
-			v.scrap_budget >= 7 and v.scrap_budget <= 12, str(v.scrap_budget))
+			v.scrap_budget >= 6 and v.scrap_budget <= 12, str(v.scrap_budget))
 		# decor_seed is what makes a yard look the same on every visit.
 		ck("%s decor_seed sifir degil" % id, v.decor_seed != 0, str(v.decor_seed))
 		palettes[v.palette_id] = true

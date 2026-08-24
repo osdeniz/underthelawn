@@ -339,6 +339,7 @@ func _on_tile(id: String, locked: bool, button: Button) -> void:
 		"case_board":
 			_show_page(_board_page)
 		"town":
+			_rebuild_town()
 			_show_page(_town_page)
 		"workshop":
 			_workshop_page.refresh()
@@ -523,11 +524,25 @@ func _build_town() -> Control:
 	heading.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	column.add_child(heading)
 
-	for person: Dictionary in Story.list("town.people"):
-		column.add_child(_make_person_row(person))
-
+	page.set_meta("column", column)
 	page.add_child(_back_button())
+	_town_page = page
+	_rebuild_town()
 	return page
+
+
+## Rebuilt per visit: who is in town changes as the case moves.
+func _rebuild_town() -> void:
+	if _town_page == null:
+		return
+	var column: VBoxContainer = _town_page.get_meta("column")
+	for child in column.get_children():
+		if child is Button:
+			child.queue_free()
+	for person: Dictionary in Story.list("town.people"):
+		if ChapterProgress.done_count() < int(person.get("requires_done", 0)):
+			continue
+		column.add_child(_make_person_row(person))
 
 
 func _make_person_row(person: Dictionary) -> Button:

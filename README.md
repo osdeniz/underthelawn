@@ -1158,6 +1158,69 @@ The game HUD follows the same language: percentage / evidence / wallet chip on
 one row, progress bar, case line, with the chip ending clear of the pause
 button. Both bars now read as one product.
 
+## G11 — Case 1, filled in
+
+No new systems. The existing ones now carry the whole of Case 1, all of it in
+`i18n/strings.csv` (en + tr) and the three data files.
+
+### The case, in evidence
+
+Every chapter has a briefing (2-3 lines), two named pieces of evidence, a
+debrief for full and partial finishes, and a Marshal deduction on the board.
+The chain is deliberate: a dropped rabbit, then a boot and a child-sized gap
+(she crawled, she wasn't dragged), an arrow drawn east (she is FOLLOWING, not
+fleeing), two sets of prints walking side by side, tended seedlings and a
+cardigan thread (someone LIVES out here), a station flashlight with the serial
+half filed off and a note saying *don't tell the town*, an oiled hatch with a
+child's stone game beside it — and Ellie, unharmed, in a lit cellar garden.
+
+Two beats are voiced by someone other than the Marshal, on purpose: Sarah comes
+along in B3 and recognises the ribbon, and in B6 the Marshal recognises his own
+precinct's lamp and asks to see it when you're back.
+
+### B8 is the case's ending, not a search
+
+Finishing B8 with both pieces plays `finale_case01` (Ellie speaks, the Marshal
+counts his blessings and then his questions), then `ReunionCard`: two tapped
+full-screen beats — Ellie home, then CASE 02 "WHAT ELLIE SAW" — and lands the
+player on the completed corkboard, because the pins ARE the ending. A partial
+B8 gets the ordinary "she's close" nudge instead.
+
+`story.json` carries a `case_02` skeleton (keys, no content) so the shape of
+what follows is visible in the data rather than only in a plan.
+
+### Polish
+
+* Town chatter runs in three phases (case start / after B4 / after B8), and
+  **Ellie is not in town until she is home** — `requires_done` gates a person,
+  and the town list rebuilds per visit. Putting her card there from the start
+  would answer the question the case is asking.
+* Typewriter 55 -> 42 cps and the text box gained a fourth line of headroom:
+  Case 1 has lines that wrap to three, and a box that grows mid-read pushes the
+  text under the reader's thumb.
+* B8's scrap budget dropped to 6 — it is a short finale, and `variant_check`'s
+  floor moved with it.
+
+### Known edge case (v1, deliberate)
+
+Leaving a chapter through pause -> RETURN TO TOWN discards that run: the chapter
+starts fresh next time, and nothing is recorded. Mid-chapter save state is not
+worth its complexity while a chapter is a few minutes long.
+
+### Manual playthrough checklist
+
+1. Fresh install -> opening cards -> B1 briefing -> straight into the grass.
+2. B1..B7: briefing -> search -> evidence card -> exit offer -> case notes ->
+   VIEW CASE BOARD (pin thunk, new cards, red string) -> NEXT chapter.
+3. Workshop after ~2 chapters: unlock the Robot; check the selector gains it.
+4. B8: search -> Ellie dialogue -> reunion -> CASE 02 -> completed board.
+5. Town at three points (start, after B4, after B8) — Ellie appears only last.
+
+### Art still expected
+
+`textures/story/reunion.png` and `textures/hub/case2_teaser.png` both fall back
+to a flat warm ground, so the ending plays without them.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

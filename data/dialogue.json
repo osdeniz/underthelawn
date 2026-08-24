@@ -104,6 +104,10 @@
         {
           "speaker": "marshal",
           "text": "DLG_BRIEF_CH03_2"
+        },
+        {
+          "speaker": "sarah",
+          "text": "DLG_BRIEF_CH03_3"
         }
       ],
       "accept": "BRIEF_01_ACCEPT"
@@ -191,6 +195,10 @@
         {
           "speaker": "marshal",
           "text": "DLG_BRIEF_CH06_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH06_3"
         }
       ],
       "accept": "BRIEF_01_ACCEPT"
@@ -268,6 +276,30 @@
           "text": "DLG_DEBRIEF_CH08_PART"
         }
       ]
+    },
+    "finale_case01": {
+      "lines": [
+        {
+          "speaker": "ellie",
+          "text": "DLG_FINALE_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_FINALE_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_FINALE_3"
+        },
+        {
+          "speaker": "ellie",
+          "text": "DLG_FINALE_4"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_FINALE_5"
+        }
+      ]
     }
   },
   "town": {
@@ -286,11 +318,24 @@
         ]
       },
       {
-        "min_done": 1,
+        "min_done": 4,
         "lines": [
           {
             "speaker": "marshal",
             "text": "DLG_TOWN_MARSHAL_1A"
+          },
+          {
+            "speaker": "marshal",
+            "text": "DLG_TOWN_MARSHAL_1B"
+          }
+        ]
+      },
+      {
+        "min_done": 8,
+        "lines": [
+          {
+            "speaker": "marshal",
+            "text": "DLG_TOWN_MARSHAL_2A"
           }
         ]
       }
@@ -310,11 +355,20 @@
         ]
       },
       {
-        "min_done": 1,
+        "min_done": 4,
         "lines": [
           {
             "speaker": "sarah",
             "text": "DLG_TOWN_SARAH_1A"
+          }
+        ]
+      },
+      {
+        "min_done": 8,
+        "lines": [
+          {
+            "speaker": "sarah",
+            "text": "DLG_TOWN_SARAH_2A"
           }
         ]
       }
@@ -330,11 +384,20 @@
         ]
       },
       {
-        "min_done": 1,
+        "min_done": 4,
         "lines": [
           {
             "speaker": "gus",
             "text": "DLG_TOWN_GUS_1A"
+          }
+        ]
+      },
+      {
+        "min_done": 8,
+        "lines": [
+          {
+            "speaker": "gus",
+            "text": "DLG_TOWN_GUS_2A"
           }
         ]
       }
@@ -354,31 +417,35 @@
         ]
       },
       {
-        "min_done": 1,
+        "min_done": 4,
         "lines": [
           {
             "speaker": "cole",
             "text": "DLG_TOWN_COLE_1A"
           }
         ]
+      },
+      {
+        "min_done": 8,
+        "lines": [
+          {
+            "speaker": "cole",
+            "text": "DLG_TOWN_COLE_2A"
+          }
+        ]
       }
     ],
     "ellie": [
       {
-        "min_done": 0,
+        "min_done": 8,
         "lines": [
           {
-            "speaker": "sarah",
-            "text": "DLG_TOWN_ELLIE_0A"
-          }
-        ]
-      },
-      {
-        "min_done": 1,
-        "lines": [
+            "speaker": "ellie",
+            "text": "DLG_TOWN_ELLIE_2A"
+          },
           {
-            "speaker": "sarah",
-            "text": "DLG_TOWN_ELLIE_1A"
+            "speaker": "ellie",
+            "text": "DLG_TOWN_ELLIE_2B"
           }
         ]
       }
@@ -394,11 +461,20 @@
         ]
       },
       {
-        "min_done": 1,
+        "min_done": 4,
         "lines": [
           {
             "speaker": "stranger",
             "text": "DLG_TOWN_STRANGER_1A"
+          }
+        ]
+      },
+      {
+        "min_done": 8,
+        "lines": [
+          {
+            "speaker": "stranger",
+            "text": "DLG_TOWN_STRANGER_2A"
           }
         ]
       }
