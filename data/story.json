@@ -62,7 +62,8 @@
     "teaser_title": "COMPLETE_01_TEASER_TITLE",
     "teaser_line": "COMPLETE_01_TEASER_LINE",
     "teaser_locked": "COMPLETE_TEASER_LOCKED",
-    "return": "UI_RETURN_TOWN"
+    "return": "UI_RETURN_TOWN",
+    "case_done": "CASE_01_COMPLETE"
   },
   "hub": {
     "progress": "HUB_PROGRESS",
@@ -193,7 +194,8 @@
       {
         "id": "ellie",
         "name": "CHAR_ELLIE",
-        "role": "ROLE_ELLIE"
+        "role": "ROLE_ELLIE",
+        "requires_done": 8
       },
       {
         "id": "stranger",
@@ -270,5 +272,14 @@
         "note": "NOTE_CH08"
       }
     ]
+  },
+  "case_02": {
+    "id": "CASE_02_ID",
+    "title": "CASE_02_TITLE",
+    "objective": "CASE_02_OBJECTIVE",
+    "teaser_image": "hub/case2_teaser",
+    "locked_note": "CASE_02_LOCKED",
+    "chapters": [],
+    "_comment": "Skeleton only (G11). Case 2 content lands in a later sprint; the keys exist so the shape of what follows is visible in the data, not just in a plan."
   }
 }

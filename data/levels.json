@@ -11,16 +11,16 @@
       "scrap_budget": 8,
       "evidence_defs": [
         {
-          "id": "toy",
+          "id": "rabbit",
           "icon": "🧸",
-          "name": "EVIDENCE_TOY_NAME",
-          "flavor_text": "EVIDENCE_TOY_LINE"
+          "name": "EV_CH01_A_NAME",
+          "flavor_text": "EV_CH01_A_LINE"
         },
         {
           "id": "radio",
           "icon": "📻",
-          "name": "EVIDENCE_RADIO_NAME",
-          "flavor_text": "EVIDENCE_RADIO_LINE"
+          "name": "EV_CH01_B_NAME",
+          "flavor_text": "EV_CH01_B_LINE"
         }
       ],
       "opening": {
@@ -38,14 +38,14 @@
       "scrap_budget": 8,
       "evidence_defs": [
         {
-          "id": "shoe",
-          "icon": "👟",
+          "id": "boot",
+          "icon": "👢",
           "name": "EV_CH02_A_NAME",
           "flavor_text": "EV_CH02_A_LINE"
         },
         {
-          "id": "note",
-          "icon": "📄",
+          "id": "gap",
+          "icon": "🕳️",
           "name": "EV_CH02_B_NAME",
           "flavor_text": "EV_CH02_B_LINE"
         }
@@ -71,8 +71,8 @@
           "flavor_text": "EV_CH03_A_LINE"
         },
         {
-          "id": "chalk",
-          "icon": "🖍️",
+          "id": "arrow",
+          "icon": "➡️",
           "name": "EV_CH03_B_NAME",
           "flavor_text": "EV_CH03_B_LINE"
         }
@@ -92,14 +92,14 @@
       "scrap_budget": 9,
       "evidence_defs": [
         {
-          "id": "boot",
-          "icon": "🥾",
+          "id": "prints",
+          "icon": "👣",
           "name": "EV_CH04_A_NAME",
           "flavor_text": "EV_CH04_A_LINE"
         },
         {
-          "id": "lantern",
-          "icon": "🏮",
+          "id": "can",
+          "icon": "🥫",
           "name": "EV_CH04_B_NAME",
           "flavor_text": "EV_CH04_B_LINE"
         }
@@ -119,14 +119,14 @@
       "scrap_budget": 8,
       "evidence_defs": [
         {
-          "id": "seedbox",
+          "id": "seedlings",
           "icon": "🌱",
           "name": "EV_CH05_A_NAME",
           "flavor_text": "EV_CH05_A_LINE"
         },
         {
-          "id": "glove",
-          "icon": "🧤",
+          "id": "thread",
+          "icon": "🧵",
           "name": "EV_CH05_B_NAME",
           "flavor_text": "EV_CH05_B_LINE"
         }
@@ -146,14 +146,14 @@
       "scrap_budget": 12,
       "evidence_defs": [
         {
-          "id": "bike",
-          "icon": "🚲",
+          "id": "flashlight",
+          "icon": "🔦",
           "name": "EV_CH06_A_NAME",
           "flavor_text": "EV_CH06_A_LINE"
         },
         {
-          "id": "flask",
-          "icon": "🧴",
+          "id": "note",
+          "icon": "📄",
           "name": "EV_CH06_B_NAME",
           "flavor_text": "EV_CH06_B_LINE"
         }
@@ -173,14 +173,14 @@
       "scrap_budget": 9,
       "evidence_defs": [
         {
-          "id": "sack",
-          "icon": "🎒",
+          "id": "hatch",
+          "icon": "🚪",
           "name": "EV_CH07_A_NAME",
           "flavor_text": "EV_CH07_A_LINE"
         },
         {
-          "id": "key",
-          "icon": "🔑",
+          "id": "stones",
+          "icon": "🪨",
           "name": "EV_CH07_B_NAME",
           "flavor_text": "EV_CH07_B_LINE"
         }
@@ -197,18 +197,18 @@
       "house_variant": "house_none",
       "landmark_id": "",
       "decor_seed": 8808,
-      "scrap_budget": 7,
+      "scrap_budget": 6,
       "vignette": true,
       "evidence_defs": [
         {
-          "id": "lamp",
-          "icon": "🔦",
+          "id": "ellie",
+          "icon": "👧",
           "name": "EV_CH08_A_NAME",
           "flavor_text": "EV_CH08_A_LINE"
         },
         {
-          "id": "locket",
-          "icon": "📿",
+          "id": "drawing",
+          "icon": "🖼️",
           "name": "EV_CH08_B_NAME",
           "flavor_text": "EV_CH08_B_LINE"
         }
