@@ -119,7 +119,7 @@ EV_CH03_B_LINE,Drawn with a stick. Pointing east. She's leaving a trail — or c
 EV_CH04_A_NAME,Two Sets of Prints,İki Takım Ayak İzi
 EV_CH04_A_LINE,Small boots beside bare adult feet. Walking together. Side by side.,"Küçük çizmeler, yanında yalınayak bir yetişkin. Birlikte yürümüşler. Yan yana."
 EV_CH04_B_NAME,Fresh-Opened Can,Yeni Açılmış Konserve
-EV_CH04_B_LINE,Opened clean. Someone has tools. Someone is feeding her.,Temiz açılmış. Birinin aleti var. Biri onu besliyor.
+EV_CH04_B_LINE,Opened clean. Someone has tools. Someone is SHARING his food.,Temiz açılmış. Birinin aleti var. Biri yemeğini PAYLAŞIYOR.
 EV_CH05_A_NAME,Tended Seedlings,Bakımlı Fideler
 EV_CH05_A_LINE,Watered this week. Someone LIVES out here.,Bu hafta sulanmış. Biri burada YAŞIYOR.
 EV_CH05_B_NAME,Cardigan Thread,Hırka İpliği
@@ -135,7 +135,7 @@ EV_CH07_B_LINE,Stones arranged in a game. A scared child doesn't play games.,Ta�
 EV_CH08_A_NAME,Ellie,Ellie
 EV_CH08_A_LINE,"Sitting in the lamplight, humming. Not a scratch on her.","Lamba ışığında oturmuş, mırıldanıyor. Üstünde tek çizik yok."
 EV_CH08_B_NAME,Ellie's Drawing,Ellie'nin Resmi
-EV_CH08_B_LINE,"She drew what she saw. Marshal stares at it. ""That's impossible.""","Gördüğünü çizmiş. Şerif resme bakakalıyor. ""Bu imkânsız."""
+EV_CH08_B_LINE,"Circles. Seven small stars in a ring. She says he wears it on his coat. Marshal stares at it. ""That's impossible.""","Daireler. Halka şeklinde yedi küçük yıldız. Onu paltosunda taşıdığını söylüyor. Şerif resme bakakalıyor. ""Bu imkânsız."""
 DLG_BRIEF_CH02_1,The neighbours left in the first year. Never came back for their things.,Komşular ilk yıl gitti. Eşyaları için bile dönmediler.
 DLG_BRIEF_CH02_2,"If she went east, she went through that yard. Cut it and show me how.",Doğuya gittiyse o bahçeden geçmiştir. Biç ve bana nasıl geçtiğini göster.
 DLG_DEBRIEF_CH02_FULL,A boot and a hole under the fence. She wasn't dragged. She crawled.,Bir çizme ve çitin altında bir delik. Sürüklenmemiş. Sürünerek geçmiş.
@@ -210,9 +210,9 @@ NOTE_CH02,"The toy, then the shoe past the fence gap. She crawled through. Alone
 NOTE_CH03,The ribbon matches the one in her hair. She stopped to play. She wasn't running.,Kurdele saçındakiyle aynı. Oynamak için durmuş. Kaçmıyormuş.
 NOTE_CH04,"A grown boot beside her trail. Someone walked WITH her.","İzinin yanında yetişkin botu. Biri onunla BİRLİKTE yürümüş."
 NOTE_CH05,"Fed plants, opened seed box. They stopped here. They were CARED for.","Bakımlı bitkiler, açılmış tohum kutusu. Burada durmuşlar. Birileri onlara BAKMIŞ."
-NOTE_CH06,"The bike got her this far. The flask says she meant to go further.","Bisiklet onu buraya kadar getirmiş. Matara daha uzağa gitmeyi planladığını söylüyor."
+NOTE_CH06,Serial half-filed. We only did that to one batch. Rivera's batch.,Seri numarası yarım eğelenmiş. Bunu yalnızca tek bir partide yaptık. Rivera'nın partisinde.
 NOTE_CH07,"Her satchel, and a key to a cellar I never knew existed.","Çantası ve varlığını hiç bilmediğim bir mahzenin anahtarı."
-NOTE_CH08,"The locket was her mother's. She took it to remember home. She CHOSE to go.","Madalyon annesinindi. Evi hatırlamak için almış. Gitmeyi kendi SEÇTİ."
+NOTE_CH08,New face in town asking questions. Garden in the cellar. Same week. I don't believe in weeks like that.,Kasabada soru soran yeni bir yüz. Mahzende bir bahçe. Aynı hafta. Ben böyle haftalara inanmam.
 NOTE_FINAL,"Every pin leads down those stairs. Case 02 starts where this board ends.","Her iğne o merdivenlere çıkıyor. Vaka 02, bu panonun bittiği yerde başlıyor."
 HUB_WORKSHOP_HINT2,Gus keeps the machines alive.,Makineleri Gus ayakta tutuyor.
 EV_CH01_A_NAME,Ellie's Rabbit,Ellie'nin Tavşanı
@@ -240,5 +240,5 @@ DLG_TOWN_SARAH_2A,"She hasn't let go of my hand since. I don't mind.","O günden
 DLG_TOWN_GUS_2A,"Bring the machine in. First service is on me.","Makineyi getir. İlk bakım benden."
 DLG_TOWN_COLE_2A,"Somebody grew a garden under my fields and I never knew.","Biri tarlalarımın altında bir bahçe yetiştirmiş, haberim bile olmamış."
 DLG_TOWN_ELLIE_2A,"Mum cried. I told her the garden was safe.","Annem ağladı. Ona bahçenin güvenli olduğunu söyledim."
-DLG_TOWN_ELLIE_2B,"He'll come back. He said the town has to be ready first.","Geri gelecek. Önce kasabanın hazır olması gerektiğini söyledi."
+DLG_TOWN_ELLIE_2B,He was never scary. He kept saying I shouldn't have followed him. That it wasn't safe... for ME to be seen.,Hiç korkutucu değildi. Onu takip etmemeliymişim deyip durdu. Görülmemin... benim için güvenli olmadığını söyledi.
 DLG_TOWN_STRANGER_2A,"So the girl's home. Funny how these things sort themselves out.","Demek kız evde. Bu işlerin kendiliğinden çözülmesi tuhaf."
