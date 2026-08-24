@@ -181,7 +181,7 @@ func _activate(index: int, initial: bool) -> void:
 		push_warning("Game: mower %d sahnede yok, secim yok sayildi" % index)
 		return
 	var previous := mower
-	var carry_position := Vector3(GameConfig.MOWER_START.x, 0.0, GameConfig.MOWER_START.y)
+	var carry_position := Vector3(GameConfig.mower_start().x, 0.0, GameConfig.mower_start().y)
 	var carry_yaw := 0.0
 	if previous != null:
 		carry_position = previous.position

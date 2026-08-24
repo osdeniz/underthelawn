@@ -234,7 +234,7 @@ func _build_yard() -> void:
 func _build_house() -> void:
 	var house := Node3D.new()
 	house.name = "House"
-	house.position = Vector3(0.0, 0.0, GameConfig.HOUSE_POS_Z)
+	house.position = Vector3(0.0, 0.0, GameConfig.house_pos_z())
 	add_child(house)
 
 	# Variant colours tint the SAME textures, so a different house is a data
@@ -449,9 +449,9 @@ func _build_fence() -> void:
 	var transforms: Array[Transform3D] = []
 	var runs := [
 		# [start, end] — west side, east side, south side. No fence up north (§2).
-		[Vector3(-GameConfig.FENCE_SIDE_X, 0, -13.0), Vector3(-GameConfig.FENCE_SIDE_X, 0, GameConfig.FENCE_SOUTH_Z)],
-		[Vector3(GameConfig.FENCE_SIDE_X, 0, -13.0), Vector3(GameConfig.FENCE_SIDE_X, 0, GameConfig.FENCE_SOUTH_Z)],
-		[Vector3(-GameConfig.FENCE_SIDE_X, 0, GameConfig.FENCE_SOUTH_Z), Vector3(GameConfig.FENCE_SIDE_X, 0, GameConfig.FENCE_SOUTH_Z)],
+		[Vector3(-GameConfig.fence_side_x(), 0, GameConfig.fence_north_z()), Vector3(-GameConfig.fence_side_x(), 0, GameConfig.fence_south_z())],
+		[Vector3(GameConfig.fence_side_x(), 0, GameConfig.fence_north_z()), Vector3(GameConfig.fence_side_x(), 0, GameConfig.fence_south_z())],
+		[Vector3(-GameConfig.fence_side_x(), 0, GameConfig.fence_south_z()), Vector3(GameConfig.fence_side_x(), 0, GameConfig.fence_south_z())],
 	]
 	for run in runs:
 		var a: Vector3 = run[0]
@@ -501,7 +501,7 @@ func _build_trees() -> void:
 
 	for spec in GameConfig.TREES:
 		var tree := Node3D.new()
-		tree.position = Vector3(spec.x, 0.0, spec.y)
+		tree.position = GameConfig.tree_pos(spec)
 		tree.scale = Vector3.ONE * spec.z
 		add_child(tree)
 
@@ -545,22 +545,22 @@ func _build_road() -> void:
 	var dash_mat := _flat("dash", Color(0.85, 0.75, 0.35), 0.8)
 
 	_ground_quad(self, Vector2(GameConfig.ROAD_WIDTH, GameConfig.SIDEWALK_DEPTH),
-		concrete, Vector3(0.0, -0.02, GameConfig.SIDEWALK_Z))
+		concrete, Vector3(0.0, -0.02, GameConfig.sidewalk_z()))
 	# Sidewalk joints every 2 units.
 	var joints := int(GameConfig.ROAD_WIDTH / 2.0)
 	for i in joints:
 		var x := -GameConfig.ROAD_WIDTH * 0.5 + 1.0 + float(i) * 2.0
 		_box(self, Vector3(0.05, 0.012, GameConfig.SIDEWALK_DEPTH), joint,
-			Vector3(x, -0.012, GameConfig.SIDEWALK_Z))
+			Vector3(x, -0.012, GameConfig.sidewalk_z()))
 
 	_ground_quad(self, Vector2(GameConfig.ROAD_WIDTH, GameConfig.ROAD_DEPTH),
-		asphalt, Vector3(0.0, -0.03, GameConfig.ROAD_Z))
+		asphalt, Vector3(0.0, -0.03, GameConfig.road_z()))
 	# Dashed centre line, 1.6 x 0.14 dashes every 4 units (§12).
 	var dashes := int(GameConfig.ROAD_WIDTH / GameConfig.ROAD_DASH_GAP)
 	for i in dashes:
 		var x := -GameConfig.ROAD_WIDTH * 0.5 + 2.0 + float(i) * GameConfig.ROAD_DASH_GAP
 		_box(self, Vector3(GameConfig.ROAD_DASH.x, 0.012, GameConfig.ROAD_DASH.y),
-			dash_mat, Vector3(x, -0.018, GameConfig.ROAD_Z))
+			dash_mat, Vector3(x, -0.018, GameConfig.road_z()))
 
 
 # ---------------------------------------------------------------- cars (§12)
@@ -650,7 +650,7 @@ func _build_neighbors() -> void:
 
 	for i in GameConfig.NEIGHBOR_X.size():
 		var h := Node3D.new()
-		h.position = Vector3(GameConfig.NEIGHBOR_X[i], 0.0, GameConfig.NEIGHBOR_Z)
+		h.position = Vector3(GameConfig.NEIGHBOR_X[i], 0.0, GameConfig.neighbor_z())
 		add_child(h)
 		_box(h, Vector3(7.5, 2.8, 4.0), bodies[i], Vector3(0.0, 1.4, 0.0))
 		_pyramid(h, Vector2(8.3, 4.8), 1.9, shingles, Vector3(0.0, 2.8, 0.0))
@@ -771,7 +771,7 @@ func _build_driveways() -> void:
 	var concrete := _flat("concrete", Color(0.62, 0.61, 0.58), 0.95)
 	for x in GameConfig.NEIGHBOR_X:
 		_ground_quad(self, Vector2(2.6, 3.8), concrete,
-			Vector3(x + 2.4, -0.015, 24.7))
+			Vector3(x + 2.4, -0.015, GameConfig.road_z() + 5.3))
 
 
 ## Rare single bird chirp over the ambient loop (G6).
@@ -833,7 +833,7 @@ func _house_variant_id() -> String:
 func _build_landmark(landmark_id: String) -> void:
 	var root := Node3D.new()
 	root.name = "Landmark_" + landmark_id
-	root.position = Vector3(0.0, 0.0, GameConfig.HOUSE_POS_Z + 1.6)
+	root.position = Vector3(0.0, 0.0, GameConfig.house_pos_z() + 1.6)
 	add_child(root)
 	match landmark_id:
 		"playground": _landmark_playground(root)

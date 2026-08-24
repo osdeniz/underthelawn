@@ -159,7 +159,7 @@ func reset_to_start() -> void:
 	omega = 0.0
 	throttle = 0.0
 	desired_omega = 0.0
-	position = Vector3(GameConfig.MOWER_START.x, 0.0, GameConfig.MOWER_START.y)
+	position = Vector3(GameConfig.mower_start().x, 0.0, GameConfig.mower_start().y)
 	_apply_yaw()
 	_on_reset()
 

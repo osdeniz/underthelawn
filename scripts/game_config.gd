@@ -41,7 +41,10 @@ static func set_grid_named(size_id: String) -> void:
 ## Cell centre: x = col + 0.5 - 8, z = row + 0.5 - 12. Row 0 = north (-Z).
 static var HALF_X := 8.0
 static var HALF_Z := 12.0
-const MOWER_START := Vector2(0.0, 10.5)        # south-centre, facing north
+## South-centre spawn, facing north. A function of the grid (G9.1): 1.5 cells in
+## from the south edge, whatever the yard size.
+static func mower_start() -> Vector2:
+	return Vector2(0.0, HALF_Z - 1.5)
 
 # ---------------------------------------------------------------- striping (§4)
 ## Direction buckets: 0 = N, 1 = E, 2 = S, 3 = W.
@@ -560,8 +563,11 @@ const TRAFFIC_SPEED_MIN := 6.0
 const TRAFFIC_SPEED_MAX := 8.0
 const TRAFFIC_SPAWN_X := 34.0            # off-scene on both sides
 ## Right-hand traffic: heading east uses the south lane, west the north lane.
-const TRAFFIC_LANE_EAST_Z := 21.0
-const TRAFFIC_LANE_WEST_Z := 17.8
+## Lanes ride the road, which rides the grid (G9.1).
+static func traffic_lane_east_z() -> float:
+	return road_z() + 1.6
+static func traffic_lane_west_z() -> float:
+	return road_z() - 1.6
 const TRAFFIC_DRIVEWAY_MIN := 90.0       # rare pull-in event interval
 const TRAFFIC_DRIVEWAY_MAX := 120.0
 const TRAFFIC_DRIVEWAY_WAIT := 10.0
@@ -653,30 +659,52 @@ const LANDMARK_IDS: Array[String] = [
 	"playground", "greenhouse", "water_tower", "mill",
 ]
 
-const HOUSE_POS_Z := -16.8                     # z = -(12 + 4.8)
+const HOUSE_MARGIN_Z := 4.8
+static func house_pos_z() -> float:
+	return -(HALF_Z + HOUSE_MARGIN_Z)
 const HOUSE_BODY := Vector3(13.0, 3.2, 4.2)
 const HOUSE_ROOF := Vector3(14.2, 2.4, 5.4)
-const FENCE_SIDE_X := 9.6
-const FENCE_SOUTH_Z := 13.6
+## G9.1: everything around the lawn is an OFFSET from the lawn edge, not a world
+## coordinate, so a small yard's fence hugs the small yard. The offsets are the
+## original medium-yard tuning (side 9.6 = 8 + 1.6, etc.) expressed as deltas.
+const FENCE_SIDE_MARGIN := 1.6
+const FENCE_SOUTH_MARGIN := 1.6
+const FENCE_NORTH_MARGIN := 1.0
+static func fence_side_x() -> float:
+	return HALF_X + FENCE_SIDE_MARGIN
+static func fence_south_z() -> float:
+	return HALF_Z + FENCE_SOUTH_MARGIN
+static func fence_north_z() -> float:
+	return -(HALF_Z + FENCE_NORTH_MARGIN)
 const FENCE_POST := Vector3(0.14, 0.85, 0.06)
 const FENCE_SPACING := 0.62
 const FENCE_HEIGHT_JITTER := 0.05
 const FENCE_ANGLE_JITTER := 0.025
-const SIDEWALK_Z := 15.2
 const SIDEWALK_DEPTH := 2.2
-const ROAD_Z := 19.4
+const SIDEWALK_MARGIN := 3.2
+static func sidewalk_z() -> float:
+	return HALF_Z + SIDEWALK_MARGIN
+const ROAD_MARGIN := 7.4
+static func road_z() -> float:
+	return HALF_Z + ROAD_MARGIN
 const ROAD_DEPTH := 6.5
 const ROAD_WIDTH := 60.0
 const ROAD_DASH := Vector2(1.6, 0.14)          # size; 4 units apart
 const ROAD_DASH_GAP := 4.0
-const NEIGHBOR_Z := 28.4
+const NEIGHBOR_MARGIN := 16.4
+static func neighbor_z() -> float:
+	return HALF_Z + NEIGHBOR_MARGIN
 const NEIGHBOR_X: Array[float] = [-11.0, 0.5, 11.5]
 ## §12 tree placements: (x, z) and scale.
+## Trees as edge FRACTIONS (x: -1..1 of fence_side_x, y: -1..1 of half depth)
+## plus scale, so they stay just outside whichever fence the chapter has.
 const TREES: Array[Vector3] = [
-	Vector3(-9.3, -10.8, 1.0),
-	Vector3(9.1, -2.0, 0.85),
-	Vector3(-9.2, 8.0, 0.9),
+	Vector3(-0.97, -0.90, 1.0),
+	Vector3(0.95, -0.17, 0.85),
+	Vector3(-0.96, 0.67, 0.9),
 ]
+static func tree_pos(spec: Vector3) -> Vector3:
+	return Vector3(spec.x * fence_side_x(), 0.0, spec.y * HALF_Z)
 const TREE_LEAF_DARK := Color(0.20, 0.42, 0.16)
 const TREE_LEAF_LIGHT := Color(0.33, 0.57, 0.25)
 const CAR_SEDAN_COLOR := Color(0.25, 0.42, 0.62)

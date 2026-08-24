@@ -941,6 +941,17 @@ Headless runs are uncapped, so frame counts are NOT time. A tween scheduled for
 broken callback. `--fixed-fps 30` makes frames map to seconds; without it, any
 timing assertion is meaningless.
 
+### G9.1 — the surroundings follow the grid
+
+Every world anchor around the lawn (fence lines, sidewalk, road, traffic lanes,
+neighbor row, driveways, house distance, tree ring, mower spawn) was a constant
+tuned for the medium yard, so a small yard sat inside a fence built for a big
+one. They are all static functions of `HALF_X`/`HALF_Z` now, expressed as the
+ORIGINAL offsets (fence side = HALF_X + 1.6, road = HALF_Z + 7.4, ...), verified
+to reproduce the old medium-yard numbers exactly — a behaviour-preserving
+refactor on B1 that makes B2-B8 wrap correctly. Trees became edge fractions so
+they stay just outside whichever fence the chapter has.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

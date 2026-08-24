@@ -60,8 +60,8 @@ func _spawn() -> void:
 			continue
 		var eastbound := _rng.randf() < 0.5
 		car["dir"] = 1.0 if eastbound else -1.0
-		car["lane_z"] = GameConfig.TRAFFIC_LANE_EAST_Z if eastbound \
-			else GameConfig.TRAFFIC_LANE_WEST_Z
+		car["lane_z"] = GameConfig.traffic_lane_east_z() if eastbound \
+			else GameConfig.traffic_lane_west_z()
 		car["speed"] = _rng.randf_range(GameConfig.TRAFFIC_SPEED_MIN,
 			GameConfig.TRAFFIC_SPEED_MAX)
 		# Every 90-120 s the next car runs the driveway routine instead.
@@ -233,7 +233,7 @@ func _make_car(variant: int) -> Dictionary:
 
 	return {
 		"root": root, "state": State.IDLE, "dir": 1.0, "speed": 7.0,
-		"lane_z": GameConfig.TRAFFIC_LANE_EAST_Z, "errand": false,
+		"lane_z": GameConfig.traffic_lane_east_z(), "errand": false,
 		"driveway_x": 0.0, "wait": 0.0,
 		"head_mat": head, "tail_mat": tail, "audio": audio,
 	}
