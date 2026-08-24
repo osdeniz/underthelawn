@@ -15,6 +15,7 @@ const PATHS := {
 	"engine": "res://audio/mower_engine_loop",
 	"cut": "res://audio/grass_cut",
 	"discovery": "res://audio/discovery_chime",
+	"scrap": "res://audio/scrap_pickup",
 	"ambient": "res://audio/ambient_birds_loop",
 }
 const AUDIO_EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
@@ -170,6 +171,16 @@ func play_cut() -> void:
 		_rng.randi_range(0, GameConfig.CUT_PITCH_VARIANTS.size() - 1)]
 	p.volume_db = GameConfig.linear_to_db_safe(GameConfig.CUT_GAIN)
 	p.play()
+
+
+## The metallic "tink" of a salvage pickup (G9). Silent if the file is missing,
+## like every other cue here.
+func play_scrap() -> void:
+	if not _streams.has("scrap"):
+		return
+	_one_shot.stream = _streams["scrap"]
+	_one_shot.pitch_scale = randf_range(0.94, 1.08)
+	_one_shot.play()
 
 
 func play_discovery() -> void:

@@ -86,7 +86,7 @@ func _build_obstacle_placeholders() -> void:
 	holder.name = "ObstaclePlaceholders"
 	add_child(holder)
 
-	for ob in LawnModel.OBSTACLES:
+	for ob in model.obstacles:
 		var ob_name: String = ob["name"]
 		var grid: Rect2i = ob["grid"]
 		var world := LawnModel.grid_rect_to_world(grid)

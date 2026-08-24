@@ -8,12 +8,39 @@ const VIEWPORT_WIDTH := 1170
 const VIEWPORT_HEIGHT := 2532
 
 # ---------------------------------------------------------------- world (§2)
-const GRID_COLS := 16
-const GRID_ROWS := 24
-const CELL_COUNT := GRID_COLS * GRID_ROWS      # 384
+## G9: the grid is DATA now. These keep their old names, so all fifty existing
+## call sites are untouched, but they are static vars a LevelVariant rewrites
+## through set_grid() before the model is built. Cell size stays 1.0 world unit,
+## so half-extents are always half the cell counts.
+static var GRID_COLS := 16
+static var GRID_ROWS := 24
+static var CELL_COUNT := 16 * 24
+## The three standard yard sizes a variant can ask for, plus B8's cellar.
+const GRID_SIZES := {
+	"small": Vector2i(12, 18),
+	"medium": Vector2i(16, 24),
+	"large": Vector2i(20, 30),
+	"cellar": Vector2i(10, 14),
+}
+
+
+## Called once per chapter, BEFORE LawnModel is constructed: everything that
+## reads the grid (model, view, tuft field, camera bounds, robot route planner,
+## completion percentage) derives from these four numbers.
+static func set_grid(cols: int, rows: int) -> void:
+	GRID_COLS = maxi(cols, 4)
+	GRID_ROWS = maxi(rows, 4)
+	CELL_COUNT = GRID_COLS * GRID_ROWS
+	HALF_X = float(GRID_COLS) * 0.5
+	HALF_Z = float(GRID_ROWS) * 0.5
+
+
+static func set_grid_named(size_id: String) -> void:
+	var size: Vector2i = GRID_SIZES.get(size_id, GRID_SIZES["medium"])
+	set_grid(size.x, size.y)
 ## Cell centre: x = col + 0.5 - 8, z = row + 0.5 - 12. Row 0 = north (-Z).
-const HALF_X := 8.0
-const HALF_Z := 12.0
+static var HALF_X := 8.0
+static var HALF_Z := 12.0
 const MOWER_START := Vector2(0.0, 10.5)        # south-centre, facing north
 
 # ---------------------------------------------------------------- striping (§4)
@@ -37,7 +64,9 @@ const GROUND_ROUGHNESS := 0.95
 ## ACTIVE palette below. Levels can later swap palettes with ONE line. The
 ## ground albedo texture is NEUTRAL luminance detail; all hue lives in tints,
 ## so any palette family renders correctly.
-const ACTIVE_GRASS_PALETTE := "GREEN"
+## Set per chapter by LevelVariant. grass_palette() is the only reader, so every
+## grass colour in the game follows from this one string (G6.6 infrastructure).
+static var active_grass_palette := "GREEN"
 
 const GRASS_PALETTES := {
 	"GREEN": {
@@ -73,11 +102,142 @@ const GRASS_PALETTES := {
 		],
 		"clipping": Color(0.62, 0.40, 0.90),
 	},
+
+	# --- G9 chapter palettes. The ground albedo is NEUTRAL luminance detail, so
+	# a palette only has to state hue and value and every surface follows: tall
+	# clumps, the mowed stripe ladder, clippings and the derived ground tint.
+	# A soft green stripe ladder against dry blades is what makes a yard read as
+	# "cut" no matter how odd the grass colour is.
+
+	# B2: the same neighbourhood, a season on. Slightly bluer, less saturated.
+	"GREEN_COOL": {
+		"cluster_base": Color(0.055, 0.24, 0.09),
+		"cluster_tip": Color(0.26, 0.63, 0.28),
+		"accents": [
+			{ "base": Color(0.10, 0.24, 0.10), "tip": Color(0.44, 0.60, 0.32),
+				"weight": 0.16, "flowers": false },
+			{ "base": Color(0.09, 0.30, 0.14), "tip": Color(0.40, 0.76, 0.44),
+				"weight": 0.05, "flowers": true },
+		],
+		"ground_mowed": [
+			Color(0.22, 0.61, 0.24), Color(0.19, 0.56, 0.21),
+			Color(0.13, 0.42, 0.15), Color(0.16, 0.49, 0.18),
+		],
+		"clipping": Color(0.34, 0.66, 0.32),
+	},
+
+	# B3: unwatered for a long time. Straw over a green undertone, so the cut
+	# stripes still read as grass rather than sand.
+	"DRY_GOLD": {
+		"cluster_base": Color(0.24, 0.19, 0.06),
+		"cluster_tip": Color(0.80, 0.70, 0.30),
+		"accents": [
+			{ "base": Color(0.28, 0.21, 0.07), "tip": Color(0.88, 0.78, 0.42),
+				"weight": 0.20, "flowers": false },
+			{ "base": Color(0.20, 0.22, 0.08), "tip": Color(0.62, 0.68, 0.30),
+				"weight": 0.06, "flowers": true },
+		],
+		"ground_mowed": [
+			Color(0.62, 0.56, 0.22), Color(0.56, 0.50, 0.19),
+			Color(0.40, 0.35, 0.13), Color(0.48, 0.43, 0.16),
+		],
+		"clipping": Color(0.74, 0.66, 0.30),
+	},
+
+	# B4: standing water. Dark, brown-shifted, low contrast.
+	"MARSH": {
+		"cluster_base": Color(0.07, 0.13, 0.06),
+		"cluster_tip": Color(0.30, 0.42, 0.18),
+		"accents": [
+			{ "base": Color(0.14, 0.12, 0.06), "tip": Color(0.44, 0.38, 0.18),
+				"weight": 0.24, "flowers": false },
+			{ "base": Color(0.06, 0.16, 0.10), "tip": Color(0.26, 0.50, 0.30),
+				"weight": 0.05, "flowers": true },
+		],
+		"ground_mowed": [
+			Color(0.24, 0.36, 0.16), Color(0.21, 0.32, 0.14),
+			Color(0.14, 0.23, 0.10), Color(0.18, 0.28, 0.12),
+		],
+		"clipping": Color(0.32, 0.44, 0.20),
+	},
+
+	# B5: watered, fed, flowering. The heaviest accent weight of any palette.
+	"LUSH": {
+		"cluster_base": Color(0.06, 0.28, 0.07),
+		"cluster_tip": Color(0.38, 0.82, 0.26),
+		"accents": [
+			{ "base": Color(0.10, 0.30, 0.10), "tip": Color(0.56, 0.86, 0.34),
+				"weight": 0.18, "flowers": true },
+			{ "base": Color(0.14, 0.26, 0.12), "tip": Color(0.74, 0.82, 0.40),
+				"weight": 0.14, "flowers": true },
+		],
+		"ground_mowed": [
+			Color(0.30, 0.76, 0.20), Color(0.26, 0.70, 0.17),
+			Color(0.18, 0.54, 0.12), Color(0.22, 0.62, 0.14),
+		],
+		"clipping": Color(0.46, 0.80, 0.26),
+	},
+
+	# B6: the big field at the end of the day. Warm gold, still clearly grass.
+	"AMBER": {
+		"cluster_base": Color(0.26, 0.17, 0.05),
+		"cluster_tip": Color(0.88, 0.64, 0.22),
+		"accents": [
+			{ "base": Color(0.30, 0.20, 0.06), "tip": Color(0.94, 0.74, 0.34),
+				"weight": 0.18, "flowers": false },
+			{ "base": Color(0.24, 0.20, 0.06), "tip": Color(0.76, 0.66, 0.26),
+				"weight": 0.06, "flowers": true },
+		],
+		"ground_mowed": [
+			Color(0.70, 0.52, 0.18), Color(0.63, 0.46, 0.16),
+			Color(0.45, 0.32, 0.11), Color(0.54, 0.39, 0.13),
+		],
+		"clipping": Color(0.82, 0.60, 0.22),
+	},
+
+	# B7: last light. Desaturated violet-grey; the one palette where the stripe
+	# ladder carries almost all of the "this is cut" reading.
+	"DUSK_VIOLET": {
+		"cluster_base": Color(0.13, 0.11, 0.18),
+		"cluster_tip": Color(0.46, 0.42, 0.58),
+		"accents": [
+			{ "base": Color(0.17, 0.13, 0.20), "tip": Color(0.58, 0.50, 0.66),
+				"weight": 0.18, "flowers": false },
+			{ "base": Color(0.12, 0.13, 0.22), "tip": Color(0.40, 0.44, 0.68),
+				"weight": 0.06, "flowers": true },
+		],
+		"ground_mowed": [
+			Color(0.40, 0.36, 0.52), Color(0.35, 0.32, 0.47),
+			Color(0.24, 0.22, 0.34), Color(0.30, 0.27, 0.40),
+		],
+		"clipping": Color(0.50, 0.45, 0.62),
+	},
+
+	# B8: the cellar garden. Deep saturated green that reads as lit from above.
+	"EMERALD": {
+		"cluster_base": Color(0.03, 0.20, 0.10),
+		"cluster_tip": Color(0.18, 0.78, 0.40),
+		"accents": [
+			{ "base": Color(0.05, 0.22, 0.14), "tip": Color(0.28, 0.86, 0.52),
+				"weight": 0.16, "flowers": false },
+			{ "base": Color(0.06, 0.18, 0.16), "tip": Color(0.34, 0.82, 0.66),
+				"weight": 0.06, "flowers": true },
+		],
+		"ground_mowed": [
+			Color(0.14, 0.66, 0.32), Color(0.12, 0.60, 0.29),
+			Color(0.07, 0.44, 0.20), Color(0.10, 0.52, 0.24),
+		],
+		"clipping": Color(0.22, 0.72, 0.38),
+	},
 }
 
 
 static func grass_palette() -> Dictionary:
-	return GRASS_PALETTES[ACTIVE_GRASS_PALETTE]
+	if not GRASS_PALETTES.has(active_grass_palette):
+		push_warning("[GameConfig] bilinmeyen palet '%s' - GREEN kullanildi"
+			% active_grass_palette)
+		return GRASS_PALETTES["GREEN"]
+	return GRASS_PALETTES[active_grass_palette]
 
 
 ## RULE: the uncut ground tint is ALWAYS derived from the cluster family — the
@@ -249,6 +409,43 @@ const DECEL_TIME := 0.55
 const STEER_SMOOTHING := 9.0
 const STEER_SPEED_RADIUS_FACTOR := 0.45
 const STEER_ERROR_GAIN := 5.0                 # shortestAngle * 5 -> desiredOmega
+# ---------------------------------------------------------------- G9 cellar (B8)
+## The cellar garden is the one chapter that is INDOORS. It reuses the existing
+## light rig rather than adding one: the sun is dimmed and cooled to read as a
+## single shaft from above, ambient drops, and a dark ring closes the edges in.
+const CELLAR_SUN_ENERGY := 0.55
+const CELLAR_SUN_COLOR := Color(0.92, 0.95, 0.80)
+const CELLAR_SUN_EULER := Vector3(-1.35, -0.15, 0.0)
+const CELLAR_AMBIENT_ENERGY := 0.16
+const CELLAR_AMBIENT_COLOR := Color(0.20, 0.30, 0.24)
+## How far past the lawn edge the darkness closes in, and how black it gets.
+const CELLAR_VIGNETTE_MARGIN := 5.0
+const CELLAR_VIGNETTE_ALPHA := 0.92
+
+# ---------------------------------------------------------------- G9 economy
+## Scrap (the currency; nowhere to spend it until G10's Workshop).
+## Per-pickup value range, so a run's ground haul varies a little.
+const SCRAP_PICKUP_MIN := 2
+const SCRAP_PICKUP_MAX := 5
+## Share of a chapter's payout that comes off the ground vs the completion bonus.
+## The ground share is deliberately the smaller one: picking scrap up should feel
+## like a bonus for looking around, not the main job.
+const SCRAP_GROUND_SHARE := 0.30
+const SCRAP_BONUS_SHARE := 0.70
+## Completion bonus curve. Leaving early with the evidence still pays most of it,
+## because the early exit must not read as a punishment: the bonus scales from
+## SCRAP_BONUS_FLOOR at 0% mown to 1.0 at 100%.
+const SCRAP_BONUS_FLOOR := 0.55
+## Extra on top for a full mow, shown as its own line so the reward is legible.
+const SCRAP_THOROUGH_BONUS := 0.15
+## Scrap pickup visuals.
+const SCRAP_ICON := "🔩"
+const SCRAP_RISE := 1.1
+const SCRAP_FLY_TIME := 0.55
+## Minimum cells between two pickups, so they are spread rather than clustered.
+const SCRAP_MIN_SEPARATION := 3
+const SCRAP_PLACEMENT_TRIES := 400
+
 # ---------------------------------------------------------------- G8 portraits
 ## The character art is 9:16 full-figure illustration, so the dialogue box shows
 ## it LARGE (a thumbnail wastes it) and the town list uses a square face crop
@@ -432,6 +629,30 @@ const BLADE_SPARK_COOLDOWN := 0.5
 const BLADE_SCALE := 1.0
 
 # ---------------------------------------------------------------- neighborhood (§2, §12)
+## G9 house variants: the SAME house parts in different combinations, so a
+## chapter can look like a different property without new geometry. house_none
+## builds nothing, which is what the landmark chapters use.
+const HOUSE_VARIANTS := {
+	"house_v1": { "body": Color(0.78, 0.77, 0.72), "roof": Color(0.42, 0.26, 0.20),
+		"porch": true, "chimney": true },
+	"house_v2": { "body": Color(0.62, 0.70, 0.68), "roof": Color(0.30, 0.31, 0.34),
+		"porch": false, "chimney": true },
+	"house_v3": { "body": Color(0.80, 0.72, 0.55), "roof": Color(0.46, 0.34, 0.22),
+		"porch": true, "chimney": false },
+	"house_v4": { "body": Color(0.55, 0.48, 0.44), "roof": Color(0.24, 0.22, 0.24),
+		"porch": false, "chimney": false },
+	"house_v5": { "body": Color(0.70, 0.55, 0.50), "roof": Color(0.38, 0.28, 0.26),
+		"porch": true, "chimney": true },
+	"house_none": {},
+}
+
+## Landmark structures that stand where the house would. One low-detail
+## composition each, built from the same primitives and textures as the house,
+## and each one casts shadow so it anchors to the ground.
+const LANDMARK_IDS: Array[String] = [
+	"playground", "greenhouse", "water_tower", "mill",
+]
+
 const HOUSE_POS_Z := -16.8                     # z = -(12 + 4.8)
 const HOUSE_BODY := Vector3(13.0, 3.2, 4.2)
 const HOUSE_ROOF := Vector3(14.2, 2.4, 5.4)

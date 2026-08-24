@@ -30,11 +30,14 @@ func _check_data() -> void:
 			not chapter.has("scene") and not chapter.has("path"), str(chapter))
 		ck("bolum variant_id tasiyor", str(chapter.get("variant_id", "")) != "",
 			str(chapter))
+	# G9 opened all eight: every chapter must be playable AND have a variant.
 	var playable := 0
 	for chapter: Dictionary in ChapterProgress.chapters():
 		if bool(chapter.get("playable", false)):
 			playable += 1
-	ck("simdilik yalniz 1 bolum oynanabilir", playable == 1, str(playable))
+		var vid := str(chapter.get("variant_id", ""))
+		ck("varyant verisi var: %s" % vid, LevelVariant.ids().has(vid), vid)
+	ck("8 bolum oynanabilir", playable == 8, str(playable))
 	ck("aktif bolum ilk bolum",
 		ChapterProgress.current_variant_id() == "ch01_aldridge",
 		ChapterProgress.current_variant_id())

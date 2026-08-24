@@ -15,12 +15,25 @@ var _bird: AudioStreamPlayer
 var _bird_timer := 0.0
 var _time := 0.0
 var _rng := RandomNumberGenerator.new()
+var _variant: LevelVariant
+## This chapter's resolved obstacle rects; props and the pool follow it.
+var _layout: Array[Dictionary] = []
 
 
 func _ready() -> void:
-	_rng.seed = 20260823
+	# G9: decor_seed makes every random choice below repeatable per chapter, so a
+	# yard looks the same on every visit but different from the next chapter.
+	_variant = LevelVariant.current
+	_rng.seed = _variant.decor_seed if _variant != null and _variant.decor_seed != 0 \
+		else 20260823
+	_layout = LawnModel.resolve_layout(LawnModel.layout_id)
+	if _variant != null and _variant.vignette:
+		_apply_cellar_mood()
 	_build_yard()
-	_build_house()
+	if _variant != null and _variant.landmark_id != "":
+		_build_landmark(_variant.landmark_id)
+	else:
+		_build_house()
 	_build_pool()
 	_build_obstacle_props()
 	_build_fence()
@@ -224,10 +237,20 @@ func _build_house() -> void:
 	house.position = Vector3(0.0, 0.0, GameConfig.HOUSE_POS_Z)
 	add_child(house)
 
-	var siding := _tex_mat("siding", "siding_albedo", Color(0.78, 0.77, 0.72), 0.85,
-		Vector3(3.0, 1.0, 1.0))
-	var shingles := _tex_mat("shingles", "roof_shingles_albedo",
-		Color(0.42, 0.26, 0.20), 0.9, Vector3(2.0, 2.0, 1.0))
+	# Variant colours tint the SAME textures, so a different house is a data
+	# change rather than new art.
+	var spec: Dictionary = GameConfig.HOUSE_VARIANTS.get(_house_variant_id(), {})
+	if spec.is_empty():
+		# house_none: the chapter has no house at all.
+		house.queue_free()
+		return
+	var siding := _tex_mat("siding_" + _house_variant_id(), "siding_albedo",
+		spec.get("body", Color(0.78, 0.77, 0.72)), 0.85, Vector3(3.0, 1.0, 1.0))
+	var shingles := _tex_mat("shingles_" + _house_variant_id(),
+		"roof_shingles_albedo", spec.get("roof", Color(0.42, 0.26, 0.20)), 0.9,
+		Vector3(2.0, 2.0, 1.0))
+	var has_porch := bool(spec.get("porch", true))
+	var has_chimney := bool(spec.get("chimney", true))
 	var trim := _flat("trim", Color(0.93, 0.92, 0.88), 0.82)
 	var dark_interior := _flat("interior", Color(0.05, 0.05, 0.07), 0.9)
 	var curtain := _flat("curtain", Color(0.92, 0.88, 0.78), 0.9)
@@ -242,8 +265,9 @@ func _build_house() -> void:
 		GameConfig.HOUSE_ROOF.y, shingles, Vector3(0.0, body.y, 0.0))
 
 	# Chimney: brick stack + cap, poking through the east roof slope.
-	_box(house, Vector3(0.5, 1.6, 0.5), brick, Vector3(3.4, body.y + 1.1, 0.0))
-	_box(house, Vector3(0.66, 0.12, 0.66), trim, Vector3(3.4, body.y + 1.96, 0.0))
+	if has_chimney:
+		_box(house, Vector3(0.5, 1.6, 0.5), brick, Vector3(3.4, body.y + 1.1, 0.0))
+		_box(house, Vector3(0.66, 0.12, 0.66), trim, Vector3(3.4, body.y + 1.96, 0.0))
 
 	var wall_z := body.z * 0.5 + 0.01   # south face, toward the lawn
 
@@ -298,12 +322,16 @@ func _build_house() -> void:
 # ---------------------------------------------------------------- pool (§11)
 
 func _build_pool() -> void:
+	# Only the layouts that actually place a pool get one (G9).
+	var rect := _layout_rect("pool")
+	if rect == Rect2():
+		return
 	var pool := Node3D.new()
 	pool.name = "Pool"
 	add_child(pool)
-	# Grid rect (10,17,4,3) -> world x 2..6, z 5..8.
-	var center := Vector3(4.0, 0.0, 6.5)
-	var size := Vector2(4.0, 3.0)
+	var center := Vector3(rect.position.x + rect.size.x * 0.5, 0.0,
+		rect.position.y + rect.size.y * 0.5)
+	var size := rect.size
 	var hx := size.x * 0.5
 	var hz := size.y * 0.5
 
@@ -361,30 +389,51 @@ func _build_pool() -> void:
 ## Real props on the obstacle cells the model already blocks: the lounger east
 ## of the pool (§11), the stone, and the flowerbed soil (flowers come later).
 func _build_obstacle_props() -> void:
-	# Sun lounger at cell (14,18) = world (6.5, 6.5), facing west (§11).
+	var wood := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
+	var stone_mat := _flat("stone", Color(0.55, 0.54, 0.52), 0.95)
+	var dirt := _tex_mat("dirt", "dirt_albedo", Color(0.38, 0.28, 0.18), 1.0)
+
+	# One prop per obstacle the LAYOUT placed, at the rect the model will collide
+	# against — so a chapter never shows a prop it can drive through, or collides
+	# with something invisible.
+	for ob: Dictionary in _layout:
+		var rect := LawnModel.grid_rect_to_world(ob["grid"])
+		var centre := Vector3(rect.position.x + rect.size.x * 0.5, 0.0,
+			rect.position.y + rect.size.y * 0.5)
+		match str(ob["name"]):
+			"stone":
+				_ball(self, 0.42, stone_mat, centre + Vector3(0.0, 0.16, 0.0),
+					Vector3(1.15, 0.55, 0.9))
+			"flowerbed":
+				_box(self, Vector3(rect.size.x, 0.12, rect.size.y), dirt,
+					centre + Vector3(0.0, 0.06, 0.0))
+			"sunbed":
+				_build_lounger(centre, wood)
+
+
+## Sun lounger, facing west, nudged east so its frame clears the pool border.
+func _build_lounger(centre: Vector3, wood: Material) -> void:
 	var lounger := Node3D.new()
 	lounger.name = "Lounger"
-	# Nudged east so the frame clears the pool border (cell centre is 6.5).
-	lounger.position = Vector3(6.95, 0.0, 6.5)
+	lounger.position = centre + Vector3(0.45, 0.0, 0.0)
 	lounger.rotation.y = PI * 0.5   # -Z model faces west
 	add_child(lounger)
-	var wood := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
 	_box(lounger, Vector3(0.6, 0.05, 1.0), wood, Vector3(0.0, 0.28, 0.15))
 	_box(lounger, Vector3(0.6, 0.05, 0.55), wood, Vector3(0.0, 0.47, -0.53),
 		Vector3(-0.7, 0.0, 0.0))
 	for leg in [Vector3(-0.26, 0.14, -0.3), Vector3(0.26, 0.14, -0.3),
 			Vector3(-0.26, 0.14, 0.55), Vector3(0.26, 0.14, 0.55)]:
 		_box(lounger, Vector3(0.05, 0.28, 0.05), wood, leg)
-	_box(lounger, Vector3(0.4, 0.08, 0.3), _flat("towel", Color(0.95, 0.55, 0.15), 0.95),
-		Vector3(0.0, 0.34, 0.35))
+	_box(lounger, Vector3(0.4, 0.08, 0.3),
+		_flat("towel", Color(0.95, 0.55, 0.15), 0.95), Vector3(0.0, 0.34, 0.35))
 
-	# The stone at cell (11,9) = world (3.5, -2.5).
-	_ball(self, 0.42, _flat("stone", Color(0.55, 0.54, 0.52), 0.95),
-		Vector3(3.5, 0.16, -2.5), Vector3(1.15, 0.55, 0.9))
 
-	# Flowerbed soil at cells (4-5,14) = world x -4..-2, z 2..3.
-	var dirt := _tex_mat("dirt", "dirt_albedo", Color(0.38, 0.28, 0.18), 1.0)
-	_box(self, Vector3(2.0, 0.12, 1.0), dirt, Vector3(-3.0, 0.06, 2.5))
+## World rect of the first obstacle with this name, or an empty Rect2.
+func _layout_rect(obstacle_name: String) -> Rect2:
+	for ob: Dictionary in _layout:
+		if str(ob["name"]) == obstacle_name:
+			return LawnModel.grid_rect_to_world(ob["grid"])
+	return Rect2()
 
 
 # ---------------------------------------------------------------- fence (§12)
@@ -768,3 +817,254 @@ func _build_clouds() -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		_clouds.append({ "node": mi, "base_x": base_x, "phase": _rng.randf() * TAU })
+
+
+# ---------------------------------------------------------------- G9 variants
+
+func _house_variant_id() -> String:
+	if _variant == null or _variant.house_variant == "":
+		return "house_v1"
+	return _variant.house_variant
+
+
+## Landmarks stand where the house would, at the same distance, so the camera
+## framing and the fence line need no special case. One low-detail composition
+## each, from the same primitives as the house, all casting shadow.
+func _build_landmark(landmark_id: String) -> void:
+	var root := Node3D.new()
+	root.name = "Landmark_" + landmark_id
+	root.position = Vector3(0.0, 0.0, GameConfig.HOUSE_POS_Z + 1.6)
+	add_child(root)
+	match landmark_id:
+		"playground": _landmark_playground(root)
+		"greenhouse": _landmark_greenhouse(root)
+		"water_tower": _landmark_water_tower(root)
+		"mill": _landmark_mill(root)
+		_:
+			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
+			root.queue_free()
+
+
+## Rusted swing set, slide and sandpit. The rust colour is what dates it.
+func _landmark_playground(root: Node3D) -> void:
+	var rust := _flat("rust", Color(0.48, 0.26, 0.16), 0.9, 0.25)
+	var pole := _flat("pg_pole", Color(0.42, 0.44, 0.46), 0.7, 0.4)
+	var seat := _flat("pg_seat", Color(0.22, 0.24, 0.30), 0.8)
+	var slide_mat := _flat("pg_slide", Color(0.62, 0.52, 0.22), 0.55, 0.3)
+	var sand := _flat("pg_sand", Color(0.78, 0.70, 0.50), 0.95)
+
+	# Swing set: two A-frames and a top bar, with two hanging seats.
+	for side: float in [-1.0, 1.0]:
+		for lean: float in [-1.0, 1.0]:
+			_cyl(root, 0.09, 0.09, 3.1, rust,
+				Vector3(side * 2.6 + lean * 0.5, 1.55, 0.0),
+				Vector3(0.0, 0.0, -lean * 0.16))
+	_cyl(root, 0.08, 0.08, 5.4, rust, Vector3(0.0, 3.05, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5))
+	for x: float in [-1.1, 1.1]:
+		for chain: float in [-0.22, 0.22]:
+			_cyl(root, 0.02, 0.02, 1.9, pole, Vector3(x + chain, 2.1, 0.0))
+		_box(root, Vector3(0.7, 0.07, 0.28), seat, Vector3(x, 1.15, 0.0))
+
+	# Slide: ladder, platform, and a sloped chute.
+	_box(root, Vector3(1.1, 0.1, 1.1), pole, Vector3(5.4, 1.7, 0.4))
+	for side: float in [-1.0, 1.0]:
+		_cyl(root, 0.07, 0.07, 1.7, rust, Vector3(5.4 + side * 0.45, 0.85, 0.85))
+	for step in 4:
+		_box(root, Vector3(0.9, 0.06, 0.14), rust,
+			Vector3(5.4, 0.42 + float(step) * 0.42, 0.86))
+	_box(root, Vector3(0.9, 0.08, 3.1), slide_mat, Vector3(5.4, 0.95, -1.3),
+		Vector3(-0.52, 0.0, 0.0))
+	for side: float in [-1.0, 1.0]:
+		_box(root, Vector3(0.08, 0.34, 3.1), slide_mat,
+			Vector3(5.4 + side * 0.45, 1.08, -1.3), Vector3(-0.52, 0.0, 0.0))
+
+	# Sandpit: a shallow pad with a timber kerb, half taken back by grass.
+	_ground_quad(root, Vector2(4.0, 3.0), sand, Vector3(-5.2, 0.03, 0.2))
+	for edge: Array in [[-5.2, 1.6, 4.0, 0.24], [-5.2, -1.2, 4.0, 0.24],
+			[-7.1, 0.2, 0.24, 2.9], [-3.3, 0.2, 0.24, 2.9]]:
+		_box(root, Vector3(edge[2], 0.22, edge[3]), rust,
+			Vector3(edge[0], 0.11, edge[1]))
+	_ao_blob(root, Vector2(13.0, 7.0), Vector3(0.0, 0.02, 0.2), 0.5)
+
+
+## Broken-glass greenhouse: a frame with panes, plants inside, one wall open.
+func _landmark_greenhouse(root: Node3D) -> void:
+	var frame := _flat("gh_frame", Color(0.72, 0.71, 0.66), 0.6, 0.2)
+	var glass := _flat("gh_glass", Color(0.72, 0.86, 0.82, 0.34), 0.15, 0.1)
+	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	# Seen from both sides: the far panes have to draw through the near ones.
+	glass.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var plant := _flat("gh_plant", Color(0.16, 0.42, 0.14), 1.0)
+	var pot := _flat("gh_pot", Color(0.46, 0.28, 0.20), 0.9)
+	var base := _flat("gh_base", Color(0.50, 0.48, 0.44), 0.9)
+
+	var w := 8.0
+	var d := 4.4
+	var h := 2.7
+	_box(root, Vector3(w + 0.4, 0.22, d + 0.4), base, Vector3(0.0, 0.11, 0.0))
+	# Corner posts and eaves.
+	for sx: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
+			_cyl(root, 0.09, 0.09, h, frame,
+				Vector3(sx * w * 0.5, h * 0.5, sz * d * 0.5))
+	for sz: float in [-1.0, 1.0]:
+		_box(root, Vector3(w, 0.14, 0.14), frame, Vector3(0.0, h, sz * d * 0.5))
+	_box(root, Vector3(0.14, 0.14, d), frame, Vector3(0.0, h + 0.55, 0.0))
+	# Pitched roof panes.
+	for sz: float in [-1.0, 1.0]:
+		_box(root, Vector3(w, 0.05, d * 0.62), glass,
+			Vector3(0.0, h + 0.28, sz * d * 0.26),
+			Vector3(sz * 0.42, 0.0, 0.0))
+	# Wall panes: the south wall is missing, and two panes are gone elsewhere.
+	var missing := [2, 5]
+	for i in 6:
+		var px := -w * 0.5 + w * (float(i) + 0.5) / 6.0
+		if i in missing:
+			continue
+		_box(root, Vector3(w / 6.0 - 0.12, h - 0.3, 0.05), glass,
+			Vector3(px, h * 0.5, -d * 0.5))
+	for sx: float in [-1.0, 1.0]:
+		for j in 3:
+			var pz := -d * 0.5 + d * (float(j) + 0.5) / 3.0
+			_box(root, Vector3(0.05, h - 0.3, d / 3.0 - 0.12), glass,
+				Vector3(sx * w * 0.5, h * 0.5, pz))
+	# Benches of potted plants inside, visible through the glass.
+	for sz: float in [-1.0, 1.0]:
+		_box(root, Vector3(w - 1.2, 0.12, 0.9), pot,
+			Vector3(0.0, 0.78, sz * d * 0.26))
+		for i in 5:
+			var px := -w * 0.5 + 1.1 + float(i) * 1.5
+			_box(root, Vector3(0.34, 0.3, 0.34), pot,
+				Vector3(px, 0.99, sz * d * 0.26))
+			_ball(root, 0.36, plant, Vector3(px, 1.42, sz * d * 0.26))
+	_ao_blob(root, Vector2(w + 2.0, d + 2.0), Vector3(0.0, 0.02, 0.0), 0.55)
+
+
+## Water tower: four braced legs, a tank, a conical cap and a ladder.
+func _landmark_water_tower(root: Node3D) -> void:
+	var steel := _flat("wt_steel", Color(0.50, 0.52, 0.54), 0.6, 0.45)
+	var tank := _flat("wt_tank", Color(0.60, 0.42, 0.30), 0.75, 0.2)
+	var dark := _flat("wt_dark", Color(0.30, 0.28, 0.26), 0.8)
+
+	var spread := 2.3
+	var leg_h := 6.4
+	for sx: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
+			_cyl(root, 0.14, 0.20, leg_h, steel,
+				Vector3(sx * spread, leg_h * 0.5, sz * spread),
+				Vector3(sz * 0.05, 0.0, -sx * 0.05))
+	# Cross bracing at two heights, both diagonals per face.
+	for level: float in [0.32, 0.68]:
+		var y := leg_h * level
+		for face in 4:
+			var angle := TAU * float(face) / 4.0
+			var cx := sin(angle) * spread
+			var cz := cos(angle) * spread
+			for tilt: float in [-1.0, 1.0]:
+				_box(root, Vector3(spread * 2.05, 0.07, 0.07), steel,
+					Vector3(cx, y, cz),
+					Vector3(0.0, angle, tilt * 0.62))
+	_box(root, Vector3(spread * 2.4, 0.16, spread * 2.4), dark,
+		Vector3(0.0, leg_h, 0.0))
+	_cyl(root, 2.5, 2.5, 3.2, tank, Vector3(0.0, leg_h + 1.7, 0.0))
+	for band: float in [0.6, 2.4]:
+		_cyl(root, 2.56, 2.56, 0.14, dark, Vector3(0.0, leg_h + band, 0.0))
+	# Conical cap and a vent pipe.
+	var cap := CylinderMesh.new()
+	cap.top_radius = 0.1
+	cap.bottom_radius = 2.6
+	cap.height = 1.0
+	cap.radial_segments = 16
+	_mesh(root, cap, dark, Vector3(0.0, leg_h + 3.8, 0.0))
+	_cyl(root, 0.12, 0.12, 0.9, steel, Vector3(0.0, leg_h + 4.6, 0.0))
+	# Ladder up one leg.
+	for rung in 14:
+		_box(root, Vector3(0.5, 0.05, 0.05), steel,
+			Vector3(spread + 0.28, 0.5 + float(rung) * 0.42, spread + 0.28))
+	_ao_blob(root, Vector2(8.0, 8.0), Vector3(0.0, 0.02, 0.0), 0.6)
+
+
+## Timber mill: a barn with a shingled gable, a sack hoist and a broken wheel.
+func _landmark_mill(root: Node3D) -> void:
+	var plank := _tex_mat("mill_plank", "wood_albedo", Color(0.44, 0.32, 0.22), 0.9)
+	var shingle := _tex_mat("mill_roof", "roof_shingles_albedo",
+		Color(0.32, 0.28, 0.26), 0.9, Vector3(2.0, 2.0, 1.0))
+	var dark := _flat("mill_dark", Color(0.10, 0.09, 0.09), 0.9)
+	var iron := _flat("mill_iron", Color(0.34, 0.32, 0.30), 0.7, 0.4)
+
+	var body := Vector3(9.0, 4.6, 5.2)
+	_box(root, body, plank, Vector3(0.0, body.y * 0.5, 0.0))
+	# Gable roof from two slabs, plus the ridge.
+	for sz: float in [-1.0, 1.0]:
+		_box(root, Vector3(body.x + 0.7, 0.24, body.z * 0.66), shingle,
+			Vector3(0.0, body.y + 0.72, sz * body.z * 0.28),
+			Vector3(sz * 0.46, 0.0, 0.0))
+	_box(root, Vector3(body.x + 0.8, 0.2, 0.4), shingle,
+		Vector3(0.0, body.y + 1.42, 0.0))
+	# Big sliding door, dark inside.
+	_box(root, Vector3(3.0, 3.2, 0.16), dark, Vector3(-1.0, 1.6, body.z * 0.5))
+	_box(root, Vector3(0.26, 3.4, 0.22), plank, Vector3(0.7, 1.7, body.z * 0.5))
+	_box(root, Vector3(3.4, 0.18, 0.22), iron,
+		Vector3(-1.0, 3.35, body.z * 0.5 + 0.04))
+	# Loft opening and the sack hoist beam sticking out over it.
+	_box(root, Vector3(1.4, 1.3, 0.16), dark,
+		Vector3(2.6, body.y - 0.4, body.z * 0.5))
+	_box(root, Vector3(0.3, 0.3, 2.2), plank,
+		Vector3(2.6, body.y + 0.5, body.z * 0.5 + 0.9))
+	_cyl(root, 0.03, 0.03, 1.5, iron,
+		Vector3(2.6, body.y - 0.25, body.z * 0.5 + 1.85))
+	_box(root, Vector3(0.5, 0.5, 0.4), plank,
+		Vector3(2.6, body.y - 1.1, body.z * 0.5 + 1.85))
+	# A broken mill wheel leaning on the west wall.
+	var wheel := TorusMesh.new()
+	wheel.inner_radius = 1.35
+	wheel.outer_radius = 1.7
+	wheel.rings = 20
+	wheel.ring_segments = 8
+	_mesh(root, wheel, plank, Vector3(-body.x * 0.5 - 0.6, 1.7, 1.2),
+		Vector3(PI * 0.5, 0.0, 0.28))
+	for spoke in 6:
+		_box(root, Vector3(0.16, 0.16, 3.0), plank,
+			Vector3(-body.x * 0.5 - 0.6, 1.7, 1.2),
+			Vector3(0.28, 0.0, TAU * float(spoke) / 6.0))
+	_ao_blob(root, Vector2(12.0, 8.0), Vector3(0.0, 0.02, 0.0), 0.6)
+
+
+## B8 only: turn the yard into a cellar garden without a second light rig. The
+## existing sun becomes a steep, dim, cool shaft, ambient drops, and a ring of
+## dark quads closes the edges so the lawn reads as lit from a hole above.
+func _apply_cellar_mood() -> void:
+	var sun := get_node_or_null("../Sun") as DirectionalLight3D
+	if sun != null:
+		sun.rotation = GameConfig.CELLAR_SUN_EULER
+		sun.light_color = GameConfig.CELLAR_SUN_COLOR
+		sun.light_energy = GameConfig.CELLAR_SUN_ENERGY
+	var world := get_node_or_null("../WorldEnvironment") as WorldEnvironment
+	if world != null and world.environment != null:
+		# Duplicated: the Environment is a shared sub-resource, and editing it in
+		# place would leak the cellar mood into every other chapter this session.
+		var env: Environment = world.environment.duplicate()
+		env.ambient_light_color = GameConfig.CELLAR_AMBIENT_COLOR
+		env.ambient_light_energy = GameConfig.CELLAR_AMBIENT_ENERGY
+		world.environment = env
+
+	var dark := _flat("cellar_dark", Color(0.01, 0.012, 0.01), 1.0)
+	dark.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	dark.albedo_color.a = GameConfig.CELLAR_VIGNETTE_ALPHA
+	dark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var margin := GameConfig.CELLAR_VIGNETTE_MARGIN
+	var hx := GameConfig.HALF_X
+	var hz := GameConfig.HALF_Z
+	# Four slabs just above the ground, ringing the playable area.
+	var ring := Node3D.new()
+	ring.name = "CellarVignette"
+	add_child(ring)
+	for band: Array in [
+			[Vector2(hx * 2.0 + margin * 2.0, margin), Vector3(0.0, 0.0, -hz - margin * 0.5)],
+			[Vector2(hx * 2.0 + margin * 2.0, margin), Vector3(0.0, 0.0, hz + margin * 0.5)],
+			[Vector2(margin, hz * 2.0), Vector3(-hx - margin * 0.5, 0.0, 0.0)],
+			[Vector2(margin, hz * 2.0), Vector3(hx + margin * 0.5, 0.0, 0.0)]]:
+		var quad := _ground_quad(ring, band[0], dark,
+			(band[1] as Vector3) + Vector3(0.0, 0.06, 0.0))
+		quad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

@@ -112,37 +112,58 @@
     {
       "variant_id": "ch02_neighbor",
       "name": "CH_02_NAME",
-      "playable": false
+      "playable": true,
+      "brief": "brief_ch02_neighbor",
+      "debrief_full": "debrief_ch02_neighbor_full",
+      "debrief_partial": "debrief_ch02_neighbor_partial"
     },
     {
       "variant_id": "ch03_playground",
       "name": "CH_03_NAME",
-      "playable": false
+      "playable": true,
+      "brief": "brief_ch03_playground",
+      "debrief_full": "debrief_ch03_playground_full",
+      "debrief_partial": "debrief_ch03_playground_partial"
     },
     {
       "variant_id": "ch04_flooded",
       "name": "CH_04_NAME",
-      "playable": false
+      "playable": true,
+      "brief": "brief_ch04_flooded",
+      "debrief_full": "debrief_ch04_flooded_full",
+      "debrief_partial": "debrief_ch04_flooded_partial"
     },
     {
       "variant_id": "ch05_greenhouse",
       "name": "CH_05_NAME",
-      "playable": false
+      "playable": true,
+      "brief": "brief_ch05_greenhouse",
+      "debrief_full": "debrief_ch05_greenhouse_full",
+      "debrief_partial": "debrief_ch05_greenhouse_partial"
     },
     {
       "variant_id": "ch06_watertower",
       "name": "CH_06_NAME",
-      "playable": false
+      "playable": true,
+      "brief": "brief_ch06_watertower",
+      "debrief_full": "debrief_ch06_watertower_full",
+      "debrief_partial": "debrief_ch06_watertower_partial"
     },
     {
       "variant_id": "ch07_mill",
       "name": "CH_07_NAME",
-      "playable": false
+      "playable": true,
+      "brief": "brief_ch07_mill",
+      "debrief_full": "debrief_ch07_mill_full",
+      "debrief_partial": "debrief_ch07_mill_partial"
     },
     {
       "variant_id": "ch08_cellar",
       "name": "CH_08_NAME",
-      "playable": false
+      "playable": true,
+      "brief": "brief_ch08_cellar",
+      "debrief_full": "debrief_ch08_cellar_full",
+      "debrief_partial": "debrief_ch08_cellar_partial"
     }
   ],
   "town": {

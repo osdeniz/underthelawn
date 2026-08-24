@@ -37,10 +37,33 @@ var variant_id := "ch01_aldridge"
 ## Standalone (every test instantiates Main.tscn directly) this is also true, so
 ## the scene is playable on its own.
 var autostart_search := true
+## The resolved chapter data. Read by the HUD, the evidence flow and the scrap
+## economy; never a scene.
+var variant: LevelVariant
+## This chapter's buried salvage, and the running ground haul.
+var scrap_field: ScrapField
+var _scrap_banked := 0
+## Set once both pieces of evidence are in hand and the player chose to keep
+## mowing, so the "Continue" badge stays available.
+var _exit_offered := false
+
+
+## The variant has to be applied before ANY child _ready runs: EnvironmentBuilder
+## builds the house and landmark in its own _ready, and child _ready always
+## precedes the parent's. _enter_tree is the only hook early enough, and
+## variant_id is already set by then because RootFlow assigns it before
+## add_child().
+func _enter_tree() -> void:
+	variant = LevelVariant.of(variant_id)
+	variant.apply()
 
 
 func _ready() -> void:
-	model = LawnModel.new()
+	model = LawnModel.new(variant.decor_seed)
+	scrap_field = ScrapField.new()
+	scrap_field.name = "ScrapField"
+	add_child(scrap_field)
+	scrap_field.setup(model, variant.scrap_budget, variant.decor_seed)
 	lawn.setup(model)
 
 	for child in _mower_root.get_children():
@@ -50,6 +73,8 @@ func _ready() -> void:
 		controller.model = model
 		controller.tuft_field = lawn.tuft_field
 		controller.cells_mown.connect(_on_cells_mown)
+		controller.scrap_found.connect(_on_scrap_found)
+		controller.scrap_field = scrap_field
 		controller.set_active(false)
 		_mowers.append(controller)
 	_mowers.sort_custom(func(a: MowerController, b: MowerController) -> bool:
@@ -75,6 +100,7 @@ func _ready() -> void:
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
 
 	hud.return_requested.connect(_return_to_hub)
+	hud.exit_confirmed.connect(_confirm_exit)
 
 	_apply_quality()
 	_activate(GameConfig.MOWER_PUSH, true)
@@ -281,10 +307,15 @@ func _collect(glow: SecretGlow) -> void:
 	AudioDirector.play_discovery()
 	Haptics.success()
 
-	var info := SecretItem.info_for(kind)
+	var info := variant.evidence_info(kind) if variant != null else {}
+	if info.is_empty():
+		info = SecretItem.info_for(kind)
 	_collected.append({ "emoji": info["emoji"], "name": info["name"] })
 	hud.show_secret_card(info["emoji"], info["name"], info["line"],
-		func() -> void: hud.set_secret_count(_collected.size(), GameConfig.SECRET_TOTAL))
+		func() -> void:
+			hud.set_secret_count(_collected.size(), _evidence_total())
+			if _collected.size() >= _evidence_total():
+				_offer_exit())
 
 
 # ---------------------------------------------------------------- progress
@@ -304,9 +335,12 @@ func _on_completed() -> void:
 	# Let the bird's-eye reward land before the panel covers it.
 	var timer := get_tree().create_timer(1.5)
 	timer.timeout.connect(func() -> void:
-		search_finished.emit(_collected.size(), GameConfig.SECRET_TOTAL)
+		var payout := _payout()
+		GameState.add_scrap(int(payout["total"]))
+		hud.set_scrap(GameState.scrap_total())
+		search_finished.emit(_collected.size(), _evidence_total())
 		hud.show_complete(model.mowed_count, GameState.format_elapsed(),
-			_collected, GameConfig.SECRET_TOTAL))
+			_collected, _evidence_total(), payout))
 
 
 ## Restart: model reset (secrets redistributed), tint map cleared, tufts back
@@ -327,7 +361,7 @@ func _restart() -> void:
 	_activate(GameConfig.MOWER_PUSH, true)
 	hud.hide_complete()
 	hud.set_progress(0.0)
-	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
+	hud.set_secret_count(0, _evidence_total())
 	GameState.start_run()
 
 
@@ -352,3 +386,48 @@ func _begin_search() -> void:
 	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index], 2.4)
 	hud.show_opening_title()
 	GameState.start_run()
+
+
+# ---------------------------------------------------------------- G9 economy
+
+## How many pieces of evidence this chapter hides. From the variant, so a future
+## chapter can carry a different number without touching the HUD.
+func _evidence_total() -> int:
+	if variant != null and variant.evidence_count() > 0:
+		return variant.evidence_count()
+	return GameConfig.SECRET_TOTAL
+
+
+func _on_scrap_found(col: int, row: int, value: int) -> void:
+	_scrap_banked += value
+	var at := LawnModel.cell_center(col, row)
+	ScrapPop.spawn(_fx_root, at)
+	hud.fly_scrap(value, cam.unproject_position(at + Vector3.UP * 0.6))
+	hud.set_scrap(GameState.scrap_total() + _scrap_banked)
+	AudioDirector.play_scrap()
+	Haptics.light()
+
+
+## The end-of-chapter scrap breakdown.
+func _payout() -> Dictionary:
+	var budget := variant.scrap_budget if variant != null else 9
+	return ScrapField.payout(_scrap_banked, model.completion_ratio(), budget)
+
+
+# ---------------------------------------------------------------- G9 early exit
+
+## Both pieces of evidence are in hand: offer to close the chapter now. The
+## player can also keep mowing, and a small badge keeps the offer available.
+func _offer_exit() -> void:
+	if _exit_offered or _complete_shown:
+		return
+	_exit_offered = true
+	hud.show_exit_offer()
+
+
+## CONTINUE THE CASE: finish the chapter on the player's terms rather than
+## requiring a full mow.
+func _confirm_exit() -> void:
+	if _complete_shown:
+		return
+	_on_completed()

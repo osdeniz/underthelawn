@@ -15,12 +15,40 @@ enum MowResult { NONE, MOWED, SECRET_REVEALED }
 ## One entry per obstacle: grid rect (col, row, cols, rows). Multi-cell
 ## obstacles get ONE collision rect so the mower slides along the edge
 ## instead of rattling cell to cell (§3, §18 trap 3).
-const OBSTACLES: Array[Dictionary] = [
-	{ "name": "flowerbed", "grid": Rect2i(4, 14, 2, 1) },
-	{ "name": "stone", "grid": Rect2i(11, 9, 1, 1) },
-	{ "name": "pool", "grid": Rect2i(10, 17, 4, 3) },
-	{ "name": "sunbed", "grid": Rect2i(14, 18, 1, 1) },
-]
+## Four hand-built layouts a LevelVariant picks from by id (G9). Positions are
+## FRACTIONS of the grid, not cells, so one layout works at 10x14 and at 20x30
+## without a second table; sizes stay in cells so a pool is always pool-sized.
+## Every layout keeps the south-centre spawn strip and the north approach clear.
+const OBSTACLE_LAYOUTS := {
+	# B1's original yard, expressed in the new form: flowerbed + stone, no pool.
+	"beds": [
+		{ "name": "flowerbed", "fx": 0.25, "fz": 0.58, "cols": 2, "rows": 1 },
+		{ "name": "flowerbed", "fx": 0.62, "fz": 0.30, "cols": 2, "rows": 1 },
+		{ "name": "stone", "fx": 0.70, "fz": 0.40, "cols": 1, "rows": 1 },
+	],
+	# A pool dominates the south-east and forces a long way round.
+	"pool": [
+		{ "name": "pool", "fx": 0.64, "fz": 0.72, "cols": 4, "rows": 3 },
+		{ "name": "sunbed", "fx": 0.90, "fz": 0.76, "cols": 1, "rows": 1 },
+		{ "name": "flowerbed", "fx": 0.22, "fz": 0.55, "cols": 2, "rows": 1 },
+	],
+	# Scattered stones pinch the middle into narrow lanes.
+	"stones": [
+		{ "name": "stone", "fx": 0.30, "fz": 0.28, "cols": 1, "rows": 1 },
+		{ "name": "stone", "fx": 0.55, "fz": 0.40, "cols": 1, "rows": 1 },
+		{ "name": "stone", "fx": 0.34, "fz": 0.52, "cols": 1, "rows": 1 },
+		{ "name": "stone", "fx": 0.68, "fz": 0.60, "cols": 1, "rows": 1 },
+		{ "name": "stone", "fx": 0.46, "fz": 0.72, "cols": 1, "rows": 1 },
+	],
+	# Nothing in the way: for the big field and the playground.
+	"open": [],
+}
+
+## Filled by _build_obstacles from the active layout. Kept under the old name so
+## everything that read OBSTACLES keeps working.
+var obstacles: Array[Dictionary] = []
+## Which OBSTACLE_LAYOUTS entry to build. Set before _init by LevelVariant.
+static var layout_id := "beds"
 
 var states: PackedByteArray = PackedByteArray()
 ## Direction bucket of the last pass over each cell; -1 = never mown.
@@ -167,14 +195,36 @@ func reset() -> void:
 	_recount_mowable()
 
 
+## Resolves a layout's fractions into grid rects against the CURRENT grid.
+## Static and side-effect free, because EnvironmentBuilder needs the same answer
+## in its own _ready — which runs before any LawnModel exists — to decide which
+## props and which pool to build. One resolver, so geometry and collision can
+## never disagree.
+static func resolve_layout(id: String) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var layout: Array = OBSTACLE_LAYOUTS.get(id, OBSTACLE_LAYOUTS["beds"])
+	for spec: Dictionary in layout:
+		var cols := int(spec.get("cols", 1))
+		var rows := int(spec.get("rows", 1))
+		# Clamped, so a layout authored for a medium yard cannot hang off the
+		# edge of a small one.
+		var col := clampi(int(round(float(spec["fx"]) * GameConfig.GRID_COLS)),
+			1, maxi(GameConfig.GRID_COLS - cols - 1, 1))
+		var row := clampi(int(round(float(spec["fz"]) * GameConfig.GRID_ROWS)),
+			2, maxi(GameConfig.GRID_ROWS - rows - 2, 2))
+		out.append({ "name": spec["name"], "grid": Rect2i(col, row, cols, rows) })
+	return out
+
+
 func _build_obstacles() -> void:
 	collision_rects.clear()
-	for ob in OBSTACLES:
+	obstacles = resolve_layout(layout_id)
+	for ob: Dictionary in obstacles:
 		var grid: Rect2i = ob["grid"]
-		for row in range(grid.position.y, grid.position.y + grid.size.y):
-			for col in range(grid.position.x, grid.position.x + grid.size.x):
-				if in_bounds(col, row):
-					states[index_of(col, row)] = CellState.OBSTACLE
+		for r in range(grid.position.y, grid.end.y):
+			for c in range(grid.position.x, grid.end.x):
+				if in_bounds(c, r):
+					states[index_of(c, r)] = CellState.OBSTACLE
 		collision_rects.append(grid_rect_to_world(grid))
 
 
@@ -241,7 +291,7 @@ func tint_for(col: int, row: int) -> Color:
 
 
 func _is_pool(col: int, row: int) -> bool:
-	for ob in OBSTACLES:
+	for ob in obstacles:
 		if ob["name"] == "pool":
 			var g: Rect2i = ob["grid"]
 			return col >= g.position.x and col < g.position.x + g.size.x \

@@ -16,6 +16,8 @@ extends Control
 signal restart_pressed()
 ## RETURN TO TOWN on the case-notes panel (G8).
 signal return_requested()
+## CONTINUE THE CASE on the all-evidence card, or the badge that replaces it (G9).
+signal exit_confirmed()
 ## The STORY button was tapped: replay the opening (G7).
 signal replay_intro_requested()
 
@@ -46,6 +48,13 @@ signal replay_intro_requested()
 @onready var _teaser: Button = %Teaser
 @onready var _teaser_locked: Label = %TeaserLocked
 @onready var _return_button: Button = %ReturnButton
+@onready var _scrap_label: Label = %ScrapLabel
+@onready var _exit_card: PanelContainer = %ExitCard
+@onready var _exit_title: Label = %ExitTitle
+@onready var _exit_continue: Button = %ExitContinue
+@onready var _exit_keep: Button = %ExitKeep
+@onready var _exit_badge: Button = %ExitBadge
+@onready var _payout_list: VBoxContainer = %PayoutList
 
 var _shown_percent := 0.0
 var _target_percent := 0.0
@@ -75,6 +84,11 @@ func _ready() -> void:
 	_opening.modulate.a = 0.0
 	_teaser_locked.visible = false
 	_return_button.pressed.connect(func() -> void: return_requested.emit())
+	_exit_card.visible = false
+	_exit_badge.visible = false
+	_exit_continue.pressed.connect(_on_exit_continue)
+	_exit_keep.pressed.connect(_on_exit_keep)
+	_exit_badge.pressed.connect(_on_exit_continue)
 	_story_button.pressed.connect(func() -> void: replay_intro_requested.emit())
 	_teaser.pressed.connect(_on_teaser_pressed)
 	set_progress(0.0)
@@ -175,7 +189,7 @@ func set_selector_visible(value: bool) -> void:
 
 ## `collected` holds one entry per found item: { emoji, name }.
 func show_complete(cells: int, elapsed: String, collected: Array,
-		total_secrets: int) -> void:
+		total_secrets: int, payout := {}) -> void:
 	_shown_percent = 100.0
 	_apply_percent()
 	_complete_stats.text = tr("UI_STATS").format(
@@ -197,7 +211,10 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 		_collection.add_child(slot)
 
 	_clear_opening_title()
+	_exit_card.visible = false
+	_exit_badge.visible = false
 	_build_case_notes(collected, total_secrets)
+	_build_payout(payout)
 	_missed_label.visible = collected.size() < total_secrets
 	_complete_panel.visible = true
 	# The picker and the joystick go away once the lawn is done (§16).
@@ -266,6 +283,10 @@ func _apply_story_text() -> void:
 	_opening_subline.text = Story.text("opening.subline")
 	_card_header.text = Story.text("evidence.card_header", "EVIDENCE FOUND")
 	_return_button.text = tr("UI_RETURN_TOWN")
+	_exit_title.text = tr("EXIT_ALL_FOUND")
+	_exit_continue.text = tr("EXIT_CONTINUE")
+	_exit_keep.text = tr("EXIT_KEEP_MOWING")
+	_exit_badge.text = tr("EXIT_BADGE")
 
 
 ## The "LAST MOWED" title: holds while the camera settles onto the lawn, then
@@ -320,3 +341,109 @@ func _on_teaser_pressed() -> void:
 		tw.tween_property(_teaser, "position",
 			home + Vector2(offset, 0.0), 0.055)
 	tw.tween_callback(func() -> void: _teaser.position = home)
+
+
+# ---------------------------------------------------------------- G9 economy
+
+func set_scrap(total: int) -> void:
+	_scrap_label.text = "%s %d" % [GameConfig.SCRAP_ICON, total]
+
+
+## A value flies from the pickup's screen position to the counter, so the number
+## going up is visibly caused by the thing on the ground.
+func fly_scrap(amount: int, from_screen: Vector2) -> void:
+	var label := Label.new()
+	label.text = "+%d" % amount
+	label.add_theme_font_size_override("font_size", 46)
+	label.add_theme_color_override("font_color", Color(0.98, 0.90, 0.62))
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	label.add_theme_constant_override("shadow_offset_y", 4)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(label)
+	label.position = from_screen
+	var target := _scrap_label.get_global_rect().get_center()
+	var tw := create_tween()
+	tw.tween_property(label, "position", target, GameConfig.SCRAP_FLY_TIME) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(label, "scale", Vector2(0.6, 0.6),
+		GameConfig.SCRAP_FLY_TIME)
+	tw.parallel().tween_property(label, "modulate:a", 0.0,
+		GameConfig.SCRAP_FLY_TIME * 0.5).set_delay(GameConfig.SCRAP_FLY_TIME * 0.5)
+	tw.tween_callback(func() -> void:
+		label.queue_free()
+		_pulse(_scrap_label))
+
+
+func _pulse(control: Control) -> void:
+	control.pivot_offset = control.size * 0.5
+	control.scale = Vector2(1.25, 1.25)
+	var tw := create_tween()
+	tw.tween_property(control, "scale", Vector2.ONE, 0.3) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+# ---------------------------------------------------------------- G9 early exit
+
+## All evidence found. The player decides whether the chapter is over; KEEP
+## MOWING leaves a small badge so the offer is never lost.
+func show_exit_offer() -> void:
+	_exit_card.visible = true
+	_exit_badge.visible = false
+	_exit_card.modulate.a = 0.0
+	_exit_card.pivot_offset = _exit_card.size * 0.5
+	_exit_card.scale = Vector2(0.92, 0.92)
+	var tw := create_tween()
+	tw.tween_property(_exit_card, "modulate:a", 1.0, 0.3)
+	tw.parallel().tween_property(_exit_card, "scale", Vector2.ONE, 0.42) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _on_exit_continue() -> void:
+	Haptics.medium()
+	_exit_card.visible = false
+	_exit_badge.visible = false
+	exit_confirmed.emit()
+
+
+func _on_exit_keep() -> void:
+	Haptics.light()
+	var tw := create_tween()
+	tw.tween_property(_exit_card, "modulate:a", 0.0, 0.22)
+	tw.tween_callback(func() -> void:
+		_exit_card.visible = false
+		_exit_badge.visible = true)
+
+
+## Scrap breakdown on the case-notes panel: ground haul, completion bonus, and
+## the thorough-search line only when it was earned.
+func _build_payout(payout: Dictionary) -> void:
+	for child in _payout_list.get_children():
+		child.queue_free()
+	if payout.is_empty():
+		return
+	var rows := [
+		[tr("PAYOUT_GROUND"), int(payout.get("ground", 0)), false],
+		[tr("PAYOUT_BONUS").format(
+			{"pct": int(round(float(payout.get("ratio", 0.0)) * 100.0))}),
+			int(payout.get("bonus", 0)), false],
+	]
+	if int(payout.get("thorough", 0)) > 0:
+		rows.append([tr("PAYOUT_THOROUGH").format(
+			{"pct": int(round(GameConfig.SCRAP_THOROUGH_BONUS * 100.0))}),
+			int(payout.get("thorough", 0)), true])
+	rows.append([tr("PAYOUT_TOTAL"), int(payout.get("total", 0)), true])
+	for row: Array in rows:
+		var line := HBoxContainer.new()
+		var name_label := Label.new()
+		name_label.text = str(row[0])
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_label.add_theme_font_size_override("font_size", 34)
+		var value_label := Label.new()
+		value_label.text = "%s %d" % [GameConfig.SCRAP_ICON, int(row[1])]
+		value_label.add_theme_font_size_override("font_size", 34)
+		if bool(row[2]):
+			for label in [name_label, value_label]:
+				label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+		line.add_child(name_label)
+		line.add_child(value_label)
+		_payout_list.add_child(line)

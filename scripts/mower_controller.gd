@@ -13,6 +13,8 @@ extends Node3D
 
 signal cells_mown(count: int)
 signal secret_uncovered(col: int, row: int)
+## A cut cell held scrap (G9): (col, row, value).
+signal scrap_found(col: int, row: int, value: int)
 
 ## Index into GameConfig.MOWER_TYPES; set by _type_index() in each subclass.
 var params: Dictionary = {}
@@ -34,6 +36,9 @@ var _pad_stick := Vector2.ZERO
 var _pad_camera_yaw := 0.0
 
 # Previous deck centre, for the swept mow (G6.12).
+## Set by Game; holds this chapter's buried salvage (G9).
+var scrap_field: ScrapField
+
 var _mow_from := Vector2.ZERO
 var _mow_valid := false
 ## The active Camera3D, for ray picks (robot ground taps).
@@ -305,6 +310,10 @@ func _mow(delta: float) -> void:
 			if result == LawnModel.MowResult.NONE:
 				continue
 			mown += 1
+			if scrap_field:
+				var scrap := scrap_field.take(col, row)
+				if scrap > 0:
+					scrap_found.emit(col, row, scrap)
 			if tuft_field:
 				tuft_field.cut_cell(col, row, rotation.y)
 			if result == LawnModel.MowResult.SECRET_REVEALED:

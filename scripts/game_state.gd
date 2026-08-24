@@ -9,6 +9,9 @@ signal run_started()
 signal run_finished(elapsed: float)
 
 const SETTINGS_PATH := "user://settings.cfg"
+## G9 currency section. Nowhere to spend it until G10's Workshop, so the total is
+## the only thing stored.
+const ECONOMY := "economy"
 
 var elapsed: float = 0.0
 var is_running: bool = false
@@ -61,3 +64,16 @@ func _load_settings() -> void:
 	var err := _config.load(SETTINGS_PATH)
 	if err != OK and err != ERR_FILE_NOT_FOUND:
 		push_warning("GameState: could not read %s (error %d)" % [SETTINGS_PATH, err])
+
+
+# ---------------------------------------------------------------- scrap (G9)
+
+func scrap_total() -> int:
+	return int(get_setting(ECONOMY, "scrap", 0))
+
+
+## Chapter payouts only ever add. Spending arrives with G10's Workshop.
+func add_scrap(amount: int) -> int:
+	var total := scrap_total() + maxi(amount, 0)
+	set_setting(ECONOMY, "scrap", total)
+	return total

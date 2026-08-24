@@ -1,0 +1,111 @@
+{
+  "_comment": "One LevelVariant per chapter. ONE game scene builds all of them: nothing here is a scene path. Text fields are translation keys; palette_id indexes GameConfig.GRASS_PALETTES; obstacle_layout_id indexes LawnModel.OBSTACLE_LAYOUTS; grid_size indexes GameConfig.GRID_SIZES. decor_seed makes tree/fence/car/mailbox placement repeatable per chapter, so a yard looks the same every visit.",
+
+  "variants": {
+    "ch01_aldridge": {
+      "palette_id": "GREEN",
+      "grid_size": "medium",
+      "obstacle_layout_id": "beds",
+      "house_variant": "house_v1",
+      "landmark_id": "",
+      "decor_seed": 1101,
+      "scrap_budget": 9,
+      "evidence_defs": [
+        { "id": "toy", "icon": "🧸", "name": "EVIDENCE_TOY_NAME", "flavor_text": "EVIDENCE_TOY_LINE" },
+        { "id": "radio", "icon": "📻", "name": "EVIDENCE_RADIO_NAME", "flavor_text": "EVIDENCE_RADIO_LINE" }
+      ]
+    },
+    "ch02_neighbor": {
+      "palette_id": "GREEN_COOL",
+      "grid_size": "small",
+      "obstacle_layout_id": "pool",
+      "house_variant": "house_v2",
+      "landmark_id": "",
+      "decor_seed": 2202,
+      "scrap_budget": 8,
+      "evidence_defs": [
+        { "id": "shoe", "icon": "👟", "name": "EV_CH02_A_NAME", "flavor_text": "EV_CH02_A_LINE" },
+        { "id": "note", "icon": "📄", "name": "EV_CH02_B_NAME", "flavor_text": "EV_CH02_B_LINE" }
+      ]
+    },
+    "ch03_playground": {
+      "palette_id": "DRY_GOLD",
+      "grid_size": "medium",
+      "obstacle_layout_id": "open",
+      "house_variant": "house_none",
+      "landmark_id": "playground",
+      "decor_seed": 3303,
+      "scrap_budget": 10,
+      "evidence_defs": [
+        { "id": "ribbon", "icon": "🎀", "name": "EV_CH03_A_NAME", "flavor_text": "EV_CH03_A_LINE" },
+        { "id": "chalk", "icon": "🖍️", "name": "EV_CH03_B_NAME", "flavor_text": "EV_CH03_B_LINE" }
+      ]
+    },
+    "ch04_flooded": {
+      "palette_id": "MARSH",
+      "grid_size": "medium",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "",
+      "decor_seed": 4404,
+      "scrap_budget": 9,
+      "evidence_defs": [
+        { "id": "boot", "icon": "🥾", "name": "EV_CH04_A_NAME", "flavor_text": "EV_CH04_A_LINE" },
+        { "id": "lantern", "icon": "🏮", "name": "EV_CH04_B_NAME", "flavor_text": "EV_CH04_B_LINE" }
+      ]
+    },
+    "ch05_greenhouse": {
+      "palette_id": "LUSH",
+      "grid_size": "small",
+      "obstacle_layout_id": "beds",
+      "house_variant": "house_none",
+      "landmark_id": "greenhouse",
+      "decor_seed": 5505,
+      "scrap_budget": 8,
+      "evidence_defs": [
+        { "id": "seedbox", "icon": "🌱", "name": "EV_CH05_A_NAME", "flavor_text": "EV_CH05_A_LINE" },
+        { "id": "glove", "icon": "🧤", "name": "EV_CH05_B_NAME", "flavor_text": "EV_CH05_B_LINE" }
+      ]
+    },
+    "ch06_watertower": {
+      "palette_id": "AMBER",
+      "grid_size": "large",
+      "obstacle_layout_id": "open",
+      "house_variant": "house_none",
+      "landmark_id": "water_tower",
+      "decor_seed": 6606,
+      "scrap_budget": 12,
+      "evidence_defs": [
+        { "id": "bike", "icon": "🚲", "name": "EV_CH06_A_NAME", "flavor_text": "EV_CH06_A_LINE" },
+        { "id": "flask", "icon": "🧴", "name": "EV_CH06_B_NAME", "flavor_text": "EV_CH06_B_LINE" }
+      ]
+    },
+    "ch07_mill": {
+      "palette_id": "DUSK_VIOLET",
+      "grid_size": "medium",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "mill",
+      "decor_seed": 7707,
+      "scrap_budget": 9,
+      "evidence_defs": [
+        { "id": "sack", "icon": "🎒", "name": "EV_CH07_A_NAME", "flavor_text": "EV_CH07_A_LINE" },
+        { "id": "key", "icon": "🔑", "name": "EV_CH07_B_NAME", "flavor_text": "EV_CH07_B_LINE" }
+      ]
+    },
+    "ch08_cellar": {
+      "palette_id": "EMERALD",
+      "grid_size": "cellar",
+      "obstacle_layout_id": "beds",
+      "house_variant": "house_none",
+      "landmark_id": "",
+      "decor_seed": 8808,
+      "scrap_budget": 7,
+      "vignette": true,
+      "evidence_defs": [
+        { "id": "lamp", "icon": "🔦", "name": "EV_CH08_A_NAME", "flavor_text": "EV_CH08_A_LINE" },
+        { "id": "locket", "icon": "📿", "name": "EV_CH08_B_NAME", "flavor_text": "EV_CH08_B_LINE" }
+      ]
+    }
+  }
+}

@@ -143,6 +143,21 @@ offset_bottom = 130.0
 text = "STORY"
 theme_override_font_sizes/font_size = 30
 
+[node name="ScrapLabel" type="Label" parent="TopBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 40.0
+offset_top = 148.0
+offset_right = 420.0
+offset_bottom = 216.0
+text = "🔩 0"
+theme_override_colors/font_color = Color(0.98, 0.9, 0.62, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 46
+mouse_filter = 2
+
 [node name="Progress" type="ProgressBar" parent="TopBar"]
 unique_name_in_owner = true
 anchor_right = 1.0
@@ -280,6 +295,11 @@ autowrap_mode = 3
 theme_override_colors/font_color = Color(0.88, 0.88, 0.85, 1)
 theme_override_font_sizes/font_size = 38
 
+[node name="PayoutList" type="VBoxContainer" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
 [node name="Teaser" type="Button" parent="CompletePanel/Card/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -364,6 +384,57 @@ theme_override_colors/font_color = Color(0.86, 0.86, 0.83, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
 theme_override_constants/shadow_offset_y = 4
 theme_override_font_sizes/font_size = 40
+
+[node name="ExitCard" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -470.0
+offset_top = -280.0
+offset_right = 470.0
+offset_bottom = 280.0
+
+[node name="Rows" type="VBoxContainer" parent="ExitCard"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="ExitTitle" type="Label" parent="ExitCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "All evidence found."
+horizontal_alignment = 1
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
+theme_override_font_sizes/font_size = 52
+
+[node name="ExitContinue" type="Button" parent="ExitCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "CONTINUE THE CASE →"
+theme_override_font_sizes/font_size = 46
+
+[node name="ExitKeep" type="Button" parent="ExitCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "KEEP MOWING"
+theme_override_font_sizes/font_size = 40
+
+[node name="ExitBadge" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -430.0
+offset_top = 300.0
+offset_right = -40.0
+offset_bottom = 396.0
+text = "Continue →"
+theme_override_font_sizes/font_size = 38
 
 [node name="Flash" type="ColorRect" parent="."]
 unique_name_in_owner = true

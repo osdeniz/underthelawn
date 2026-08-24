@@ -100,3 +100,67 @@ DLG_TOWN_COLE_1A,East? The mill road runs that way.,Doğu mu? Değirmen yolu o t
 DLG_TOWN_ELLIE_0A,She isn't here. That's the whole problem.,O burada değil. Bütün sorun bu.
 DLG_TOWN_STRANGER_0A,I only got here last week. I don't know the girl.,Geçen hafta geldim. Kızı tanımıyorum.
 DLG_TOWN_STRANGER_1A,East. Hm. I'd be careful out there.,Doğu. Hmm. Orada dikkatli olurdum.
+EXIT_ALL_FOUND,All evidence found.,Tüm kanıtlar bulundu.
+EXIT_CONTINUE,CONTINUE THE CASE →,VAKAYA DEVAM ET →
+EXIT_KEEP_MOWING,KEEP MOWING,BİÇMEYE DEVAM
+EXIT_BADGE,Continue →,Devam →
+PAYOUT_GROUND,Salvage picked up,Yerden toplanan
+PAYOUT_BONUS,"Search bonus ({pct}% mown)","Arama primi (%{pct} biçildi)"
+PAYOUT_THOROUGH,"Thorough Search +{pct}%","Eksiksiz Arama +%{pct}"
+PAYOUT_TOTAL,Total,Toplam
+EV_CH02_A_NAME,A Small Shoe,Küçük Bir Ayakkabı
+EV_CH02_A_LINE,Her size. Only one.,Onun numarası. Tek.
+EV_CH02_B_NAME,Torn Note,Yırtık Not
+EV_CH02_B_LINE,Half a sentence in a child's hand.,Çocuk el yazısıyla yarım bir cümle.
+EV_CH03_A_NAME,Yellow Ribbon,Sarı Kurdele
+EV_CH03_A_LINE,She wore one like this.,Bunun gibi bir tane takıyordu.
+EV_CH03_B_NAME,Chalk Stub,Tebeşir Parçası
+EV_CH03_B_LINE,Someone was drawing here. Recently.,Biri burada resim yapmış. Yakın zamanda.
+EV_CH04_A_NAME,Sunken Boot,Batmış Bot
+EV_CH04_A_LINE,Too big for her. Someone else came through.,Ona büyük. Buradan başka biri geçmiş.
+EV_CH04_B_NAME,Dead Lantern,Ölü Fener
+EV_CH04_B_LINE,The oil ran out where it fell.,Yağı düştüğü yerde bitmiş.
+EV_CH05_A_NAME,Seed Box,Tohum Kutusu
+EV_CH05_A_LINE,Opened. Not by a grown hand.,Açılmış. Yetişkin eliyle değil.
+EV_CH05_B_NAME,Work Glove,İş Eldiveni
+EV_CH05_B_LINE,Left palm only. Still damp.,Sadece sol el. Hâlâ nemli.
+EV_CH06_A_NAME,Bent Bicycle,Eğilmiş Bisiklet
+EV_CH06_A_LINE,Dropped in a hurry. Wheel still turns.,Aceleyle bırakılmış. Tekerlek hâlâ dönüyor.
+EV_CH06_B_NAME,Water Flask,Su Matarası
+EV_CH06_B_LINE,Empty. She got this far.,Boş. Buraya kadar gelmiş.
+EV_CH07_A_NAME,Child's Satchel,Çocuk Çantası
+EV_CH07_A_LINE,Her name inked inside the flap.,Kapağın içine adı yazılmış.
+EV_CH07_B_NAME,Cellar Key,Mahzen Anahtarı
+EV_CH07_B_LINE,It opens something under this town.,Bu kasabanın altındaki bir şeyi açıyor.
+EV_CH08_A_NAME,Her Flashlight,Onun El Feneri
+EV_CH08_A_LINE,Still warm. She was here minutes ago.,Hâlâ sıcak. Dakikalar önce buradaydı.
+EV_CH08_B_NAME,Sarah's Locket,Sarah'nın Madalyonu
+EV_CH08_B_LINE,She took it with her. On purpose.,Yanına almış. Bilerek.
+DLG_BRIEF_CH02_1,"The neighbours left before the rest of us. Nobody's cut that yard since.","Komşular hepimizden önce gitti. O bahçeyi o zamandan beri kimse biçmedi."
+DLG_BRIEF_CH02_2,Sarah says the fence has a gap a child could take.,Sarah çitte bir çocuğun geçebileceği bir aralık olduğunu söylüyor.
+DLG_DEBRIEF_CH02_FULL,She went through the gap. The trail keeps going east.,Aralıktan geçmiş. İz doğuya doğru devam ediyor.
+DLG_DEBRIEF_CH02_PART,"Something's still in that grass. I can feel it.","O çimde hâlâ bir şey var. İçimden bir his."
+DLG_BRIEF_CH03_1,The old playground. Nothing's been oiled out there in years.,Eski oyun parkı. Yıllardır orada hiçbir şeye yağ konmadı.
+DLG_BRIEF_CH03_2,Kids still went there. Even after.,Çocuklar hâlâ oraya gidiyordu. Sonrasında bile.
+DLG_DEBRIEF_CH03_FULL,She played here. Then she kept walking.,Burada oynamış. Sonra yürümeye devam etmiş.
+DLG_DEBRIEF_CH03_PART,Half of it's still standing grass. Go back over it.,Yarısı hâlâ ayakta çim. Bir daha geç üstünden.
+DLG_BRIEF_CH04_1,The lot floods every spring and nobody drains it any more.,Arsa her bahar su alıyor ve artık kimse boşaltmıyor.
+DLG_BRIEF_CH04_2,Watch the stones. They'll stop a mower dead.,Taşlara dikkat et. Makineyi olduğu yerde durdururlar.
+DLG_DEBRIEF_CH04_FULL,Two sets of tracks in the mud. She wasn't alone.,Çamurda iki takım iz var. Yalnız değilmiş.
+DLG_DEBRIEF_CH04_PART,The water hides things. Cut more of it.,Su bir şeyleri saklıyor. Daha fazlasını biç.
+DLG_BRIEF_CH05_1,Someone's been keeping that greenhouse alive. Quietly.,Biri o serayı hayatta tutuyor. Sessizce.
+DLG_BRIEF_CH05_2,Half the glass is gone and the plants are still fed.,Camın yarısı yok ama bitkiler hâlâ besleniyor.
+DLG_DEBRIEF_CH05_FULL,"Someone's feeding her. That changes what this is.","Biri onu besliyor. Bu, olayın ne olduğunu değiştirir."
+DLG_DEBRIEF_CH05_PART,There's more under those benches. Keep going.,O tezgâhların altında dahası var. Devam et.
+DLG_BRIEF_CH06_1,The water tower field. Biggest stretch of grass in the county.,Su kulesi tarlası. İlçedeki en büyük çim alanı.
+DLG_BRIEF_CH06_2,Take the tractor. You'll want it out there.,Traktörü al. Orada işine yarar.
+DLG_DEBRIEF_CH06_FULL,She rode out this far on her own. Brave kid.,Buraya kadar kendi başına gelmiş. Cesur çocuk.
+DLG_DEBRIEF_CH06_PART,A field that size hides plenty. Finish it.,O boyda bir tarla çok şey saklar. Bitir.
+DLG_BRIEF_CH07_1,Behind the mill the light goes early and stays gone.,Değirmenin arkasında ışık erken gider ve bir daha gelmez.
+DLG_BRIEF_CH07_2,I don't like sending you there at this hour.,Bu saatte seni oraya göndermek istemiyorum.
+DLG_DEBRIEF_CH07_FULL,A key. To the cellar under the mill. She had it on her.,Bir anahtar. Değirmenin altındaki mahzenin. Üzerindeymiş.
+DLG_DEBRIEF_CH07_PART,"Dark or not, you missed something back there.","Karanlık olsun olmasın, orada bir şeyi atladın."
+DLG_BRIEF_CH08_1,Down the steps. The garden nobody was supposed to know about.,Merdivenlerden aşağı. Kimsenin bilmemesi gereken bahçe.
+DLG_BRIEF_CH08_2,"Whatever's down there, she found it first.","Aşağıda ne varsa, önce o bulmuş."
+DLG_DEBRIEF_CH08_FULL,Her flashlight is still warm. Go. Now.,El feneri hâlâ sıcak. Git. Hemen.
+DLG_DEBRIEF_CH08_PART,She's close. Cut the rest and find it.,Yakında. Kalanı biç ve bul.
