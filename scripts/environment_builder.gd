@@ -674,6 +674,33 @@ func _build_neighbors() -> void:
 			var z := -GameConfig.HALF_Z + (float(i) + 0.5) * (span / float(count))
 			_derelict_house(Vector3(x, 0.0, z + _rng.randf_range(-0.8, 0.8)),
 				-side * PI * 0.5, shingles, trim, dark, plank)
+		# A yard strip between our fence and theirs: from directly above this is
+		# what actually reads as "somebody's garden", more than the house does.
+		_side_yard(side, span)
+
+
+## The neighbour's plot: dry grass, a low fence line, and the odd shed. Seen
+## from overhead this ground-level dressing does more for the sense of a street
+## than the buildings behind it.
+func _side_yard(side: float, span: float) -> void:
+	var dry := _flat("side_dry", Color(0.38, 0.36, 0.24), 1.0)
+	var post := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
+	var shed := _flat("side_shed", Color(0.44, 0.40, 0.34), 0.95)
+	var x := side * (GameConfig.fence_side_x() + 1.4)
+	_ground_quad(self, Vector2(2.4, span), dry, Vector3(x, -0.015, 0.0))
+	# Their own fence, a sagging line of posts facing ours.
+	var count := int(span / 1.6)
+	for i in count:
+		var z := -span * 0.5 + (float(i) + 0.5) * (span / float(count))
+		_box(self, Vector3(0.09, _rng.randf_range(0.7, 1.0), 0.09), post,
+			Vector3(side * (GameConfig.fence_side_x() + 2.5), 0.45, z),
+			Vector3(0.0, 0.0, _rng.randf_range(-0.09, 0.09)))
+	# One or two sheds per side, low enough to read as objects from above.
+	for _s in _rng.randi_range(1, 2):
+		var sz := _rng.randf_range(-span * 0.4, span * 0.4)
+		_box(self, Vector3(2.0, 1.5, 1.6), shed, Vector3(x, 0.75, sz))
+		_box(self, Vector3(2.3, 0.16, 1.9), post, Vector3(x, 1.55, sz))
+		_ao_blob(self, Vector2(2.8, 2.4), Vector3(x, 0.02, sz), 0.5)
 
 
 ## One abandoned house: body, roof, dark windows, and — often — boards nailed

@@ -780,8 +780,11 @@ const DERELICT_BODIES: Array[Color] = [
 	Color(0.62, 0.60, 0.53), Color(0.52, 0.56, 0.52), Color(0.66, 0.58, 0.50),
 	Color(0.48, 0.50, 0.54), Color(0.60, 0.52, 0.46),
 ]
+## Roofs are the ONLY part of a side house the top-down camera really sees, so
+## they carry the read: dark ones turned into featureless slabs at the frame
+## edge. These are weathered but light enough to show their pitch.
 const DERELICT_ROOFS: Array[Color] = [
-	Color(0.32, 0.26, 0.22), Color(0.28, 0.28, 0.30), Color(0.36, 0.28, 0.24),
+	Color(0.55, 0.44, 0.36), Color(0.48, 0.46, 0.44), Color(0.58, 0.46, 0.38),
 ]
 ## §12 tree placements: (x, z) and scale.
 ## Trees as edge FRACTIONS (x: -1..1 of fence_side_x, y: -1..1 of half depth)
