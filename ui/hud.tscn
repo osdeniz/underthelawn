@@ -67,6 +67,31 @@ content_margin_top = 24.0
 content_margin_right = 40.0
 content_margin_bottom = 24.0
 
+[sub_resource type="StyleBoxFlat" id="Sb_topbar"]
+bg_color = Color(0.04, 0.05, 0.04, 0.62)
+corner_radius_top_left = 26
+corner_radius_top_right = 26
+corner_radius_bottom_right = 26
+corner_radius_bottom_left = 26
+content_margin_left = 26.0
+content_margin_right = 26.0
+content_margin_top = 18.0
+content_margin_bottom = 18.0
+
+[sub_resource type="StyleBoxFlat" id="Sb_progress_bg"]
+bg_color = Color(0.08, 0.12, 0.08, 0.85)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="Sb_progress_fill"]
+bg_color = Color(0.42, 0.82, 0.32, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
 [node name="HUD" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -80,6 +105,15 @@ mouse_filter = 2
 material = SubResource("Mat_overlay")
 color = Color(1, 1, 1, 1)
 
+[node name="TopBarPanel" type="Panel" parent="."]
+anchor_right = 1.0
+offset_left = 30.0
+offset_top = 76.0
+offset_right = -30.0
+offset_bottom = 340.0
+theme_override_styles/panel = SubResource("Sb_topbar")
+mouse_filter = 2
+
 [node name="TopBar" type="Control" parent="."]
 anchor_right = 1.0
 offset_left = 56.0
@@ -90,96 +124,84 @@ mouse_filter = 2
 
 [node name="PercentLabel" type="Label" parent="TopBar"]
 unique_name_in_owner = true
-offset_right = 560.0
-offset_bottom = 74.0
+offset_left = 6.0
+offset_top = 0.0
+offset_right = 460.0
+offset_bottom = 66.0
 text = "0% mowed"
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0.1, 0, 0.7)
-theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 56
-mouse_filter = 2
-
-[node name="SecretCounter" type="Label" parent="TopBar"]
-unique_name_in_owner = true
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -460.0
-offset_right = -160.0
-offset_bottom = 74.0
-text = "📋 Evidence 0/2"
-horizontal_alignment = 2
 vertical_alignment = 1
-theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
-theme_override_colors/font_outline_color = Color(0.1, 0.07, 0, 0.7)
-theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 48
-mouse_filter = 2
-
-[node name="CaseLine" type="Label" parent="TopBar"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 40.0
-offset_top = 232.0
-offset_right = -40.0
-offset_bottom = 288.0
-text = "CASE 01 — THE MISSING GIRL · Search the property"
-theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 34
-
-[node name="StoryButton" type="Button" parent="TopBar"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -300.0
-offset_top = 40.0
-offset_right = -150.0
-offset_bottom = 130.0
-text = "STORY"
-theme_override_font_sizes/font_size = 30
-
-[node name="ScrapLabel" type="Label" parent="TopBar"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 0
-offset_left = 40.0
-offset_top = 148.0
-offset_right = 420.0
-offset_bottom = 216.0
-text = "🔩 0"
-theme_override_colors/font_color = Color(0.98, 0.9, 0.62, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
 theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 46
 mouse_filter = 2
-
+[node name="SecretCounter" type="Label" parent="TopBar"]
+unique_name_in_owner = true
+offset_left = 480.0
+offset_top = 0.0
+offset_right = 880.0
+offset_bottom = 66.0
+text = "📋 Evidence 0/2"
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 40
+mouse_filter = 2
+[node name="CaseLine" type="Label" parent="TopBar"]
+unique_name_in_owner = true
+anchor_right = 1.0
+offset_left = 6.0
+offset_top = 180.0
+offset_right = -6.0
+offset_bottom = 226.0
+text = "CASE 01 — THE MISSING GIRL · Search the property"
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 30
+mouse_filter = 2
+[node name="StoryButton" type="Button" parent="TopBar"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1.0
+offset_bottom = 1.0
+text = "STORY"
+visible = false
+[node name="ScrapLabel" type="Label" parent="TopBar"]
+unique_name_in_owner = true
+offset_left = 6.0
+offset_top = 74.0
+offset_right = 460.0
+offset_bottom = 134.0
+text = "💵 0"
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.55, 0.92, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 42
+mouse_filter = 2
 [node name="Progress" type="ProgressBar" parent="TopBar"]
 unique_name_in_owner = true
 anchor_right = 1.0
-offset_top = 104.0
-offset_bottom = 164.0
-max_value = 100.0
+offset_left = 6.0
+offset_top = 146.0
+offset_right = -6.0
+offset_bottom = 170.0
 value = 0.0
 show_percentage = false
-theme_override_styles/background = SubResource("Sb_track")
-theme_override_styles/fill = SubResource("Sb_fill")
+theme_override_styles/background = SubResource("Sb_progress_bg")
+theme_override_styles/fill = SubResource("Sb_progress_fill")
 mouse_filter = 2
-
 [node name="MuteButton" type="Button" parent="TopBar"]
 unique_name_in_owner = true
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -132.0
-offset_bottom = 120.0
-focus_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1.0
+offset_bottom = 1.0
 text = "🔊"
-theme_override_font_sizes/font_size = 56
-
+visible = false
 [node name="SecretCard" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 visible = false

@@ -62,9 +62,16 @@ func _play_intro() -> void:
 	_intro.finished.connect(func() -> void:
 		_intro = null
 		layer.queue_free()
+		var first_run := not _intro_seen()
 		GameState.set_setting("story", "intro_seen", true)
 		AudioDirector.stop_ambient()
-		_open_hub())
+		# G10.1: a first-time player goes straight from the cards into the
+		# grass. The hub is a place you EARN — showing a menu of screens before
+		# anyone has mown a single cell buries the game under its own furniture.
+		if first_run:
+			_on_chapter_chosen(ChapterProgress.current_variant_id())
+		else:
+			_open_hub())
 
 
 # ---------------------------------------------------------------- hub

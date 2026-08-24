@@ -1089,6 +1089,54 @@ Integrations: VIEW CASE BOARD on the case-notes panel (returns to the hub with
 the corkboard open + pin thunk, `audio/pin.wav` in the generator), scrap
 counter in the hub top bar, synced to purchases via the `purchased` signal.
 
+## G10.1 — pickups, carrying, flow, and a UI pass
+
+### Evidence is an object you drive over
+
+The reveal spawns the ACTUAL item mesh in the grass (`SecretItem.setup_prop`)
+instead of an abstract orb — the player has to see WHAT they found from across
+the lawn. Collection is contact-based: `_check_pickups()` takes anything within
+`deck_radius + PICKUP_REACH` every frame.
+
+**Why it "sometimes didn't pick up":** collection was a TAP with ray picking,
+and since G6.12 every touch also drives the mower. The two fought for the same
+touch. Tap-collection and `_pick_glow` are deleted; `tests/pickup_check.gd`
+pins the new rule, including that a piece at the deck's edge still counts —
+"I drove over it" and "it counted" must agree.
+
+### The haul rides on your back
+
+`CarryStack` piles every pickup on the driver's back (push, tractor) or the
+machine's rear deck (robot, blade), re-parented on every mower switch. Cash
+bundles stack with a slight per-bundle skew and a squash on each addition;
+evidence rides on top as the visible crown. The stack caps at 14 bundles — a
+tower taller than the driver reads as a bug, not a reward — while the counter
+keeps climbing. Seeing the haul grow IS the reward loop; the corner number is
+just the receipt.
+
+### First run goes straight into the grass
+
+Intro cards → briefing → chapter 1. The hub is a place you EARN: showing a menu
+of screens before anyone has mown a cell buries the game under its own
+furniture. Returning players still land in the hub.
+
+### UI pass
+
+* **Top bar rebuilt as one panel** with explicit non-overlapping slots
+  (percentage + evidence on row one, money on row two, progress bar, case line),
+  replacing offsets that had accumulated across eight sprints. Pause sits in the
+  bar's right end; mute moved into the pause sheet.
+* **The hub's top bar uses the same panel language**, so both screens read as
+  one product.
+* **Tabs are legible.** The inactive tab had been styled as a dark card whose
+  dim font made its own label unreadable over the artwork — a tab is a LABEL,
+  not decoration, so only its GROUND changes now.
+* **Rows are left-aligned two-liners** (title line, state line) across chapters,
+  town and hub tiles; a centred label beside a left-hand portrait read as two
+  unrelated elements. Completed chapters read green.
+* Tabs and lists moved down to clear the taller top bar, which they had been
+  overlapping.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

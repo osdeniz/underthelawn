@@ -490,6 +490,13 @@ const MONEY_GLOW := 0.35
 const MONEY_HOVER := 0.55
 const MONEY_BOB := 0.08
 const MONEY_SPIN := 1.4
+## G10.1 carry stack: where the haul rides. On foot it sits between the
+## driver's shoulders; on the tractor and the blade there is no walking back, so
+## it rides the machine's rear deck.
+const CARRY_BACK_OFFSET := Vector3(0.0, 0.62, 0.16)
+const CARRY_DECK_OFFSET := Vector3(0.0, 0.62, 0.55)
+## Contact pickup radius, on top of the deck: driving near an object takes it.
+const PICKUP_REACH := 0.55
 ## Scrap pickup visuals.
 const SCRAP_ICON := "💵"
 const SCRAP_RISE := 1.1

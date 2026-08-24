@@ -37,6 +37,23 @@ static func style_primary(button: Button) -> void:
 		button.add_theme_color_override(state, Color(0.08, 0.07, 0.05))
 
 
+## A tab always states its own name clearly; only its GROUND changes. Styling
+## the inactive tab as a dark card made its label unreadable over the artwork.
+static func _style_tab(tab: Button, active: bool) -> void:
+	var base := StyleBoxFlat.new()
+	base.bg_color = Color(0.76, 0.62, 0.26) if active \
+		else Color(0.16, 0.16, 0.15, 0.95)
+	base.set_corner_radius_all(18)
+	base.set_content_margin_all(18)
+	base.border_color = Color(GameConfig.CASE_ACCENT, 0.9 if active else 0.35)
+	base.set_border_width_all(3)
+	for state in ["normal", "hover", "pressed", "focus"]:
+		tab.add_theme_stylebox_override(state, base)
+	var ink := Color(0.08, 0.07, 0.05) if active else Color(0.94, 0.92, 0.86)
+	for state in ["font_color", "font_hover_color", "font_pressed_color"]:
+		tab.add_theme_color_override(state, ink)
+
+
 static func style_secondary(button: Button) -> void:
 	var base := StyleBoxFlat.new()
 	base.bg_color = Color(0.10, 0.10, 0.09, 0.94)
@@ -135,15 +152,26 @@ func _build_background() -> void:
 
 
 func _build_top_bar() -> void:
+	# One panel, same language as the game HUD's top bar, so the two screens
+	# read as the same product rather than two prototypes.
+	var panel := Panel.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	panel.offset_left = 30
+	panel.offset_right = -30
+	panel.offset_top = 76
+	panel.offset_bottom = 250
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.04, 0.05, 0.04, 0.62)
+	panel_style.set_corner_radius_all(26)
+	panel_style.set_content_margin_all(24)
+	panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(panel)
+
 	var bar := VBoxContainer.new()
-	bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	bar.offset_left = 60
-	bar.offset_right = -60
-	bar.offset_top = 70
-	bar.offset_bottom = 240
-	bar.add_theme_constant_override("separation", 10)
+	bar.add_theme_constant_override("separation", 8)
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(bar)
+	panel.add_child(bar)
 
 	var title := Label.new()
 	title.text = Story.text("case.title")
@@ -160,8 +188,8 @@ func _build_top_bar() -> void:
 	_progress_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bar.add_child(_progress_label)
 	_scrap_label = Label.new()
-	_scrap_label.add_theme_font_size_override("font_size", 36)
-	_scrap_label.add_theme_color_override("font_color", Color(0.98, 0.90, 0.62))
+	_scrap_label.add_theme_font_size_override("font_size", 42)
+	_scrap_label.add_theme_color_override("font_color", Color(0.55, 0.92, 0.55))
 	_scrap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bar.add_child(_scrap_label)
 	_refresh_progress()
@@ -206,7 +234,7 @@ func _build_tiles() -> Control:
 	column.offset_right = -60
 	# Low on the screen: the art's subject is mid-frame, and cards parked over it
 	# hid the whole square.
-	column.anchor_top = 0.54
+	column.anchor_top = 0.52
 	column.offset_top = 0
 	column.offset_bottom = -110
 	column.alignment = BoxContainer.ALIGNMENT_END
@@ -258,7 +286,8 @@ func _make_tile(tile: Dictionary) -> Button:
 	# The tile dictionary carries the keys directly, so translate them here.
 	var hint := tr(str(tile.get("hint", ""))) if not locked \
 		else Story.text("hub.locked_note")
-	button.text = "%s  %s\n%s" % [str(tile.get("icon", "")),
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.text = "%s   %s\n%s" % [str(tile.get("icon", "")),
 		tr(str(tile.get("label", ""))), hint]
 	if locked:
 		button.add_theme_color_override("font_color", Color(0.66, 0.66, 0.62))
@@ -316,7 +345,7 @@ func _build_board() -> Control:
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scroll.offset_left = 50
 	scroll.offset_right = -50
-	scroll.offset_top = 280
+	scroll.offset_top = 376
 	scroll.offset_bottom = -190
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	page.add_child(scroll)
@@ -342,8 +371,8 @@ func _build_board() -> Control:
 	tabs.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	tabs.offset_left = 50
 	tabs.offset_right = -50
-	tabs.offset_top = 190
-	tabs.offset_bottom = 260
+	tabs.offset_top = 272
+	tabs.offset_bottom = 356
 	tabs.add_theme_constant_override("separation", 18)
 	page.add_child(tabs)
 	_board_tab_places = Button.new()
@@ -351,8 +380,9 @@ func _build_board() -> Control:
 	_board_tab_evidence = Button.new()
 	_board_tab_evidence.text = tr("BOARD_TAB_EVIDENCE")
 	for tab: Button in [_board_tab_places, _board_tab_evidence]:
-		tab.add_theme_font_size_override("font_size", 32)
+		tab.add_theme_font_size_override("font_size", 34)
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab.custom_minimum_size = Vector2(0, 84)
 		tabs.add_child(tab)
 	_board_tab_places.pressed.connect(func() -> void: _show_board_tab(false))
 	_board_tab_evidence.pressed.connect(func() -> void: _show_board_tab(true))
@@ -373,8 +403,8 @@ func _show_board_tab(evidence: bool) -> void:
 	if evidence:
 		_board_view.refresh()
 	if _board_tab_evidence != null:
-		style_primary(_board_tab_evidence if evidence else _board_tab_places)
-		style_secondary(_board_tab_places if evidence else _board_tab_evidence)
+		_style_tab(_board_tab_places, not evidence)
+		_style_tab(_board_tab_evidence, evidence)
 
 
 ## Opens the case board page directly on the corkboard (the case-notes button).
@@ -406,13 +436,14 @@ func _make_chapter_row(chapter: Dictionary, current: String) -> Button:
 		mark = "✓"
 		state = Story.text("case_board.done")
 	elif playable and id == current:
-		mark = "►"
+		mark = "▶"
 		state = Story.text("case_board.active")
 
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(0, 150)
+	button.custom_minimum_size = Vector2(0, 162)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	button.add_theme_font_size_override("font_size", 38)
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.add_theme_font_size_override("font_size", 40)
 	var evidence := Story.text("case_board.evidence").format({
 		"found": ChapterProgress.evidence_found(id),
 		"total": ChapterProgress.evidence_total(id)})
@@ -420,6 +451,8 @@ func _make_chapter_row(chapter: Dictionary, current: String) -> Button:
 		state, evidence]
 	if not playable:
 		button.add_theme_color_override("font_color", Color(0.64, 0.65, 0.61))
+	elif done:
+		button.add_theme_color_override("font_color", Color(0.62, 0.86, 0.56))
 	_style_card(button, not playable)
 	button.pressed.connect(_on_chapter.bind(id, playable, button))
 	return button
@@ -437,12 +470,12 @@ func _on_chapter(variant_id: String, playable: bool, button: Button) -> void:
 
 func _build_town() -> Control:
 	var page := _new_page()
-	page.add_child(_list_backdrop())
+	page.add_child(_list_backdrop(280.0))
 	var scroll := ScrollContainer.new()
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scroll.offset_left = 50
 	scroll.offset_right = -50
-	scroll.offset_top = 280
+	scroll.offset_top = 300
 	scroll.offset_bottom = -190
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	page.add_child(scroll)
@@ -468,18 +501,20 @@ func _build_town() -> Control:
 func _make_person_row(person: Dictionary) -> Button:
 	var id := str(person.get("id", ""))
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(0, 150)
-	button.add_theme_font_size_override("font_size", 38)
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	# The square face crop generated by tools/crop_faces.gd — the town list wants
-	# a face, while the dialogue box uses the full-figure source.
+	button.custom_minimum_size = Vector2(0, 168)
+	# Portrait left, name and role left-aligned beside it: a centred label next
+	# to a left-hand portrait reads as two unrelated elements.
 	var face := TextureLibrary.find("portraits/face_" + id)
 	if face != null:
 		button.icon = face
 		button.expand_icon = true
-		button.add_theme_constant_override("h_separation", 26)
+		button.add_theme_constant_override("h_separation", 30)
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.text = "%s\n%s" % [tr(str(person.get("name", ""))),
 		tr(str(person.get("role", "")))]
+	button.add_theme_font_size_override("font_size", 40)
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_style_card(button)
 	button.pressed.connect(_on_person.bind(id))
 	return button
@@ -502,12 +537,12 @@ func _on_person(person_id: String) -> void:
 
 ## Dark rounded ground covering the list area, so a long list of rows reads as
 ## one panel instead of stripes over the artwork.
-func _list_backdrop() -> Panel:
+func _list_backdrop(top := 346.0) -> Panel:
 	var panel := Panel.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	panel.offset_left = 30
 	panel.offset_right = -30
-	panel.offset_top = 250
+	panel.offset_top = top
 	panel.offset_bottom = -170
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()

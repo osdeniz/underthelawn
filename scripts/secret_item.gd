@@ -39,11 +39,32 @@ func setup(kind_index: int, ground: Vector3) -> void:
 	_visual.name = "Visual"
 	_visual.position.y = GameConfig.ITEM_RISE_FROM
 	add_child(_visual)
-	if kind == TOY:
+	_build_for(kind)
+	_play()
+
+
+## G10.1: the same geometry as a WORLD PROP — the object itself lies in the
+## grass, revealed by mowing, waiting to be driven over. A glowing orb told the
+## player "something is here"; the object tells them WHAT is here, which is the
+## whole point of an evidence hunt.
+func setup_prop(kind_index: int, ground: Vector3) -> void:
+	kind = clampi(kind_index, 0, 1)
+	position = ground
+	_visual = Node3D.new()
+	_visual.name = "Visual"
+	add_child(_visual)
+	_build_for(kind)
+	set_process(true)
+
+
+## Builds whichever evidence mesh this chapter's slot maps to. Chapters past B1
+## reuse the two sculpted meshes until their own art exists, so a slot never
+## renders as nothing.
+func _build_for(kind_index: int) -> void:
+	if kind_index == TOY:
 		_build_toy()
 	else:
 		_build_radio()
-	_play()
 
 
 func _process(delta: float) -> void:

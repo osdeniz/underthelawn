@@ -24,7 +24,6 @@ var character: Character
 
 var _mowers: Array[MowerController] = []
 var _active_index := GameConfig.MOWER_PUSH
-var _glows: Array[SecretGlow] = []
 var _collected: Array = []
 var _complete_shown := false
 ## G7: the case has to be accepted before the search starts. While this is
@@ -46,6 +45,10 @@ var _scrap_banked := 0
 ## Set once both pieces of evidence are in hand and the player chose to keep
 ## mowing, so the "Continue" badge stays available.
 var _exit_offered := false
+## Evidence lying in the grass, waiting to be driven over (G10.1).
+var _evidence_props: Array = []
+## The haul riding on the driver's back / the machine's deck.
+var carry: CarryStack
 
 
 ## The variant has to be applied before ANY child _ready runs: EnvironmentBuilder
@@ -98,6 +101,10 @@ func _ready() -> void:
 	character.name = "Driver"
 	add_child(character)
 
+	carry = CarryStack.new()
+	carry.name = "Carry"
+	add_child(carry)
+
 	model.completed.connect(_on_completed)
 	model.secret_revealed.connect(_on_secret_uncovered)
 	hud.restart_pressed.connect(_restart)
@@ -128,6 +135,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_check_pickups()
 	if mower != null and hud != null:
 		hud.set_pad_state(mower.pad_engaged(), mower._pad_origin, mower._pad_now)
 	if mower == null:
@@ -239,6 +247,25 @@ func _place_character(index: int) -> void:
 		GameConfig.MOWER_ROBOT, GameConfig.MOWER_BLADE:
 			# Nothing to push or ride: the driver watches from the porch.
 			character.set_mode(Character.Mode.SIT, null, self)
+	_reparent_carry(index)
+
+
+## The haul follows whoever is actually working: the walking driver's back for
+## the push mower and the tractor seat, the machine's own deck when the driver
+## is sitting this one out (G10.1).
+func _reparent_carry(index: int) -> void:
+	if carry == null:
+		return
+	var host: Node3D = mower
+	var offset := GameConfig.CARRY_DECK_OFFSET
+	if index == GameConfig.MOWER_PUSH or index == GameConfig.MOWER_TRACTOR:
+		host = character
+		offset = GameConfig.CARRY_BACK_OFFSET
+	if carry.get_parent() != host:
+		if carry.get_parent() != null:
+			carry.get_parent().remove_child(carry)
+		host.add_child(carry)
+	carry.position = offset
 
 
 # ---------------------------------------------------------------- input
@@ -252,11 +279,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	var touch := event as InputEventScreenTouch
 	if touch != null:
 		if touch.pressed:
-			# A tap on a shimmer collects it instead of commanding the mower.
-			var glow := _pick_glow(touch.position)
-			if glow != null:
-				_collect(glow)
-				return
 			mower.on_touch_pressed(touch.index, touch.position)
 		else:
 			mower.on_touch_released(touch.index, touch.position)
@@ -267,62 +289,49 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Ray/sphere test against every live shimmer (§16 uses camera.project_ray).
-func _pick_glow(screen_pos: Vector2) -> SecretGlow:
-	if _glows.is_empty():
-		return null
-	var origin := cam.project_ray_origin(screen_pos)
-	var dir := cam.project_ray_normal(screen_pos)
-	var best: SecretGlow = null
-	var best_distance := INF
-	for glow in _glows:
-		if glow == null or glow.is_taken:
-			continue
-		var radius := glow.tap_radius()
-		var oc := origin - glow.global_position
-		var b := oc.dot(dir)
-		var c := oc.dot(oc) - radius * radius
-		var disc := b * b - c
-		if disc < 0.0:
-			continue
-		var hit := -b - sqrt(disc)
-		if hit < 0.0:
-			hit = -b + sqrt(disc)
-		if hit < 0.0 or hit >= best_distance:
-			continue
-		best_distance = hit
-		best = glow
-	return best
-
-
-# ---------------------------------------------------------------- secrets
-
 func _on_secret_uncovered(col: int, row: int) -> void:
 	var kind := model.secret_cells.find(Vector2i(col, row))
 	if kind < 0:
 		kind = 0
-	var glow := SecretGlow.new()
-	glow.name = "SecretGlow_%d_%d" % [col, row]
-	_fx_root.add_child(glow)
-	glow.setup(Vector2i(col, row), kind, LawnModel.cell_center(col, row))
-	_glows.append(glow)
+	# G10.1: the object itself is revealed, not an abstract orb — the player has
+	# to be able to see WHAT they found from across the lawn.
+	var prop := SecretItem.new()
+	prop.name = "Evidence_%d_%d" % [col, row]
+	_fx_root.add_child(prop)
+	prop.setup_prop(kind, LawnModel.cell_center(col, row))
+	prop.set_meta("kind", kind)
+	_evidence_props.append(prop)
+	AudioDirector.play_discovery()
 	Haptics.medium()
 
 
-func _collect(glow: SecretGlow) -> void:
-	var ground := Vector3(glow.global_position.x, 0.0, glow.global_position.z)
-	var kind := glow.kind
-	_glows.erase(glow)
-	glow.take()
+## Anything the mower drives near is taken. One reach for both evidence and
+## cash, so "it looked like I touched it" and "it counted" are the same rule.
+func _check_pickups() -> void:
+	if mower == null or not _search_started or _complete_shown:
+		return
+	var reach := mower.deck_radius() + GameConfig.PICKUP_REACH
+	var here := Vector2(mower.position.x, mower.position.z)
+	for prop in _evidence_props.duplicate():
+		if prop == null or not is_instance_valid(prop):
+			_evidence_props.erase(prop)
+			continue
+		var at := Vector2(prop.global_position.x, prop.global_position.z)
+		if here.distance_to(at) <= reach:
+			_evidence_props.erase(prop)
+			_collect_evidence(prop)
+
+
+func _collect_evidence(prop: Node3D) -> void:
+	var kind := int(prop.get_meta("kind", 0))
+	var ground := Vector3(prop.global_position.x, 0.0, prop.global_position.z)
+	prop.queue_free()
 
 	DigBurst.spawn(_fx_root, ground)
-
-	var item := SecretItem.new()
-	item.name = "SecretItem_%d" % kind
-	_fx_root.add_child(item)
-	item.setup(kind, ground)
-
 	AudioDirector.play_discovery()
 	Haptics.success()
+	if carry != null:
+		carry.add_evidence(kind)
 
 	var info := variant.evidence_info(kind) if variant != null else {}
 	if info.is_empty():
@@ -334,8 +343,6 @@ func _collect(glow: SecretGlow) -> void:
 			if _collected.size() >= _evidence_total():
 				_offer_exit())
 
-
-# ---------------------------------------------------------------- progress
 
 func _on_cells_mown(_count: int) -> void:
 	hud.set_progress(model.completion_ratio())
@@ -363,10 +370,12 @@ func _on_completed() -> void:
 ## Restart: model reset (secrets redistributed), tint map cleared, tufts back
 ## up, shimmers and items cleared, back to the push mower.
 func _restart() -> void:
-	for glow in _glows:
-		if glow != null and is_instance_valid(glow):
-			glow.queue_free()
-	_glows.clear()
+	for prop in _evidence_props:
+		if prop != null and is_instance_valid(prop):
+			prop.queue_free()
+	_evidence_props.clear()
+	if carry != null:
+		carry.clear_all()
 	for child in _fx_root.get_children():
 		child.queue_free()
 	_collected.clear()
@@ -418,6 +427,8 @@ func _evidence_total() -> int:
 
 func _on_scrap_found(col: int, row: int, value: int) -> void:
 	_scrap_banked += value
+	if carry != null:
+		carry.add_money()
 	var at := LawnModel.cell_center(col, row)
 	hud.fly_scrap(value, cam.unproject_position(at + Vector3.UP * 0.6))
 	hud.set_scrap(GameState.scrap_total() + _scrap_banked)
