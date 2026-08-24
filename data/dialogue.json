@@ -403,5 +403,15 @@
         ]
       }
     ]
-  }
+  },
+  "workshop": [
+    {
+      "min_done": 0,
+      "text": "DLG_WS_GUS_0"
+    },
+    {
+      "min_done": 2,
+      "text": "DLG_WS_GUS_1"
+    }
+  ]
 }

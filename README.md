@@ -1043,6 +1043,52 @@ phone and stays open on purpose — batching without a measurement is blind.
   tips in full sun; saturated albedo plus a soft self-glow
   (`MONEY_GLOW`) is what makes them read, ad-game style. `ScrapPop` is deleted.
 
+## G10 — the workshop and the corkboard
+
+### Workshop
+
+Gus's shop opens from the hub tile: his face and a progress-picked greeting on
+top, then the four mower cards. Each card is either an unlock
+(push free, robot 300, tractor 800, blade 1500 — `UNLOCK_COSTS`) or a
+three-tier upgrade line with pips (`●●○`): +10%/tier speed for push and
+tractor, +12% for the robot, and `BLADE_SCALE +0.15`/tier for the blade — the
+G6.6 decision that mesh, cut radius and collision all derive from that one
+number is exactly what makes the blade upgrade a one-liner. State lives in
+`Garage` ([garage] in settings.cfg, keyed by mower ID, never index).
+
+Purchases go through a confirm sheet (cost + effect), deduct, cha-ching +
+success haptic, card and hub counter refresh. Insufficient funds: the price
+shakes red and Gus says his line. **The selector now shows only owned mowers**;
+`DEV_UNLOCK_ALL` in GameConfig bypasses for tests/dev.
+
+`garage_check` caught a real balance failure before any player did: two fully
+mown early chapters paid ~206 against the Robot's 300 — a grind wall at the
+first purchase. Ground pickups went 2-5 → 4-8, and the suite asserts the Robot
+stays reachable inside two chapters.
+
+### The corkboard
+
+Second tab on the case board (PLACES / THE BOARD). Found evidence hangs as
+pinned, slightly tilted cards at positions authored in `story.json` `board`
+(fractions of the usable board); unfound slots are grey `?` silhouettes. Red
+string sags between COMPLETED chapters — drawn by the game, never the player —
+and each connection carries the Marshal's one-line deduction, which together
+narrate the case's real shape: she wasn't taken, she chose to go, and someone
+cared for them on the way. B8 done pins Ellie's card centre-board with the
+CASE 02 note.
+
+Two Control-drawing traps, both caught on render:
+
+* **PanelContainer stretches every child**, so a 16 px pin head became a full
+  red card. Pins are siblings laid over the card, not children inside it.
+* **A Control's `_draw` renders UNDER its children**, so the string vanished
+  beneath the cork texture. Strings live on their own layer between cork and
+  cards.
+
+Integrations: VIEW CASE BOARD on the case-notes panel (returns to the hub with
+the corkboard open + pin thunk, `audio/pin.wav` in the generator), scrap
+counter in the hub top bar, synced to purchases via the `purchased` signal.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

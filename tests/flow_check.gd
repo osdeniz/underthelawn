@@ -50,13 +50,12 @@ func _check_hub() -> void:
 	await get_tree().process_frame
 	ck("hub ekran boyutu var", hub.size.x > 100 and hub.size.y > 100,
 		str(hub.size))
-	# The locked workshop tile must still exist and still be tappable: a visible
-	# locked door is the point.
-	var locked_found := false
+	# G10 opened the workshop: the tile must exist and be UNLOCKED now.
+	var workshop_open := false
 	for tile: Dictionary in Story.list("hub.tiles"):
-		if bool(tile.get("locked", false)):
-			locked_found = true
-	ck("kilitli atolye karti var", locked_found, "")
+		if str(tile.get("id", "")) == "workshop":
+			workshop_open = not bool(tile.get("locked", false))
+	ck("atolye karti acik", workshop_open, "")
 	hub.queue_free()
 	await get_tree().process_frame
 

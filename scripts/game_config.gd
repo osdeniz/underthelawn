@@ -427,6 +427,24 @@ const CELLAR_AMBIENT_COLOR := Color(0.20, 0.30, 0.24)
 const CELLAR_VIGNETTE_MARGIN := 5.0
 const CELLAR_VIGNETTE_ALPHA := 0.92
 
+# ---------------------------------------------------------------- G10 workshop
+## Unlock prices, keyed by mower id. Push is the starter.
+const UNLOCK_COSTS := { "push": 0, "robot": 300, "tractor": 800, "blade": 1500 }
+## One three-tier upgrade line per mower; cost per tier, escalating.
+const UPGRADE_COSTS := {
+	"push": [120, 280, 550],
+	"robot": [150, 340, 650],
+	"tractor": [220, 480, 900],
+	"blade": [260, 560, 1050],
+}
+## Per-tier effect: speed multiplier bonus for the drivers, disk growth for the
+## blade (BLADE_SCALE +0.15/tier feeds mesh, cut radius and collision at once).
+const UPGRADE_SPEED_BONUS := { "push": 0.10, "tractor": 0.10, "robot": 0.12 }
+const UPGRADE_BLADE_SCALE_STEP := 0.15
+const UPGRADE_MAX_TIER := 3
+## Every mower selectable regardless of unlocks — for tests and dev runs.
+const DEV_UNLOCK_ALL := false
+
 # ---------------------------------------------------------------- G9.2 assists
 ## The last-5% finder (PowerWash lesson): past this completion ratio the
 ## remaining uncut cells get a soft pulsing marker, because hunting the final
@@ -444,8 +462,11 @@ const HINT_DRIVE_KEY := "hint_drive_done"
 ## Per-pickup value range, so a run's ground haul varies a little.
 ## Town-theme music level; the mix keeps it under the ambience.
 const THEME_GAIN := 0.30
-const SCRAP_PICKUP_MIN := 2
-const SCRAP_PICKUP_MAX := 5
+## Raised in G10 (2-5 -> 4-8): with the Robot at 300, two fully-mown early
+## chapters must fund the first unlock, or the workshop opens as a grind wall.
+## garage_check asserts exactly that.
+const SCRAP_PICKUP_MIN := 4
+const SCRAP_PICKUP_MAX := 8
 ## Share of a chapter's payout that comes off the ground vs the completion bonus.
 ## The ground share is deliberately the smaller one: picking scrap up should feel
 ## like a bonus for looking around, not the main job.
@@ -666,7 +687,10 @@ const BLADE_GEM := Color(0.42, 0.10, 0.72)
 const BLADE_SPARK_COOLDOWN := 0.5
 ## Uniform grow factor: chakram mesh, deck radius and body radius all scale
 ## from this one number (future Size upgrades hook in here). 1.0 for now.
-const BLADE_SCALE := 1.0
+## G10: grown by the workshop upgrade (1.0 + tier * UPGRADE_BLADE_SCALE_STEP);
+## set from the garage before each chapter. Mesh, cut radius and collision all
+## derive from it (G6.6), which is why the upgrade is this one number.
+static var BLADE_SCALE := 1.0
 
 # ---------------------------------------------------------------- neighborhood (§2, §12)
 ## G9 house variants: the SAME house parts in different combinations, so a

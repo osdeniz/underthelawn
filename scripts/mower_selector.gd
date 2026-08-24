@@ -13,6 +13,10 @@ func _ready() -> void:
 	add_theme_constant_override("separation", 24)
 	alignment = BoxContainer.ALIGNMENT_CENTER
 	for i in GameConfig.MOWER_TYPES.size():
+		# G10: only owned mowers appear; the rest live in Gus's workshop.
+		if not Garage.is_unlocked(i):
+			_buttons.append(null)
+			continue
 		var info: Dictionary = GameConfig.MOWER_TYPES[i]
 		var button := Button.new()
 		button.text = "%s %s" % [info["emoji"], tr(info["label"])]
@@ -29,6 +33,8 @@ func set_current(index: int) -> void:
 	_current = index
 	for i in _buttons.size():
 		var button := _buttons[i]
+		if button == null:
+			continue
 		button.add_theme_stylebox_override("normal", _style(i == index))
 		button.add_theme_stylebox_override("hover", _style(i == index))
 		button.add_theme_stylebox_override("pressed", _style(true))

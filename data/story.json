@@ -84,9 +84,9 @@
       {
         "id": "workshop",
         "label": "HUB_WORKSHOP",
-        "hint": "HUB_WORKSHOP_HINT",
+        "hint": "HUB_WORKSHOP_HINT2",
         "icon": "🔧",
-        "locked": true
+        "locked": false
       }
     ],
     "locked_note": "HUB_LOCKED",
@@ -199,6 +199,75 @@
         "id": "stranger",
         "name": "CHAR_STRANGER",
         "role": "ROLE_STRANGER"
+      }
+    ]
+  },
+  "board": {
+    "hint": "BOARD_HINT",
+    "final_note": "NOTE_FINAL",
+    "pins": [
+      {
+        "chapter": "ch01_aldridge",
+        "x": 0.16,
+        "y": 0.1,
+        "x2": 0.44,
+        "y2": 0.06
+      },
+      {
+        "chapter": "ch02_neighbor",
+        "x": 0.74,
+        "y": 0.09,
+        "x2": 0.88,
+        "y2": 0.22,
+        "note": "NOTE_CH02"
+      },
+      {
+        "chapter": "ch03_playground",
+        "x": 0.2,
+        "y": 0.28,
+        "x2": 0.5,
+        "y2": 0.25,
+        "note": "NOTE_CH03"
+      },
+      {
+        "chapter": "ch04_flooded",
+        "x": 0.8,
+        "y": 0.38,
+        "x2": 0.58,
+        "y2": 0.44,
+        "note": "NOTE_CH04"
+      },
+      {
+        "chapter": "ch05_greenhouse",
+        "x": 0.16,
+        "y": 0.47,
+        "x2": 0.34,
+        "y2": 0.56,
+        "note": "NOTE_CH05"
+      },
+      {
+        "chapter": "ch06_watertower",
+        "x": 0.72,
+        "y": 0.58,
+        "x2": 0.86,
+        "y2": 0.68,
+        "note": "NOTE_CH06"
+      },
+      {
+        "chapter": "ch07_mill",
+        "x": 0.24,
+        "y": 0.7,
+        "x2": 0.48,
+        "y2": 0.76,
+        "note": "NOTE_CH07"
+      },
+      {
+        "chapter": "ch08_cellar",
+        "x": 0.66,
+        "y": 0.84,
+        "x2": 0.34,
+        "y2": 0.88,
+        "note": "NOTE_CH08"
       }
     ]
   }

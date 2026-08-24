@@ -78,7 +78,8 @@ func type_index() -> int:
 
 
 func max_speed() -> float:
-	return params["speed"]
+	# G10: the workshop's tier bonus rides on top of the §7 base speed.
+	return params["speed"] * Garage.speed_multiplier(type_index())
 
 
 func deck_radius() -> float:

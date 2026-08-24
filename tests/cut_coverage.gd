@@ -9,7 +9,9 @@ extends Node
 ## corner and reach no cell centre at all.
 
 ## World radius each type visibly covers, to compare against its cut radius.
-const VISIBLE_REACH: Dictionary = {
+## BLADE_SCALE became a static var in G10 (the workshop upgrade grows it), so
+## this table is built at runtime rather than as a const.
+var VISIBLE_REACH: Dictionary = {
 	"push": 0.75, "tractor": 1.1, "robot": 0.7,
 	"blade": GameConfig.BLADE_ARM_REACH * GameConfig.BLADE_SCALE,
 }

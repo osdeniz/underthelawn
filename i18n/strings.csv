@@ -183,3 +183,35 @@ OPENING_08_SUBLINE,But someone kept the garden alive.,Ama biri bahçeyi yaşatm�
 UI_RESUME,RESUME,DEVAM
 
 DLG_TOWN_ELLIE_1A,"East... then she's past the fence line. Please hurry.","Doğu... o zaman çit hattını geçmiş. Lütfen acele et."
+WS_TITLE,WORKSHOP,ATÖLYE
+WS_ACTIVE,OWNED,SENDE
+WS_LOCKED,LOCKED,KİLİTLİ
+WS_UNLOCK,"UNLOCK · {cost} 💵","AÇ · {cost} 💵"
+WS_UPGRADE,"UPGRADE · {cost} 💵","GELİŞTİR · {cost} 💵"
+WS_MAXED,FULLY UPGRADED,TAM GELİŞMİŞ
+WS_CONFIRM_UNLOCK,"Unlock {name} for {cost} 💵?","{name} {cost} 💵 karşılığında açılsın mı?"
+WS_CONFIRM_UPGRADE,"Upgrade {name} for {cost} 💵?","{name} {cost} 💵 karşılığında geliştirilsin mi?"
+WS_EFFECT_SPEED,"+{pct}% speed","+%{pct} hız"
+WS_EFFECT_BLADE,"Bigger disk, wider cut","Daha büyük disk, daha geniş kesim"
+WS_BUY,BUY,SATIN AL
+WS_CANCEL,CANCEL,VAZGEÇ
+DLG_WS_GUS_0,"Welcome to the mess. Everything here runs, eventually.","Dağınıklığa hoş geldin. Buradaki her şey çalışır, eninde sonunda."
+DLG_WS_GUS_1,"You're keeping me busy, detective. Good.","Beni meşgul ediyorsun dedektif. İyi."
+DLG_WS_GUS_POOR,"Come back with more scrap, detective.","Daha fazla parayla gel, dedektif."
+DLG_WS_GUS_TRACTOR,"That old tractor? Give me the parts, I'll give you a beast.","O eski traktör mü? Parçaları getir, sana bir canavar vereyim."
+DLG_WS_GUS_ROBOT,"The little runner. Cheap to wake up, loyal after.","Küçük koşucu. Uyandırması ucuz, sonrası sadık."
+DLG_WS_GUS_BLADE,"The disk? I don't ask where it came from. Neither should you.","Disk mi? Nereden geldiğini sormuyorum. Sen de sorma."
+BOARD_TAB_CHAPTERS,PLACES,YERLER
+BOARD_TAB_EVIDENCE,THE BOARD,PANO
+BOARD_HINT,New evidence pinned to the board.,Panoya yeni kanıt iğnelendi.
+BOARD_VIEW,VIEW CASE BOARD,VAKA PANOSUNA BAK
+BOARD_UNKNOWN,?,?
+NOTE_CH02,"The toy, then the shoe past the fence gap. She crawled through. Alone? No.","Önce oyuncak, sonra çit aralığının ötesinde ayakkabı. Sürünerek geçmiş. Yalnız mı? Hayır."
+NOTE_CH03,The ribbon matches the one in her hair. She stopped to play. She wasn't running.,Kurdele saçındakiyle aynı. Oynamak için durmuş. Kaçmıyormuş.
+NOTE_CH04,"A grown boot beside her trail. Someone walked WITH her.","İzinin yanında yetişkin botu. Biri onunla BİRLİKTE yürümüş."
+NOTE_CH05,"Fed plants, opened seed box. They stopped here. They were CARED for.","Bakımlı bitkiler, açılmış tohum kutusu. Burada durmuşlar. Birileri onlara BAKMIŞ."
+NOTE_CH06,"The bike got her this far. The flask says she meant to go further.","Bisiklet onu buraya kadar getirmiş. Matara daha uzağa gitmeyi planladığını söylüyor."
+NOTE_CH07,"Her satchel, and a key to a cellar I never knew existed.","Çantası ve varlığını hiç bilmediğim bir mahzenin anahtarı."
+NOTE_CH08,"The locket was her mother's. She took it to remember home. She CHOSE to go.","Madalyon annesinindi. Evi hatırlamak için almış. Gitmeyi kendi SEÇTİ."
+NOTE_FINAL,"Every pin leads down those stairs. Case 02 starts where this board ends.","Her iğne o merdivenlere çıkıyor. Vaka 02, bu panonun bittiği yerde başlıyor."
+HUB_WORKSHOP_HINT2,Gus keeps the machines alive.,Makineleri Gus ayakta tutuyor.

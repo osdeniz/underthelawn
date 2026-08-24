@@ -169,6 +169,22 @@ func return_to_hub() -> void:
 	_fade_out_then(_open_hub)
 
 
+## VIEW CASE BOARD from the case-notes panel: hub, opened straight onto the
+## corkboard, with the pin thunk as the new evidence lands (G10).
+func return_to_board() -> void:
+	_fade_out_then(func() -> void:
+		_clear_game()
+		if _hub == null or not is_instance_valid(_hub):
+			_open_hub()
+		else:
+			_hub.get_parent().visible = true
+			_hub.refresh()
+			AudioDirector.play_theme()
+			_fade_in()
+		_hub.open_evidence_board()
+		AudioDirector.play_pin())
+
+
 func _clear_game() -> void:
 	if _game != null and is_instance_valid(_game):
 		_game.queue_free()

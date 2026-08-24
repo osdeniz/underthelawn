@@ -19,10 +19,48 @@ signal replay_intro_requested()
 
 const PANEL_FADE := 0.22
 
+
+## Shared button styles for every hub-family page (workshop, board): filled
+## accent for the one action that spends or progresses, dark card for the rest.
+static func style_primary(button: Button) -> void:
+	var base := StyleBoxFlat.new()
+	base.bg_color = Color(0.72, 0.58, 0.24)
+	base.set_corner_radius_all(20)
+	base.set_content_margin_all(22)
+	button.add_theme_stylebox_override("normal", base)
+	var pressed := base.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.88, 0.72, 0.34)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("hover", pressed)
+	button.add_theme_stylebox_override("focus", base)
+	for state in ["font_color", "font_pressed_color", "font_hover_color"]:
+		button.add_theme_color_override(state, Color(0.08, 0.07, 0.05))
+
+
+static func style_secondary(button: Button) -> void:
+	var base := StyleBoxFlat.new()
+	base.bg_color = Color(0.10, 0.10, 0.09, 0.94)
+	base.set_corner_radius_all(20)
+	base.set_content_margin_all(22)
+	base.border_color = Color(GameConfig.CASE_ACCENT, 0.40)
+	base.set_border_width_all(2)
+	button.add_theme_stylebox_override("normal", base)
+	var pressed := base.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.17, 0.15, 0.11, 0.97)
+	pressed.border_color = Color(GameConfig.CASE_ACCENT, 0.8)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("hover", pressed)
+	button.add_theme_stylebox_override("focus", base)
+
 var _background: TextureRect
 var _tiles_page: Control
 var _board_page: Control
 var _town_page: Control
+var _workshop_page: WorkshopPage
+var _board_view: EvidenceBoard
+var _board_tab_places: Button
+var _board_tab_evidence: Button
+var _scrap_label: Label
 var _progress_label: Label
 var _dialogue: DialogueBox
 
@@ -35,9 +73,11 @@ func _ready() -> void:
 	_tiles_page = _build_tiles()
 	_board_page = _build_board()
 	_town_page = _build_town()
+	_workshop_page = _build_workshop()
 	add_child(_tiles_page)
 	add_child(_board_page)
 	add_child(_town_page)
+	add_child(_workshop_page)
 	_show_page(_tiles_page)
 
 
@@ -119,6 +159,11 @@ func _build_top_bar() -> void:
 	_progress_label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_progress_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bar.add_child(_progress_label)
+	_scrap_label = Label.new()
+	_scrap_label.add_theme_font_size_override("font_size", 36)
+	_scrap_label.add_theme_color_override("font_color", Color(0.98, 0.90, 0.62))
+	_scrap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.add_child(_scrap_label)
 	_refresh_progress()
 
 
@@ -127,6 +172,7 @@ func _refresh_progress() -> void:
 		"case": Story.text("case.id"),
 		"done": ChapterProgress.done_count(),
 		"total": ChapterProgress.count()})
+	_scrap_label.text = "%s %d" % [GameConfig.SCRAP_ICON, GameState.scrap_total()]
 
 
 # ---------------------------------------------------------------- pages
@@ -139,7 +185,7 @@ func _new_page() -> Control:
 
 
 func _show_page(page: Control) -> void:
-	for candidate in [_tiles_page, _board_page, _town_page]:
+	for candidate in [_tiles_page, _board_page, _town_page, _workshop_page]:
 		if candidate == null:
 			continue
 		candidate.visible = candidate == page
@@ -233,6 +279,9 @@ func _on_tile(id: String, locked: bool, button: Button) -> void:
 			_show_page(_board_page)
 		"town":
 			_show_page(_town_page)
+		"workshop":
+			_workshop_page.refresh()
+			_show_page(_workshop_page)
 		_:
 			_shake(button)
 
@@ -243,6 +292,16 @@ func _shake(control: Control) -> void:
 	for offset: float in [16.0, -12.0, 8.0, -4.0, 0.0]:
 		tw.tween_property(control, "position", home + Vector2(offset, 0.0), 0.055)
 	tw.tween_callback(func() -> void: control.position = home)
+
+
+# ---------------------------------------------------------------- workshop
+
+func _build_workshop() -> Control:
+	var page := WorkshopPage.new()
+	page.visible = false
+	page.purchased.connect(_refresh_progress)
+	page.add_child(_back_button())
+	return page
 
 
 # ---------------------------------------------------------------- case board
@@ -274,9 +333,55 @@ func _build_board() -> Control:
 	heading.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	column.add_child(heading)
 
+	# G10: the detective corkboard lives behind a tab pair on the same page.
+	_board_view = EvidenceBoard.new()
+	_board_view.visible = false
+	page.add_child(_board_view)
+
+	var tabs := HBoxContainer.new()
+	tabs.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	tabs.offset_left = 50
+	tabs.offset_right = -50
+	tabs.offset_top = 190
+	tabs.offset_bottom = 260
+	tabs.add_theme_constant_override("separation", 18)
+	page.add_child(tabs)
+	_board_tab_places = Button.new()
+	_board_tab_places.text = tr("BOARD_TAB_CHAPTERS")
+	_board_tab_evidence = Button.new()
+	_board_tab_evidence.text = tr("BOARD_TAB_EVIDENCE")
+	for tab: Button in [_board_tab_places, _board_tab_evidence]:
+		tab.add_theme_font_size_override("font_size", 32)
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tabs.add_child(tab)
+	_board_tab_places.pressed.connect(func() -> void: _show_board_tab(false))
+	_board_tab_evidence.pressed.connect(func() -> void: _show_board_tab(true))
+	page.set_meta("scroll", scroll)
+
 	page.add_child(_back_button())
 	page.set_meta("column", column)
 	return page
+
+
+## Swaps between the chapter list and the corkboard, restyling the tab pair so
+## the active one reads pressed.
+func _show_board_tab(evidence: bool) -> void:
+	Haptics.light()
+	var scroll: Control = _board_page.get_meta("scroll")
+	scroll.visible = not evidence
+	_board_view.visible = evidence
+	if evidence:
+		_board_view.refresh()
+	if _board_tab_evidence != null:
+		style_primary(_board_tab_evidence if evidence else _board_tab_places)
+		style_secondary(_board_tab_places if evidence else _board_tab_evidence)
+
+
+## Opens the case board page directly on the corkboard (the case-notes button).
+func open_evidence_board() -> void:
+	_show_page(_board_page)
+	_refresh_board()
+	_show_board_tab(true)
 
 
 ## Rebuilt on every entry, so a chapter finished in this session shows as done
@@ -435,4 +540,5 @@ func _back_button() -> Button:
 func refresh() -> void:
 	_refresh_progress()
 	_refresh_board()
+	_show_board_tab(false)
 	_show_page(_tiles_page)

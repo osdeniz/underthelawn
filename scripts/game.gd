@@ -54,6 +54,9 @@ var _exit_offered := false
 ## variant_id is already set by then because RootFlow assigns it before
 ## add_child().
 func _enter_tree() -> void:
+	# The blade's disk size is a garage stat and everything derives from
+	# BLADE_SCALE at build time, so it must be set before any child builds.
+	Garage.apply_blade_scale()
 	variant = LevelVariant.of(variant_id)
 	variant.apply()
 
@@ -106,6 +109,10 @@ func _ready() -> void:
 	hud.return_requested.connect(_return_to_hub)
 	hud.exit_confirmed.connect(_confirm_exit)
 	hud.next_chapter_requested.connect(_next_chapter)
+	hud.board_requested.connect(func() -> void:
+		var root := get_parent()
+		if root != null and root.has_method("return_to_board"):
+			root.return_to_board())
 
 	_apply_quality()
 	_activate(GameConfig.MOWER_PUSH, true)

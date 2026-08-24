@@ -21,6 +21,8 @@ signal exit_confirmed()
 ## The NEXT: <chapter> button on the case-notes panel (G9.2). All chapters are
 ## playable since G9, so the locked teaser became a real door.
 signal next_chapter_requested()
+## VIEW CASE BOARD on the case-notes panel (G10).
+signal board_requested()
 
 @onready var _percent_label: Label = %PercentLabel
 @onready var _secret_counter: Label = %SecretCounter
@@ -56,6 +58,7 @@ signal next_chapter_requested()
 @onready var _exit_keep: Button = %ExitKeep
 @onready var _exit_badge: Button = %ExitBadge
 @onready var _payout_list: VBoxContainer = %PayoutList
+@onready var _board_button: Button = %BoardButton
 
 var _shown_percent := 0.0
 var _target_percent := 0.0
@@ -98,6 +101,7 @@ func _ready() -> void:
 	_exit_continue.pressed.connect(_on_exit_continue)
 	_exit_keep.pressed.connect(_on_exit_keep)
 	_exit_badge.pressed.connect(_on_exit_continue)
+	_board_button.pressed.connect(func() -> void: board_requested.emit())
 	# G9.3: STORY belongs to the hub; in the game HUD it was a dead button whose
 	# signal nothing had listened to since G8 moved the intro to RootFlow.
 	_story_button.visible = false
@@ -318,7 +322,8 @@ func _style_case_panels() -> void:
 	_style_primary(_exit_continue)
 	_style_primary(_teaser)
 	_style_primary(_exit_badge)
-	for button: Button in [_exit_keep, _return_button, %RestartButton as Button]:
+	for button: Button in [_exit_keep, _return_button, _board_button,
+			%RestartButton as Button]:
 		_style_button(button)
 
 
@@ -353,6 +358,7 @@ func _apply_story_text() -> void:
 	_opening_subline.text = Story.text("opening.subline")
 	_card_header.text = Story.text("evidence.card_header", "EVIDENCE FOUND")
 	_return_button.text = tr("UI_RETURN_TOWN")
+	_board_button.text = tr("BOARD_VIEW")
 	_exit_title.text = tr("EXIT_ALL_FOUND")
 	_exit_continue.text = tr("EXIT_CONTINUE")
 	_exit_keep.text = tr("EXIT_KEEP_MOWING")

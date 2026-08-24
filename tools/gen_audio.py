@@ -227,6 +227,18 @@ def theme():
 
 
 TAU = math.tau
+# ---- corkboard pin: a short woody thunk.
+def pin():
+    n = seconds(0.16)
+    out = []
+    for i in range(n):
+        t = i / SR
+        v = math.sin(TAU * 240 * t) * 0.7 + math.sin(TAU * 470 * t) * 0.25
+        v += (rng.random() - 0.5) * 0.7 * math.exp(-300 * t)
+        out.append(v * math.exp(-34 * t))
+    return out
+
+
 print("[gen_audio] yaziliyor:")
 write("mower_engine_loop", engine(), 0.9)
 write("grass_cut", cut(), 0.8)
@@ -238,4 +250,5 @@ write("ambient_birds_loop", ambient(), 0.55)
 write("car_pass", car(), 0.75)
 write("blade_spin", spin(), 0.6)
 write("theme_town", theme(), 0.9)
+write("pin", pin(), 0.8)
 print("[gen_audio] bitti")

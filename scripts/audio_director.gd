@@ -18,6 +18,7 @@ const PATHS := {
 	"scrap": "res://audio/scrap_pickup",
 	"ambient": "res://audio/ambient_birds_loop",
 	"theme": "res://audio/theme_town",
+	"pin": "res://audio/pin",
 }
 const AUDIO_EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
 
@@ -223,6 +224,15 @@ func _fade_music(target_linear: float, duration: float) -> void:
 	_music_tween = create_tween()
 	_music_tween.tween_property(_music, "volume_db",
 		GameConfig.linear_to_db_safe(target_linear), duration)
+
+
+## The corkboard pin thunk (G10).
+func play_pin() -> void:
+	if not _streams.has("pin"):
+		return
+	_one_shot.stream = _streams["pin"]
+	_one_shot.pitch_scale = randf_range(0.96, 1.05)
+	_one_shot.play()
 
 
 func play_discovery() -> void:
