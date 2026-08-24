@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bmdly4wvr2erv"
-path.s3tc="res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.s3tc.ctex"
-path.etc2="res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.etc2.ctex"
+uid="uid://bntd2l50bxw13"
+path.s3tc="res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.s3tc.ctex"
+path.etc2="res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://textures/portraits/sarah.jpg"
-dest_files=["res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.s3tc.ctex", "res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.etc2.ctex"]
+source_file="res://textures/portraits/ellie.jpg"
+dest_files=["res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.s3tc.ctex", "res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.etc2.ctex"]
 
 [params]
 

@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bmdly4wvr2erv"
-path.s3tc="res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.s3tc.ctex"
-path.etc2="res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.etc2.ctex"
+uid="uid://oqy6cjhkg2j2"
+path.s3tc="res://.godot/imported/marshal.jpg-1311255f493415e5c55b7457a6c90a14.s3tc.ctex"
+path.etc2="res://.godot/imported/marshal.jpg-1311255f493415e5c55b7457a6c90a14.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://textures/portraits/sarah.jpg"
-dest_files=["res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.s3tc.ctex", "res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.etc2.ctex"]
+source_file="res://textures/portraits/marshal.jpg"
+dest_files=["res://.godot/imported/marshal.jpg-1311255f493415e5c55b7457a6c90a14.s3tc.ctex", "res://.godot/imported/marshal.jpg-1311255f493415e5c55b7457a6c90a14.etc2.ctex"]
 
 [params]
 
