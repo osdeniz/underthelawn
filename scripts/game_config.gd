@@ -112,21 +112,23 @@ const GRASS_PALETTES := {
 	# A soft green stripe ladder against dry blades is what makes a yard read as
 	# "cut" no matter how odd the grass colour is.
 
-	# B2: the same neighbourhood, a season on. Slightly bluer, less saturated.
+	# B2: dew-grey teal, unmistakably a different morning from B1's warm green —
+	# the first two chapters sit side by side on the board, so THESE two have to
+	# differ the most (G9.2 tuning after they read as siblings).
 	"GREEN_COOL": {
-		"cluster_base": Color(0.055, 0.24, 0.09),
-		"cluster_tip": Color(0.26, 0.63, 0.28),
+		"cluster_base": Color(0.04, 0.19, 0.16),
+		"cluster_tip": Color(0.24, 0.60, 0.52),
 		"accents": [
-			{ "base": Color(0.10, 0.24, 0.10), "tip": Color(0.44, 0.60, 0.32),
-				"weight": 0.16, "flowers": false },
-			{ "base": Color(0.09, 0.30, 0.14), "tip": Color(0.40, 0.76, 0.44),
+			{ "base": Color(0.10, 0.20, 0.19), "tip": Color(0.48, 0.62, 0.58),
+				"weight": 0.18, "flowers": false },
+			{ "base": Color(0.07, 0.24, 0.24), "tip": Color(0.38, 0.74, 0.70),
 				"weight": 0.05, "flowers": true },
 		],
 		"ground_mowed": [
-			Color(0.22, 0.61, 0.24), Color(0.19, 0.56, 0.21),
-			Color(0.13, 0.42, 0.15), Color(0.16, 0.49, 0.18),
+			Color(0.20, 0.55, 0.44), Color(0.17, 0.50, 0.39),
+			Color(0.12, 0.38, 0.28), Color(0.15, 0.44, 0.33),
 		],
-		"clipping": Color(0.34, 0.66, 0.32),
+		"clipping": Color(0.30, 0.62, 0.52),
 	},
 
 	# B3: unwatered for a long time. Straw over a green undertone, so the cut

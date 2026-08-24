@@ -7,3 +7,4 @@
 script = ExtResource("1_test")
 
 [node name="Main" parent="." instance=ExtResource("2_main")]
+variant_id = "ch03_playground"

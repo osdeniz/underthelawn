@@ -32,7 +32,7 @@ var _complete_shown := false
 var _search_started := false
 ## Which chapter this run is. Set by RootFlow before _ready; G9 builds the lawn
 ## from variant data keyed on it. A chapter is an ID, never a scene.
-var variant_id := "ch01_aldridge"
+@export var variant_id := "ch01_aldridge"
 ## RootFlow runs the briefing itself, so it starts the search immediately.
 ## Standalone (every test instantiates Main.tscn directly) this is also true, so
 ## the scene is playable on its own.
