@@ -109,7 +109,10 @@ func _ready() -> void:
 
 	_apply_quality()
 	_activate(GameConfig.MOWER_PUSH, true)
-	AudioDirector.start_ambient()
+	# G9.4: no birds in play — the theme runs instead (RootFlow keeps it going).
+	# Standalone (tests, direct scene run) start it here so the scene sounds
+	# the same without the flow above it.
+	AudioDirector.play_theme()
 
 	# G8: the briefing moved to RootFlow's DialogueBox, so by the time this
 	# scene exists the case has already been accepted.
@@ -409,7 +412,6 @@ func _evidence_total() -> int:
 func _on_scrap_found(col: int, row: int, value: int) -> void:
 	_scrap_banked += value
 	var at := LawnModel.cell_center(col, row)
-	ScrapPop.spawn(_fx_root, at)
 	hud.fly_scrap(value, cam.unproject_position(at + Vector3.UP * 0.6))
 	hud.set_scrap(GameState.scrap_total() + _scrap_banked)
 	AudioDirector.play_scrap()

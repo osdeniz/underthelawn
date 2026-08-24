@@ -1027,6 +1027,22 @@ safe again and the G6.12 per-gesture latch is gone.
 Item 8 from the review (GPU profile, then maybe mesh batching) needs a real
 phone and stays open on purpose — batching without a measurement is blind.
 
+### G9.4 — birds to the intro, visible cash
+
+* **Birdsong plays over the opening cards only.** In gameplay it read as an
+  untraceable background noise; the ambient loop now starts with the intro and
+  stops when the hub opens, the Neighborhood's random chirps are off, and the
+  town theme carries hub AND gameplay (standalone scene runs start it
+  themselves, so tests sound the same).
+* **Money is visible now** — the genre-classic green cash stack hovering over
+  its cell, bobbing and spinning (`MoneyProp`), collected by mowing into it:
+  pop-and-shrink, flying `+$` label, two-tone cash blip (regenerated
+  `scrap_pickup`). Design call: bundles stay at the seeded budget points rather
+  than money-per-cut — visible pickups are goals to steer toward, money-per-cut
+  is noise that devalues the counter. First pass washed out to the pale grass
+  tips in full sun; saturated albedo plus a soft self-glow
+  (`MONEY_GLOW`) is what makes them read, ad-game style. `ScrapPop` is deleted.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

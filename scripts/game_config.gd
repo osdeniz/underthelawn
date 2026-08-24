@@ -457,6 +457,18 @@ const SCRAP_BONUS_SHARE := 0.70
 const SCRAP_BONUS_FLOOR := 0.55
 ## Extra on top for a full mow, shown as its own line so the reward is legible.
 const SCRAP_THOROUGH_BONUS := 0.15
+## Money bundle prop: the genre-classic green cash stack, VISIBLE above the
+## grass before it is collected — hidden pickups read as luck, visible ones as
+## goals to steer toward.
+const MONEY_BILL := Color(0.07, 0.45, 0.16)
+const MONEY_BILL_TOP := Color(0.16, 0.62, 0.26)
+const MONEY_BAND := Color(0.96, 0.86, 0.42)
+const MONEY_SIZE := Vector3(0.56, 0.20, 0.38)
+## Soft self-glow so the stack pops against sunlit grass, ad-game style.
+const MONEY_GLOW := 0.35
+const MONEY_HOVER := 0.55
+const MONEY_BOB := 0.08
+const MONEY_SPIN := 1.4
 ## Scrap pickup visuals.
 const SCRAP_ICON := "💵"
 const SCRAP_RISE := 1.1

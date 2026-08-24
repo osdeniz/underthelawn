@@ -91,15 +91,18 @@ def discovery():
     return out
 
 
-# ---- money pickup: bright tink.
+# ---- money pickup: two-tone cash blip (E6 -> B6), the arcade coin grammar.
 def pickup():
-    n = seconds(0.22)
-    out = []
-    for i in range(n):
-        t = i / SR
-        v = (math.sin(TAU * 2200 * t) * 0.6 + math.sin(TAU * 3400 * t) * 0.4)
-        v += (rng.random() - 0.5) * 0.4 * math.exp(-260 * t)
-        out.append(v * math.exp(-22 * t))
+    n = seconds(0.30)
+    out = [0.0] * n
+    for start, freq in ((0.0, 1318.5), (0.07, 1975.5)):
+        for i in range(seconds(0.20)):
+            t = i / SR
+            j = seconds(start) + i
+            if j >= n:
+                break
+            v = math.sin(TAU * freq * t) * 0.7 + math.sin(TAU * freq * 2 * t) * 0.2
+            out[j] += v * math.exp(-16 * t)
     return out
 
 

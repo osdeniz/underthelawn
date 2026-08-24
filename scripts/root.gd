@@ -35,8 +35,10 @@ func _ready() -> void:
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_layer.add_child(_fade)
 
-	AudioDirector.start_ambient()
 	if GameConfig.STORY_ALWAYS_REPLAY_INTRO or not _intro_seen():
+		# Birdsong belongs to the opening cards ONLY (G9.4): under gameplay it
+		# read as an untraceable background noise. The theme carries the rest.
+		AudioDirector.start_ambient()
 		AudioDirector.play_theme()
 		_play_intro()
 	else:
@@ -61,6 +63,7 @@ func _play_intro() -> void:
 		_intro = null
 		layer.queue_free()
 		GameState.set_setting("story", "intro_seen", true)
+		AudioDirector.stop_ambient()
 		_open_hub())
 
 
@@ -126,7 +129,6 @@ func _play_dialogue(lines: Array, accept_key: String, then: Callable) -> void:
 
 
 func _start_chapter() -> void:
-	AudioDirector.stop_theme()
 	_fade_out_then(func() -> void:
 		_clear_game()
 		if _hub != null and is_instance_valid(_hub):

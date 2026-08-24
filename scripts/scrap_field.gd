@@ -1,5 +1,5 @@
 class_name ScrapField
-extends Node
+extends Node3D
 ## G9 scrap: a handful of salvage points buried in the grass. Mowing a cell that
 ## holds one pops the icon out of the lawn and flies it to the HUD counter.
 ##
@@ -13,6 +13,7 @@ var _model: LawnModel
 var _points := {}          # cell index -> value
 var _rng := RandomNumberGenerator.new()
 var _ground_total := 0
+var _props := {}          # cell index -> MoneyProp
 
 
 ## `budget` is how many pickups to bury; scaled by nothing else, since the
@@ -47,6 +48,13 @@ func setup(model: LawnModel, budget: int, seed_value: int) -> void:
 	if placed.size() < budget:
 		print("[Scrap] %d/%d nokta yerlestirildi (%d deneme)"
 			% [placed.size(), budget, tries])
+	# Visible cash bundles (G9.4): the money is a goal on the lawn, not a
+	# surprise under it. Only when the field lives in a scene — the placement
+	# tests run it detached.
+	if is_inside_tree():
+		for cell in placed:
+			_props[LawnModel.index_of(cell.x, cell.y)] = MoneyProp.spawn(
+				self, LawnModel.cell_center(cell.x, cell.y))
 
 
 ## Called for every cell the deck cuts. Returns the value if this cell held
@@ -57,6 +65,9 @@ func take(col: int, row: int) -> int:
 		return 0
 	var value: int = _points[key]
 	_points.erase(key)
+	if _props.has(key):
+		(_props[key] as MoneyProp).collect()
+		_props.erase(key)
 	_ground_total += value
 	collected.emit(value)
 	return value

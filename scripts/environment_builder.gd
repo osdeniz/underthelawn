@@ -47,7 +47,8 @@ func _ready() -> void:
 		_build_high_clouds()
 	_build_driveways()
 	_build_traces()
-	_setup_bird()
+	# G9.4: random bird chirps are gone from gameplay along with the ambient
+	# loop; birdsong lives on the opening cards only.
 	_flag_timer = _rng.randf_range(GameConfig.FLAG_INTERVAL_MIN, GameConfig.FLAG_INTERVAL_MAX)
 	# LawnView builds its grey placeholders in Game._ready, after this node's
 	# _ready — hide them once the real props exist.
@@ -95,7 +96,9 @@ func _micro_motion(delta: float) -> void:
 
 	if _bird != null:
 		_bird_timer -= delta
-		if _bird_timer <= 0.0:
+		if _bird == null:
+			pass
+		elif _bird_timer <= 0.0:
 			_bird_timer = _rng.randf_range(GameConfig.BIRD_INTERVAL_MIN,
 				GameConfig.BIRD_INTERVAL_MAX)
 			_bird.play()

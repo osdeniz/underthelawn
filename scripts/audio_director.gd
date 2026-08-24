@@ -126,6 +126,11 @@ func toggle_mute() -> bool:
 	return muted
 
 
+func stop_ambient() -> void:
+	if _ambient_player != null and _ambient_player.playing:
+		_ambient_player.stop()
+
+
 func start_ambient() -> void:
 	if _ambient_player.stream != null and not _ambient_player.playing:
 		_ambient_player.volume_db = GameConfig.linear_to_db_safe(GameConfig.AMBIENT_GAIN)
