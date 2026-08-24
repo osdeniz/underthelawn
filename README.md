@@ -1144,6 +1144,20 @@ name and line at bigger sizes, and `CARD_SHOW_TIME` 2.0 -> 3.6 s so both lines
 can be read without hurrying. The emoji moved out of the title into its own
 slot, so the title is just the name.
 
+### G10.3 — top bars that hold their contents
+
+The hub's money label overflowed the panel: three stacked rows of that type
+simply do not fit a bar that height, and growing the bar would eat the artwork.
+It is two columns now — case identity left, wallet chip right.
+
+**Trap: `Panel` is not a container.** It does not lay out its children, so the
+row collapsed to its own width and the wallet clung to the title.
+`PanelContainer` is the one that fills.
+
+The game HUD follows the same language: percentage / evidence / wallet chip on
+one row, progress bar, case line, with the chip ending clear of the pause
+button. Both bars now read as one product.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

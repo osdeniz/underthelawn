@@ -613,10 +613,10 @@ func _build_pause() -> void:
 	_pause_button.add_theme_font_size_override("font_size", 44)
 	# Right end of the new top bar, aligned with the percentage row.
 	_pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	_pause_button.offset_left = -156
-	_pause_button.offset_right = -46
-	_pause_button.offset_top = 84
-	_pause_button.offset_bottom = 190
+	_pause_button.offset_left = -152
+	_pause_button.offset_right = -48
+	_pause_button.offset_top = 94
+	_pause_button.offset_bottom = 178
 	_style_button(_pause_button)
 	_pause_button.pressed.connect(_open_pause)
 	add_child(_pause_button)

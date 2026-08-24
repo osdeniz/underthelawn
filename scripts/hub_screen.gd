@@ -151,47 +151,79 @@ func _build_background() -> void:
 	add_child(scrim)
 
 
+## Two columns, not three stacked rows: the case identity on the left, the
+## wallet as its own chip on the right. Stacking title + progress + money
+## overflowed the panel, because three lines of that type simply do not fit a
+## bar this tall — and growing the bar would eat the artwork instead.
 func _build_top_bar() -> void:
-	# One panel, same language as the game HUD's top bar, so the two screens
-	# read as the same product rather than two prototypes.
-	var panel := Panel.new()
+	# PanelContainer, NOT Panel: a plain Panel does not lay out its children, so
+	# the row collapsed to its own width and the wallet clung to the title.
+	var panel := PanelContainer.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	panel.offset_left = 30
 	panel.offset_right = -30
 	panel.offset_top = 76
-	panel.offset_bottom = 250
+	panel.offset_bottom = 236
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.04, 0.05, 0.04, 0.62)
+	panel_style.bg_color = Color(0.04, 0.05, 0.04, 0.70)
 	panel_style.set_corner_radius_all(26)
-	panel_style.set_content_margin_all(24)
+	panel_style.content_margin_left = 30.0
+	panel_style.content_margin_right = 22.0
+	panel_style.content_margin_top = 18.0
+	panel_style.content_margin_bottom = 18.0
 	panel.add_theme_stylebox_override("panel", panel_style)
 	add_child(panel)
 
-	var bar := VBoxContainer.new()
-	bar.add_theme_constant_override("separation", 8)
-	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(bar)
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 20)
+	columns.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(columns)
+
+	var identity := VBoxContainer.new()
+	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	identity.alignment = BoxContainer.ALIGNMENT_CENTER
+	identity.add_theme_constant_override("separation", 4)
+	identity.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	columns.add_child(identity)
 
 	var title := Label.new()
 	title.text = Story.text("case.title")
-	title.add_theme_font_size_override("font_size", 52)
+	title.add_theme_font_size_override("font_size", 46)
 	title.add_theme_color_override("font_color", Color(0.96, 0.95, 0.92))
 	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
-	title.add_theme_constant_override("shadow_offset_y", 4)
+	title.add_theme_constant_override("shadow_offset_y", 3)
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar.add_child(title)
+	identity.add_child(title)
 
 	_progress_label = Label.new()
-	_progress_label.add_theme_font_size_override("font_size", 34)
+	_progress_label.add_theme_font_size_override("font_size", 30)
 	_progress_label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_progress_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar.add_child(_progress_label)
+	identity.add_child(_progress_label)
+
+	# The wallet reads as a thing you own, so it gets its own chip.
+	var wallet := PanelContainer.new()
+	wallet.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	wallet.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var chip := StyleBoxFlat.new()
+	chip.bg_color = Color(0.09, 0.16, 0.09, 0.92)
+	chip.set_corner_radius_all(18)
+	chip.content_margin_left = 22.0
+	chip.content_margin_right = 22.0
+	chip.content_margin_top = 12.0
+	chip.content_margin_bottom = 12.0
+	chip.border_color = Color(0.40, 0.78, 0.42, 0.55)
+	chip.set_border_width_all(2)
+	wallet.add_theme_stylebox_override("panel", chip)
+	columns.add_child(wallet)
+
 	_scrap_label = Label.new()
-	_scrap_label.add_theme_font_size_override("font_size", 42)
-	_scrap_label.add_theme_color_override("font_color", Color(0.55, 0.92, 0.55))
+	_scrap_label.add_theme_font_size_override("font_size", 40)
+	_scrap_label.add_theme_color_override("font_color", Color(0.62, 0.95, 0.60))
+	_scrap_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_scrap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar.add_child(_scrap_label)
+	wallet.add_child(_scrap_label)
 	_refresh_progress()
 
 
