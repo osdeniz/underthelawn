@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cudg8b454eeik"
-path="res://.godot/imported/intro_3.jpg-d776a0240e9e28c430f8467e82a9623e.ctex"
+uid="uid://bmdly4wvr2erv"
+path="res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/intro/intro_3.jpg"
-dest_files=["res://.godot/imported/intro_3.jpg-d776a0240e9e28c430f8467e82a9623e.ctex"]
+source_file="res://textures/portraits/sarah.jpg"
+dest_files=["res://.godot/imported/sarah.jpg-f08c44a4fe30d6480b2558571e1670eb.ctex"]
 
 [params]
 
