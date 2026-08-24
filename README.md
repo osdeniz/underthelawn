@@ -745,7 +745,37 @@ the brief suggested, so the frame is a **tall rounded card (150x200)** instead o
 a circle — a circle cropped them to a torso. Either shape works; if you'd rather
 have circles, crop the sources square on the face.
 
-## Not in G1-G8
+### G8.1 — the portrait art, used at both sizes
+
+The supplied character art is 9:16 full-figure illustration, so it is now used
+two ways from ONE source file per character — nothing needs re-cropping by hand.
+
+* **Dialogue** shows the full illustration LARGE
+  (`DIALOGUE_PORTRAIT_SIZE`, 430x764), standing above the text panel, with the
+  panel overlapping its foot so figure and box read as one unit instead of two
+  stacked rectangles. A thumbnail wasted the art.
+* **The town list** needs a face, so `tools/crop_faces.gd` generates
+  `textures/portraits/face_<id>.png` (320x320) from the same file, using
+  `GameConfig.PORTRAIT_FACES` — face centre and crop size as **fractions** of
+  the source, since the sources are not all the same resolution. The crop is
+  square in pixels off the shorter edge, so no face comes out stretched.
+
+The fractions were tuned by looking at the contact sheet the tool writes to
+`/tmp/faces_sheet.png`, not guessed once: the first pass cut every face at the
+eyes, the second at the chin, the third framed all six. Regenerate after
+changing art or the fractions:
+
+    Godot --headless --path . --script res://tools/crop_faces.gd
+    Godot --headless --editor --quit --path .
+
+**The extension trap, in reverse.** This batch had `marshal.jpg` and
+`ellie.jpg` containing PNG data (the other four were real JPEGs). Godot's
+importer goes by extension, so those two would have failed exactly like the
+`.png`-named JPEGs did in G8. Renamed to `.png`. The rule either way: check
+`file <path>` output, not the extension — `TextureLibrary` searches
+`.png/.jpg/.jpeg/.webp` so any correct extension works.
+
+## Not in G1-G8.1
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

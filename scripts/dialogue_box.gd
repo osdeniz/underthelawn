@@ -3,8 +3,9 @@ extends Control
 ## The one portrait-dialogue UI (G8). Briefing, debrief and town chatter all
 ## play through this; there is no second dialogue implementation.
 ##
-## Lower half of the screen: portrait on the left, name above the text, one to
-## three lines typed out fast. First tap finishes the current line instantly,
+## Lower half of the screen: the character's full 9:16 illustration standing
+## LARGE above the text panel (the art is full-figure, and a thumbnail wastes
+## it), name at the top of the panel, one to three lines typed out fast. First tap finishes the current line instantly,
 ## second tap advances — so a reader is never slowed down and a skimmer is never
 ## blocked. A flavour choice shows two buttons; picking one appends its reaction
 ## line and the conversation continues.
@@ -74,9 +75,45 @@ func _build() -> void:
 	_scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_scrim)
 
+	# The illustration stands above the text panel, which then overlaps its foot
+	# so figure and box read as one unit instead of two stacked rectangles.
+	_portrait_frame = Panel.new()
+	_portrait_frame.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	_portrait_frame.offset_left = 56
+	_portrait_frame.offset_right = 56 + GameConfig.DIALOGUE_PORTRAIT_SIZE.x
+	_portrait_frame.offset_top = -GameConfig.DIALOGUE_PORTRAIT_SIZE.y - 620
+	_portrait_frame.offset_bottom = -620
+	_portrait_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Godot does not clip children to a parent's rounded StyleBox unless asked,
+	# so without this the image draws as a hard square over the frame.
+	_portrait_frame.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+	var frame_style := StyleBoxFlat.new()
+	frame_style.bg_color = Color(0.16, 0.15, 0.13)
+	frame_style.set_corner_radius_all(26)
+	frame_style.border_color = Color(GameConfig.CASE_ACCENT, 0.5)
+	frame_style.set_border_width_all(3)
+	_portrait_frame.add_theme_stylebox_override("panel", frame_style)
+	add_child(_portrait_frame)
+
+	_portrait_image = TextureRect.new()
+	_portrait_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_portrait_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_portrait_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_portrait_frame.add_child(_portrait_image)
+
+	_portrait_initial = Label.new()
+	_portrait_initial.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_portrait_initial.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_portrait_initial.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_portrait_initial.add_theme_font_size_override("font_size", 150)
+	_portrait_initial.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+	_portrait_initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_portrait_frame.add_child(_portrait_initial)
+
 	_panel = PanelContainer.new()
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	_panel.anchor_top = 0.52
+	_panel.anchor_top = 0.74
 	_panel.offset_top = 0
 	_panel.offset_left = 40
 	_panel.offset_right = -40
@@ -96,49 +133,11 @@ func _build() -> void:
 	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(rows)
 
-	var who := HBoxContainer.new()
-	who.add_theme_constant_override("separation", 28)
-	who.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rows.add_child(who)
-
-	_portrait_frame = Panel.new()
-	# A tall rounded card, not a circle: the character art is full-figure and
-	# portrait-shaped, and a circle crops it to a torso.
-	_portrait_frame.custom_minimum_size = Vector2(150, 200)
-	_portrait_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Godot does not clip children to a parent's rounded StyleBox unless asked,
-	# so without this the image draws as a hard square over the frame.
-	_portrait_frame.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
-	var frame_style := StyleBoxFlat.new()
-	frame_style.bg_color = Color(0.16, 0.15, 0.13)
-	frame_style.set_corner_radius_all(22)
-	frame_style.border_color = Color(GameConfig.CASE_ACCENT, 0.55)
-	frame_style.set_border_width_all(3)
-	_portrait_frame.add_theme_stylebox_override("panel", frame_style)
-	who.add_child(_portrait_frame)
-
-	_portrait_image = TextureRect.new()
-	_portrait_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_portrait_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_portrait_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	_portrait_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_portrait_frame.add_child(_portrait_image)
-
-	_portrait_initial = Label.new()
-	_portrait_initial.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_portrait_initial.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_portrait_initial.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_portrait_initial.add_theme_font_size_override("font_size", 76)
-	_portrait_initial.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
-	_portrait_initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_portrait_frame.add_child(_portrait_initial)
-
 	_name_label = Label.new()
-	_name_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_name_label.add_theme_font_size_override("font_size", 46)
 	_name_label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	who.add_child(_name_label)
+	rows.add_child(_name_label)
 
 	_text_label = Label.new()
 	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

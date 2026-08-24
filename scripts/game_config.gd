@@ -249,6 +249,28 @@ const DECEL_TIME := 0.55
 const STEER_SMOOTHING := 9.0
 const STEER_SPEED_RADIUS_FACTOR := 0.45
 const STEER_ERROR_GAIN := 5.0                 # shortestAngle * 5 -> desiredOmega
+# ---------------------------------------------------------------- G8 portraits
+## The character art is 9:16 full-figure illustration, so the dialogue box shows
+## it LARGE (a thumbnail wastes it) and the town list uses a square face crop
+## generated from the same file by tools/crop_faces.gd.
+##
+## Face centre and crop size as FRACTIONS of the source image, per character.
+## Fractions, not pixels, because the sources are not all the same resolution.
+## Tuned by looking at the generated sheet, not guessed once.
+const PORTRAIT_FACES: Dictionary = {
+	"marshal":  { "x": 0.37, "y": 0.26, "size": 0.46 },
+	"sarah":    { "x": 0.42, "y": 0.27, "size": 0.46 },
+	"gus":      { "x": 0.47, "y": 0.25, "size": 0.46 },
+	"cole":     { "x": 0.47, "y": 0.28, "size": 0.44 },
+	"ellie":    { "x": 0.48, "y": 0.25, "size": 0.48 },
+	"stranger": { "x": 0.62, "y": 0.34, "size": 0.30 },
+}
+## Square face thumbnail size in pixels.
+const PORTRAIT_FACE_PX := 320
+## Dialogue portrait card, in viewport pixels (9:16).
+const DIALOGUE_PORTRAIT_SIZE := Vector2(430, 764)
+
+
 # ---------------------------------------------------------------- G7 story
 ## Warm dark ground behind an intro card whose illustration is missing, and the
 ## letterbox behind one that does not match the screen aspect.
