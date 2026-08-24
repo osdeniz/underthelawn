@@ -61,6 +61,9 @@ var _opening_tween: Tween
 
 
 func _ready() -> void:
+	# Before any label draws: registers the wide-glyph fallback font if one is
+	# present, so a non-Latin language does not render as boxes.
+	LocaleSupport.apply()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_complete_panel.visible = false
 	_secret_card.visible = false
@@ -70,6 +73,8 @@ func _ready() -> void:
 	_mute_button.pressed.connect(_on_mute_pressed)
 	(%RestartButton as Button).pressed.connect(func() -> void: restart_pressed.emit())
 	_refresh_mute_label()
+	(%RestartButton as Button).text = tr("UI_RESTART")
+	_story_button.text = tr("UI_STORY")
 	_style_case_panels()
 	_apply_story_text()
 	_briefing.visible = false
@@ -98,7 +103,8 @@ func _process(delta: float) -> void:
 
 
 func _apply_percent() -> void:
-	_percent_label.text = "%%%d biçildi" % int(round(_shown_percent))
+	_percent_label.text = tr("UI_PERCENT_MOWED").format(
+		{"pct": int(round(_shown_percent))})
 	_progress.value = _shown_percent
 
 
@@ -106,10 +112,9 @@ func _apply_percent() -> void:
 
 func set_secret_count(found: int, total: int) -> void:
 	# G7: evidence, not secrets — "📋 Evidence 1/2".
-	_secret_counter.text = "%s %s %d/%d" % [
-		Story.text("evidence.counter_icon", "📋"),
-		Story.text("evidence.counter_label", "Evidence"),
-		found, total]
+	_secret_counter.text = tr("UI_EVIDENCE_COUNTER").format({
+		"icon": Story.raw("evidence.counter_icon", "📋"),
+		"found": found, "total": total})
 
 
 func bump_secret_counter() -> void:
@@ -181,7 +186,8 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 		total_secrets: int) -> void:
 	_shown_percent = 100.0
 	_apply_percent()
-	_complete_stats.text = "%d hücre biçildi · süre: %s" % [cells, elapsed]
+	_complete_stats.text = tr("UI_STATS").format(
+		{"cells": cells, "time": elapsed})
 
 	for child in _collection.get_children():
 		child.queue_free()
@@ -194,7 +200,7 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 			slot.text = "%s\n%s" % [entry.get("emoji", "?"), entry.get("name", "")]
 			slot.add_theme_color_override("font_color", Color(1.0, 0.91, 0.62))
 		else:
-			slot.text = "?\n—"
+			slot.text = "?\n" + tr("UI_EMPTY_SLOT")
 			slot.add_theme_color_override("font_color", Color(0.55, 0.58, 0.52))
 		_collection.add_child(slot)
 
@@ -286,7 +292,7 @@ func _apply_story_text() -> void:
 	_brief_accept.text = Story.text("briefing.accept", "SEARCH THE PROPERTY")
 	# Portrait art is optional: fall back to a lettered circle so the box reads
 	# correctly before any art exists.
-	var portrait := Story.text("briefing.portrait")
+	var portrait := Story.raw("briefing.portrait")
 	var tex := TextureLibrary.find(portrait) if portrait != "" else null
 	_portrait_image.texture = tex
 	_portrait_image.visible = tex != null
@@ -353,7 +359,7 @@ func _build_case_notes(collected: Array, total: int) -> void:
 		_notes_list.add_child(row)
 	if collected.is_empty():
 		var none := Label.new()
-		none.text = "· nothing recovered"
+		none.text = "· " + tr("UI_NOTHING_RECOVERED")
 		none.add_theme_font_size_override("font_size", 36)
 		none.add_theme_color_override("font_color", Color(0.6, 0.62, 0.58))
 		_notes_list.add_child(none)

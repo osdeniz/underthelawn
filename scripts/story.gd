@@ -1,10 +1,15 @@
 class_name Story
 extends RefCounted
-## Every player-facing narrative string, loaded once from data/story.json.
+## The narrative STRUCTURE, loaded once from data/story.json.
 ##
-## G7 gives the game its case framing, and G11 will drive whole chapters from
-## data. Keeping the text in one file (never in scene .tscn text properties or
-## inline in scripts) means a new case is a data change, not a code change.
+## The json holds translation KEYS, not sentences. `text()` runs the key through
+## the TranslationServer, so the sentences come from i18n/strings.csv and adding
+## a language is a new column there — never an edit to the json or to a scene.
+## Values that are not language-dependent (image paths, emoji) are read with
+## `raw()` instead.
+##
+## G11 will drive whole chapters from data shaped like this, so keep the nesting
+## rather than flattening it.
 ##
 ## Static and cached, so it needs no autoload and no project.godot entry.
 
@@ -49,7 +54,18 @@ static func get_value(path: String, fallback: Variant = "") -> Variant:
 	return node
 
 
+## The translated sentence for the key stored at `path`. An unknown key comes
+## back from the TranslationServer unchanged, which is exactly what you want to
+## see on screen while a language is still being filled in.
 static func text(path: String, fallback := "") -> String:
+	var key := raw(path, fallback)
+	if key == "":
+		return fallback
+	return TranslationServer.translate(key)
+
+
+## The literal value at `path`, untranslated: image paths, emoji, ids.
+static func raw(path: String, fallback := "") -> String:
 	var value: Variant = get_value(path, fallback)
 	return str(value) if value != null else fallback
 

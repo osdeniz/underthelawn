@@ -92,7 +92,7 @@ mouse_filter = 2
 unique_name_in_owner = true
 offset_right = 560.0
 offset_bottom = 74.0
-text = "%0 biçildi"
+text = "0% mowed"
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0.1, 0, 0.7)
 theme_override_constants/outline_size = 10
@@ -106,7 +106,7 @@ anchor_right = 1.0
 offset_left = -460.0
 offset_right = -160.0
 offset_bottom = 74.0
-text = "🔍 0/2"
+text = "📋 Evidence 0/2"
 horizontal_alignment = 2
 vertical_alignment = 1
 theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
@@ -192,14 +192,14 @@ theme_override_font_sizes/font_size = 30
 
 [node name="CardTitle" type="Label" parent="SecretCard/Rows"]
 unique_name_in_owner = true
-text = "🔑 Paslı Anahtar"
+text = "🧸 Ellie's Toy"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(1, 0.91, 0.62, 1)
 theme_override_font_sizes/font_size = 62
 
 [node name="CardLine" type="Label" parent="SecretCard/Rows"]
 unique_name_in_owner = true
-text = "It looks old."
+text = "It's hers. She was here."
 horizontal_alignment = 1
 autowrap_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.82, 0.7, 1)
@@ -234,14 +234,14 @@ alignment = 1
 
 [node name="Title" type="Label" parent="CompletePanel/Card/Rows"]
 unique_name_in_owner = true
-text = "LAWN COMPLETE"
+text = "AREA SEARCHED"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.93, 1, 0.72, 1)
 theme_override_font_sizes/font_size = 96
 
 [node name="CompleteStats" type="Label" parent="CompletePanel/Card/Rows"]
 unique_name_in_owner = true
-text = "0 hücre biçildi · süre: 0:00"
+text = "0 cells searched · 0:00"
 horizontal_alignment = 1
 autowrap_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.9, 0.78, 1)

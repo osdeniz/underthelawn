@@ -1,0 +1,42 @@
+keys,en
+UI_PERCENT_MOWED,"{pct}% mowed"
+UI_EVIDENCE_COUNTER,"{icon} Evidence {found}/{total}"
+UI_STATS,"{cells} cells searched · {time}"
+UI_RESTART,RESTART
+UI_STORY,STORY
+UI_EMPTY_SLOT,—
+UI_NOTHING_RECOVERED,nothing recovered
+MOWER_PUSH,Push
+MOWER_TRACTOR,Tractor
+MOWER_ROBOT,Robot
+MOWER_BLADE,Blade
+CASE_01_ID,CASE 01
+CASE_01_TITLE,THE MISSING GIRL
+CASE_01_OBJECTIVE,Search the property
+CASE_01_HUD_LINE,"CASE 01 — THE MISSING GIRL · Search the property"
+INTRO_SKIP_HINT,tap to continue
+INTRO_01_L1,The outbreak ended years ago.
+INTRO_01_L2,The world didn't end with it.
+INTRO_02_L1,We rebuild.
+INTRO_02_L2,Small towns. Small hopes.
+INTRO_03_L1,"Then, last night —"
+INTRO_03_L2,Ellie didn't come home.
+BRIEF_01_SPEAKER,Marshal
+BRIEF_01_BODY,"The Aldridge house. She was seen near the fence line. Search everything."
+BRIEF_01_ACCEPT,SEARCH THE PROPERTY
+OPENING_01_HEADLINE,LAST MOWED: 847 DAYS AGO
+OPENING_01_SUBLINE,No one has lived here since.
+EVIDENCE_CARD_HEADER,EVIDENCE FOUND
+EVIDENCE_COUNTER_LABEL,Evidence
+EVIDENCE_TOY_NAME,Ellie's Toy
+EVIDENCE_TOY_LINE,It's hers. She was here.
+EVIDENCE_RADIO_NAME,Old Radio
+EVIDENCE_RADIO_LINE,Still tuned to the emergency channel.
+COMPLETE_01_TITLE,AREA SEARCHED
+COMPLETE_NOTES_HEADER,CASE NOTES
+COMPLETE_01_NOTES_FULL,"The toy confirms it. She came through here — heading east."
+COMPLETE_01_NOTES_PARTIAL,Something here is still unaccounted for.
+COMPLETE_01_INCOMPLETE,The search feels incomplete...
+COMPLETE_01_TEASER_TITLE,NEXT: The Neighbor's Yard 🔒
+COMPLETE_01_TEASER_LINE,Something moved behind that fence.
+COMPLETE_TEASER_LOCKED,Coming soon

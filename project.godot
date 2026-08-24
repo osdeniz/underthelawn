@@ -42,3 +42,12 @@ renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/directional_shadow/size=1024
 anti_aliasing/quality/msaa_3d=2
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://i18n/strings.en.translation")
+locale/fallback="en"
+; 0 = based on the application locale, so an RTL language (Arabic, Hebrew)
+; mirrors the whole UI instead of only reversing the text runs. NOTE: 2 is
+; "force RTL", not "locale based" -- setting 2 mirrored the whole English UI.
+rendering/root_node_layout_direction=0

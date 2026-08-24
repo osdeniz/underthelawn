@@ -147,6 +147,7 @@ func _advance() -> void:
 
 
 func _apply(card: Dictionary) -> void:
+	# Image paths are not language-dependent.
 	var image_name := str(card.get("image", ""))
 	var tex := TextureLibrary.find(image_name) if image_name != "" else null
 	_image.texture = tex
@@ -158,7 +159,8 @@ func _apply(card: Dictionary) -> void:
 		child.queue_free()
 	for raw in card.get("lines", []):
 		var label := Label.new()
-		label.text = str(raw)
+		# Each line is a translation key.
+		label.text = TranslationServer.translate(str(raw))
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 62)
 		label.add_theme_color_override("font_color", Color(1, 1, 1))

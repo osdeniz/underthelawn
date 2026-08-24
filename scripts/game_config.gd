@@ -161,23 +161,24 @@ const MOWER_TRACTOR := 1
 const MOWER_ROBOT := 2
 
 ## §6 table, verbatim. `reverse` is the reverse-gear speed factor (0 = none).
+## "label" is a TRANSLATION KEY (G7.1), resolved with tr() at display time.
 const MOWER_TYPES: Array[Dictionary] = [
 	{
-		"id": "push", "emoji": "🔴", "label": "Push",
+		"id": "push", "emoji": "🔴", "label": "MOWER_PUSH",
 		"speed": 3.0, "deck": 0.75, "max_turn": 2.6, "body": 0.55, "reverse": 0.45,
 		# G6.12: §7's 1.7 rad/s + 0.45 drag turned like a bus. 2.6 and 0.26
 		# let it pivot in about a cell and a half.
 		"steer_gain": 5.0, "turn_drag": 0.26,
 	},
 	{
-		"id": "tractor", "emoji": "🚜", "label": "Traktör",
+		"id": "tractor", "emoji": "🚜", "label": "MOWER_TRACTOR",
 		"speed": 4.8, "deck": 1.1, "max_turn": 1.5, "body": 0.85, "reverse": 0.5,
 		# G6.7: at 4.8 u/s the §7 0.45 drag gave a ~5.8 unit turning radius —
 		# wider than a third of the lawn. 0.28 keeps it heavy but steerable.
 		"steer_gain": 5.0, "turn_drag": 0.28,
 	},
 	{
-		"id": "robot", "emoji": "🤖", "label": "Robot",
+		"id": "robot", "emoji": "🤖", "label": "MOWER_ROBOT",
 		"speed": 2.1, "deck": 0.75, "max_turn": 2.6, "body": 0.45, "reverse": 0.45,
 		# G6.7: the robot chases waypoints, so it needs to snap onto a heading
 		# quickly; its own 2.6 rad/s ceiling still bounds the rate.
@@ -186,7 +187,7 @@ const MOWER_TYPES: Array[Dictionary] = [
 	{
 		# G6 Blade: yaw-free, follows the finger. max_turn is a dummy (never
 		# steers) kept non-zero so speed/turn ratios stay divide-safe.
-		"id": "blade", "emoji": "⚙️", "label": "Blade",
+		"id": "blade", "emoji": "⚙️", "label": "MOWER_BLADE",
 		"speed": 5.0, "deck": 0.95, "max_turn": 1.0, "body": 0.40, "reverse": 0.0,
 		# Yaw-free: it never steers, so these are inert.
 		"steer_gain": 0.0, "turn_drag": 0.0,
@@ -565,9 +566,18 @@ const ITEM_RISE_FROM := -0.15
 const ITEM_RISE_TO := 0.7
 const ITEM_RISE_TIME := 0.7
 const ITEM_HOLD_TIME := 1.4
+# G7.1: evidence 0 is Ellie's toy, not the old rusty key. The key constants stay
+# so nothing that still references them breaks, but the mesh is no longer built.
 const KEY_COLOR := Color(0.62, 0.48, 0.22)
 const KEY_METALLIC := 0.8
 const KEY_TORUS_RADIUS := 0.11
+## Worn plush, a shade duller than the toy's ribbon so it reads as loved.
+const TOY_FUR := Color(0.60, 0.42, 0.26)
+const TOY_MUZZLE := Color(0.80, 0.66, 0.48)
+const TOY_RIBBON := Color(0.72, 0.22, 0.28)
+const TOY_EYE := Color(0.10, 0.08, 0.07)
+## Body radius; every other part is sized from it, so the toy scales as a whole.
+const TOY_BODY := 0.135
 const RADIO_BOX := Vector3(0.44, 0.28, 0.14)
 ## NOT in §9 — "drifts up and fades" has no stated duration.
 const ITEM_FADE_TIME := 0.9

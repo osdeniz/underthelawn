@@ -15,7 +15,7 @@ func _ready() -> void:
 	for i in GameConfig.MOWER_TYPES.size():
 		var info: Dictionary = GameConfig.MOWER_TYPES[i]
 		var button := Button.new()
-		button.text = "%s %s" % [info["emoji"], info["label"]]
+		button.text = "%s %s" % [info["emoji"], tr(info["label"])]
 		button.focus_mode = Control.FOCUS_NONE
 		button.mouse_filter = Control.MOUSE_FILTER_STOP
 		button.add_theme_font_size_override("font_size", 40)

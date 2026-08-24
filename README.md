@@ -573,7 +573,78 @@ Intro cards are drawn `STRETCH_KEEP_ASPECT_COVERED`, so a little bleed is fine,
 but keep the subject clear of the bottom third — the text and the scrim sit
 there. Portraits are cropped to a circle, so keep the face centred.
 
-## Not in G1-G7
+## G7.1 — Ellie's toy, and real multi-language support
+
+### The toy mesh
+
+Evidence 0 was still §9's rusty key while the label said "Ellie's Toy".
+`_build_toy()` replaces `_build_key()`: spheres and capsules, no metalness so it
+reads as cloth beside the metal radio, everything sized from `TOY_BODY` so the
+whole toy scales as one number. The head sits slightly forward and is
+oversized, which is what makes a plush toy read as a plush toy from the
+top-down camera.
+
+Two things had to be measured rather than assumed. `TorusMesh` already lies in
+XZ, so rotating it by PI/2 for a "collar" stood the loop up front-to-back and
+buried it inside the body. And even lying flat it has to reach WIDER than the
+head (0.78r) and sit below the head's underside, or the overhead camera never
+sees it. The key constants stay in GameConfig; only the mesh call is gone.
+
+### Multi-language: keys, not sentences
+
+`data/story.json` now holds **translation keys**, and `i18n/strings.csv` holds
+the sentences with one column per language. Adding Turkish, Arabic, French,
+German or Chinese means adding a column — never editing the json, a scene, or a
+script. `Story.text()` runs the key through the `TranslationServer`;
+`Story.raw()` returns literals that are not language-dependent (image paths,
+emoji, ids).
+
+All player-facing UI moved to `tr()` as well: the percentage, the evidence
+counter, the completion stats (English now: `368 cells searched · 1:24`), the
+restart and story buttons, the empty-slot dash, and the four mower names in the
+picker (`MOWER_TYPES["label"]` is a key now).
+
+**Placeholders are named, not positional.** `{cells}`/`{time}`, not `%d`/`%s`.
+A translator can reorder `{cells}` for a language whose grammar demands it; a
+positional `%d` cannot move. `tests/story_check.gd` asserts this.
+
+### Two things that break when you add a language, both handled
+
+* **Glyphs.** The default theme font is Latin-only, so Arabic, Hebrew, Chinese,
+  Japanese, Korean, Hindi and Thai render as empty boxes. Drop a wide-coverage
+  font (Noto Sans is the usual answer) at `fonts/i18n_fallback.ttf` and
+  `LocaleSupport.apply()` appends it to `ThemeDB.fallback_font` — appends, so
+  the current Latin look is untouched and only missing glyphs come from the new
+  file. With no file present it warns only when the active locale actually needs
+  those glyphs, so an English build stays quiet.
+* **Direction.** Arabic and Hebrew need the whole layout mirrored, not just the
+  text runs reversed. That is `rendering/root_node_layout_direction`.
+  **The trap: `2` is "force RTL", not "locale based".** Setting 2 mirrored the
+  entire English UI — percentage on the right, counter on the left, evidence
+  listed backwards. The locale-based value is **0**.
+
+### How to verify i18n without any translation
+
+`tests/story_check.gd` proves the key -> csv -> screen path using Godot's
+built-in pseudolocalization, so no invented translation is needed. It also
+catches prose pasted back into the json (verified: replacing a key with
+`AREA SEARCHED` fails two assertions).
+
+That test proves the pipeline works, not that every string uses it. To find
+strings that bypass `tr()`, run with
+`internationalization/pseudolocalization/use_pseudolocalization=true` and look
+for text that stayed plain English.
+
+### Adding a language, start to finish
+
+1. Add a column to `i18n/strings.csv` (`keys,en,tr`) and fill it.
+2. Add `res://i18n/strings.<code>.translation` to
+   `internationalization/locale/translations` in project.godot.
+3. For a non-Latin script, drop `fonts/i18n_fallback.ttf` in place.
+4. Nothing else. Locale is never forced in code — Godot follows the OS locale
+   and falls back to `en`, which is correct on a phone.
+
+## Not in G1-G7.1
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.
