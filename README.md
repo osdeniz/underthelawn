@@ -799,7 +799,62 @@ than Turkish will show it as-is. It is small and mostly illegible at phone size,
 so it is left alone — but for future art, ask for signage with no readable
 lettering.
 
-## Not in G1-G8.2
+### G8.3 — list backdrop, face crops, and art weight
+
+**List backdrop.** Eight card rows straight over the illustration left art
+showing through every gap and read as stripes. `_list_backdrop()` puts one calm
+dark rounded panel behind the case board and the town list, so each reads as a
+single panel.
+
+**Face crops, per character.** Reviewed one at a time at full 320px:
+`marshal`, `sarah` and `stranger` were already right; `gus`, `cole` and `ellie`
+were cut at the chin, so only those three moved (y down, crop wider). The tool
+writes a contact sheet to `/tmp/faces_sheet.png` for exactly this review.
+
+### Art weight: what actually costs
+
+Measured, because the source file size is the least important number here.
+
+| | before | after |
+| --- | --- | --- |
+| source files on disk | 27.5 MB | 4.4 MB |
+| imported data shipped to iOS | 36 MB | 16 MB |
+| VRAM per full-screen illustration | ~16.9 MB | ~2.6 MB |
+
+Two independent causes, two fixes:
+
+* **`compress/mode=0` (Lossless) was the real problem.** A 1536x2752 texture
+  costs `w*h*4` = 16.9 MB of VRAM as RGBA8, and ten of them would be ~170 MB —
+  not viable on a phone. `compress/mode=2` (VRAM Compressed) becomes ETC2/ASTC
+  at roughly 4 bits per pixel instead of 32. Verified at 1:1 on the intro card:
+  the sky gradient stays smooth and the fine detail is intact, so there is no
+  quality reason to keep Lossless here.
+* **The art was larger than anything that displays it.** `tools/shrink_art.gd`
+  resizes each source to its actual drawn size, derived rather than guessed: the
+  viewport is 1170x2532 and the backgrounds are drawn KEEP_ASPECT_COVERED, so
+  height binds; the intro cards additionally need `INTRO_KEN_BURNS_TO` (1.06) of
+  headroom, which is why they stayed near their original size while the portraits
+  went to 2x of `DIALOGUE_PORTRAIT_SIZE`. `INTRO_KEN_BURNS_TO` now lives in
+  GameConfig and `IntroSequence` reads it, so the zoom and the source size cannot
+  drift apart.
+
+`shrink_art.gd` overwrites in place and always writes JPEG (lossless PNG of a
+painted illustration is many times larger for no visible gain), replacing a
+`.png` source with `.jpg` and deleting the old file. Masters were copied to
+`~/Desktop/UTL-art-originals/` first — outside the repo, so git does not carry
+27 MB forever. Keep that folder; re-running the tool on already-shrunk files is
+a no-op but re-exporting from masters is how to change targets.
+
+Two things left alone on purpose:
+
+* `TextureLibrary` caches every texture it loads and never evicts. Resident art
+  after visiting the hub and town is roughly 19 MB, which is fine — but G9 adds
+  eight chapters of art, and that is when eviction will start to matter.
+* The full-resolution headless render (`--resolution 1170x2532`) reports a
+  square 2532x2532 viewport to Controls and draws the hub black. It is a headless
+  artifact, not a layout bug: every verified render at 468x1013 is correct.
+
+## Not in G1-G8.3
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.
