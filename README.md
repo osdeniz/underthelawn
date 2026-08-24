@@ -775,7 +775,31 @@ importer goes by extension, so those two would have failed exactly like the
 `file <path>` output, not the extension — `TextureLibrary` searches
 `.png/.jpg/.jpeg/.webp` so any correct extension works.
 
-## Not in G1-G8.1
+### G8.2 — the hub illustration landed
+
+`textures/hub/town_square.jpg` is in and the fallback gradient is retired.
+Two fixes it forced:
+
+* **Buttons over an illustration need an explicit ground.** The default theme
+  button is nearly transparent, so the three hub cards read as smudges floating
+  on the art rather than as tappable cards. `_style_card()` gives them a dark
+  rounded panel with an accent border and a real pressed state, and dims the
+  locked one. The same helper now styles the chapter rows, the town rows and the
+  back button, so nothing in the hub relies on the default theme.
+* **Two vignettes stack.** The illustration already darkens its own top and
+  bottom, and the scrim I sized for a flat gradient (0.68 / 0.78) turned the
+  whole square muddy. Now 0.46 / 0.62.
+
+The cards also moved to the bottom (`anchor_top = 0.54`, `ALIGNMENT_END`): the
+art's subject is mid-frame and cards parked over it hid the entire square.
+
+One localisation note: the artwork has a legible-ish **Turkish** notice pinned to
+the board. Text baked into an image cannot be translated, so any language other
+than Turkish will show it as-is. It is small and mostly illegible at phone size,
+so it is left alone — but for future art, ask for signage with no readable
+lettering.
+
+## Not in G1-G8.2
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

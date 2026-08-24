@@ -80,8 +80,10 @@ func _build_background() -> void:
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sg := Gradient.new()
 	sg.offsets = PackedFloat32Array([0.0, 0.35, 1.0])
+	# Light touch: the illustration already has its own vignette, and stacking a
+	# heavy scrim on top turned the whole square muddy.
 	sg.colors = PackedColorArray([
-		Color(0, 0, 0, 0.68), Color(0, 0, 0, 0.18), Color(0, 0, 0, 0.78)])
+		Color(0, 0, 0, 0.46), Color(0, 0, 0, 0.06), Color(0, 0, 0, 0.62)])
 	var sg_tex := GradientTexture2D.new()
 	sg_tex.gradient = sg
 	sg_tex.fill_from = Vector2(0.0, 0.0)
@@ -154,10 +156,13 @@ func _build_tiles() -> Control:
 	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	column.offset_left = 60
 	column.offset_right = -60
-	column.offset_top = 300
-	column.offset_bottom = -120
-	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_theme_constant_override("separation", 40)
+	# Low on the screen: the art's subject is mid-frame, and cards parked over it
+	# hid the whole square.
+	column.anchor_top = 0.54
+	column.offset_top = 0
+	column.offset_bottom = -110
+	column.alignment = BoxContainer.ALIGNMENT_END
+	column.add_theme_constant_override("separation", 28)
 	page.add_child(column)
 
 	for tile: Dictionary in Story.list("hub.tiles"):
@@ -165,10 +170,30 @@ func _build_tiles() -> Control:
 	return page
 
 
+## Buttons over an illustration need an explicit ground: the default theme's
+## button is nearly transparent and reads as a smudge rather than a card.
+func _style_card(button: Button, dim := false) -> void:
+	var base := StyleBoxFlat.new()
+	base.bg_color = Color(0.07, 0.07, 0.065, 0.90 if not dim else 0.80)
+	base.set_corner_radius_all(24)
+	base.set_content_margin_all(26)
+	base.border_color = Color(GameConfig.CASE_ACCENT, 0.42 if not dim else 0.18)
+	base.set_border_width_all(3)
+	base.shadow_color = Color(0, 0, 0, 0.45)
+	base.shadow_size = 10
+	button.add_theme_stylebox_override("normal", base)
+	var pressed := base.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.13, 0.12, 0.10, 0.95)
+	pressed.border_color = Color(GameConfig.CASE_ACCENT, 0.75)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("hover", pressed)
+	button.add_theme_stylebox_override("focus", base)
+
+
 func _make_tile(tile: Dictionary) -> Button:
 	var locked := bool(tile.get("locked", false))
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(0, 230)
+	button.custom_minimum_size = Vector2(0, 190)
 	button.add_theme_font_size_override("font_size", 46)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# The tile dictionary carries the keys directly, so translate them here.
@@ -178,6 +203,7 @@ func _make_tile(tile: Dictionary) -> Button:
 		tr(str(tile.get("label", ""))), hint]
 	if locked:
 		button.add_theme_color_override("font_color", Color(0.66, 0.66, 0.62))
+	_style_card(button, locked)
 	var id := str(tile.get("id", ""))
 	button.pressed.connect(_on_tile.bind(id, locked, button))
 	return button
@@ -272,6 +298,7 @@ func _make_chapter_row(chapter: Dictionary, current: String) -> Button:
 		state, evidence]
 	if not playable:
 		button.add_theme_color_override("font_color", Color(0.64, 0.65, 0.61))
+	_style_card(button, not playable)
 	button.pressed.connect(_on_chapter.bind(id, playable, button))
 	return button
 
@@ -330,6 +357,7 @@ func _make_person_row(person: Dictionary) -> Button:
 		button.add_theme_constant_override("h_separation", 26)
 	button.text = "%s\n%s" % [tr(str(person.get("name", ""))),
 		tr(str(person.get("role", "")))]
+	_style_card(button)
 	button.pressed.connect(_on_person.bind(id))
 	return button
 
@@ -353,6 +381,7 @@ func _back_button() -> Button:
 	var back := Button.new()
 	back.text = tr("UI_BACK")
 	back.add_theme_font_size_override("font_size", 40)
+	_style_card(back)
 	back.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	back.offset_left = 60
 	back.offset_right = -60
