@@ -171,25 +171,16 @@ func _make_tile(tile: Dictionary) -> Button:
 	button.custom_minimum_size = Vector2(0, 230)
 	button.add_theme_font_size_override("font_size", 46)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var hint := Story.text(_hint_path(tile)) if not locked \
+	# The tile dictionary carries the keys directly, so translate them here.
+	var hint := tr(str(tile.get("hint", ""))) if not locked \
 		else Story.text("hub.locked_note")
 	button.text = "%s  %s\n%s" % [str(tile.get("icon", "")),
-		Story.text(_label_path(tile)), hint]
+		tr(str(tile.get("label", ""))), hint]
 	if locked:
 		button.add_theme_color_override("font_color", Color(0.66, 0.66, 0.62))
 	var id := str(tile.get("id", ""))
 	button.pressed.connect(_on_tile.bind(id, locked, button))
 	return button
-
-
-## story.json stores the tiles as a list, so the label/hint keys are read from
-## the entry itself rather than by a path built from the id.
-func _label_path(tile: Dictionary) -> String:
-	return "" if not tile.has("label") else "hub.tiles"
-
-
-func _hint_path(tile: Dictionary) -> String:
-	return "" if not tile.has("hint") else "hub.tiles"
 
 
 func _on_tile(id: String, locked: bool, button: Button) -> void:
@@ -355,7 +346,7 @@ func _on_person(person_id: String) -> void:
 
 func _back_button() -> Button:
 	var back := Button.new()
-	back.text = Story.text("case_board.back", "BACK")
+	back.text = tr("UI_BACK")
 	back.add_theme_font_size_override("font_size", 40)
 	back.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	back.offset_left = 60

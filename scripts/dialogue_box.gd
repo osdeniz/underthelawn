@@ -102,11 +102,16 @@ func _build() -> void:
 	rows.add_child(who)
 
 	_portrait_frame = Panel.new()
-	_portrait_frame.custom_minimum_size = Vector2(160, 160)
+	# A tall rounded card, not a circle: the character art is full-figure and
+	# portrait-shaped, and a circle crops it to a torso.
+	_portrait_frame.custom_minimum_size = Vector2(150, 200)
 	_portrait_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Godot does not clip children to a parent's rounded StyleBox unless asked,
+	# so without this the image draws as a hard square over the frame.
+	_portrait_frame.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 	var frame_style := StyleBoxFlat.new()
 	frame_style.bg_color = Color(0.16, 0.15, 0.13)
-	frame_style.set_corner_radius_all(80)
+	frame_style.set_corner_radius_all(22)
 	frame_style.border_color = Color(GameConfig.CASE_ACCENT, 0.55)
 	frame_style.set_border_width_all(3)
 	_portrait_frame.add_theme_stylebox_override("panel", frame_style)
@@ -129,7 +134,7 @@ func _build() -> void:
 	_portrait_frame.add_child(_portrait_initial)
 
 	_name_label = Label.new()
-	_name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_name_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_name_label.add_theme_font_size_override("font_size", 46)
 	_name_label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE

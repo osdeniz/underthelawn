@@ -14,8 +14,8 @@ extends Control
 ## events, so touches meant for the lawn reach the 3D scene.
 
 signal restart_pressed()
-## The player accepted the briefing; the search may begin (G7).
-signal briefing_accepted()
+## RETURN TO TOWN on the case-notes panel (G8).
+signal return_requested()
 ## The STORY button was tapped: replay the opening (G7).
 signal replay_intro_requested()
 
@@ -40,17 +40,12 @@ signal replay_intro_requested()
 @onready var _opening: VBoxContainer = %OpeningTitle
 @onready var _opening_headline: Label = %OpeningHeadline
 @onready var _opening_subline: Label = %OpeningSubline
-@onready var _briefing: Control = %Briefing
-@onready var _brief_speaker: Label = %Speaker
-@onready var _brief_body: Label = %BriefBody
-@onready var _brief_accept: Button = %BriefAccept
-@onready var _portrait_image: TextureRect = %PortraitImage
-@onready var _portrait_initial: Label = %PortraitInitial
 @onready var _notes_header: Label = %NotesHeader
 @onready var _notes_list: VBoxContainer = %NotesList
 @onready var _notes_progress: Label = %NotesProgress
 @onready var _teaser: Button = %Teaser
 @onready var _teaser_locked: Label = %TeaserLocked
+@onready var _return_button: Button = %ReturnButton
 
 var _shown_percent := 0.0
 var _target_percent := 0.0
@@ -77,12 +72,9 @@ func _ready() -> void:
 	_story_button.text = tr("UI_STORY")
 	_style_case_panels()
 	_apply_story_text()
-	_briefing.visible = false
 	_opening.modulate.a = 0.0
 	_teaser_locked.visible = false
-	_brief_accept.pressed.connect(func() -> void:
-		hide_briefing()
-		briefing_accepted.emit())
+	_return_button.pressed.connect(func() -> void: return_requested.emit())
 	_story_button.pressed.connect(func() -> void: replay_intro_requested.emit())
 	_teaser.pressed.connect(_on_teaser_pressed)
 	set_progress(0.0)
@@ -250,29 +242,16 @@ func _refresh_mute_label() -> void:
 	_mute_button.text = "🔇" if AudioDirector.muted else "🔊"
 
 
-# ---------------------------------------------------------------- case framing (G7)
+# ---------------------------------------------------------------- case framing (G7/G8)
+
+## Kept as the styling hook; the panels it used to style moved into DialogueBox
+## when the briefing became a conversation (G8).
+func _style_case_panels() -> void:
+	pass
+
 
 ## Pulls every fixed string out of data/story.json. Called once at _ready, so a
 ## story-file edit needs no scene edit.
-## The default theme's PanelContainer is nearly invisible, so the briefing text
-## floated over the lawn. Both panels get an explicit ground.
-func _style_case_panels() -> void:
-	var card := StyleBoxFlat.new()
-	card.bg_color = GameConfig.CASE_PANEL
-	card.set_corner_radius_all(28)
-	card.set_content_margin_all(46)
-	card.border_color = Color(GameConfig.CASE_ACCENT, 0.35)
-	card.set_border_width_all(3)
-	(%BriefCard as PanelContainer).add_theme_stylebox_override("panel", card)
-
-	var frame := StyleBoxFlat.new()
-	frame.bg_color = Color(0.16, 0.15, 0.13, 1.0)
-	frame.set_corner_radius_all(80)
-	frame.border_color = Color(GameConfig.CASE_ACCENT, 0.55)
-	frame.set_border_width_all(3)
-	(%PortraitFrame as Panel).add_theme_stylebox_override("panel", frame)
-
-
 func _apply_story_text() -> void:
 	_case_line.text = Story.text("case.hud_line")
 	_complete_title.text = Story.text("complete.title", "AREA SEARCHED")
@@ -286,43 +265,7 @@ func _apply_story_text() -> void:
 	_opening_headline.text = Story.text("opening.headline")
 	_opening_subline.text = Story.text("opening.subline")
 	_card_header.text = Story.text("evidence.card_header", "EVIDENCE FOUND")
-
-	_brief_speaker.text = Story.text("briefing.speaker")
-	_brief_body.text = Story.text("briefing.body")
-	_brief_accept.text = Story.text("briefing.accept", "SEARCH THE PROPERTY")
-	# Portrait art is optional: fall back to a lettered circle so the box reads
-	# correctly before any art exists.
-	var portrait := Story.raw("briefing.portrait")
-	var tex := TextureLibrary.find(portrait) if portrait != "" else null
-	_portrait_image.texture = tex
-	_portrait_image.visible = tex != null
-	_portrait_initial.visible = tex == null
-	if tex == null:
-		if portrait != "":
-			TextureLibrary.warn_missing(portrait, "brifing portresi = harf dairesi")
-		var who := Story.text("briefing.speaker", "?")
-		_portrait_initial.text = who.substr(0, 1).to_upper() if who != "" else "?"
-
-
-## Modal briefing box; the caller gates gameplay on briefing_accepted.
-func show_briefing() -> void:
-	selector.visible = false
-	_briefing.visible = true
-	_briefing.modulate.a = 0.0
-	var card: Control = %BriefCard
-	card.pivot_offset = card.size * 0.5
-	card.scale = Vector2(0.92, 0.92)
-	var tw := create_tween()
-	tw.tween_property(_briefing, "modulate:a", 1.0, 0.35)
-	tw.parallel().tween_property(card, "scale", Vector2.ONE, 0.45) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-
-func hide_briefing() -> void:
-	selector.visible = true
-	var tw := create_tween()
-	tw.tween_property(_briefing, "modulate:a", 0.0, 0.25)
-	tw.tween_callback(func() -> void: _briefing.visible = false)
+	_return_button.text = tr("UI_RETURN_TOWN")
 
 
 ## The "LAST MOWED" title: holds while the camera settles onto the lawn, then

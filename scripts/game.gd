@@ -8,6 +8,10 @@ extends Node3D
 ## is offered to the secret shimmers first, and otherwise goes to the active
 ## mower, which interprets it according to its own control scheme (§7).
 
+## Emitted when the lawn is finished: (evidence_found, evidence_total). RootFlow
+## records it against this run's variant_id; nothing breaks if nobody listens.
+signal search_finished(evidence: int, total: int)
+
 @onready var lawn: LawnView = $Lawn
 @onready var cam: CameraRig = $Camera3D
 @onready var hud: Hud = $UI/HUD
@@ -26,7 +30,13 @@ var _complete_shown := false
 ## G7: the case has to be accepted before the search starts. While this is
 ## false the lawn ignores touches and the run clock has not begun.
 var _search_started := false
-var _intro: IntroSequence
+## Which chapter this run is. Set by RootFlow before _ready; G9 builds the lawn
+## from variant data keyed on it. A chapter is an ID, never a scene.
+var variant_id := "ch01_aldridge"
+## RootFlow runs the briefing itself, so it starts the search immediately.
+## Standalone (every test instantiates Main.tscn directly) this is also true, so
+## the scene is playable on its own.
+var autostart_search := true
 
 
 func _ready() -> void:
@@ -64,19 +74,16 @@ func _ready() -> void:
 	hud.set_progress(0.0)
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
 
-	hud.briefing_accepted.connect(_begin_search)
-	hud.replay_intro_requested.connect(_play_intro)
+	hud.return_requested.connect(_return_to_hub)
 
 	_apply_quality()
 	_activate(GameConfig.MOWER_PUSH, true)
 	AudioDirector.start_ambient()
 
-	# G7: opening cards on the very first launch, then the briefing. The clock
-	# and the lawn stay untouched until the player accepts the case.
-	if GameConfig.STORY_ALWAYS_REPLAY_INTRO or not _intro_seen():
-		_play_intro()
-	else:
-		hud.show_briefing()
+	# G8: the briefing moved to RootFlow's DialogueBox, so by the time this
+	# scene exists the case has already been accepted.
+	if autostart_search:
+		_begin_search()
 
 
 func _process(_delta: float) -> void:
@@ -297,6 +304,7 @@ func _on_completed() -> void:
 	# Let the bird's-eye reward land before the panel covers it.
 	var timer := get_tree().create_timer(1.5)
 	timer.timeout.connect(func() -> void:
+		search_finished.emit(_collected.size(), GameConfig.SECRET_TOTAL)
 		hud.show_complete(model.mowed_count, GameState.format_elapsed(),
 			_collected, GameConfig.SECRET_TOTAL))
 
@@ -323,31 +331,20 @@ func _restart() -> void:
 	GameState.start_run()
 
 
-# ---------------------------------------------------------------- story (G7)
+# ---------------------------------------------------------------- flow (G8)
 
-## Whether the opening has already been watched, persisted in settings.cfg.
-func _intro_seen() -> bool:
-	return bool(GameState.get_setting("story", "intro_seen", false))
-
-
-func _play_intro() -> void:
-	if _intro != null and is_instance_valid(_intro):
+## RETURN TO TOWN. Standalone (tests, or running Main.tscn directly) there is no
+## hub to go back to, so this restarts instead of dead-ending.
+func _return_to_hub() -> void:
+	var root := get_parent()
+	if root != null and root.has_method("return_to_hub"):
+		root.return_to_hub()
 		return
-	# Replaying from the STORY button: put the search back on hold so the
-	# briefing runs again after the cards, exactly like a first launch.
-	_search_started = false
-	hud.hide_briefing()
-	_intro = IntroSequence.new()
-	_intro.name = "Intro"
-	$UI.add_child(_intro)
-	_intro.finished.connect(func() -> void:
-		_intro = null
-		GameState.set_setting("story", "intro_seen", true)
-		hud.show_briefing())
+	_restart()
 
 
-## The briefing was accepted: drop the camera onto the property, hold the
-## opening title, and start the clock.
+## The briefing was accepted (or there is none): drop the camera onto the
+## property, hold the opening title, and start the clock.
 func _begin_search() -> void:
 	if _search_started:
 		return

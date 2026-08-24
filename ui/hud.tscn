@@ -296,6 +296,12 @@ horizontal_alignment = 1
 theme_override_colors/font_color = Color(0.6, 0.62, 0.58, 1)
 theme_override_font_sizes/font_size = 30
 
+[node name="ReturnButton" type="Button" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "RETURN TO TOWN"
+theme_override_font_sizes/font_size = 46
+
 [node name="RestartButton" type="Button" parent="CompletePanel/Card/Rows"]
 unique_name_in_owner = true
 focus_mode = 0
@@ -358,89 +364,6 @@ theme_override_colors/font_color = Color(0.86, 0.86, 0.83, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
 theme_override_constants/shadow_offset_y = 4
 theme_override_font_sizes/font_size = 40
-
-[node name="Briefing" type="Control" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="BriefBackdrop" type="ColorRect" parent="Briefing"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.62)
-
-[node name="BriefCard" type="PanelContainer" parent="Briefing"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -520.0
-offset_top = -330.0
-offset_right = 520.0
-offset_bottom = 330.0
-
-[node name="Rows" type="VBoxContainer" parent="Briefing/BriefCard"]
-layout_mode = 2
-theme_override_constants/separation = 34
-
-[node name="Who" type="HBoxContainer" parent="Briefing/BriefCard/Rows"]
-layout_mode = 2
-theme_override_constants/separation = 28
-
-[node name="PortraitFrame" type="Panel" parent="Briefing/BriefCard/Rows/Who"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 160)
-layout_mode = 2
-
-[node name="PortraitImage" type="TextureRect" parent="Briefing/BriefCard/Rows/Who/PortraitFrame"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-expand_mode = 1
-stretch_mode = 6
-
-[node name="PortraitInitial" type="Label" parent="Briefing/BriefCard/Rows/Who/PortraitFrame"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-text = "M"
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
-theme_override_font_sizes/font_size = 76
-
-[node name="Speaker" type="Label" parent="Briefing/BriefCard/Rows/Who"]
-unique_name_in_owner = true
-layout_mode = 2
-vertical_alignment = 1
-text = "Marshal"
-theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
-theme_override_font_sizes/font_size = 46
-
-[node name="BriefBody" type="Label" parent="Briefing/BriefCard/Rows"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "The Aldridge house. She was seen near the fence line. Search everything."
-autowrap_mode = 3
-theme_override_colors/font_color = Color(0.93, 0.93, 0.9, 1)
-theme_override_font_sizes/font_size = 48
-
-[node name="BriefAccept" type="Button" parent="Briefing/BriefCard/Rows"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "SEARCH THE PROPERTY"
-theme_override_font_sizes/font_size = 46
 
 [node name="Flash" type="ColorRect" parent="."]
 unique_name_in_owner = true

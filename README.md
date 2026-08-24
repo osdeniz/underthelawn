@@ -670,7 +670,82 @@ and renaming `{cells}` to `{hucre}` each produce failures.
 The CSV is parsed with `FileAccess.get_csv_line()`, not `split(",")` — half
 these strings contain commas inside quotes and a plain split shreds them.
 
-## Not in G1-G7.2
+## G8 — community hub + data-driven dialogue
+
+### Flow
+
+    intro cards (first launch only)
+      -> HUB  (case board / town / workshop)
+      -> case board -> pick a chapter
+      -> briefing dialogue  [SEARCH THE PROPERTY]
+      -> game scene (scenes/Main.tscn)
+      -> debrief dialogue -> AREA SEARCHED panel
+      -> [RETURN TO TOWN] -> HUB
+
+`scenes/Root.tscn` (`RootFlow`) is the new main scene and owns every transition,
+each behind a black fade. `scenes/Main.tscn` is untouched as the game scene and
+still runs standalone — all five scene tests instantiate it directly, so it must
+never depend on RootFlow. It is handed a `variant_id`, reports back through
+`search_finished(evidence, total)`, and if nobody is listening it just keeps
+playing. `RETURN TO TOWN` calls `return_to_hub()` on its parent if that method
+exists and restarts otherwise, so the panel never dead-ends.
+
+### A chapter is an ID, never a scene
+
+`data/story.json` `chapters[]` entries carry a `variant_id` and no path.
+Chapter selection emits `chapter_chosen(variant_id)`; RootFlow sets that string
+on the game scene before `_ready`. G9 will build all eight chapters from this
+one scene plus LevelVariant data, so `tests/flow_check.gd` asserts every chapter
+entry has a `variant_id` and carries **no** `scene`/`path` key — that assertion
+exists specifically to stop "one .tscn per chapter" creeping back in.
+
+Progress lives in `user://settings.cfg` under `[progress]`, keyed by
+`variant_id`. Evidence counts only ever go **up**: replaying a chapter and
+finding less must not erase what the case already knows (asserted).
+
+### One dialogue system
+
+`data/dialogue.json` + `DialogueBox`. A conversation is a list of entries; an
+entry is a spoken line `{speaker, text}` or a flavour choice
+`{choice: {options: [...]}}`. **A choice never branches** — picking an option
+splices its single reaction line in right after the current entry and the
+conversation continues. That keeps every caller's control flow linear, which is
+why the briefing, the debrief and town chatter are all the same data and the
+same UI. Speaker ids double as portrait file names.
+
+The G7 briefing panel is **gone** from `hud.tscn`; it was a second dialogue
+implementation and DialogueBox replaced it. Typewriter runs at 55 cps; the first
+tap completes the line, the second advances, so a reader is never slowed and a
+skimmer is never blocked.
+
+Town chatter picks the highest variant whose `min_done` the player has reached,
+so the town reacts to case progress with no bookkeeping at the call site.
+
+### Two traps
+
+* **The intro art loaded as JPEG data inside `.png` files.** Godot's PNG
+  importer refused them (`valid=false` in the `.import`), `ResourceLoader.exists`
+  still returned true, and `load()` failed — so the cards silently fell back to
+  the flat ground. Renaming to `.jpg` fixed it with no code change, because
+  `TextureLibrary` already searches `.png/.jpg/.jpeg/.webp`. Check `file` output,
+  not the extension.
+* **Godot does not clip children to a parent's rounded StyleBox.** The portrait
+  drew as a hard square over its rounded frame until the frame got
+  `clip_children = CLIP_CHILDREN_ONLY`.
+
+### Art status and what portraits want
+
+Present: `textures/intro/intro_1..3.jpg`, `textures/portraits/marshal.png`,
+`textures/portraits/ellie.png`. Missing (all fall back cleanly):
+`textures/hub/town_square.png` (warm gradient instead) and portraits for
+`sarah`, `gus`, `cole`, `stranger` (lettered card instead).
+
+The supplied portraits are tall full-figure illustrations rather than the 320x320
+the brief suggested, so the frame is a **tall rounded card (150x200)** instead of
+a circle — a circle cropped them to a torso. Either shape works; if you'd rather
+have circles, crop the sources square on the face.
+
+## Not in G1-G8
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

@@ -8,7 +8,10 @@ extends SceneTree
 ## Every story.json field that must hold a translation key.
 const STORY_KEY_PATHS: Array[String] = [
 	"case.id", "case.title", "case.objective", "case.hud_line",
-	"briefing.speaker", "briefing.body", "briefing.accept",
+	"hub.progress", "hub.locked_note",
+	"case_board.title", "case_board.evidence", "case_board.locked",
+	"case_board.active", "case_board.done",
+	"town.title", "complete.return",
 	"opening.headline", "opening.subline",
 	"evidence.card_header", "evidence.counter_label",
 	"complete.title", "complete.notes_header", "complete.notes_full",
@@ -24,7 +27,6 @@ func _initialize() -> void:
 	# Each of these must resolve, through the key, to a non-empty sentence.
 	for path in [
 		"case.hud_line", "case.id", "case.title", "case.objective",
-		"briefing.speaker", "briefing.portrait", "briefing.body", "briefing.accept",
 		"opening.headline", "opening.subline",
 		"evidence.card_header", "evidence.counter_icon", "evidence.counter_label",
 		"complete.title", "complete.notes_header", "complete.notes_full",
@@ -102,6 +104,37 @@ func _initialize() -> void:
 			var key := Story.raw("evidence.items.%d.%s" % [i, field], "")
 			ck("kanit %d.%s csv'de" % [i, field], known.has(key), key)
 
+	# G8: hub tiles, chapter names, town people.
+	for tile: Dictionary in Story.list("hub.tiles"):
+		for field in ["label", "hint"]:
+			var key := str(tile.get(field, ""))
+			ck("hub karti %s csv'de" % key, known.has(key), key)
+	for chapter: Dictionary in Story.list("chapters"):
+		var key := str(chapter.get("name", ""))
+		ck("bolum adi csv'de %s" % key, known.has(key), key)
+	for person: Dictionary in Story.list("town.people"):
+		for field in ["name", "role"]:
+			var key := str(person.get(field, ""))
+			ck("kasaba %s csv'de" % key, known.has(key), key)
+
+	# Every dialogue line, in every conversation and every town variant.
+	for entry: Dictionary in _all_dialogue_entries():
+		if entry.has("text"):
+			var key := str(entry["text"])
+			ck("diyalog satiri csv'de: %s" % key, known.has(key), key)
+		if entry.has("choice"):
+			for option: Dictionary in entry["choice"].get("options", []):
+				ck("secenek csv'de: %s" % option.get("text", ""),
+					known.has(str(option.get("text", ""))), str(option))
+	# A speaker id doubles as a portrait file name, so it must be a known
+	# character or the portrait silently falls back forever.
+	for entry: Dictionary in _all_dialogue_entries():
+		if entry.has("speaker"):
+			ck("konusmaci taninir: %s" % entry["speaker"],
+				Dialogue.speakers().has(str(entry["speaker"])), str(entry))
+			ck("konusmaci adi csv'de",
+				known.has("CHAR_" + str(entry["speaker"]).to_upper()), str(entry))
+
 	# Mower labels are keys too (they show in the picker).
 	for entry: Dictionary in GameConfig.MOWER_TYPES:
 		var key := str(entry["label"])
@@ -109,7 +142,8 @@ func _initialize() -> void:
 
 	# The UI's own strings.
 	for key in ["UI_PERCENT_MOWED", "UI_EVIDENCE_COUNTER", "UI_STATS",
-			"UI_RESTART", "UI_STORY", "UI_EMPTY_SLOT", "UI_NOTHING_RECOVERED"]:
+			"UI_RESTART", "UI_STORY", "UI_EMPTY_SLOT", "UI_NOTHING_RECOVERED",
+			"UI_BACK", "UI_RETURN_TOWN"]:
 		ck("UI anahtari csv'de: %s" % key, known.has(key), key)
 
 	# Placeholders must be NAMED, so a translator can reorder them. A positional
@@ -193,6 +227,21 @@ func _initialize() -> void:
 	else:
 		print("--- TUM ANLATI TESTLERI GECTI ---")
 	quit()
+
+
+## Every line entry across every conversation and every town variant.
+func _all_dialogue_entries() -> Array:
+	var out: Array = []
+	var conversations: Variant = Dialogue.data().get("conversations", {})
+	if conversations is Dictionary:
+		for id: String in conversations:
+			out.append_array(Dialogue.conversation(id))
+	var town: Variant = Dialogue.data().get("town", {})
+	if town is Dictionary:
+		for person: String in town:
+			for variant: Dictionary in (town as Dictionary)[person]:
+				out.append_array(variant.get("lines", []))
+	return out
 
 
 ## The set of {name} placeholders in a string, so the same set can be required
