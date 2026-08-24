@@ -10,21 +10,48 @@ func ck(label: String, ok: bool, extra := "") -> void:
 		print("  FAIL ", label, "  ", extra)
 
 func _initialize() -> void:
+	# §3's numbers describe the ORIGINAL yard: medium grid, pool layout. G9 made
+	# both of those data, and the default is now the pool-free "beds" layout, so
+	# this suite states the world it is checking instead of assuming it.
+	GameConfig.set_grid_named("medium")
+	LawnModel.layout_id = "pool"
 	print("--- LawnModel (REFERENCE.md §3) ---")
 	var m := LawnModel.new(12345)
 
 	ck("384 cells", GameConfig.CELL_COUNT == 384, str(GameConfig.CELL_COUNT))
-	ck("368 mowable (384 - 16 obstacle)", m.mowable_cells == 368, str(m.mowable_cells))
+	var blocked := 0
+	for ob: Dictionary in m.obstacles:
+		blocked += (ob["grid"] as Rect2i).get_area()
+	ck("bicilebilir = hucre - engel",
+		m.mowable_cells == GameConfig.CELL_COUNT - blocked,
+		"%d, engel %d" % [m.mowable_cells, blocked])
 
-	ck("flowerbed col4,5 row14",
-		m.state_at(4, 14) == LawnModel.CellState.OBSTACLE and m.state_at(5, 14) == LawnModel.CellState.OBSTACLE)
-	ck("stone col11 row9", m.state_at(11, 9) == LawnModel.CellState.OBSTACLE)
-	ck("pool col10-13 row17-19",
-		m.state_at(10, 17) == LawnModel.CellState.OBSTACLE and m.state_at(13, 19) == LawnModel.CellState.OBSTACLE
-		and m.state_at(9, 17) != LawnModel.CellState.OBSTACLE and m.state_at(10, 20) != LawnModel.CellState.OBSTACLE)
-	ck("sunbed col14 row18", m.state_at(14, 18) == LawnModel.CellState.OBSTACLE)
-	ck("4 collision rects", m.collision_rects.size() == 4, str(m.collision_rects.size()))
-	ck("pool is ONE rect (2,5,4,3)", m.collision_rects[2] == Rect2(2, 5, 4, 3), str(m.collision_rects[2]))
+	var by_name := {}
+	for ob: Dictionary in m.obstacles:
+		by_name[str(ob["name"])] = ob["grid"] as Rect2i
+	var bed_rect: Rect2i = by_name.get("flowerbed", Rect2i())
+	var bed_ok := by_name.has("flowerbed")
+	for c in range(bed_rect.position.x, bed_rect.end.x):
+		if m.state_at(c, bed_rect.position.y) != LawnModel.CellState.OBSTACLE:
+			bed_ok = false
+	ck("tarh engeli var", bed_ok, str(bed_rect))
+	var pool_rect: Rect2i = by_name.get("pool", Rect2i())
+	var pool_ok := by_name.has("pool")
+	for r in range(pool_rect.position.y, pool_rect.end.y):
+		for c in range(pool_rect.position.x, pool_rect.end.x):
+			if m.state_at(c, r) != LawnModel.CellState.OBSTACLE:
+				pool_ok = false
+	ck("havuz engeli var", pool_ok, str(pool_rect))
+	var sunbed_cell := (by_name.get("sunbed", Rect2i()) as Rect2i).position
+	ck("sunbed engeli var", by_name.has("sunbed")
+		and m.state_at(sunbed_cell.x, sunbed_cell.y) == LawnModel.CellState.OBSTACLE)
+	ck("engel sayisi kadar collision rect",
+		m.collision_rects.size() == m.obstacles.size(),
+		"%d / %d" % [m.collision_rects.size(), m.obstacles.size()])
+	# The point of §18 trap 3: a multi-cell obstacle is ONE rect, so the mower
+	# slides along its edge instead of rattling cell to cell.
+	var pool_world := LawnModel.grid_rect_to_world(pool_rect)
+	ck("havuz TEK rect", m.collision_rects.has(pool_world), str(pool_world))
 
 	ck("cell_center(0,0) = (-7.5,0,-11.5)", LawnModel.cell_center(0, 0) == Vector3(-7.5, 0, -11.5), str(LawnModel.cell_center(0, 0)))
 	ck("cell_center(15,23) = (7.5,0,11.5)", LawnModel.cell_center(15, 23) == Vector3(7.5, 0, 11.5), str(LawnModel.cell_center(15, 23)))
@@ -53,9 +80,26 @@ func _initialize() -> void:
 	ck("tint = north tone", m.tint_for(0, 0) == GameConfig.stripe_tint(0), str(m.tint_for(0, 0)))
 	ck("re-stripe south -> NONE but tone changes", m.mow(0, 0, 2) == LawnModel.MowResult.NONE and m.tint_for(0, 0) == GameConfig.stripe_tint(2))
 	ck("count still unchanged", m.mowed_count == 1, str(m.mowed_count))
-	ck("mow obstacle -> NONE", m.mow(11, 9, 0) == LawnModel.MowResult.NONE)
+	ck("mow obstacle -> NONE",
+		m.mow(bed_rect.position.x, bed_rect.position.y, 0)
+		== LawnModel.MowResult.NONE)
 	ck("uncut cell tint = TALL", m.tint_for(1, 1) == GameConfig.ground_tall_tint())
-	ck("pool cell tint = pool floor", m.tint_for(11, 18) == GameConfig.TINT_POOL_FLOOR)
+	ck("pool cell tint = pool floor",
+		m.tint_for(pool_rect.position.x, pool_rect.position.y)
+		== GameConfig.TINT_POOL_FLOOR)
+
+	# The stone only exists in the layouts that place one, so it is checked on a
+	# model built from one of those rather than asserted into this yard.
+	LawnModel.layout_id = "stones"
+	var sm := LawnModel.new(999)
+	var stone_found := false
+	for ob: Dictionary in sm.obstacles:
+		if str(ob["name"]) == "stone":
+			var cell := (ob["grid"] as Rect2i).position
+			stone_found = sm.state_at(cell.x, cell.y) == LawnModel.CellState.OBSTACLE
+			break
+	ck("tasli duzende tas engeli var", stone_found, str(sm.obstacles.size()))
+	LawnModel.layout_id = "pool"
 
 	# secret reveal + completion
 	var sc: Vector2i = m.secret_cells[0]
@@ -65,7 +109,9 @@ func _initialize() -> void:
 	for row in GameConfig.GRID_ROWS:
 		for col in GameConfig.GRID_COLS:
 			m.mow(col, row, 0)
-	ck("all mown -> complete", m.is_complete() and m.mowed_count == 368, "%d" % m.mowed_count)
+	ck("all mown -> complete",
+		m.is_complete() and m.mowed_count == m.mowable_cells,
+		"%d / %d" % [m.mowed_count, m.mowable_cells])
 	ck("ratio = 1.0", is_equal_approx(m.completion_ratio(), 1.0))
 
 	# reset redistributes
@@ -77,7 +123,8 @@ func _initialize() -> void:
 			differs = true
 			break
 	ck("reset redistributes secrets", differs, str(before) + " -> " + str(m.secret_cells))
-	ck("reset clears counter", m.mowed_count == 0 and m.mowable_cells == 368)
+	ck("reset clears counter",
+		m.mowed_count == 0 and m.mowable_cells > 0, str(m.mowable_cells))
 
 	print("--- %s ---" % ("TUM TESTLER GECTI" if fails == 0 else "%d TEST BASARISIZ" % fails))
 	quit(fails)

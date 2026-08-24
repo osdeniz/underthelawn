@@ -264,7 +264,36 @@ func _refresh_mute_label() -> void:
 ## Kept as the styling hook; the panels it used to style moved into DialogueBox
 ## when the briefing became a conversation (G8).
 func _style_case_panels() -> void:
-	pass
+	# The default theme's PanelContainer and Button are nearly transparent, so
+	# anything laid over the lawn reads as a smudge rather than a card.
+	var card := StyleBoxFlat.new()
+	card.bg_color = Color(0.06, 0.06, 0.055, 0.94)
+	card.set_corner_radius_all(28)
+	card.set_content_margin_all(40)
+	card.border_color = Color(GameConfig.CASE_ACCENT, 0.42)
+	card.set_border_width_all(3)
+	card.shadow_color = Color(0, 0, 0, 0.5)
+	card.shadow_size = 12
+	_exit_card.add_theme_stylebox_override("panel", card)
+	for button: Button in [_exit_continue, _exit_keep, _exit_badge]:
+		_style_button(button)
+
+
+## Same treatment for a button that sits over the 3D scene.
+func _style_button(button: Button) -> void:
+	var base := StyleBoxFlat.new()
+	base.bg_color = Color(0.10, 0.10, 0.09, 0.94)
+	base.set_corner_radius_all(20)
+	base.set_content_margin_all(22)
+	base.border_color = Color(GameConfig.CASE_ACCENT, 0.40)
+	base.set_border_width_all(2)
+	button.add_theme_stylebox_override("normal", base)
+	var pressed := base.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.17, 0.15, 0.11, 0.97)
+	pressed.border_color = Color(GameConfig.CASE_ACCENT, 0.8)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("hover", pressed)
+	button.add_theme_stylebox_override("focus", base)
 
 
 ## Pulls every fixed string out of data/story.json. Called once at _ready, so a

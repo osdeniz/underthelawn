@@ -854,7 +854,94 @@ Two things left alone on purpose:
   square 2532x2532 viewport to Controls and draws the hub black. It is a headless
   artifact, not a layout bug: every verified render at 468x1013 is correct.
 
-## Not in G1-G8.3
+## G9 — chapter variants, evidence flow, scrap
+
+### One scene, eight yards
+
+`data/levels.json` holds one `LevelVariant` per chapter and **no scene paths**.
+`LevelVariant.apply()` is the single place a variant touches the engine, and it
+runs from `Game._enter_tree()` — not `_ready()` — because `EnvironmentBuilder`
+builds the house and landmark in its own `_ready`, and child `_ready` always
+precedes the parent's. Getting that order wrong means the yard is built before
+anyone knows which yard it is.
+
+The grid is data now. `GRID_COLS`/`GRID_ROWS`/`CELL_COUNT`/`HALF_X`/`HALF_Z`
+kept their names but became `static var`s that `set_grid()` rewrites, so all
+fifty existing call sites are untouched and the model, view, tuft field, camera
+bounds, robot route planner and completion percentage all follow automatically.
+Sizes: small 12x18, medium 16x24, large 20x30, and the cellar's 10x14.
+
+Obstacle layouts (`beds` / `pool` / `stones` / `open`) store positions as
+**fractions** of the grid and sizes in cells, so one layout works at 10x14 and
+20x30 without a second table, clamped so nothing hangs off a small yard.
+`LawnModel.resolve_layout()` is static and side-effect free because
+`EnvironmentBuilder` needs the same answer before any model exists — one
+resolver means the pool prop and the pool collision can never disagree.
+
+| ch | palette | size | layout | structure |
+| --- | --- | --- | --- | --- |
+| 1 Aldridge House | GREEN | medium | beds | house v1 |
+| 2 Neighbor's Yard | GREEN_COOL | small | pool | house v2, no porch |
+| 3 Old Playground | DRY_GOLD | medium | open | playground |
+| 4 Flooded Lot | MARSH | medium | stones | none |
+| 5 Greenhouse | LUSH | small | beds | greenhouse |
+| 6 Water Tower Field | AMBER | **large** | open | water tower |
+| 7 Behind the Mill | DUSK_VIOLET | medium | stones | mill |
+| 8 Cellar Garden | EMERALD | cellar 10x14 | beds | none, vignette |
+
+Chapter 8 is the one indoor chapter and it reuses the existing light rig rather
+than adding one: the sun becomes a steep, dim, cool shaft, ambient drops, and a
+ring of dark quads closes the edges. The `Environment` is **duplicated** first —
+it is a shared sub-resource, so editing it in place would leak the cellar mood
+into every other chapter in the session.
+
+Four landmarks (playground, greenhouse, water tower, mill) stand where the house
+would, at the same distance, so camera framing and the fence line need no
+special case. Each is one low-detail composition from the same primitives and
+textures as the house.
+
+### Evidence flow: the early exit
+
+Finding both pieces of evidence raises a card: **CONTINUE THE CASE** closes the
+chapter now, **KEEP MOWING** dismisses it and leaves a small `Continue →` badge
+so the offer is never lost. A chapter therefore completes two ways — evidence
+plus the player's consent, or 100% mown.
+
+### Scrap
+
+`scrap_budget` points are buried in mowable cells, seeded from `decor_seed` so a
+yard's salvage sits in the same spots on every visit — a replay should feel like
+the same place, not a reroll (asserted). Cutting one pops a bolt and flies a
+`+n` label to the counter, so the number going up is visibly caused by the thing
+on the ground.
+
+The payout splits 30% ground haul / 70% completion bonus, and the bonus scales
+from `SCRAP_BONUS_FLOOR` (0.55) at 0% mown to 1.0 at 100%, with a separate
+`Thorough Search +15%` line only at 100%. **The early exit must not read as a
+punishment**, so the test asserts that leaving early still pays a clear majority
+of a full mow while 100% stays strictly the most profitable. Totals persist in
+`settings.cfg` under `[economy]`; there is nowhere to spend it until G10's
+Workshop.
+
+### Tests updated, not deleted
+
+`model_check` and `g3_check` encode §3/§7 numbers from the original yard. G9 made
+that yard data and made the *pool-free* `beds` layout the default, so both suites
+now **state the world they are checking** (`set_grid_named("medium")` +
+`layout_id = "pool"`) and assert against the model's own obstacle rects instead
+of remembered cell coordinates. The stone moved to its own model built from the
+`stones` layout rather than being asserted into a yard that has none.
+`tests/variant_check.gd` is new and covers all eight variants, the grid
+propagation, layout clamping at every size, and the economy curve.
+
+### A measurement trap worth remembering
+
+Headless runs are uncapped, so frame counts are NOT time. A tween scheduled for
+0.22 s had not finished after 30 headless frames, which looked exactly like a
+broken callback. `--fixed-fps 30` makes frames map to seconds; without it, any
+timing assertion is meaningless.
+
+## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

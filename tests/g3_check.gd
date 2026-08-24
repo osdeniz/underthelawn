@@ -12,6 +12,10 @@ func ck(label: String, ok: bool, extra := "") -> void:
 
 
 func _initialize() -> void:
+	# §7's route rules are checked on the pool layout at medium size, since that
+	# is the yard they were written against. Both are data after G9.
+	GameConfig.set_grid_named("medium")
+	LawnModel.layout_id = "pool"
 	print("--- §6 parametre setleri ---")
 	# §7's table, with the G6.12 deviations pinned so a later drift still trips:
 	#  - push max_turn 1.7 -> 2.6 and turn_drag 0.45 -> 0.26: §7's radius turned
@@ -80,12 +84,14 @@ func _initialize() -> void:
 			detour_found = true
 	ck("tas (11,9) icin ayni sutunda detour var", detour_found)
 
-	# Pool spans cols 10-13 rows 17-19: no waypoint inside it.
-	var in_pool := 0
+	# No waypoint may sit inside ANY obstacle, whatever layout is loaded — the
+	# pool is data now, so the rule is stated instead of its old coordinates.
+	var inside := 0
 	for cell in route:
-		if cell.x >= 10 and cell.x <= 13 and cell.y >= 17 and cell.y <= 19:
-			in_pool += 1
-	ck("havuzun icinde waypoint yok", in_pool == 0, "%d tane" % in_pool)
+		for ob: Dictionary in m.obstacles:
+			if (ob["grid"] as Rect2i).has_point(cell):
+				inside += 1
+	ck("engellerin icinde waypoint yok", inside == 0, "%d tane" % inside)
 
 	# Every mowable cell should be visited at least once.
 	var visited := {}
