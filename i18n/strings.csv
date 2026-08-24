@@ -1,42 +1,42 @@
-keys,en
-UI_PERCENT_MOWED,"{pct}% mowed"
-UI_EVIDENCE_COUNTER,"{icon} Evidence {found}/{total}"
-UI_STATS,"{cells} cells searched · {time}"
-UI_RESTART,RESTART
-UI_STORY,STORY
-UI_EMPTY_SLOT,—
-UI_NOTHING_RECOVERED,nothing recovered
-MOWER_PUSH,Push
-MOWER_TRACTOR,Tractor
-MOWER_ROBOT,Robot
-MOWER_BLADE,Blade
-CASE_01_ID,CASE 01
-CASE_01_TITLE,THE MISSING GIRL
-CASE_01_OBJECTIVE,Search the property
-CASE_01_HUD_LINE,"CASE 01 — THE MISSING GIRL · Search the property"
-INTRO_SKIP_HINT,tap to continue
-INTRO_01_L1,The outbreak ended years ago.
-INTRO_01_L2,The world didn't end with it.
-INTRO_02_L1,We rebuild.
-INTRO_02_L2,Small towns. Small hopes.
-INTRO_03_L1,"Then, last night —"
-INTRO_03_L2,Ellie didn't come home.
-BRIEF_01_SPEAKER,Marshal
-BRIEF_01_BODY,"The Aldridge house. She was seen near the fence line. Search everything."
-BRIEF_01_ACCEPT,SEARCH THE PROPERTY
-OPENING_01_HEADLINE,LAST MOWED: 847 DAYS AGO
-OPENING_01_SUBLINE,No one has lived here since.
-EVIDENCE_CARD_HEADER,EVIDENCE FOUND
-EVIDENCE_COUNTER_LABEL,Evidence
-EVIDENCE_TOY_NAME,Ellie's Toy
-EVIDENCE_TOY_LINE,It's hers. She was here.
-EVIDENCE_RADIO_NAME,Old Radio
-EVIDENCE_RADIO_LINE,Still tuned to the emergency channel.
-COMPLETE_01_TITLE,AREA SEARCHED
-COMPLETE_NOTES_HEADER,CASE NOTES
-COMPLETE_01_NOTES_FULL,"The toy confirms it. She came through here — heading east."
-COMPLETE_01_NOTES_PARTIAL,Something here is still unaccounted for.
-COMPLETE_01_INCOMPLETE,The search feels incomplete...
-COMPLETE_01_TEASER_TITLE,NEXT: The Neighbor's Yard 🔒
-COMPLETE_01_TEASER_LINE,Something moved behind that fence.
-COMPLETE_TEASER_LOCKED,Coming soon
+keys,en,tr
+UI_PERCENT_MOWED,"{pct}% mowed","%{pct} biçildi"
+UI_EVIDENCE_COUNTER,"{icon} Evidence {found}/{total}","{icon} Kanıt {found}/{total}"
+UI_STATS,"{cells} cells searched · {time}","{cells} hücre arandı · {time}"
+UI_RESTART,RESTART,YENİDEN BAŞLA
+UI_STORY,STORY,HİKÂYE
+UI_EMPTY_SLOT,—,—
+UI_NOTHING_RECOVERED,nothing recovered,hiçbir şey bulunamadı
+MOWER_PUSH,Push,İtmeli
+MOWER_TRACTOR,Tractor,Traktör
+MOWER_ROBOT,Robot,Robot
+MOWER_BLADE,Blade,Blade
+CASE_01_ID,CASE 01,VAKA 01
+CASE_01_TITLE,THE MISSING GIRL,KAYIP KIZ
+CASE_01_OBJECTIVE,Search the property,Araziyi ara
+CASE_01_HUD_LINE,"CASE 01 — THE MISSING GIRL · Search the property","VAKA 01 — KAYIP KIZ · Araziyi ara"
+INTRO_SKIP_HINT,tap to continue,devam etmek için dokun
+INTRO_01_L1,The outbreak ended years ago.,Salgın yıllar önce bitti.
+INTRO_01_L2,The world didn't end with it.,Dünya onunla birlikte bitmedi.
+INTRO_02_L1,We rebuild.,Yeniden kuruyoruz.
+INTRO_02_L2,Small towns. Small hopes.,Küçük kasabalar. Küçük umutlar.
+INTRO_03_L1,"Then, last night —","Sonra, dün gece —"
+INTRO_03_L2,Ellie didn't come home.,Ellie eve dönmedi.
+BRIEF_01_SPEAKER,Marshal,Şerif
+BRIEF_01_BODY,"The Aldridge house. She was seen near the fence line. Search everything.","Aldridge evi. Çit hattının yakınında görülmüş. Her yeri ara."
+BRIEF_01_ACCEPT,SEARCH THE PROPERTY,ARAZİYİ ARA
+OPENING_01_HEADLINE,LAST MOWED: 847 DAYS AGO,SON BİÇİM: 847 GÜN ÖNCE
+OPENING_01_SUBLINE,No one has lived here since.,O zamandan beri burada kimse yaşamadı.
+EVIDENCE_CARD_HEADER,EVIDENCE FOUND,KANIT BULUNDU
+EVIDENCE_COUNTER_LABEL,Evidence,Kanıt
+EVIDENCE_TOY_NAME,Ellie's Toy,Ellie'nin Oyuncağı
+EVIDENCE_TOY_LINE,It's hers. She was here.,Bu onun. Buradaydı.
+EVIDENCE_RADIO_NAME,Old Radio,Eski Radyo
+EVIDENCE_RADIO_LINE,Still tuned to the emergency channel.,Hâlâ acil durum kanalında.
+COMPLETE_01_TITLE,AREA SEARCHED,ALAN ARANDI
+COMPLETE_NOTES_HEADER,CASE NOTES,VAKA NOTLARI
+COMPLETE_01_NOTES_FULL,"The toy confirms it. She came through here — heading east.","Oyuncak doğruluyor. Buradan geçmiş — doğuya doğru."
+COMPLETE_01_NOTES_PARTIAL,Something here is still unaccounted for.,Burada hâlâ açıklanamayan bir şey var.
+COMPLETE_01_INCOMPLETE,The search feels incomplete...,Arama yarım kalmış gibi...
+COMPLETE_01_TEASER_TITLE,NEXT: The Neighbor's Yard 🔒,SIRADAKİ: Komşunun Bahçesi 🔒
+COMPLETE_01_TEASER_LINE,Something moved behind that fence.,O çitin arkasında bir şey hareket etti.
+COMPLETE_TEASER_LOCKED,Coming soon,Yakında

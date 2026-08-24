@@ -62,13 +62,28 @@ func _initialize() -> void:
 	# --- i18n contract -------------------------------------------------------
 	# The json must hold KEYS, not sentences: every key it names has to exist in
 	# i18n/strings.csv, and none of them may look like prose.
-	var csv := FileAccess.get_file_as_string("res://i18n/strings.csv")
+	# Parsed with get_csv_line, NOT split(","): half these strings contain commas
+	# inside quotes and a plain split would shred them.
+	var locales: Array[String] = []
+	var rows: Array = []
+	var file := FileAccess.open("res://i18n/strings.csv", FileAccess.READ)
+	ck("strings.csv okunabiliyor", file != null, "")
+	if file != null:
+		var header := file.get_csv_line()
+		for i in range(1, header.size()):
+			if header[i].strip_edges() != "":
+				locales.append(header[i].strip_edges())
+		while not file.eof_reached():
+			var row := file.get_csv_line()
+			if row.size() >= 2 and row[0].strip_edges() != "":
+				rows.append(row)
+		file.close()
+
 	var known := {}
-	for line in csv.split("\n"):
-		var key := line.split(",")[0].strip_edges()
-		if key != "" and key != "keys":
-			known[key] = true
+	for row: PackedStringArray in rows:
+		known[row[0].strip_edges()] = row
 	ck("csv anahtar sayisi", known.size() > 30, str(known.size()))
+	ck("en az iki dil kolonu", locales.size() >= 2, str(locales))
 
 	for path in STORY_KEY_PATHS:
 		var key := Story.raw(path, "")
@@ -104,10 +119,50 @@ func _initialize() -> void:
 		var raw_text := TranslationServer.translate(pair[0])
 		ck("%s icinde %s" % [pair[0], pair[1]], raw_text.contains(pair[1]), raw_text)
 
-	# No Turkish left in anything the player reads.
-	for stale in ["biçildi", "süre", "Paslı", "Eski Radyo", "Traktör"]:
-		ck("eski Turkce metin yok: %s" % stale,
-			not csv.contains(stale), "")
+	# Every key must be filled in for EVERY language, or that language silently
+	# shows English (or the bare key) at that spot.
+	for key: String in known:
+		var row: PackedStringArray = known[key]
+		for i in locales.size():
+			var column := i + 1
+			var value := row[column].strip_edges() if column < row.size() else ""
+			ck("%s / %s dolu" % [key, locales[i]], value != "", "")
+
+	# The English column must not carry Turkish leftovers. Checked on the COLUMN,
+	# not the whole file — the Turkish column contains these words on purpose.
+	for key: String in known:
+		var english: String = (known[key] as PackedStringArray)[1]
+		for letter in ["ı", "ş", "ğ", "İ", "Ş", "Ğ", "â"]:
+			ck("en kolonunda Turkce harf yok (%s)" % key,
+				not english.contains(letter), english)
+
+	# Named placeholders have to survive translation in every language, or that
+	# language crashes into a literal "{cells}" on screen.
+	for key in ["UI_PERCENT_MOWED", "UI_STATS", "UI_EVIDENCE_COUNTER"]:
+		var row: PackedStringArray = known[key]
+		var expected := _placeholders(row[1])
+		for i in locales.size():
+			var column := i + 1
+			if column >= row.size():
+				continue
+			ck("%s / %s yer tutuculari ayni" % [key, locales[i]],
+				_placeholders(row[column]) == expected,
+				"%s vs %s" % [expected, _placeholders(row[column])])
+
+	# Each language must actually resolve, and must differ from English so a
+	# forgotten copy-paste does not pass as a translation.
+	var original_locale := TranslationServer.get_locale()
+	for locale in locales:
+		TranslationServer.set_locale(locale)
+		ck("%s yuklendi" % locale,
+			TranslationServer.get_locale().begins_with(locale), TranslationServer.get_locale())
+		var title := TranslationServer.translate("COMPLETE_01_TITLE")
+		ck("%s icin baslik cozuldu" % locale,
+			title != "" and title != "COMPLETE_01_TITLE", title)
+		if locale != "en":
+			ck("%s ingilizceden farkli" % locale,
+				title != (known["COMPLETE_01_TITLE"] as PackedStringArray)[1], title)
+	TranslationServer.set_locale(original_locale)
 
 	# Prove the pipeline end to end WITHOUT inventing a translation. Godot's
 	# pseudolocalization rewrites whatever passes through the TranslationServer,
@@ -138,6 +193,26 @@ func _initialize() -> void:
 	else:
 		print("--- TUM ANLATI TESTLERI GECTI ---")
 	quit()
+
+
+## The set of {name} placeholders in a string, so the same set can be required
+## of every translation of it.
+func _placeholders(text: String) -> Array:
+	var found: Array = []
+	var depth := 0
+	var current := ""
+	for i in text.length():
+		var c := text[i]
+		if c == "{":
+			depth = 1
+			current = ""
+		elif c == "}" and depth == 1:
+			depth = 0
+			found.append(current)
+		elif depth == 1:
+			current += c
+	found.sort()
+	return found
 
 
 func ck(label: String, passed: bool, detail: String) -> void:
