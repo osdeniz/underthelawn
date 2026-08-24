@@ -40,3 +40,63 @@ COMPLETE_01_INCOMPLETE,The search feels incomplete...,Arama yarım kalmış gibi
 COMPLETE_01_TEASER_TITLE,NEXT: The Neighbor's Yard 🔒,SIRADAKİ: Komşunun Bahçesi 🔒
 COMPLETE_01_TEASER_LINE,Something moved behind that fence.,O çitin arkasında bir şey hareket etti.
 COMPLETE_TEASER_LOCKED,Coming soon,Yakında
+UI_BACK,BACK,GERİ
+UI_RETURN_TOWN,RETURN TO TOWN,KASABAYA DÖN
+HUB_PROGRESS,"{case} · {done}/{total}","{case} · {done}/{total}"
+HUB_CASE_BOARD,CASE BOARD,VAKA PANOSU
+HUB_CASE_BOARD_HINT,Pick where to search next.,Sıradaki arama yerini seç.
+HUB_TOWN,TOWN,KASABA
+HUB_TOWN_HINT,See who's still around.,Kimler kalmış bir bak.
+HUB_WORKSHOP,WORKSHOP,ATÖLYE
+HUB_WORKSHOP_HINT,Gus hasn't opened up yet.,Gus henüz açmadı.
+HUB_LOCKED,Locked for now.,Şimdilik kilitli.
+CASEBOARD_TITLE,CASE 01 — THE MISSING GIRL,VAKA 01 — KAYIP KIZ
+CASEBOARD_EVIDENCE,"Evidence {found}/{total}","Kanıt {found}/{total}"
+CASEBOARD_LOCKED,Not yet,Henüz değil
+CASEBOARD_ACTIVE,Search here,Burayı ara
+CASEBOARD_DONE,Searched,Arandı
+CH_01_NAME,The Aldridge House,Aldridge Evi
+CH_02_NAME,The Neighbor's Yard,Komşunun Bahçesi
+CH_03_NAME,The Old Playground,Eski Oyun Parkı
+CH_04_NAME,The Flooded Lot,Su Basmış Arsa
+CH_05_NAME,The Greenhouse,Sera
+CH_06_NAME,The Water Tower Field,Su Kulesi Tarlası
+CH_07_NAME,Behind the Mill,Değirmenin Arkası
+CH_08_NAME,The Cellar Garden,Mahzen Bahçesi
+TOWN_TITLE,TOWN,KASABA
+CHAR_MARSHAL,Marshal,Şerif
+CHAR_SARAH,Sarah,Sarah
+CHAR_GUS,Gus,Gus
+CHAR_COLE,Cole,Cole
+CHAR_ELLIE,Ellie,Ellie
+CHAR_STRANGER,The Stranger,Yabancı
+ROLE_MARSHAL,keeps the peace,düzeni sağlıyor
+ROLE_SARAH,Ellie's mother,Ellie'nin annesi
+ROLE_GUS,fixes machines,makineleri tamir ediyor
+ROLE_COLE,knows the fields,tarlaları biliyor
+ROLE_ELLIE,missing,kayıp
+ROLE_STRANGER,new in town,kasabada yeni
+DLG_BRIEF_CH01_1,"The Aldridge house. Nobody's lived there since the year we stopped counting.","Aldridge evi. Saymayı bıraktığımız yıldan beri kimse oturmuyor."
+DLG_BRIEF_CH01_2,Sarah says Ellie was seen near the fence line.,Sarah'ya göre Ellie çit hattının yakınında görülmüş.
+DLG_BRIEF_CH01_A1,Why the grass?,Neden çim?
+DLG_BRIEF_CH01_A2,How long has it been?,Ne kadar zaman geçti?
+DLG_BRIEF_CH01_R1,"It's waist high. You won't see a thing until you cut it down.","Bel hizasında. Kesmeden hiçbir şey göremezsin."
+DLG_BRIEF_CH01_R2,"One night. That's still a good night, if we move.","Bir gece. Acele edersek hâlâ iyi bir gece sayılır."
+DLG_BRIEF_CH01_3,Search everything. Bring me whatever you find.,Her yeri ara. Ne bulursan bana getir.
+DLG_DEBRIEF_CH01_FULL_1,The toy settles it. She came through here.,Oyuncak kesinleştirdi. Buradan geçmiş.
+DLG_DEBRIEF_CH01_FULL_2,Heading east. Toward the neighbor's fence.,Doğuya doğru. Komşunun çitine doğru.
+DLG_DEBRIEF_CH01_PART_1,"You covered the ground, but something's still out there. Go over it again.","Alanı taradın ama orada bir şey daha var. Bir daha geç."
+DLG_TOWN_MARSHAL_0A,I've done this work a long time. Never for someone I knew.,Bu işi uzun zamandır yapıyorum. Hiç tanıdığım biri için yapmadım.
+DLG_TOWN_MARSHAL_0B,Start with the grass. It hides more than people think.,Çimden başla. İnsanların sandığından fazlasını saklıyor.
+DLG_TOWN_MARSHAL_1A,East it is. I'll tell Sarah we have something.,Doğu demek. Sarah'ya elimizde bir şey olduğunu söyleyeceğim.
+DLG_TOWN_SARAH_0A,She takes that bear everywhere. She wouldn't leave it.,O ayıyı her yere götürür. Bırakıp gitmez.
+DLG_TOWN_SARAH_0B,Please. Just look.,Lütfen. Sadece bak.
+DLG_TOWN_SARAH_1A,You found it. Where is she?,Onu bulmuşsun. Nerede o?
+DLG_TOWN_GUS_0A,"Bring the mower back in one piece and we'll talk.","Makineyi tek parça getir, sonra konuşuruz."
+DLG_TOWN_GUS_1A,Heard you found something. I'll start on the deck tomorrow.,Bir şey bulduğunu duydum. Yarın kesme tablasına bakarım.
+DLG_TOWN_COLE_0A,I walk those fields every morning. Saw nothing.,Her sabah o tarlalarda yürürüm. Hiçbir şey görmedim.
+DLG_TOWN_COLE_0B,Doesn't mean nothing happened.,Bu bir şey olmadığı anlamına gelmez.
+DLG_TOWN_COLE_1A,East? The mill road runs that way.,Doğu mu? Değirmen yolu o tarafa gider.
+DLG_TOWN_ELLIE_0A,She isn't here. That's the whole problem.,O burada değil. Bütün sorun bu.
+DLG_TOWN_STRANGER_0A,I only got here last week. I don't know the girl.,Geçen hafta geldim. Kızı tanımıyorum.
+DLG_TOWN_STRANGER_1A,East. Hm. I'd be careful out there.,Doğu. Hmm. Orada dikkatli olurdum.

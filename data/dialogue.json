@@ -1,0 +1,77 @@
+{
+  "_comment": "STRUCTURE ONLY. Every 'text' is a translation key; sentences live in i18n/strings.csv. One format for every conversation in the game: a line list, where an entry is either a spoken line {speaker, text} or a flavour choice {choice:{...}}. A choice NEVER branches the flow - it appends one reaction line and continues. speaker ids double as portrait file names (textures/portraits/<id>.png).",
+
+  "speakers": ["marshal", "sarah", "gus", "cole", "ellie", "stranger"],
+
+  "conversations": {
+    "brief_ch01": {
+      "lines": [
+        { "speaker": "marshal", "text": "DLG_BRIEF_CH01_1" },
+        { "speaker": "marshal", "text": "DLG_BRIEF_CH01_2" },
+        { "choice": {
+          "options": [
+            { "text": "DLG_BRIEF_CH01_A1",
+              "reply": { "speaker": "marshal", "text": "DLG_BRIEF_CH01_R1" } },
+            { "text": "DLG_BRIEF_CH01_A2",
+              "reply": { "speaker": "marshal", "text": "DLG_BRIEF_CH01_R2" } }
+          ]
+        } },
+        { "speaker": "marshal", "text": "DLG_BRIEF_CH01_3" }
+      ],
+      "accept": "BRIEF_01_ACCEPT"
+    },
+
+    "debrief_ch01_full": {
+      "lines": [
+        { "speaker": "marshal", "text": "DLG_DEBRIEF_CH01_FULL_1" },
+        { "speaker": "marshal", "text": "DLG_DEBRIEF_CH01_FULL_2" }
+      ]
+    },
+
+    "debrief_ch01_partial": {
+      "lines": [
+        { "speaker": "marshal", "text": "DLG_DEBRIEF_CH01_PART_1" }
+      ]
+    }
+  },
+
+  "town": {
+    "marshal": [
+      { "min_done": 0, "lines": [
+        { "speaker": "marshal", "text": "DLG_TOWN_MARSHAL_0A" },
+        { "speaker": "marshal", "text": "DLG_TOWN_MARSHAL_0B" } ] },
+      { "min_done": 1, "lines": [
+        { "speaker": "marshal", "text": "DLG_TOWN_MARSHAL_1A" } ] }
+    ],
+    "sarah": [
+      { "min_done": 0, "lines": [
+        { "speaker": "sarah", "text": "DLG_TOWN_SARAH_0A" },
+        { "speaker": "sarah", "text": "DLG_TOWN_SARAH_0B" } ] },
+      { "min_done": 1, "lines": [
+        { "speaker": "sarah", "text": "DLG_TOWN_SARAH_1A" } ] }
+    ],
+    "gus": [
+      { "min_done": 0, "lines": [
+        { "speaker": "gus", "text": "DLG_TOWN_GUS_0A" } ] },
+      { "min_done": 1, "lines": [
+        { "speaker": "gus", "text": "DLG_TOWN_GUS_1A" } ] }
+    ],
+    "cole": [
+      { "min_done": 0, "lines": [
+        { "speaker": "cole", "text": "DLG_TOWN_COLE_0A" },
+        { "speaker": "cole", "text": "DLG_TOWN_COLE_0B" } ] },
+      { "min_done": 1, "lines": [
+        { "speaker": "cole", "text": "DLG_TOWN_COLE_1A" } ] }
+    ],
+    "ellie": [
+      { "min_done": 0, "lines": [
+        { "speaker": "stranger", "text": "DLG_TOWN_ELLIE_0A" } ] }
+    ],
+    "stranger": [
+      { "min_done": 0, "lines": [
+        { "speaker": "stranger", "text": "DLG_TOWN_STRANGER_0A" } ] },
+      { "min_done": 1, "lines": [
+        { "speaker": "stranger", "text": "DLG_TOWN_STRANGER_1A" } ] }
+    ]
+  }
+}

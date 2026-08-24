@@ -1,44 +1,58 @@
 {
-  "_comment": "STRUCTURE ONLY. Every text field below is a TRANSLATION KEY, not a sentence — the sentences live in i18n/strings.csv, one column per language. Adding Turkish/Arabic/Chinese means adding a column there, never editing this file. Image names and emoji are not translated and stay literal here.",
-
+  "_comment": "STRUCTURE ONLY. Every text field below is a TRANSLATION KEY, not a sentence - the sentences live in i18n/strings.csv, one column per language. Adding a language means adding a column there, never editing this file. Image names, emoji and ids are not translated and stay literal here.",
   "intro": {
     "cards": [
-      { "image": "intro/intro_1", "lines": ["INTRO_01_L1", "INTRO_01_L2"] },
-      { "image": "intro/intro_2", "lines": ["INTRO_02_L1", "INTRO_02_L2"] },
-      { "image": "intro/intro_3", "lines": ["INTRO_03_L1", "INTRO_03_L2"] }
+      {
+        "image": "intro/intro_1",
+        "lines": [
+          "INTRO_01_L1",
+          "INTRO_01_L2"
+        ]
+      },
+      {
+        "image": "intro/intro_2",
+        "lines": [
+          "INTRO_02_L1",
+          "INTRO_02_L2"
+        ]
+      },
+      {
+        "image": "intro/intro_3",
+        "lines": [
+          "INTRO_03_L1",
+          "INTRO_03_L2"
+        ]
+      }
     ],
     "skip_hint": "INTRO_SKIP_HINT"
   },
-
   "case": {
     "id": "CASE_01_ID",
     "title": "CASE_01_TITLE",
     "objective": "CASE_01_OBJECTIVE",
     "hud_line": "CASE_01_HUD_LINE"
   },
-
-  "briefing": {
-    "speaker": "BRIEF_01_SPEAKER",
-    "portrait": "portraits/marshal",
-    "body": "BRIEF_01_BODY",
-    "accept": "BRIEF_01_ACCEPT"
-  },
-
   "opening": {
     "headline": "OPENING_01_HEADLINE",
     "subline": "OPENING_01_SUBLINE"
   },
-
   "evidence": {
     "card_header": "EVIDENCE_CARD_HEADER",
     "counter_icon": "📋",
     "counter_label": "EVIDENCE_COUNTER_LABEL",
     "items": [
-      { "emoji": "🧸", "name": "EVIDENCE_TOY_NAME", "line": "EVIDENCE_TOY_LINE" },
-      { "emoji": "📻", "name": "EVIDENCE_RADIO_NAME", "line": "EVIDENCE_RADIO_LINE" }
+      {
+        "emoji": "🧸",
+        "name": "EVIDENCE_TOY_NAME",
+        "line": "EVIDENCE_TOY_LINE"
+      },
+      {
+        "emoji": "📻",
+        "name": "EVIDENCE_RADIO_NAME",
+        "line": "EVIDENCE_RADIO_LINE"
+      }
     ]
   },
-
   "complete": {
     "title": "COMPLETE_01_TITLE",
     "notes_header": "COMPLETE_NOTES_HEADER",
@@ -47,6 +61,124 @@
     "incomplete": "COMPLETE_01_INCOMPLETE",
     "teaser_title": "COMPLETE_01_TEASER_TITLE",
     "teaser_line": "COMPLETE_01_TEASER_LINE",
-    "teaser_locked": "COMPLETE_TEASER_LOCKED"
+    "teaser_locked": "COMPLETE_TEASER_LOCKED",
+    "return": "UI_RETURN_TOWN"
+  },
+  "hub": {
+    "progress": "HUB_PROGRESS",
+    "tiles": [
+      {
+        "id": "case_board",
+        "label": "HUB_CASE_BOARD",
+        "hint": "HUB_CASE_BOARD_HINT",
+        "icon": "📋",
+        "locked": false
+      },
+      {
+        "id": "town",
+        "label": "HUB_TOWN",
+        "hint": "HUB_TOWN_HINT",
+        "icon": "🏘️",
+        "locked": false
+      },
+      {
+        "id": "workshop",
+        "label": "HUB_WORKSHOP",
+        "hint": "HUB_WORKSHOP_HINT",
+        "icon": "🔧",
+        "locked": true
+      }
+    ],
+    "locked_note": "HUB_LOCKED",
+    "background": "hub/town_square"
+  },
+  "case_board": {
+    "title": "CASEBOARD_TITLE",
+    "back": "UI_BACK",
+    "evidence": "CASEBOARD_EVIDENCE",
+    "locked": "CASEBOARD_LOCKED",
+    "active": "CASEBOARD_ACTIVE",
+    "done": "CASEBOARD_DONE"
+  },
+  "chapters": [
+    {
+      "variant_id": "ch01_aldridge",
+      "name": "CH_01_NAME",
+      "brief": "brief_ch01",
+      "debrief_full": "debrief_ch01_full",
+      "debrief_partial": "debrief_ch01_partial",
+      "playable": true
+    },
+    {
+      "variant_id": "ch02_neighbor",
+      "name": "CH_02_NAME",
+      "playable": false
+    },
+    {
+      "variant_id": "ch03_playground",
+      "name": "CH_03_NAME",
+      "playable": false
+    },
+    {
+      "variant_id": "ch04_flooded",
+      "name": "CH_04_NAME",
+      "playable": false
+    },
+    {
+      "variant_id": "ch05_greenhouse",
+      "name": "CH_05_NAME",
+      "playable": false
+    },
+    {
+      "variant_id": "ch06_watertower",
+      "name": "CH_06_NAME",
+      "playable": false
+    },
+    {
+      "variant_id": "ch07_mill",
+      "name": "CH_07_NAME",
+      "playable": false
+    },
+    {
+      "variant_id": "ch08_cellar",
+      "name": "CH_08_NAME",
+      "playable": false
+    }
+  ],
+  "town": {
+    "title": "TOWN_TITLE",
+    "back": "UI_BACK",
+    "people": [
+      {
+        "id": "marshal",
+        "name": "CHAR_MARSHAL",
+        "role": "ROLE_MARSHAL"
+      },
+      {
+        "id": "sarah",
+        "name": "CHAR_SARAH",
+        "role": "ROLE_SARAH"
+      },
+      {
+        "id": "gus",
+        "name": "CHAR_GUS",
+        "role": "ROLE_GUS"
+      },
+      {
+        "id": "cole",
+        "name": "CHAR_COLE",
+        "role": "ROLE_COLE"
+      },
+      {
+        "id": "ellie",
+        "name": "CHAR_ELLIE",
+        "role": "ROLE_ELLIE"
+      },
+      {
+        "id": "stranger",
+        "name": "CHAR_STRANGER",
+        "role": "ROLE_STRANGER"
+      }
+    ]
   }
 }
