@@ -609,7 +609,10 @@ const HAPTIC_SUCCESS_GAP := 0.08
 
 # ---------------------------------------------------------------- G6 quality switches
 ## Every G6 visual feature has a switch, for FPS calibration on the phone.
-const TRAFFIC_ENABLED := true
+## G12.5: nothing drives here. This neighbourhood emptied out during the
+## outbreak — a car cruising past told the player the world was fine, which is
+## the opposite of what every other surface in the scene says.
+const TRAFFIC_ENABLED := false
 const WATER_FANCY_ENABLED := true        # two-layer waves, fresnel, glints
 const SKY_HIGH_CLOUDS_ENABLED := true    # thin static cirrus layer at y~40
 const GLOW_ENABLED := true               # subtle bloom on bright spots only
@@ -759,7 +762,27 @@ const ROAD_DASH_GAP := 4.0
 const NEIGHBOR_MARGIN := 16.4
 static func neighbor_z() -> float:
 	return HALF_Z + NEIGHBOR_MARGIN
+## Derelict houses ringing EVERY yard (G12.5): a lawn floating in empty dirt
+## read as a test level, not a street. Positions are offsets from the lawn edge
+## so they follow the grid like the fence and the road do.
 const NEIGHBOR_X: Array[float] = [-11.0, 0.5, 11.5]
+## Side-street houses: how far past the fence they stand, and their spacing
+## along the yard's depth.
+## Just past the fence. Measured, not guessed: in portrait the camera shows
+## roughly five units either side of the mower, so at the lawn edge the player
+## can see to about one house-depth beyond the fence and no further. Anything
+## further out is a house nobody ever sees.
+const SIDE_HOUSE_MARGIN := 2.6
+const SIDE_HOUSE_SPACING := 11.0
+## Muted, weathered palette — these are survivors of a bad decade, not a
+## postcard row.
+const DERELICT_BODIES: Array[Color] = [
+	Color(0.62, 0.60, 0.53), Color(0.52, 0.56, 0.52), Color(0.66, 0.58, 0.50),
+	Color(0.48, 0.50, 0.54), Color(0.60, 0.52, 0.46),
+]
+const DERELICT_ROOFS: Array[Color] = [
+	Color(0.32, 0.26, 0.22), Color(0.28, 0.28, 0.30), Color(0.36, 0.28, 0.24),
+]
 ## §12 tree placements: (x, z) and scale.
 ## Trees as edge FRACTIONS (x: -1..1 of fence_side_x, y: -1..1 of half depth)
 ## plus scale, so they stay just outside whichever fence the chapter has.

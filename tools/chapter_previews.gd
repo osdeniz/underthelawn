@@ -38,9 +38,9 @@ func _shoot(variant_id: String) -> void:
 	# Standing at the NORTH end looking north: the camera follows the mower, so
 	# parking it up here is what puts the house or landmark in frame together
 	# with the yard, whatever the grid size is.
-	game.mower.position = Vector3(0.0, 0.0, -GameConfig.HALF_Z + 3.0)
+	game.mower.position = Vector3(-GameConfig.HALF_X + 1.5, 0.0, 0.0)
 	game.mower.yaw = 0.0
-	game.cam.set_preset(Vector3(13.0, 9.0, 7.0), 0.0)
+	game.cam.set_preset(Vector3(7.0, 8.5, 5.0), 0.0)
 	game.cam.snap_to_target()
 	game.hud._clear_opening_title()
 	for _i in 34:

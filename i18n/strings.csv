@@ -206,12 +206,12 @@ BOARD_TAB_EVIDENCE,THE BOARD,PANO
 BOARD_HINT,New evidence pinned to the board.,Panoya yeni kanıt iğnelendi.
 BOARD_VIEW,VIEW CASE BOARD,VAKA PANOSUNA BAK
 BOARD_UNKNOWN,?,?
-NOTE_CH02,"The toy, then the shoe past the fence gap. She crawled through. Alone? No.","Önce oyuncak, sonra çit aralığının ötesinde ayakkabı. Sürünerek geçmiş. Yalnız mı? Hayır."
+NOTE_CH02,"The rabbit, then a boot at a child-sized gap. She crawled through. Alone? No.","Önce tavşan, sonra çocuk boyu bir aralıkta bir çizme. Sürünerek geçmiş. Yalnız mı? Hayır."
 NOTE_CH03,The ribbon matches the one in her hair. She stopped to play. She wasn't running.,Kurdele saçındakiyle aynı. Oynamak için durmuş. Kaçmıyormuş.
-NOTE_CH04,"A grown boot beside her trail. Someone walked WITH her.","İzinin yanında yetişkin botu. Biri onunla BİRLİKTE yürümüş."
-NOTE_CH05,"Fed plants, opened seed box. They stopped here. They were CARED for.","Bakımlı bitkiler, açılmış tohum kutusu. Burada durmuşlar. Birileri onlara BAKMIŞ."
+NOTE_CH04,"Small boots beside bare adult feet, and his food shared. Someone walked WITH her.",Küçük çizmelerin yanında yalınayak bir yetişkin ve paylaşılan yemeği. Biri onunla BİRLİKTE yürümüş.
+NOTE_CH05,"Seedlings watered this week, her thread on the door frame. They were CARED for.","Bu hafta sulanmış fideler, kapı çerçevesinde onun ipliği. Birileri onlara BAKMIŞ."
 NOTE_CH06,Serial half-filed. We only did that to one batch. Rivera's batch.,Seri numarası yarım eğelenmiş. Bunu yalnızca tek bir partide yaptık. Rivera'nın partisinde.
-NOTE_CH07,"Her satchel, and a key to a cellar I never knew existed.","Çantası ve varlığını hiç bilmediğim bir mahzenin anahtarı."
+NOTE_CH07,"An oiled hatch under the grass, and a child's game laid out beside it.",Çimin altında yağlanmış bir kapak ve yanına dizilmiş bir çocuk oyunu.
 NOTE_CH08,New face in town asking questions. Garden in the cellar. Same week. I don't believe in weeks like that.,Kasabada soru soran yeni bir yüz. Mahzende bir bahçe. Aynı hafta. Ben böyle haftalara inanmam.
 NOTE_FINAL,"Every pin leads down those stairs. Case 02 starts where this board ends.","Her iğne o merdivenlere çıkıyor. Vaka 02, bu panonun bittiği yerde başlıyor."
 HUB_WORKSHOP_HINT2,Gus keeps the machines alive.,Makineleri Gus ayakta tutuyor.

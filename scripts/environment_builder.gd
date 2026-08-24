@@ -647,29 +647,72 @@ func _car(paint_color: Color, is_pickup: bool, pos: Vector3, yaw: float) -> void
 
 # ---------------------------------------------------------------- neighbors (§12)
 
+## G12.5: houses on BOTH sides and across, all of them derelict. A lawn floating
+## in empty dirt read as a test level; a street of boarded, faded houses reads as
+## a neighbourhood that emptied out and never refilled. None are enterable —
+## they are silhouette and mood, built from the same primitives as everything
+## else, and seeded so a yard looks the same on every visit.
 func _build_neighbors() -> void:
-	var bodies := [
-		_flat("nb_cream", Color(0.88, 0.84, 0.72), 0.9),
-		_flat("nb_sage", Color(0.62, 0.70, 0.58), 0.9),
-		_flat("nb_pink", Color(0.80, 0.58, 0.52), 0.9),
-	]
 	var shingles := _tex_mat("shingles", "roof_shingles_albedo",
 		Color(0.42, 0.26, 0.20), 0.9)
 	var trim := _flat("trim", Color(0.93, 0.92, 0.88), 0.82)
 	var dark := _flat("interior", Color(0.05, 0.05, 0.07), 0.9)
+	var plank := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
 
+	# Across the road.
 	for i in GameConfig.NEIGHBOR_X.size():
-		var h := Node3D.new()
-		h.position = Vector3(GameConfig.NEIGHBOR_X[i], 0.0, GameConfig.neighbor_z())
-		add_child(h)
-		_box(h, Vector3(7.5, 2.8, 4.0), bodies[i], Vector3(0.0, 1.4, 0.0))
-		_pyramid(h, Vector2(8.3, 4.8), 1.9, shingles, Vector3(0.0, 2.8, 0.0))
-		_box(h, Vector3(0.9, 1.9, 0.06), dark, Vector3(0.0, 0.95, -2.01))
-		for wx: float in [-2.2, 2.2]:
-			_box(h, Vector3(1.1, 0.9, 0.06), trim, Vector3(wx, 1.5, -2.01))
-			_box(h, Vector3(0.95, 0.75, 0.04), dark, Vector3(wx, 1.5, -2.04))
-		# Mini porch.
-		_box(h, Vector3(2.2, 0.18, 0.9), trim, Vector3(0.0, 0.09, -2.5))
+		_derelict_house(Vector3(GameConfig.NEIGHBOR_X[i], 0.0,
+			GameConfig.neighbor_z()), 0.0, shingles, trim, dark, plank)
+
+	# Both side streets, running the depth of the yard. They face the lawn, so
+	# the player always sees a front elevation rather than a blank flank.
+	var span := GameConfig.HALF_Z * 2.0
+	var count := maxi(2, int(span / GameConfig.SIDE_HOUSE_SPACING))
+	for side: float in [-1.0, 1.0]:
+		var x := side * (GameConfig.fence_side_x() + GameConfig.SIDE_HOUSE_MARGIN)
+		for i in count:
+			var z := -GameConfig.HALF_Z + (float(i) + 0.5) * (span / float(count))
+			_derelict_house(Vector3(x, 0.0, z + _rng.randf_range(-0.8, 0.8)),
+				-side * PI * 0.5, shingles, trim, dark, plank)
+
+
+## One abandoned house: body, roof, dark windows, and — often — boards nailed
+## over them. Colour and damage are drawn from the chapter's seeded rng.
+func _derelict_house(at: Vector3, yaw: float, shingles: Material,
+		trim: Material, dark: Material, plank: Material) -> void:
+	var h := Node3D.new()
+	h.position = at
+	h.rotation.y = yaw
+	add_child(h)
+
+	var body_color: Color = GameConfig.DERELICT_BODIES[
+		_rng.randi_range(0, GameConfig.DERELICT_BODIES.size() - 1)]
+	var roof_color: Color = GameConfig.DERELICT_ROOFS[
+		_rng.randi_range(0, GameConfig.DERELICT_ROOFS.size() - 1)]
+	var body_mat := _flat("nb_%d" % _rng.randi(), body_color, 0.95)
+	var roof_mat := _flat("nr_%d" % _rng.randi(), roof_color, 0.95)
+
+	var width := _rng.randf_range(6.8, 8.4)
+	var height := _rng.randf_range(2.5, 3.2)
+	_box(h, Vector3(width, height, 4.0), body_mat, Vector3(0.0, height * 0.5, 0.0))
+	_pyramid(h, Vector2(width + 0.8, 4.8), _rng.randf_range(1.5, 2.1), roof_mat,
+		Vector3(0.0, height, 0.0))
+	# Doorway, always dark: nobody has opened it in years.
+	_box(h, Vector3(0.9, 1.9, 0.06), dark, Vector3(0.0, 0.95, -2.01))
+	for wx: float in [-2.2, 2.2]:
+		_box(h, Vector3(1.1, 0.9, 0.06), trim, Vector3(wx, 1.5, -2.01))
+		_box(h, Vector3(0.95, 0.75, 0.04), dark, Vector3(wx, 1.5, -2.04))
+		# Two crossed boards over most windows — the outbreak's own signature.
+		if _rng.randf() < 0.65:
+			for tilt: float in [0.42, -0.38]:
+				_box(h, Vector3(1.35, 0.16, 0.05), plank,
+					Vector3(wx, 1.5, -2.06), Vector3(0.0, 0.0, tilt))
+	_box(h, Vector3(2.2, 0.18, 0.9), trim, Vector3(0.0, 0.09, -2.5))
+	# A missing roof corner on some of them, so the row is not a stamp.
+	if _rng.randf() < 0.35:
+		_box(h, Vector3(1.6, 0.5, 1.6), dark,
+			Vector3(width * 0.32, height + 0.35, 0.9))
+	_ao_blob(self, Vector2(width + 2.0, 6.0), at + Vector3(0.0, 0.02, 0.0), 0.5)
 
 
 # ---------------------------------------------------------------- smalls (§12)
