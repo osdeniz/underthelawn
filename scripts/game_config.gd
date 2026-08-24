@@ -248,6 +248,22 @@ const DECEL_TIME := 0.55
 const STEER_SMOOTHING := 9.0
 const STEER_SPEED_RADIUS_FACTOR := 0.45
 const STEER_ERROR_GAIN := 5.0                 # shortestAngle * 5 -> desiredOmega
+# ---------------------------------------------------------------- G7 story
+## Warm dark ground behind an intro card whose illustration is missing, and the
+## letterbox behind one that does not match the screen aspect.
+const INTRO_GROUND := Color(0.13, 0.10, 0.08)
+## Briefing box and case-note panel ground.
+const CASE_PANEL := Color(0.09, 0.09, 0.08, 0.94)
+## Case title / objective text.
+const CASE_ACCENT := Color(0.95, 0.82, 0.45)
+## Seconds the "LAST MOWED" opening title holds before it fades.
+const OPENING_TITLE_HOLD := 2.6
+const OPENING_TITLE_FADE := 1.0
+## Set true to watch the opening again on the next launch regardless of the
+## saved flag; the STORY button in the HUD does the same thing at runtime.
+const STORY_ALWAYS_REPLAY_INTRO := false
+
+
 ## §7's threshold is 8 POINTS, not pixels; multiply by POINT_SCALE.
 const DRAG_THRESHOLD_PT := 8.0
 ## Drag distance (in points) for full stick deflection on the shared drag pad.

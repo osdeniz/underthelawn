@@ -115,6 +115,34 @@ theme_override_constants/outline_size = 10
 theme_override_font_sizes/font_size = 48
 mouse_filter = 2
 
+[node name="CaseLine" type="Label" parent="TopBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 40.0
+offset_top = 232.0
+offset_right = -40.0
+offset_bottom = 288.0
+text = "CASE 01 — THE MISSING GIRL · Search the property"
+theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 34
+
+[node name="StoryButton" type="Button" parent="TopBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 40.0
+offset_right = -150.0
+offset_bottom = 130.0
+text = "STORY"
+theme_override_font_sizes/font_size = 30
+
 [node name="Progress" type="ProgressBar" parent="TopBar"]
 unique_name_in_owner = true
 anchor_right = 1.0
@@ -154,6 +182,13 @@ theme_override_styles/panel = SubResource("Sb_card")
 [node name="Rows" type="VBoxContainer" parent="SecretCard"]
 theme_override_constants/separation = 24
 alignment = 1
+
+[node name="CardHeader" type="Label" parent="SecretCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "EVIDENCE FOUND"
+theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
+theme_override_font_sizes/font_size = 30
 
 [node name="CardTitle" type="Label" parent="SecretCard/Rows"]
 unique_name_in_owner = true
@@ -225,6 +260,42 @@ horizontal_alignment = 1
 theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
 theme_override_font_sizes/font_size = 40
 
+[node name="NotesHeader" type="Label" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "CASE NOTES"
+theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
+theme_override_font_sizes/font_size = 40
+
+[node name="NotesList" type="VBoxContainer" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NotesProgress" type="Label" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "The toy confirms it. She came through here — heading east."
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.88, 0.88, 0.85, 1)
+theme_override_font_sizes/font_size = 38
+
+[node name="Teaser" type="Button" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "NEXT: The Neighbor's Yard 🔒
+Something moved behind that fence."
+theme_override_colors/font_color = Color(0.72, 0.74, 0.7, 1)
+theme_override_font_sizes/font_size = 34
+
+[node name="TeaserLocked" type="Label" parent="CompletePanel/Card/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Coming soon"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.6, 0.62, 0.58, 1)
+theme_override_font_sizes/font_size = 30
+
 [node name="RestartButton" type="Button" parent="CompletePanel/Card/Rows"]
 unique_name_in_owner = true
 focus_mode = 0
@@ -252,6 +323,124 @@ offset_top = -172.0
 offset_bottom = -56.0
 alignment = 1
 script = ExtResource("4_selector")
+
+[node name="OpeningTitle" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -520.0
+offset_top = -140.0
+offset_right = 520.0
+offset_bottom = 140.0
+theme_override_constants/separation = 16
+
+[node name="OpeningHeadline" type="Label" parent="OpeningTitle"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "LAST MOWED: 847 DAYS AGO"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/shadow_outline_size = 10
+theme_override_font_sizes/font_size = 68
+
+[node name="OpeningSubline" type="Label" parent="OpeningTitle"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No one has lived here since."
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.86, 0.86, 0.83, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_y = 4
+theme_override_font_sizes/font_size = 40
+
+[node name="Briefing" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="BriefBackdrop" type="ColorRect" parent="Briefing"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.62)
+
+[node name="BriefCard" type="PanelContainer" parent="Briefing"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -520.0
+offset_top = -330.0
+offset_right = 520.0
+offset_bottom = 330.0
+
+[node name="Rows" type="VBoxContainer" parent="Briefing/BriefCard"]
+layout_mode = 2
+theme_override_constants/separation = 34
+
+[node name="Who" type="HBoxContainer" parent="Briefing/BriefCard/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="PortraitFrame" type="Panel" parent="Briefing/BriefCard/Rows/Who"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+
+[node name="PortraitImage" type="TextureRect" parent="Briefing/BriefCard/Rows/Who/PortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PortraitInitial" type="Label" parent="Briefing/BriefCard/Rows/Who/PortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "M"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
+theme_override_font_sizes/font_size = 76
+
+[node name="Speaker" type="Label" parent="Briefing/BriefCard/Rows/Who"]
+unique_name_in_owner = true
+layout_mode = 2
+vertical_alignment = 1
+text = "Marshal"
+theme_override_colors/font_color = Color(0.95, 0.82, 0.45, 1)
+theme_override_font_sizes/font_size = 46
+
+[node name="BriefBody" type="Label" parent="Briefing/BriefCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "The Aldridge house. She was seen near the fence line. Search everything."
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.93, 0.93, 0.9, 1)
+theme_override_font_sizes/font_size = 48
+
+[node name="BriefAccept" type="Button" parent="Briefing/BriefCard/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "SEARCH THE PROPERTY"
+theme_override_font_sizes/font_size = 46
 
 [node name="Flash" type="ColorRect" parent="."]
 unique_name_in_owner = true

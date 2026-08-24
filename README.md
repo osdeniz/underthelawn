@@ -505,7 +505,75 @@ Both new suites are `tests/CutCoverage.tscn` and `tests/DragPad.tscn`; the
 latter drives each mower through the real touch entry points from a press in a
 screen corner.
 
-## Not in G1-G6.12
+## G7 — case framing
+
+The lawn is the same lawn; what changed is what it means. A retired officer is
+searching a property for a girl who did not come home. Sunny-melancholy, uneasy,
+never frightening — the outbreak is over and is only ever implied.
+
+No gameplay system was rewritten. Mowing, striping, the four mowers, the secret
+placement and the HUD are untouched; they were re-labelled.
+
+### All narrative text lives in data/story.json
+
+`Story` (scripts/story.gd) loads it once and reads it by dotted path —
+`Story.text("briefing.body")`, `Story.list("intro.cards")`. It is static and
+cached, so it needs no autoload and no project.godot entry (which the editor
+likes to rewrite). A missing key returns the caller's fallback rather than
+crashing, so a half-written story file still boots. That forgiveness hides
+typos, so `tests/story_check.gd` asserts every key the UI actually asks for.
+
+G11's data-driven chapters will read files shaped like this one — keep the
+structure rather than flattening it.
+
+### Flow
+
+Opening cards (first launch only) -> briefing box -> camera descends onto the
+property while the opening title holds -> search.
+
+* `IntroSequence` builds its three cards in code: illustration, one or two white
+  lines, 6 s Ken Burns from 1.0 to 1.06, fade between cards. Every card is the
+  same three nodes with different data, so it is a loop, not a tree worth
+  hand-editing.
+* `_search_started` in game.gd gates `_unhandled_input`, so the lawn hears
+  nothing while the cards or the briefing are up, and the run clock does not
+  start until the case is accepted.
+* Watched-once is persisted as `[story] intro_seen` in `user://settings.cfg`.
+  The **STORY** button beside mute replays it; that button is the whole settings
+  surface until G8's hub arrives.
+* `CameraRig.descend_to()` glides from high above onto the mower's own §10
+  preset. Cosmetic only — the rig keeps following the target, so tapping early
+  costs nothing.
+
+### Two UI traps this sprint
+
+* **`set_anchors_preset` does not size anything.** It moves the anchors and
+  leaves the offsets alone, so every intro node stayed 0x0 and the card text
+  wrapped to one character per line down the screen edge.
+  `set_anchors_and_offsets_preset` is the one that sizes.
+* **An unset `ColorRect` is opaque white.** The intro scrim was a bare
+  `ColorRect` used only as a parent for its gradient child, and it painted over
+  the warm ground completely. It is a plain `Control` now.
+* Also: the default theme's `PanelContainer` is nearly invisible, so the
+  briefing text floated over the grass until it got an explicit `StyleBoxFlat`.
+
+### Art this sprint expects (none of it required to run)
+
+All optional — each has a fallback, so the sprint is playable and reads
+correctly with no art at all.
+
+| File | Size | Fallback when missing |
+| --- | --- | --- |
+| `textures/intro/intro_1.png` | 1170x2532 portrait | flat `INTRO_GROUND` warm dark |
+| `textures/intro/intro_2.png` | 1170x2532 portrait | same |
+| `textures/intro/intro_3.png` | 1170x2532 portrait | same |
+| `textures/portraits/marshal.png` | 320x320 square | circle with the speaker's initial |
+
+Intro cards are drawn `STRETCH_KEEP_ASPECT_COVERED`, so a little bleed is fine,
+but keep the subject clear of the bottom third — the text and the scrim sit
+there. Portraits are cropped to a circle, so keep the face centred.
+
+## Not in G1-G7
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.

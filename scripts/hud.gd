@@ -6,11 +6,18 @@ extends Control
 ## G2: secret counter, the discovery card that flies into the counter,
 ## collection slots, the "you missed something" line, screen dressing and the
 ## completion flash.
+## G7: the case framing on top of all of it — case title line, the briefing box,
+## the opening title, and the evidence/case-notes wording. Every string comes
+## from data/story.json via Story; none of it is hard-coded here.
 ##
 ## The root ignores input; only the buttons and the completion backdrop stop
 ## events, so touches meant for the lawn reach the 3D scene.
 
 signal restart_pressed()
+## The player accepted the briefing; the search may begin (G7).
+signal briefing_accepted()
+## The STORY button was tapped: replay the opening (G7).
+signal replay_intro_requested()
 
 @onready var _percent_label: Label = %PercentLabel
 @onready var _secret_counter: Label = %SecretCounter
@@ -27,12 +34,30 @@ signal restart_pressed()
 @onready var _flash: ColorRect = %Flash
 @onready var joystick: TractorJoystick = %Joystick
 @onready var selector: MowerSelector = %Selector
+@onready var _case_line: Label = %CaseLine
+@onready var _story_button: Button = %StoryButton
+@onready var _card_header: Label = %CardHeader
+@onready var _opening: VBoxContainer = %OpeningTitle
+@onready var _opening_headline: Label = %OpeningHeadline
+@onready var _opening_subline: Label = %OpeningSubline
+@onready var _briefing: Control = %Briefing
+@onready var _brief_speaker: Label = %Speaker
+@onready var _brief_body: Label = %BriefBody
+@onready var _brief_accept: Button = %BriefAccept
+@onready var _portrait_image: TextureRect = %PortraitImage
+@onready var _portrait_initial: Label = %PortraitInitial
+@onready var _notes_header: Label = %NotesHeader
+@onready var _notes_list: VBoxContainer = %NotesList
+@onready var _notes_progress: Label = %NotesProgress
+@onready var _teaser: Button = %Teaser
+@onready var _teaser_locked: Label = %TeaserLocked
 
 var _shown_percent := 0.0
 var _target_percent := 0.0
 var _card_home := Vector2.ZERO
 var _card_tween: Tween
 var _counter_tween: Tween
+var _opening_tween: Tween
 
 
 func _ready() -> void:
@@ -45,6 +70,16 @@ func _ready() -> void:
 	_mute_button.pressed.connect(_on_mute_pressed)
 	(%RestartButton as Button).pressed.connect(func() -> void: restart_pressed.emit())
 	_refresh_mute_label()
+	_style_case_panels()
+	_apply_story_text()
+	_briefing.visible = false
+	_opening.modulate.a = 0.0
+	_teaser_locked.visible = false
+	_brief_accept.pressed.connect(func() -> void:
+		hide_briefing()
+		briefing_accepted.emit())
+	_story_button.pressed.connect(func() -> void: replay_intro_requested.emit())
+	_teaser.pressed.connect(_on_teaser_pressed)
 	set_progress(0.0)
 	set_secret_count(0, GameConfig.SECRET_TOTAL)
 
@@ -70,10 +105,13 @@ func _apply_percent() -> void:
 # ---------------------------------------------------------------- secrets
 
 func set_secret_count(found: int, total: int) -> void:
-	_secret_counter.text = "🔍 %d/%d" % [found, total]
+	# G7: evidence, not secrets — "📋 Evidence 1/2".
+	_secret_counter.text = "%s %s %d/%d" % [
+		Story.text("evidence.counter_icon", "📋"),
+		Story.text("evidence.counter_label", "Evidence"),
+		found, total]
 
 
-## Counter pop, used when the flying card lands on it.
 func bump_secret_counter() -> void:
 	if _counter_tween and _counter_tween.is_valid():
 		_counter_tween.kill()
@@ -88,6 +126,7 @@ func bump_secret_counter() -> void:
 ## `on_landed` fires when it reaches the counter, so the count updates then.
 func show_secret_card(emoji: String, item_name: String, line: String,
 		on_landed: Callable) -> void:
+	_card_header.text = Story.text("evidence.card_header", "EVIDENCE FOUND")
 	_card_title.text = "%s %s" % [emoji, item_name]
 	_card_line.text = line
 
@@ -159,6 +198,8 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 			slot.add_theme_color_override("font_color", Color(0.55, 0.58, 0.52))
 		_collection.add_child(slot)
 
+	_clear_opening_title()
+	_build_case_notes(collected, total_secrets)
 	_missed_label.visible = collected.size() < total_secrets
 	_complete_panel.visible = true
 	# The picker and the joystick go away once the lawn is done (§16).
@@ -175,6 +216,7 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 
 func hide_complete() -> void:
 	_complete_panel.visible = false
+	_teaser_locked.visible = false
 	selector.visible = true
 	_missed_label.visible = false
 	_shown_percent = 0.0
@@ -200,3 +242,132 @@ func _on_mute_pressed() -> void:
 
 func _refresh_mute_label() -> void:
 	_mute_button.text = "🔇" if AudioDirector.muted else "🔊"
+
+
+# ---------------------------------------------------------------- case framing (G7)
+
+## Pulls every fixed string out of data/story.json. Called once at _ready, so a
+## story-file edit needs no scene edit.
+## The default theme's PanelContainer is nearly invisible, so the briefing text
+## floated over the lawn. Both panels get an explicit ground.
+func _style_case_panels() -> void:
+	var card := StyleBoxFlat.new()
+	card.bg_color = GameConfig.CASE_PANEL
+	card.set_corner_radius_all(28)
+	card.set_content_margin_all(46)
+	card.border_color = Color(GameConfig.CASE_ACCENT, 0.35)
+	card.set_border_width_all(3)
+	(%BriefCard as PanelContainer).add_theme_stylebox_override("panel", card)
+
+	var frame := StyleBoxFlat.new()
+	frame.bg_color = Color(0.16, 0.15, 0.13, 1.0)
+	frame.set_corner_radius_all(80)
+	frame.border_color = Color(GameConfig.CASE_ACCENT, 0.55)
+	frame.set_border_width_all(3)
+	(%PortraitFrame as Panel).add_theme_stylebox_override("panel", frame)
+
+
+func _apply_story_text() -> void:
+	_case_line.text = Story.text("case.hud_line")
+	_complete_title.text = Story.text("complete.title", "AREA SEARCHED")
+	_missed_label.text = Story.text("complete.incomplete",
+		"The search feels incomplete...")
+	_notes_header.text = Story.text("complete.notes_header", "CASE NOTES")
+	_teaser.text = "%s\n%s" % [
+		Story.text("complete.teaser_title"),
+		Story.text("complete.teaser_line")]
+	_teaser_locked.text = Story.text("complete.teaser_locked", "Coming soon")
+	_opening_headline.text = Story.text("opening.headline")
+	_opening_subline.text = Story.text("opening.subline")
+	_card_header.text = Story.text("evidence.card_header", "EVIDENCE FOUND")
+
+	_brief_speaker.text = Story.text("briefing.speaker")
+	_brief_body.text = Story.text("briefing.body")
+	_brief_accept.text = Story.text("briefing.accept", "SEARCH THE PROPERTY")
+	# Portrait art is optional: fall back to a lettered circle so the box reads
+	# correctly before any art exists.
+	var portrait := Story.text("briefing.portrait")
+	var tex := TextureLibrary.find(portrait) if portrait != "" else null
+	_portrait_image.texture = tex
+	_portrait_image.visible = tex != null
+	_portrait_initial.visible = tex == null
+	if tex == null:
+		if portrait != "":
+			TextureLibrary.warn_missing(portrait, "brifing portresi = harf dairesi")
+		var who := Story.text("briefing.speaker", "?")
+		_portrait_initial.text = who.substr(0, 1).to_upper() if who != "" else "?"
+
+
+## Modal briefing box; the caller gates gameplay on briefing_accepted.
+func show_briefing() -> void:
+	selector.visible = false
+	_briefing.visible = true
+	_briefing.modulate.a = 0.0
+	var card: Control = %BriefCard
+	card.pivot_offset = card.size * 0.5
+	card.scale = Vector2(0.92, 0.92)
+	var tw := create_tween()
+	tw.tween_property(_briefing, "modulate:a", 1.0, 0.35)
+	tw.parallel().tween_property(card, "scale", Vector2.ONE, 0.45) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func hide_briefing() -> void:
+	selector.visible = true
+	var tw := create_tween()
+	tw.tween_property(_briefing, "modulate:a", 0.0, 0.25)
+	tw.tween_callback(func() -> void: _briefing.visible = false)
+
+
+## The "LAST MOWED" title: holds while the camera settles onto the lawn, then
+## fades. Kept from G1 but tied to the case — the second line is the new part.
+func show_opening_title() -> void:
+	_opening.modulate.a = 0.0
+	if _opening_tween and _opening_tween.is_valid():
+		_opening_tween.kill()
+	_opening_tween = create_tween()
+	_opening_tween.tween_property(_opening, "modulate:a", 1.0, 0.7)
+	_opening_tween.tween_interval(GameConfig.OPENING_TITLE_HOLD)
+	_opening_tween.tween_property(_opening, "modulate:a", 0.0,
+		GameConfig.OPENING_TITLE_FADE)
+
+
+## The opening title sits above the completion panel in the tree, so a very fast
+## finish would print it across the case notes.
+func _clear_opening_title() -> void:
+	if _opening_tween and _opening_tween.is_valid():
+		_opening_tween.kill()
+	_opening.modulate.a = 0.0
+
+
+## One line per recovered piece of evidence, then the case-progress sentence.
+## `collected` holds { emoji, name } entries, same as the collection slots.
+func _build_case_notes(collected: Array, total: int) -> void:
+	for child in _notes_list.get_children():
+		child.queue_free()
+	for entry: Dictionary in collected:
+		var row := Label.new()
+		row.text = "· %s  %s" % [entry.get("emoji", "?"), entry.get("name", "")]
+		row.add_theme_font_size_override("font_size", 36)
+		row.add_theme_color_override("font_color", Color(1.0, 0.91, 0.62))
+		_notes_list.add_child(row)
+	if collected.is_empty():
+		var none := Label.new()
+		none.text = "· nothing recovered"
+		none.add_theme_font_size_override("font_size", 36)
+		none.add_theme_color_override("font_color", Color(0.6, 0.62, 0.58))
+		_notes_list.add_child(none)
+	_notes_progress.text = Story.text("complete.notes_full") if collected.size() >= total \
+		else Story.text("complete.notes_partial")
+
+
+## Locked: a short shake and the "Coming soon" line, no navigation.
+func _on_teaser_pressed() -> void:
+	Haptics.light()
+	_teaser_locked.visible = true
+	var home := _teaser.position
+	var tw := create_tween()
+	for offset: float in [14.0, -11.0, 7.0, -4.0, 0.0]:
+		tw.tween_property(_teaser, "position",
+			home + Vector2(offset, 0.0), 0.055)
+	tw.tween_callback(func() -> void: _teaser.position = home)

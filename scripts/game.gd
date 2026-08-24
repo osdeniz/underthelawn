@@ -23,6 +23,10 @@ var _active_index := GameConfig.MOWER_PUSH
 var _glows: Array[SecretGlow] = []
 var _collected: Array = []
 var _complete_shown := false
+## G7: the case has to be accepted before the search starts. While this is
+## false the lawn ignores touches and the run clock has not begun.
+var _search_started := false
+var _intro: IntroSequence
 
 
 func _ready() -> void:
@@ -60,10 +64,19 @@ func _ready() -> void:
 	hud.set_progress(0.0)
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
 
+	hud.briefing_accepted.connect(_begin_search)
+	hud.replay_intro_requested.connect(_play_intro)
+
 	_apply_quality()
 	_activate(GameConfig.MOWER_PUSH, true)
-	GameState.start_run()
 	AudioDirector.start_ambient()
+
+	# G7: opening cards on the very first launch, then the briefing. The clock
+	# and the lawn stay untouched until the player accepts the case.
+	if GameConfig.STORY_ALWAYS_REPLAY_INTRO or not _intro_seen():
+		_play_intro()
+	else:
+		hud.show_briefing()
 
 
 func _process(_delta: float) -> void:
@@ -181,6 +194,9 @@ func _place_character(index: int) -> void:
 # ---------------------------------------------------------------- input
 
 func _unhandled_input(event: InputEvent) -> void:
+	# The intro cards and the briefing are modal: the lawn hears nothing.
+	if not _search_started:
+		return
 	if mower == null:
 		return
 	var touch := event as InputEventScreenTouch
@@ -304,4 +320,38 @@ func _restart() -> void:
 	hud.hide_complete()
 	hud.set_progress(0.0)
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
+	GameState.start_run()
+
+
+# ---------------------------------------------------------------- story (G7)
+
+## Whether the opening has already been watched, persisted in settings.cfg.
+func _intro_seen() -> bool:
+	return bool(GameState.get_setting("story", "intro_seen", false))
+
+
+func _play_intro() -> void:
+	if _intro != null and is_instance_valid(_intro):
+		return
+	# Replaying from the STORY button: put the search back on hold so the
+	# briefing runs again after the cards, exactly like a first launch.
+	_search_started = false
+	hud.hide_briefing()
+	_intro = IntroSequence.new()
+	_intro.name = "Intro"
+	$UI.add_child(_intro)
+	_intro.finished.connect(func() -> void:
+		_intro = null
+		GameState.set_setting("story", "intro_seen", true)
+		hud.show_briefing())
+
+
+## The briefing was accepted: drop the camera onto the property, hold the
+## opening title, and start the clock.
+func _begin_search() -> void:
+	if _search_started:
+		return
+	_search_started = true
+	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index], 2.4)
+	hud.show_opening_title()
 	GameState.start_run()

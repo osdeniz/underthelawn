@@ -1,0 +1,69 @@
+{
+  "_comment": "Every player-facing narrative string in the game. English only for now; G11's data-driven chapter system will read chapters from files shaped like this one, so keep the structure rather than flattening it.",
+
+  "intro": {
+    "cards": [
+      {
+        "image": "intro/intro_1",
+        "lines": ["The outbreak ended years ago.", "The world didn't end with it."]
+      },
+      {
+        "image": "intro/intro_2",
+        "lines": ["We rebuild.", "Small towns. Small hopes."]
+      },
+      {
+        "image": "intro/intro_3",
+        "lines": ["Then, last night —", "Ellie didn't come home."]
+      }
+    ],
+    "skip_hint": "tap to continue"
+  },
+
+  "case": {
+    "id": "CASE 01",
+    "title": "THE MISSING GIRL",
+    "objective": "Search the property",
+    "hud_line": "CASE 01 — THE MISSING GIRL · Search the property"
+  },
+
+  "briefing": {
+    "speaker": "Marshal",
+    "portrait": "portraits/marshal",
+    "body": "The Aldridge house. She was seen near the fence line. Search everything.",
+    "accept": "SEARCH THE PROPERTY"
+  },
+
+  "opening": {
+    "headline": "LAST MOWED: 847 DAYS AGO",
+    "subline": "No one has lived here since."
+  },
+
+  "evidence": {
+    "card_header": "EVIDENCE FOUND",
+    "counter_icon": "📋",
+    "counter_label": "Evidence",
+    "items": [
+      {
+        "emoji": "🧸",
+        "name": "Ellie's Toy",
+        "line": "It's hers. She was here."
+      },
+      {
+        "emoji": "📻",
+        "name": "Old Radio",
+        "line": "Still tuned to the emergency channel."
+      }
+    ]
+  },
+
+  "complete": {
+    "title": "AREA SEARCHED",
+    "notes_header": "CASE NOTES",
+    "notes_full": "The toy confirms it. She came through here — heading east.",
+    "notes_partial": "Something here is still unaccounted for.",
+    "incomplete": "The search feels incomplete...",
+    "teaser_title": "NEXT: The Neighbor's Yard 🔒",
+    "teaser_line": "Something moved behind that fence.",
+    "teaser_locked": "Coming soon"
+  }
+}

@@ -53,6 +53,21 @@ func _process(delta: float) -> void:
 	_place()
 
 
+## G7 opening: glide down from high above onto the mower's own preset while the
+## case title holds on screen. Purely cosmetic — the rig keeps following the
+## target throughout, so gameplay is unaffected if the player taps early.
+func descend_to(preset: Vector3, duration: float, from_height := 26.0,
+		from_back := 3.0) -> void:
+	back = from_back
+	height = from_height
+	look_ahead = preset.z
+	var tw := create_tween()
+	tw.tween_property(self, "back", preset.x, duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.parallel().tween_property(self, "height", preset.y, duration) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
 ## Applies one of the §10 zoom presets (back, height, lookAhead) per mower type.
 func set_preset(preset: Vector3, speed_gain := 0.0) -> void:
 	back = preset.x

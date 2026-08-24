@@ -10,10 +10,12 @@ signal finished()
 const KEY := 0
 const RADIO := 1
 
-## Display data for the reveal card (§16).
+## Fallback display data, used only if data/story.json is missing. The real
+## strings live there (G7) — these two are now EVIDENCE in a missing-person
+## case, not curiosities, and N2 will swap the data without touching this file.
 const INFO := [
-	{ "emoji": "🔑", "name": "Paslı Anahtar", "line": "It looks old. What does it open?" },
-	{ "emoji": "📻", "name": "Eski Radyo", "line": "It still hums faintly." },
+	{ "emoji": "🧸", "name": "Ellie's Toy", "line": "It's hers. She was here." },
+	{ "emoji": "📻", "name": "Old Radio", "line": "Still tuned to the emergency channel." },
 ]
 
 var kind := KEY
@@ -22,7 +24,11 @@ var _visual: Node3D
 var _materials: Array[StandardMaterial3D] = []
 
 
+## Story data first, the constant only as a fallback.
 static func info_for(kind_index: int) -> Dictionary:
+	var items := Story.list("evidence.items")
+	if kind_index >= 0 and kind_index < items.size() and items[kind_index] is Dictionary:
+		return items[kind_index]
 	return INFO[clampi(kind_index, 0, INFO.size() - 1)]
 
 
