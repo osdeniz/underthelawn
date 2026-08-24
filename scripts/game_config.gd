@@ -258,12 +258,12 @@ const STEER_ERROR_GAIN := 5.0                 # shortestAngle * 5 -> desiredOmeg
 ## Fractions, not pixels, because the sources are not all the same resolution.
 ## Tuned by looking at the generated sheet, not guessed once.
 const PORTRAIT_FACES: Dictionary = {
-	"marshal":  { "x": 0.37, "y": 0.26, "size": 0.46 },
-	"sarah":    { "x": 0.42, "y": 0.27, "size": 0.46 },
-	"gus":      { "x": 0.47, "y": 0.25, "size": 0.46 },
-	"cole":     { "x": 0.47, "y": 0.28, "size": 0.44 },
-	"ellie":    { "x": 0.48, "y": 0.25, "size": 0.48 },
-	"stranger": { "x": 0.62, "y": 0.34, "size": 0.30 },
+	"marshal":  { "x": 0.37, "y": 0.27, "size": 0.54 },
+	"sarah":    { "x": 0.42, "y": 0.28, "size": 0.54 },
+	"gus":      { "x": 0.47, "y": 0.30, "size": 0.58 },
+	"cole":     { "x": 0.47, "y": 0.32, "size": 0.56 },
+	"ellie":    { "x": 0.48, "y": 0.29, "size": 0.60 },
+	"stranger": { "x": 0.62, "y": 0.34, "size": 0.32 },
 }
 ## Square face thumbnail size in pixels.
 const PORTRAIT_FACE_PX := 320
@@ -274,6 +274,9 @@ const DIALOGUE_PORTRAIT_SIZE := Vector2(430, 764)
 # ---------------------------------------------------------------- G7 story
 ## Warm dark ground behind an intro card whose illustration is missing, and the
 ## letterbox behind one that does not match the screen aspect.
+## Ken Burns end scale for the intro cards; tools/shrink_art.gd sizes the
+## source art from it, so the two can never drift apart.
+const INTRO_KEN_BURNS_TO := 1.06
 const INTRO_GROUND := Color(0.13, 0.10, 0.08)
 ## Briefing box and case-note panel ground.
 const CASE_PANEL := Color(0.09, 0.09, 0.08, 0.94)

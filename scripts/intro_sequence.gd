@@ -14,7 +14,7 @@ signal finished()
 
 ## Ken Burns: 6 s from 1.0 to 1.06, per the brief.
 const KEN_BURNS_TIME := 6.0
-const KEN_BURNS_TO := 1.06
+const KEN_BURNS_TO := GameConfig.INTRO_KEN_BURNS_TO
 const FADE_TIME := 0.55
 ## Ignore taps for a moment so the tap that dismissed the previous card cannot
 ## skip the next one too.

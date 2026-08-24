@@ -236,6 +236,10 @@ func _shake(control: Control) -> void:
 
 func _build_board() -> Control:
 	var page := _new_page()
+	# A calm ground behind the list: eight card rows straight over the
+	# illustration left the art showing through every gap and read as noise.
+	page.add_child(_list_backdrop())
+
 	var scroll := ScrollContainer.new()
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scroll.offset_left = 50
@@ -315,6 +319,7 @@ func _on_chapter(variant_id: String, playable: bool, button: Button) -> void:
 
 func _build_town() -> Control:
 	var page := _new_page()
+	page.add_child(_list_backdrop())
 	var scroll := ScrollContainer.new()
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scroll.offset_left = 50
@@ -376,6 +381,25 @@ func _on_person(person_id: String) -> void:
 
 
 # ---------------------------------------------------------------- shared
+
+## Dark rounded ground covering the list area, so a long list of rows reads as
+## one panel instead of stripes over the artwork.
+func _list_backdrop() -> Panel:
+	var panel := Panel.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.offset_left = 30
+	panel.offset_right = -30
+	panel.offset_top = 250
+	panel.offset_bottom = -170
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.05, 0.045, 0.82)
+	style.set_corner_radius_all(30)
+	style.border_color = Color(GameConfig.CASE_ACCENT, 0.22)
+	style.set_border_width_all(2)
+	panel.add_theme_stylebox_override("panel", style)
+	return panel
+
 
 func _back_button() -> Button:
 	var back := Button.new()
