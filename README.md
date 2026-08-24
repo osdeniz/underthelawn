@@ -952,6 +952,63 @@ to reproduce the old medium-yard numbers exactly — a behaviour-preserving
 refactor on B1 that makes B2-B8 wrap correctly. Trees became edge fractions so
 they stay just outside whichever fence the chapter has.
 
+## G9.2 — feel pass: audio, controls, assists, and the review fixes
+
+### Audio: the game makes sound now
+
+`tools/gen_audio.py` synthesizes every file the game looks for into `audio/` as
+WAV — engine loop, grass cut, discovery chime, money pickup, blade clank, bird
+chirp, ambient bed, car pass, blade whoosh, and a 29 s town theme (Am-F-C-G pad
+with a sparse plucked line). Generated OFFLINE and loaded from disk, so the G1
+no-runtime-synthesis rule holds; AudioDirector tries `.ogg` first, so a real
+recording dropped in later silently replaces any placeholder. Loops carry
+`edit/loop_mode=1` in their `.import`. The theme fades in over the intro and the
+hub and fades out when a chapter starts.
+
+### Controls: heading steering
+
+Rate steering (finger x = steering wheel) read as "inconsistent" because the
+same drag produced a different arc depending on the current heading. The shared
+pad now uses HEADING steering: the mower turns toward the direction the finger
+points, throttle scales with alignment, and a target behind the mower backs up
+instead of pirouetting. The tractor's HUD joystick keeps its §7 wheel mapping.
+
+The blade's camera is LOCKED (`camera_yaw_locked`): a yaw-free mower spinning
+the camera made screen directions drift mid-drag — that was the actual source of
+"the blade doesn't steer right". With the camera fixed, the live camera yaw is
+safe again and the G6.12 per-gesture latch is gone.
+
+### Assists
+
+* **Last-5% finder**: past 90% completion, every remaining uncut cell gets a
+  soft pulsing marker (one MultiMesh, ≤40 additive billboards). The end of a
+  search is a walk to the glow, not a hunt by eye — the PowerWash lesson.
+* **Pad ring**: a ghost-joystick ring appears where the finger lands, with a
+  clamped dot tracking the drag. The pad finally has a visible body.
+  Trap: it was first added at child index 0 and the HUD's Overlay vignette
+  swallowed it — verified by probing state (all correct) and z-order (wrong).
+* **First-run hint**: "Drag anywhere to drive", pulsing until the first real
+  drag, then never again (persisted under `[hints]`).
+
+### Review fixes
+
+* The locked teaser is a REAL door now: `NEXT: <chapter> →`, primary-styled,
+  briefs and starts the next chapter through RootFlow. "Coming soon" is gone —
+  it dead-ended since G9 made every chapter playable. Standalone runs (tests)
+  hide the button because no flow is above them to serve it.
+* Button hierarchy: one primary per screen (NEXT on the notes panel, CONTINUE on
+  the exit card); RETURN and RESTART are secondary. The porch flag from G9 was
+  written but never read — every house variant grew the same porch; gated now,
+  and portless houses get a bare doorstep.
+* Ground pickups are MONEY (💵, banknote-green pop), per the design call.
+* B1 is `small`: the first chapter is a welcome, not a chore. The movement test
+  scenes pin `ch03_playground` (medium, open) via the now-exported `variant_id`.
+* GREEN_COOL re-tuned to dew-grey teal: B1 and B2 sit side by side on the board
+  and previously read as siblings.
+* Outbreak traces, seeded per chapter and never inside the lawn: boarded windows
+  on a neighbor, a faded quarantine ring, a tended roadside memorial, a leaning
+  blank sign. Implied past only — no text, no gore.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

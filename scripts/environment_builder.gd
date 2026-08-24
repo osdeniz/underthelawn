@@ -296,19 +296,25 @@ func _build_house() -> void:
 		_box(house, Vector3(1.6, 0.08, 0.16), trim, Vector3(wx, 1.03, wall_z + 0.06))
 
 	# Porch: platform + decking texture + posts + railing + eave + step (§12).
+	# G9.2: the has_porch flag existed since G9 but nothing read it, so every
+	# house variant grew the same porch. Now the whole block is gated.
 	var porch_z := wall_z + 0.8   # platform centre, house-local
-	_box(house, Vector3(5.0, 0.28, 1.6), wood, Vector3(0.0, 0.14, porch_z))
-	for px: float in [-2.3, 2.3]:
-		_box(house, Vector3(0.12, 2.3, 0.12), trim, Vector3(px, 1.43, porch_z + 0.6))
-	_box(house, Vector3(5.4, 0.12, 2.0), shingles, Vector3(0.0, 2.64, porch_z))
-	# Railing: top rail on both sides of the step gap, plus balusters.
-	for side: float in [-1.0, 1.0]:
-		_box(house, Vector3(1.55, 0.07, 0.07), trim,
-			Vector3(side * 1.65, 0.78, porch_z + 0.76))
-		for i in 4:
-			var bx := side * (0.95 + float(i) * 0.45)
-			_box(house, Vector3(0.05, 0.42, 0.05), trim, Vector3(bx, 0.55, porch_z + 0.76))
-	_box(house, Vector3(1.4, 0.14, 0.5), wood, Vector3(0.0, 0.07, porch_z + 1.03))
+	if has_porch:
+		_box(house, Vector3(5.0, 0.28, 1.6), wood, Vector3(0.0, 0.14, porch_z))
+		for px: float in [-2.3, 2.3]:
+			_box(house, Vector3(0.12, 2.3, 0.12), trim, Vector3(px, 1.43, porch_z + 0.6))
+		_box(house, Vector3(5.4, 0.12, 2.0), shingles, Vector3(0.0, 2.64, porch_z))
+		# Railing: top rail on both sides of the step gap, plus balusters.
+		for side: float in [-1.0, 1.0]:
+			_box(house, Vector3(1.55, 0.07, 0.07), trim,
+				Vector3(side * 1.65, 0.78, porch_z + 0.76))
+			for i in 4:
+				var bx := side * (0.95 + float(i) * 0.45)
+				_box(house, Vector3(0.05, 0.42, 0.05), trim, Vector3(bx, 0.55, porch_z + 0.76))
+		_box(house, Vector3(1.4, 0.14, 0.5), wood, Vector3(0.0, 0.07, porch_z + 1.03))
+	else:
+		# A bare doorstep where the porch would be.
+		_box(house, Vector3(1.6, 0.16, 0.9), wood, Vector3(0.0, 0.08, wall_z + 0.55))
 
 	# Five bushes along the wall, none in front of the door.
 	for bx: float in [-5.4, -3.1, 2.9, 4.7, 6.1]:
