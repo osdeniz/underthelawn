@@ -1,5 +1,5 @@
 {
-  "_comment": "Town restoration. Tier 1 is small repairs; Tier 2 is buildings and stays locked until TIER2_REQUIRES_TIER1 tier-1 projects are done, so the spend curve is stepped rather than a wall. Every project lives by the same shape: cost, a hub layer, an NPC thank-you phase and a story crumb, plus at most a mild bonus. Nothing here starts a production loop or a timer.",
+  "_comment": "Town restoration. Tier 1 is small repairs; Tier 2 is buildings and stays locked until TIER2_REQUIRES_TIER1 tier-1 projects are done, so the spend curve is stepped rather than a wall. Every project lives by the same shape: cost, a hub layer, an NPC thank-you phase and a story crumb, plus at most a mild bonus. Nothing here starts a production loop or a timer. layer_rect places each trimmed overlay on the hub as screen fractions; the generator's canvas placement is arbitrary, the composition is ours.",
   "projects": [
     {
       "id": "swing",
@@ -10,7 +10,13 @@
       "layer": "restore_swing",
       "thanks": "PRJ_SWING_THANKS",
       "crumb": "PRJ_SWING_CRUMB",
-      "tier": 1
+      "tier": 1,
+      "layer_rect": {
+        "x": 0.36,
+        "y": 0.06,
+        "w": 0.26,
+        "h": 0.5
+      }
     },
     {
       "id": "lantern",
@@ -21,7 +27,13 @@
       "layer": "restore_lantern",
       "thanks": "PRJ_LANTERN_THANKS",
       "crumb": "PRJ_LANTERN_CRUMB",
-      "tier": 1
+      "tier": 1,
+      "layer_rect": {
+        "x": 0.04,
+        "y": 0.22,
+        "w": 0.15,
+        "h": 0.44
+      }
     },
     {
       "id": "greenhouse",
@@ -32,7 +44,13 @@
       "layer": "restore_greenhouse",
       "thanks": "PRJ_GREENHOUSE_THANKS",
       "crumb": "PRJ_GREENHOUSE_CRUMB",
-      "tier": 1
+      "tier": 1,
+      "layer_rect": {
+        "x": 0.0,
+        "y": 0.46,
+        "w": 0.22,
+        "h": 0.16
+      }
     },
     {
       "id": "clinic",
@@ -45,7 +63,13 @@
       "bonus_text": "PRJ_CLINIC_BONUS",
       "thanks": "PRJ_CLINIC_THANKS",
       "crumb": "PRJ_CLINIC_CRUMB",
-      "tier": 1
+      "tier": 1,
+      "layer_rect": {
+        "x": 0.76,
+        "y": 0.37,
+        "w": 0.24,
+        "h": 0.18
+      }
     },
     {
       "id": "mast",
@@ -56,7 +80,13 @@
       "layer": "restore_mast",
       "thanks": "PRJ_MAST_THANKS",
       "crumb": "PRJ_MAST_CRUMB",
-      "tier": 1
+      "tier": 1,
+      "layer_rect": {
+        "x": 0.8,
+        "y": 0.1,
+        "w": 0.18,
+        "h": 0.34
+      }
     },
     {
       "id": "station",
@@ -69,7 +99,13 @@
       "effect": "group_case_screens",
       "effect_text": "PRJ_STATION_BONUS",
       "thanks": "PRJ_STATION_THANKS",
-      "crumb": "PRJ_STATION_CRUMB"
+      "crumb": "PRJ_STATION_CRUMB",
+      "layer_rect": {
+        "x": 0.0,
+        "y": 0.36,
+        "w": 0.26,
+        "h": 0.18
+      }
     },
     {
       "id": "farm",
@@ -83,7 +119,13 @@
       "bonus_value": 5,
       "bonus_text": "PRJ_FARM_BONUS",
       "thanks": "PRJ_FARM_THANKS",
-      "crumb": "PRJ_FARM_CRUMB"
+      "crumb": "PRJ_FARM_CRUMB",
+      "layer_rect": {
+        "x": 0.7,
+        "y": 0.56,
+        "w": 0.3,
+        "h": 0.14
+      }
     },
     {
       "id": "barn",
@@ -95,7 +137,13 @@
       "layer": "restore_barn",
       "requires": "farm",
       "thanks": "PRJ_BARN_THANKS",
-      "crumb": "PRJ_BARN_CRUMB"
+      "crumb": "PRJ_BARN_CRUMB",
+      "layer_rect": {
+        "x": 0.76,
+        "y": 0.45,
+        "w": 0.22,
+        "h": 0.13
+      }
     },
     {
       "id": "homes",
@@ -106,7 +154,13 @@
       "npc_id": "sarah",
       "layer": "restore_homes",
       "thanks": "PRJ_HOMES_THANKS",
-      "crumb": "PRJ_HOMES_CRUMB"
+      "crumb": "PRJ_HOMES_CRUMB",
+      "layer_rect": {
+        "x": 0.56,
+        "y": 0.44,
+        "w": 0.22,
+        "h": 0.11
+      }
     },
     {
       "id": "watchtower",
@@ -117,7 +171,13 @@
       "npc_id": "marshal",
       "layer": "restore_watchtower",
       "thanks": "PRJ_WATCHTOWER_THANKS",
-      "crumb": "PRJ_WATCHTOWER_CRUMB"
+      "crumb": "PRJ_WATCHTOWER_CRUMB",
+      "layer_rect": {
+        "x": 0.02,
+        "y": 0.14,
+        "w": 0.15,
+        "h": 0.32
+      }
     }
   ]
 }

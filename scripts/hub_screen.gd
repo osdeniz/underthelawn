@@ -510,9 +510,24 @@ func _apply_restore_layers() -> void:
 			layer.name = "Restore_" + id
 			layer.texture = art
 			layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-			layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			# KEEP_ASPECT, not COVERED: the layer must fit inside its authored
+			# box, not fill it — covering would crop the building.
+			layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
 			layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var rect: Variant = project.get("layer_rect", null)
+			if rect is Dictionary:
+				var r := rect as Dictionary
+				layer.set_anchors_preset(Control.PRESET_TOP_LEFT)
+				layer.anchor_left = float(r.get("x", 0.0))
+				layer.anchor_top = float(r.get("y", 0.0))
+				layer.anchor_right = float(r.get("x", 0.0)) + float(r.get("w", 1.0))
+				layer.anchor_bottom = float(r.get("y", 0.0)) + float(r.get("h", 1.0))
+				layer.offset_left = 0
+				layer.offset_top = 0
+				layer.offset_right = 0
+				layer.offset_bottom = 0
+			else:
+				layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			add_child(layer)
 			move_child(layer, 2)
 			continue

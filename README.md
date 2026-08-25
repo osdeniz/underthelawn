@@ -1376,6 +1376,33 @@ project starts locked.
 `restore_bought` now carries its tier, plus `restore_tier2_unlocked` and
 `station_completed`.
 
+### Art keying (tools/key_out.gd) — flat-background path
+
+The overlays were regenerated on a flat magenta background, which is the exact
+path: one reference value everywhere, so soft glows resolve correctly. Three
+things still had to be measured rather than assumed.
+
+* **The key colour drifts.** The generator does not deliver the `#FF00FF` it is
+  asked for, and JPEG pulls it further — these arrived around
+  (0.85, 0.25, 0.70) and (0.98, 0.35, 0.95) in two batches. The tool measures
+  the key per file from a border strip instead of hard-coding one.
+* **Alpha from RGB distance leaves a pink halo.** Distance conflates "half
+  transparent" with "a colour that happens to sit near the key". Magenta's
+  signature is red and blue high with green low, and this warm palette never
+  produces that, so the amount of key in a pixel is measured directly:
+  `mix = ((r + b)/2 - g) / same_for_key`, then the colour is un-premultiplied
+  and despilled. That removed the halo completely.
+* **`get_used_rect()` returns the whole canvas**, because JPEG noise leaves a
+  haze of nearly-transparent pixels at the borders. Trimming uses a real
+  visibility floor (`TRIM_ALPHA`).
+
+Layers are trimmed to their own bounds and placed by `layer_rect` in
+projects.json (screen fractions), because where the generator happened to put an
+object on its canvas is arbitrary — the composition belongs to the game. The
+values were tuned against renders: the first pass buried the tree under a pile
+of buildings, the second left them hanging in its branches, the third put them
+on the ground line where the hub's own houses sit.
+
 ### Art keying (tools/key_out.gd)
 
 The restoration overlays arrived with the transparency checkerboard **drawn

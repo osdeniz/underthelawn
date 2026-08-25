@@ -18,6 +18,11 @@ const TARGETS: Array[String] = [
 	"res://textures/hub/restore_greenhouse.jpg",
 	"res://textures/hub/restore_clinic.jpg",
 	"res://textures/hub/restore_mast.jpg",
+	"res://textures/hub/restore_station.jpg",
+	"res://textures/hub/restore_farm.jpg",
+	"res://textures/hub/restore_barn.jpg",
+	"res://textures/hub/restore_homes.jpg",
+	"res://textures/hub/restore_watchtower.jpg",
 ]
 ## How far a pixel may sit from a checker grey and still count as background.
 const KEY_TOLERANCE := 0.055
@@ -33,17 +38,27 @@ const SHADOW_MIN := 0.92
 const MAX_SATURATION := 0.19
 
 
-## Set to a colour (e.g. Color(1, 0, 1)) when the source was generated on a FLAT
-## background instead of a drawn checkerboard. That path is exact — one
-## reference value everywhere — and it is what to ask for next time: a soft
-## coloured glow over a checkerboard is two unknowns per pixel (its colour and
-## its alpha) with one equation, so no keyer can fully recover it.
-const FLAT_KEY := Color(0, 0, 0, 0)
+## Flat-background keying, which is exact: one reference value everywhere, so a
+## soft coloured glow resolves correctly. (Over a drawn checkerboard it cannot —
+## that is two unknowns per pixel, its colour and its alpha, against one
+## equation.) The key colour is MEASURED per file rather than assumed: generators
+## drift from the magenta they were asked for, and JPEG pulls it further, so
+## these arrived around (0.85, 0.25, 0.70) and (0.98, 0.35, 0.95) in two batches.
+const FLAT_MODE := true
+## How far from the measured key a pixel may sit and still be background.
+const FLAT_CLEAR := 0.16
+## Beyond this it is fully opaque artwork; between the two it is an edge.
+const FLAT_SOLID := 0.42
+## How far blue may exceed the warmer channels before it is read as leftover
+## key spill. The scene has no genuinely blue-dominant surfaces.
+const DESPILL_SLACK := 0.06
+## Alpha a pixel needs before it counts as part of the object for trimming.
+const TRIM_ALPHA := 0.15
 
 
 func _initialize() -> void:
 	for path in TARGETS:
-		if FLAT_KEY.a > 0.0:
+		if FLAT_MODE:
 			_key_flat(path)
 		else:
 			_key(path)
@@ -58,23 +73,90 @@ func _key_flat(path: String) -> void:
 		print("  %s okunamadi" % path)
 		return
 	img.convert(Image.FORMAT_RGBA8)
+	var key := _measure_key(img)
+	# Magenta's signature is "red and blue high, green low", and this artwork is
+	# a warm palette where that combination never occurs. So the amount of key
+	# in a pixel is measurable directly, which is far more reliable than the
+	# distance in RGB: distance confuses "half transparent" with "a colour that
+	# happens to sit near the key", and that is what left a pink halo.
+	var key_magenta := (key.r + key.b) * 0.5 - key.g
 	var cleared := 0
+	var edged := 0
 	for y in img.get_height():
 		for x in img.get_width():
 			var c := img.get_pixel(x, y)
-			var distance := Vector3(c.r - FLAT_KEY.r, c.g - FLAT_KEY.g,
-				c.b - FLAT_KEY.b).length()
-			if distance < 0.22:
+			var magenta := (c.r + c.b) * 0.5 - c.g
+			var mix := clampf(magenta / maxf(key_magenta, 0.001), 0.0, 1.0)
+			var a := 1.0 - mix
+			if a <= 0.02:
 				img.set_pixel(x, y, Color(0, 0, 0, 0))
 				cleared += 1
-			elif distance < 0.55:
-				# Edge/semi-transparent band: alpha from the distance, and the
-				# key colour subtracted back out so fringing does not survive.
-				var a := clampf((distance - 0.22) / 0.33, 0.0, 1.0)
-				img.set_pixel(x, y, Color(c.r, c.g, c.b, a))
+				continue
+			if a >= 0.995:
+				continue                       # solid artwork, untouched
+			# Un-premultiply: recover the object's own colour from the observed
+			# blend, then despill any magenta the JPEG smeared into the edge by
+			# pulling blue no higher than green allows in this warm palette.
+			var r := clampf((c.r - key.r * mix) / a, 0.0, 1.0)
+			var g := clampf((c.g - key.g * mix) / a, 0.0, 1.0)
+			var b := clampf((c.b - key.b * mix) / a, 0.0, 1.0)
+			b = minf(b, maxf(g, r) + DESPILL_SLACK)
+			r = minf(r, maxf(g, b) + DESPILL_SLACK * 2.0)
+			img.set_pixel(x, y, Color(r, g, b, a))
+			edged += 1
+	# Trim to the object's own bounds. Where the generator happened to place it
+	# on the canvas is arbitrary, so the game should not inherit that choice —
+	# a trimmed layer can be positioned by data instead (projects.json
+	# layer_rect).
+	# get_used_rect() counts any alpha above zero, and JPEG noise leaves a haze
+	# of nearly-transparent pixels at the borders, so it returned the whole
+	# canvas every time. Bounds are measured against a real visibility floor.
+	var bounds := _opaque_bounds(img, TRIM_ALPHA)
+	if bounds.size.x > 0 and bounds.size.y > 0:
+		img = img.get_region(bounds)
 	var err := img.save_png(path.get_basename() + ".png")
-	print("  %-26s duz-renk  silinen=%d  %s" % [path.get_file(), cleared,
-		"ok" if err == OK else "HATA"])
+	print("  %-26s key=(%.2f,%.2f,%.2f) silinen=%d kenar=%d kirpma=%s %s" % [
+		path.get_file(), key.r, key.g, key.b, cleared, edged,
+		str(bounds.size), "ok" if err == OK else "HATA"])
+
+
+## The object's bounding box, ignoring the near-transparent haze around it.
+func _opaque_bounds(img: Image, floor_alpha: float) -> Rect2i:
+	var min_x := img.get_width()
+	var min_y := img.get_height()
+	var max_x := -1
+	var max_y := -1
+	for y in img.get_height():
+		for x in img.get_width():
+			if img.get_pixel(x, y).a < floor_alpha:
+				continue
+			min_x = mini(min_x, x)
+			min_y = mini(min_y, y)
+			max_x = maxi(max_x, x)
+			max_y = maxi(max_y, y)
+	if max_x < 0:
+		return Rect2i(0, 0, img.get_width(), img.get_height())
+	return Rect2i(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1)
+
+
+## The background colour, taken as the average of a thin border strip. Measured
+## per image because the generator's magenta drifts between batches.
+func _measure_key(img: Image) -> Color:
+	var w := img.get_width()
+	var h := img.get_height()
+	var total := Vector3.ZERO
+	var count := 0
+	for y in range(0, h, 5):
+		for x in range(0, w, 5):
+			if x > w * 0.02 and x < w * 0.98 and y > h * 0.02 and y < h * 0.98:
+				continue
+			var c := img.get_pixel(x, y)
+			total += Vector3(c.r, c.g, c.b)
+			count += 1
+	if count == 0:
+		return Color(1, 0, 1)
+	total /= float(count)
+	return Color(total.x, total.y, total.z)
 
 
 func _key(path: String) -> void:
