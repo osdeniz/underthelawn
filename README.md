@@ -1551,6 +1551,15 @@ eleven suites are scene tests.
     the end of the frame, so tabbing in and out in one frame laid a second set of
     cards over the first.
 
+* **Corkboard cards show the evidence mesh, not an emoji.** Same iOS blank-box
+  problem the mower picker had. `ItemPreview` took a `view_size` and a `spin`
+  flag so the board can pin sixteen small, still, render-once previews; a card
+  that has not been found keeps a plain "?". `show_item` now queues the request
+  when the node is not in the tree yet — the board builds a whole card and adds
+  it afterwards, so `_ready` had not run and the first version threw 32 nulls.
+  Still emoji, and still blank on a phone: the HUD evidence strip
+  (`hud.gd:233`) and the case-notes list (`hud.gd:419`).
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

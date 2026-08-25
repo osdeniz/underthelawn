@@ -8,19 +8,29 @@ extends SubViewportContainer
 ## is lying in the grass, and needs no art.
 
 const VIEW_SIZE := Vector2i(320, 320)
+## The corkboard pins sixteen of these at once, so it asks for a small,
+## still, render-once preview instead (G12.10). Set both BEFORE add_child:
+## _ready is what reads them.
+var view_size := VIEW_SIZE
+var spin := true
 
 var _viewport: SubViewport
 var _pivot: Node3D
 var _item: SecretItem
+## show_item may be called before this node enters the tree (the corkboard
+## builds a whole card and adds it afterwards), and _ready has not run yet.
+var _pending_id := ""
 
 
 func _ready() -> void:
 	stretch = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_viewport = SubViewport.new()
-	_viewport.size = VIEW_SIZE
+	_viewport.size = view_size
 	_viewport.transparent_bg = true
-	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	# A still preview costs one frame of rendering and then nothing.
+	_viewport.render_target_update_mode = (SubViewport.UPDATE_ALWAYS if spin
+		else SubViewport.UPDATE_ONCE)
 	# Its own world: the card must not pick up the lawn's camera or lighting.
 	_viewport.own_world_3d = true
 	_viewport.world_3d = World3D.new()
@@ -28,6 +38,11 @@ func _ready() -> void:
 
 	_pivot = Node3D.new()
 	_viewport.add_child(_pivot)
+	if _pending_id != "":
+		var wanted := _pending_id
+		_pending_id = ""
+		# Deferred: the lights and camera below are not built yet.
+		show_item.call_deferred(wanted)
 
 	var camera := Camera3D.new()
 	camera.position = Vector3(0.0, 0.46, 0.95)
@@ -57,6 +72,9 @@ func _ready() -> void:
 
 ## Swaps in a new object. The pivot turns slowly so the shape reads in the round.
 func show_item(evidence_id: String) -> void:
+	if _pivot == null:
+		_pending_id = evidence_id
+		return
 	if _item != null and is_instance_valid(_item):
 		_item.queue_free()
 	_item = SecretItem.new()
@@ -67,7 +85,10 @@ func show_item(evidence_id: String) -> void:
 	# Most of these meshes are built standing on y=0 for the lawn, so the pivot
 	# drops to put their middle, not their feet, in front of the camera.
 	_item.position.y = -_item_height(evidence_id) * 0.5
-	_pivot.rotation.y = 0.0
+	_pivot.rotation.y = 0.0 if spin else -0.5
+	if not spin and _viewport != null:
+		# The object changed, so the one-shot render has to happen again.
+		_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
 ## Roughly how tall each object stands, for centring it in the card.
@@ -95,5 +116,5 @@ func _fit_scale(evidence_id: String) -> float:
 
 
 func _process(delta: float) -> void:
-	if _pivot != null:
+	if _pivot != null and spin:
 		_pivot.rotation.y += delta * 0.7

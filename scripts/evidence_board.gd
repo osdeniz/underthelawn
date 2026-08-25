@@ -11,6 +11,8 @@ extends Control
 
 const CARD_SIZE := Vector2(190, 150)
 ## Breathing room around a pinned note, and how far it stays off the board edge.
+## Each card renders its evidence mesh once at this size.
+const ICON_VIEW := Vector2i(150, 150)
 const NOTE_GAP := 14.0
 const NOTE_MARGIN := 28.0
 ## The board is taller than the screen and scrolls. Eight chapters of two cards
@@ -154,11 +156,25 @@ func _make_card(info: Dictionary, found: bool, at: Vector2) -> PanelContainer:
 	var rows := VBoxContainer.new()
 	rows.add_theme_constant_override("separation", 2)
 	card.add_child(rows)
-	var icon := Label.new()
-	icon.text = str(info.get("emoji", "?")) if found else tr("BOARD_UNKNOWN")
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon.add_theme_font_size_override("font_size", 52)
-	rows.add_child(icon)
+	# The object itself, not an emoji: iOS's default font has no emoji glyphs, so
+	# every card icon was a blank box on a phone (G12.10). Same trick the reveal
+	# card uses, but small and still.
+	if found:
+		var preview := ItemPreview.new()
+		preview.view_size = ICON_VIEW
+		preview.spin = false
+		preview.custom_minimum_size = Vector2(0, 72)
+		rows.add_child(preview)
+		preview.show_item(str(info.get("id", "")))
+	else:
+		var unknown := Label.new()
+		unknown.text = tr("BOARD_UNKNOWN")
+		unknown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		unknown.custom_minimum_size = Vector2(0, 72)
+		unknown.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		unknown.add_theme_font_size_override("font_size", 46)
+		unknown.add_theme_color_override("font_color", Color(0.32, 0.28, 0.24))
+		rows.add_child(unknown)
 	var name_label := Label.new()
 	name_label.text = str(info.get("name", "")) if found else "———"
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
