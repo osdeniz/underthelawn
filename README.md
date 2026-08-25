@@ -1376,6 +1376,31 @@ project starts locked.
 `restore_bought` now carries its tier, plus `restore_tier2_unlocked` and
 `station_completed`.
 
+### Art keying (tools/key_out.gd)
+
+The restoration overlays arrived with the transparency checkerboard **drawn
+into the image** rather than written as an alpha channel — a routine failure of
+image generators. `tools/key_out.gd` finds the two checker greys, erases them,
+and reconstructs the soft shadows: a shadow on a checkerboard is the checker
+multiplied down, so `alpha = 1 - darkness` gives back a real alpha shadow
+instead of a grey smear. The alpha channel is then box-blurred over one checker
+cell, which erases a symmetric alternating pattern exactly while a shadow's
+gradient survives; solid artwork keeps its own alpha so object edges stay sharp.
+
+Three things were measured rather than assumed, each after looking at the
+result: guessing a pixel's checker square from its BRIGHTNESS fails inside
+shadows (a shadow on a light square lands on the dark square's value, so half of
+every shadow was being deleted); JPEG noise pushes a grey shadow past a 0.10
+saturation test; and a cast shadow reaches ~0.57 below its square, so the
+original darkness threshold kept most of every shadow opaque. The naive blur was
+also 2.2 billion reads per image — it is separable with running sums now.
+
+**What is still imperfect, and why it cannot be fixed here:** a soft coloured
+glow over a checkerboard is two unknowns per pixel (its colour and its alpha)
+against one equation. The lantern's halo and the darkest core of each cast
+shadow keep some pattern. The fix is upstream — generate on a FLAT colour
+instead — and `FLAT_KEY` in the tool already implements that path exactly.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
