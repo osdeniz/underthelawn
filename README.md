@@ -1221,6 +1221,44 @@ worth its complexity while a chapter is a few minutes long.
 `textures/story/reunion.png` and `textures/hub/case2_teaser.png` both fall back
 to a flat warm ground, so the ending plays without them.
 
+## G12.5 — Case 1 realigned, and a neighbourhood that reads as abandoned
+
+### Text patch (data only)
+
+Five lines rewritten in en + tr so Case 1 plants the right backward-compatible
+clues: the drawing gains one concrete detail (seven stars in a ring, worn on his
+coat) with its meaning still unstated; the can is SHARING his food rather than
+feeding her; Ellie says she followed him and that being seen was dangerous for
+HER; and two new board deductions land — the half-filed serial ("Rivera's
+batch") and the new face in town the same week as the garden.
+
+**Audit finding:** four board notes still cited the pre-G11 evidence — a shoe, a
+seed box, a satchel and a key, and a grown BOOT beside what the chapter calls
+bare feet. A deduction that names evidence the case does not contain is a
+contradiction, not a style choice, so NOTE_CH02/04/05/07 were realigned.
+
+### The street
+
+* **Traffic is off.** A car cruising past told the player the world was fine,
+  which is the opposite of what every other surface says.
+* **Derelict houses on all three sides**, seeded per chapter: weathered bodies,
+  dark doorways, boards nailed across most windows, some with a missing roof
+  corner. None are enterable — they are silhouette and mood.
+* **Side yards**: dry grass strips, a sagging fence line and a shed or two
+  between our fence and theirs.
+
+Honest limitation, measured rather than assumed: in a portrait top-down camera
+the player sees roughly five units either side of the mower, so the sides only
+open up at the lawn's edge and buildings out there are seen from almost
+directly overhead. The **ground-level dressing does the work on the flanks**
+(that is why the yard strips exist), while the north row across the road is
+where a house actually reads as a house. Side houses were pulled in to
+`fence + 2.6` after measuring where the frame really ends, and their roofs were
+lightened because dark ones turned into featureless slabs at the frame edge.
+
+Art: `textures/story/reunion.jpg` and `textures/hub/case2_teaser.jpg` are in.
+The reunion file arrived in a `textures/stroy/` folder (typo) and was moved.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
