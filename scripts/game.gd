@@ -305,10 +305,11 @@ func _on_secret_uncovered(col: int, row: int) -> void:
 	var prop := SecretItem.new()
 	prop.name = "Evidence_%d_%d" % [col, row]
 	_fx_root.add_child(prop)
-	prop.setup_prop(kind, LawnModel.cell_center(col, row))
-	prop.set_meta("kind", kind)
 	var reveal_info := variant.evidence_info(kind) if variant != null else {}
-	prop.set_meta("icon", str(reveal_info.get("emoji", "")))
+	var evidence_id := str(reveal_info.get("id", ""))
+	prop.setup_by_id(evidence_id, LawnModel.cell_center(col, row))
+	prop.set_meta("kind", kind)
+	prop.set_meta("evidence_id", evidence_id)
 	_evidence_props.append(prop)
 	AudioDirector.play_discovery()
 	Haptics.medium()
@@ -338,11 +339,11 @@ func _collect_evidence(prop: Node3D) -> void:
 
 	DigBurst.spawn(_fx_root, ground)
 	# The find leaves a permanent mark, so the lawn remembers where it paid out.
-	FindMarker.spawn(_fx_root, ground, str(prop.get_meta("icon", "")))
+	FindMarker.spawn(_fx_root, ground, str(prop.get_meta("evidence_id", "")))
 	AudioDirector.play_discovery()
 	Haptics.success()
 	if carry != null:
-		carry.add_evidence(kind)
+		carry.add_evidence(str(prop.get_meta("evidence_id", "")))
 
 	var info := variant.evidence_info(kind) if variant != null else {}
 	if info.is_empty():
@@ -354,7 +355,8 @@ func _collect_evidence(prop: Node3D) -> void:
 			hud.set_secret_count(_collected.size(), _evidence_total())
 			_glance_at(ground)
 			if _collected.size() >= _evidence_total():
-				_offer_exit())
+				_offer_exit(),
+		str(info.get("id", "")))
 
 
 ## A short look back at the spot once the card clears: spatial memory, cheaply.
@@ -540,9 +542,10 @@ func _check_echo(col: int, row: int) -> void:
 		return
 	var at := LawnModel.cell_center(col, row)
 	EchoLog.mark_found(variant_id)
-	FindMarker.spawn(_fx_root, at, str(info["emoji"]))
+	FindMarker.spawn(_fx_root, at, str(info.get("id", "")))
 	AudioDirector.play_discovery()
 	Haptics.light()
 	Analytics.track("echo_found",
 		{"chapter": variant_id, "echo": info.get("id", "")})
-	hud.show_echo_card(str(info["emoji"]), str(info["name"]), str(info["line"]))
+	hud.show_echo_card(str(info["emoji"]), str(info["name"]), str(info["line"]),
+		str(info.get("id", "")))

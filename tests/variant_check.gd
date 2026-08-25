@@ -1,10 +1,10 @@
-extends SceneTree
+extends Node
 ## G9: the variation system and the scrap economy, checked on the real data.
 
 var _fails := 0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_check_variants()
 	_check_grid_follows_data()
 	_check_layouts()
@@ -14,7 +14,7 @@ func _initialize() -> void:
 		print("--- %d VARYANT TESTI BASARISIZ ---" % _fails)
 	else:
 		print("--- TUM VARYANT TESTLERI GECTI ---")
-	quit()
+	get_tree().quit()
 
 
 func _check_variants() -> void:
@@ -39,9 +39,10 @@ func _check_variants() -> void:
 			landmarks[v.landmark_id] = true
 		ck("%s iki kanit tasiyor" % id, v.evidence_count() == 2,
 			str(v.evidence_count()))
-		# B8 is the short finale, so the floor is 6 (G11).
+		# B8 is the short finale (floor 6); the large fields carry more points
+		# after the G12.8 recalibration (ceiling 16).
 		ck("%s scrap butcesi makul" % id,
-			v.scrap_budget >= 6 and v.scrap_budget <= 12, str(v.scrap_budget))
+			v.scrap_budget >= 6 and v.scrap_budget <= 16, str(v.scrap_budget))
 		# decor_seed is what makes a yard look the same on every visit.
 		ck("%s decor_seed sifir degil" % id, v.decor_seed != 0, str(v.decor_seed))
 		palettes[v.palette_id] = true

@@ -171,10 +171,26 @@ func _apply(card: Dictionary) -> void:
 		label.add_theme_constant_override("shadow_outline_size", 8)
 		_lines.add_child(label)
 
+	# A "poster" card frames the portrait instead of filling the screen with it:
+	# a face cropped to a full-bleed background reads as scenery, and this one
+	# has to read as a missing-person notice (G12.8).
+	if bool(card.get("poster", false)):
+		_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
+		_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_image.anchor_top = 0.10
+		_image.anchor_bottom = 0.56
+		_image.offset_left = 180
+		_image.offset_right = -180
+		_image.offset_top = 0
+		_image.offset_bottom = 0
+	else:
+		_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	# Restart the Ken Burns push for this card.
-	_image.pivot_offset = size * 0.5
+	_image.pivot_offset = _image.size * 0.5
 	_image.scale = Vector2.ONE
-	if tex != null:
+	if tex != null and not bool(card.get("poster", false)):
 		var push := create_tween()
 		push.tween_property(_image, "scale", Vector2.ONE * KEN_BURNS_TO,
 			KEN_BURNS_TIME).set_trans(Tween.TRANS_LINEAR)

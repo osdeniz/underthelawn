@@ -50,10 +50,10 @@ func add_money() -> void:
 
 
 ## Adds an evidence object, riding on top of the cash.
-func add_evidence(kind_index: int) -> void:
+func add_evidence(evidence_id: String) -> void:
 	var item := SecretItem.new()
 	add_child(item)
-	item.setup_prop(kind_index, Vector3.ZERO)
+	item.setup_by_id(evidence_id, Vector3.ZERO)
 	item.scale = Vector3.ONE * 0.75
 	item.position.y = _top_y() + 0.12
 	item.position.x = float(_items.size()) * 0.28 - 0.14

@@ -1,4 +1,4 @@
-extends SceneTree
+extends Node
 ## G3 checks: §6 parameter sets, §7 tractor input mapping, robot boustrophedon.
 
 var fails := 0
@@ -11,7 +11,7 @@ func ck(label: String, ok: bool, extra := "") -> void:
 		print("  FAIL ", label, "  ", extra)
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	# §7's route rules are checked on the pool layout at medium size, since that
 	# is the yard they were written against. Both are data after G9.
 	GameConfig.set_grid_named("medium")

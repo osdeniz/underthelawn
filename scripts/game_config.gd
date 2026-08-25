@@ -454,8 +454,11 @@ const FIND_MARK_RADIUS := 0.55
 const FIND_MARK_BEAM_HEIGHT := 5.0
 const FIND_MARK_FLARE_ALPHA := 0.80
 const FIND_MARK_IDLE_ALPHA := 0.18
-## Short camera glance back at the spot once the card closes. Off => no pan.
-const FIND_PAN_ENABLED := true
+## Short camera glance at the find. OFF since G12.8: it ran after the evidence
+## card closed, so the camera lurched to a spot the player had stopped thinking
+## about 3.6 s earlier. The permanent light beam left on the ground already does
+## the spatial-memory job the pan was there for.
+const FIND_PAN_ENABLED := false
 const FIND_PAN_TIME := 0.6
 ## Extra salvage points granted by a completed restoration project.
 const RESTORE_SCRAP_BONUS := 1
@@ -463,7 +466,10 @@ const RESTORE_SCRAP_BONUS := 1
 ## the spend curve steps instead of presenting a wall of four-figure prices.
 const TIER2_REQUIRES_TIER1 := 2
 ## Debug only: grants money from the pause menu for balance testing. Ships false.
-const DEV_GRANT_SCRAP := false
+const DEV_GRANT_SCRAP := true
+## Debug only: the wallet a fresh save starts with, so systems downstream of the
+## economy can be exercised without grinding to them. Ships 0.
+const DEV_STARTING_SCRAP := 50000
 const DEV_GRANT_AMOUNT := 2000
 
 ## Payout multiplier from completed restoration projects. Routed through here so
@@ -488,14 +494,22 @@ const HINT_DRIVE_KEY := "hint_drive_done"
 ## Per-pickup value range, so a run's ground haul varies a little.
 ## Town-theme music level; the mix keeps it under the ambience.
 const THEME_GAIN := 0.30
-## Raised in G10 (2-5 -> 4-8): with the Robot at 300, two fully-mown early
-## chapters must fund the first unlock, or the workshop opens as a grind wall.
-## garage_check asserts exactly that.
-const SCRAP_PICKUP_MIN := 4
-const SCRAP_PICKUP_MAX := 8
+## G12.8 recalibration. The measured problem: all eight chapters at 100% paid
+## 1 548 against a workshop of 8 160 and a town of 6 250, so a player who bought
+## the Robot and the Tractor could not reach the 1 200 station across two whole
+## cases. Play confirmed it — "we earn money far too slowly".
+##
+## Earnings are roughly tripled, split across the three levers so no single one
+## carries it: more per pickup, more pickups per yard (see levels.json), and a
+## larger completion bonus pool.
+const SCRAP_PICKUP_MIN := 9
+const SCRAP_PICKUP_MAX := 16
 ## Share of a chapter's payout that comes off the ground vs the completion bonus.
 ## The ground share is deliberately the smaller one: picking scrap up should feel
 ## like a bonus for looking around, not the main job.
+## The bonus pool is derived from the expected ground haul, so raising the
+## pickup values lifts the completion bonus with them. The split itself is
+## unchanged: picking things up stays the smaller half.
 const SCRAP_GROUND_SHARE := 0.30
 const SCRAP_BONUS_SHARE := 0.70
 ## Completion bonus curve. Leaving early with the evidence still pays most of it,

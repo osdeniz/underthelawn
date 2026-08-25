@@ -69,6 +69,10 @@ func _load_settings() -> void:
 # ---------------------------------------------------------------- scrap (G9)
 
 func scrap_total() -> int:
+	# A fresh save picks up DEV_STARTING_SCRAP once, so debug builds can reach
+	# the workshop and the town without grinding there first.
+	if not _config.has_section_key(ECONOMY, "scrap"):
+		set_setting(ECONOMY, "scrap", GameConfig.DEV_STARTING_SCRAP)
 	return int(get_setting(ECONOMY, "scrap", 0))
 
 

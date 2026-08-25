@@ -15,16 +15,16 @@ var _beam_mat: StandardMaterial3D
 var _ring_mat: StandardMaterial3D
 
 
-static func spawn(parent: Node3D, at: Vector3, icon: String) -> FindMarker:
+static func spawn(parent: Node3D, at: Vector3, evidence_id: String) -> FindMarker:
 	var marker := FindMarker.new()
 	marker.name = "FindMarker"
 	parent.add_child(marker)
 	marker.position = Vector3(at.x, 0.0, at.z)
-	marker._build(icon)
+	marker._build(evidence_id)
 	return marker
 
 
-func _build(icon: String) -> void:
+func _build(evidence_id: String) -> void:
 	# Ground ring: a flat disc, unshaded and additive so it glows on any palette.
 	var disc := CylinderMesh.new()
 	disc.top_radius = GameConfig.FIND_MARK_RADIUS
@@ -54,16 +54,15 @@ func _build(icon: String) -> void:
 	_beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_beam)
 
-	# The object's icon stays on the ground: what was found, not just where.
-	if icon != "":
-		var label := Label3D.new()
-		label.text = icon
-		label.font_size = 96
-		label.pixel_size = 0.004
-		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		label.no_depth_test = false
-		label.position.y = 0.22
-		add_child(label)
+	# A small copy of the object itself stays on the ground: what was found, not
+	# just where. This was a Label3D showing an emoji until G12.8 — the phone's
+	# default font has no emoji glyphs, so on device every marker was blank.
+	if evidence_id != "":
+		var replica := SecretItem.new()
+		add_child(replica)
+		replica.setup_by_id(evidence_id, Vector3.ZERO)
+		replica.scale = Vector3.ONE * 0.55
+		replica.position.y = 0.06
 
 	# Bright flare, then a faint shaft that lasts the rest of the chapter.
 	_set_alpha(GameConfig.FIND_MARK_FLARE_ALPHA)

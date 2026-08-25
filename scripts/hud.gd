@@ -32,6 +32,12 @@ signal board_requested()
 @onready var _card_title: Label = %CardTitle
 @onready var _card_line: Label = %CardLine
 @onready var _card_art: Label = %CardArt
+## Live 3D preview of the found object, replacing the emoji the phone cannot
+## render (G12.8).
+var _card_preview: ItemPreview
+## The missing-person poster pinned to the mowing HUD (G12.8): the reason the
+## player is out here, kept on screen so leaving costs something.
+var _poster: Control
 @onready var _complete_panel: Control = %CompletePanel
 @onready var _complete_stats: Label = %CompleteStats
 @onready var _complete_title: Label = %Title
@@ -109,6 +115,8 @@ func _ready() -> void:
 	_teaser.pressed.connect(_on_teaser_pressed)
 	_build_pad_ring()
 	_build_pause()
+	_build_card_preview()
+	_build_poster()
 	set_progress(0.0)
 	set_secret_count(0, GameConfig.SECRET_TOTAL)
 
@@ -154,9 +162,9 @@ func bump_secret_counter() -> void:
 ## Shows the discovery card, then shrinks it into the secret counter (§16).
 ## `on_landed` fires when it reaches the counter, so the count updates then.
 func show_secret_card(emoji: String, item_name: String, line: String,
-		on_landed: Callable) -> void:
+		on_landed: Callable, evidence_id := "") -> void:
 	_card_header.text = Story.text("evidence.card_header", "EVIDENCE FOUND")
-	_card_art.text = emoji
+	_show_card_art(emoji, evidence_id)
 	_card_title.text = item_name
 	_card_line.text = line
 
@@ -230,6 +238,7 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 		_collection.add_child(slot)
 
 	_clear_opening_title()
+	set_poster_visible(false)
 	_exit_card.visible = false
 	_exit_badge.visible = false
 	_build_case_notes(collected, total_secrets)
@@ -723,10 +732,11 @@ func _close_pause() -> void:
 ## The echo card reuses the evidence card's body but says ECHO and drops the
 ## fly-to-counter flourish: a world-history find is a quiet aside, not a beat in
 ## the case, and dressing it like one would lie about its importance.
-func show_echo_card(emoji: String, item_name: String, line: String) -> void:
+func show_echo_card(emoji: String, item_name: String, line: String,
+		evidence_id := "") -> void:
 	_card_header.text = tr("ECHO_HEADER")
 	_card_header.add_theme_color_override("font_color", Color(0.70, 0.78, 0.88))
-	_card_art.text = emoji
+	_show_card_art(emoji, evidence_id)
 	_card_title.text = item_name
 	_card_line.text = line
 
@@ -751,3 +761,87 @@ func show_echo_card(emoji: String, item_name: String, line: String) -> void:
 		# Put the header back the way the evidence card expects to find it.
 		_card_header.add_theme_color_override("font_color",
 			GameConfig.CASE_ACCENT))
+
+
+## The card's object view. The emoji label stays as the fallback for anything
+## with no mesh, but on device it renders blank, so the 3D preview is what the
+## player actually sees.
+func _build_card_preview() -> void:
+	_card_preview = ItemPreview.new()
+	_card_preview.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_card_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card_art.add_child(_card_preview)
+
+
+func _show_card_art(emoji: String, evidence_id: String) -> void:
+	if evidence_id != "":
+		_card_art.text = ""
+		_card_preview.visible = true
+		_card_preview.show_item(evidence_id)
+		return
+	_card_preview.visible = false
+	_card_art.text = emoji
+
+
+## A small MISSING poster under the top bar. It is the only piece of HUD that
+## exists purely to be looked at rather than read for state — the case's face,
+## so the search never becomes an abstract percentage.
+func _build_poster() -> void:
+	_poster = PanelContainer.new()
+	_poster.name = "MissingPoster"
+	_poster.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_poster.offset_left = -250
+	_poster.offset_right = -40
+	_poster.offset_top = 306
+	_poster.offset_bottom = 566
+	_poster.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.93, 0.90, 0.80, 0.94)
+	style.set_corner_radius_all(10)
+	style.set_content_margin_all(10)
+	style.border_color = Color(0.35, 0.28, 0.20, 0.9)
+	style.set_border_width_all(3)
+	style.shadow_color = Color(0, 0, 0, 0.45)
+	style.shadow_size = 8
+	_poster.add_theme_stylebox_override("panel", style)
+	add_child(_poster)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 2)
+	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_poster.add_child(rows)
+
+	var heading := Label.new()
+	heading.text = tr("POSTER_MISSING")
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	heading.add_theme_font_size_override("font_size", 30)
+	heading.add_theme_color_override("font_color", Color(0.55, 0.12, 0.10))
+	rows.add_child(heading)
+
+	var face := TextureRect.new()
+	face.custom_minimum_size = Vector2(0, 150)
+	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	face.texture = TextureLibrary.find("portraits/face_ellie")
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rows.add_child(face)
+
+	var name_label := Label.new()
+	name_label.text = tr("POSTER_NAME")
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.add_theme_font_size_override("font_size", 26)
+	name_label.add_theme_color_override("font_color", Color(0.18, 0.15, 0.12))
+	rows.add_child(name_label)
+
+	var since := Label.new()
+	since.text = tr("POSTER_SINCE")
+	since.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	since.add_theme_font_size_override("font_size", 20)
+	since.add_theme_color_override("font_color", Color(0.34, 0.30, 0.26))
+	rows.add_child(since)
+
+
+## Hidden once the search is over, so it never sits behind the results panel.
+func set_poster_visible(value: bool) -> void:
+	if _poster != null:
+		_poster.visible = value

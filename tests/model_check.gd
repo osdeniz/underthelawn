@@ -1,4 +1,4 @@
-extends SceneTree
+extends Node
 
 var fails := 0
 
@@ -9,7 +9,7 @@ func ck(label: String, ok: bool, extra := "") -> void:
 		fails += 1
 		print("  FAIL ", label, "  ", extra)
 
-func _initialize() -> void:
+func _ready() -> void:
 	# §3's numbers describe the ORIGINAL yard: medium grid, pool layout. G9 made
 	# both of those data, and the default is now the pool-free "beds" layout, so
 	# this suite states the world it is checking instead of assuming it.

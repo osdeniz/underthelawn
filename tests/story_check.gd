@@ -38,9 +38,10 @@ func _ready() -> void:
 		ck("metin %s" % path, value != "", "'%s'" % value)
 
 	# Exactly three opening cards, each with art and one or two lines.
-	# G12.6 added a fourth card (the settlements to the east).
+	# G12.6 added the settlements-to-the-east card, G12.8 the missing-person
+	# poster that ends the opening.
 	var cards := Story.list("intro.cards")
-	ck("aciliş kart sayisi", cards.size() == 4, str(cards.size()))
+	ck("aciliş kart sayisi", cards.size() == 5, str(cards.size()))
 	for i in cards.size():
 		var card: Dictionary = cards[i]
 		ck("kart %d gorseli" % i, str(card.get("image", "")) != "", str(card))

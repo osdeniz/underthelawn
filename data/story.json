@@ -31,6 +31,14 @@
           "INTRO_03_L1",
           "INTRO_03_L2"
         ]
+      },
+      {
+        "image": "portraits/ellie",
+        "poster": true,
+        "lines": [
+          "ALERT_TITLE",
+          "ALERT_LINE"
+        ]
       }
     ],
     "skip_hint": "INTRO_SKIP_HINT"

@@ -336,3 +336,9 @@ PRJ_WATCHTOWER_THANKS,"We can see the east road now. All the way to the bend.","
 PRJ_WATCHTOWER_CRUMB,"Nothing's come up that road in three years. I still like being able to look.","Üç yıldır o yoldan bir şey gelmedi. Yine de bakabilmek hoşuma gidiyor."
 HUB_STATION,STATION,KARAKOL
 HUB_STATION_HINT,The board is on the wall now.,Pano artık duvarda.
+POSTER_MISSING,MISSING,KAYIP
+POSTER_NAME,Ellie Voss,Ellie Voss
+POSTER_SINCE,since last night,dün geceden beri
+ALERT_TITLE,SHE DIDN'T COME HOME,EVE DÖNMEDİ
+ALERT_LINE,"No word since last night. The town hasn't lost anyone in three years — and nobody wants to say why that might have changed.","Dün geceden beri haber yok. Kasaba üç yıldır kimseyi kaybetmedi — ve bunun neden değişmiş olabileceğini kimse söylemek istemiyor."
+ALERT_CTA,FIND HER,ONU BUL

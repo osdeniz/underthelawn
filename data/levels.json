@@ -8,7 +8,7 @@
       "house_variant": "house_v1",
       "landmark_id": "",
       "decor_seed": 1101,
-      "scrap_budget": 8,
+      "scrap_budget": 10,
       "evidence_defs": [
         {
           "id": "rabbit",
@@ -43,7 +43,7 @@
       "house_variant": "house_v2",
       "landmark_id": "",
       "decor_seed": 2202,
-      "scrap_budget": 8,
+      "scrap_budget": 10,
       "evidence_defs": [
         {
           "id": "boot",
@@ -78,7 +78,7 @@
       "house_variant": "house_none",
       "landmark_id": "playground",
       "decor_seed": 3303,
-      "scrap_budget": 10,
+      "scrap_budget": 13,
       "evidence_defs": [
         {
           "id": "ribbon",
@@ -113,7 +113,7 @@
       "house_variant": "house_none",
       "landmark_id": "",
       "decor_seed": 4404,
-      "scrap_budget": 9,
+      "scrap_budget": 12,
       "evidence_defs": [
         {
           "id": "prints",
@@ -148,7 +148,7 @@
       "house_variant": "house_none",
       "landmark_id": "greenhouse",
       "decor_seed": 5505,
-      "scrap_budget": 8,
+      "scrap_budget": 10,
       "evidence_defs": [
         {
           "id": "seedlings",
@@ -183,7 +183,7 @@
       "house_variant": "house_none",
       "landmark_id": "water_tower",
       "decor_seed": 6606,
-      "scrap_budget": 12,
+      "scrap_budget": 16,
       "evidence_defs": [
         {
           "id": "flashlight",
@@ -218,7 +218,7 @@
       "house_variant": "house_none",
       "landmark_id": "mill",
       "decor_seed": 7707,
-      "scrap_budget": 9,
+      "scrap_budget": 12,
       "evidence_defs": [
         {
           "id": "hatch",
@@ -253,7 +253,7 @@
       "house_variant": "house_none",
       "landmark_id": "",
       "decor_seed": 8808,
-      "scrap_budget": 6,
+      "scrap_budget": 8,
       "vignette": true,
       "evidence_defs": [
         {
