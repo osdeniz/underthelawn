@@ -19,10 +19,12 @@ var _spark_cooldown := 0.0
 var _spin_rate := GameConfig.BLADE_SPIN_IDLE_DEG
 
 
-## The blade has no heading, so a camera that chases its stripe-yaw just makes
-## the controls drift mid-drag (G9.2).
+## G12.9: the camera turns with the disk again. The drift that made it lock in
+## G9.2 came from reading the LIVE camera yaw while the camera was chasing the
+## blade — latching the frame at press time (pad_camera_yaw) removes the loop,
+## so the two can coexist.
 func camera_yaw_locked() -> bool:
-	return true
+	return false
 
 
 func type_index() -> int:
@@ -77,10 +79,10 @@ func on_touch_released(index: int, _screen_pos: Vector2) -> void:
 func _physics_process(delta: float) -> void:
 	var stick := pad_stick()
 	if _has_finger and stick != Vector2.ZERO:
-		# The stick IS the direction. The camera never rotates for the blade
-		# (camera_yaw_locked), so screen directions stay fixed for the whole
-		# drag; deflection sets the speed, so it stays proportional.
-		var heading := camera_yaw + atan2(stick.x, stick.y)
+		# The stick IS the direction, read against the camera as it was when the
+		# finger landed. The camera turns with the disk, so using its LIVE yaw
+		# would feed the blade's own heading back into the controls.
+		var heading := pad_camera_yaw() + atan2(stick.x, stick.y)
 		var dir := Vector3(sin(heading), 0.0, -cos(heading))
 		var desired := minf(stick.length(), 1.0) * GameConfig.BLADE_MAX_SPEED
 		_velocity = dir * desired

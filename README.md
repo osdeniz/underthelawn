@@ -1487,6 +1487,35 @@ autoloads register after compilation — with `RestoreBoard` now in the dependen
 chain that surfaced as a confusing "Compilation failed" line before a pass. All
 eleven suites are scene tests.
 
+## G12.9 — eight device bugs
+
+* **Only the push mower picked money up.** `_ensure_all_mowers()` spawns the
+  three mowers that are not in Main.tscn, and it repeated the scene wiring —
+  except for `scrap_field` and `scrap_found`. So exactly the one mower that IS
+  in the scene worked. Both lines added where the rest of the wiring lives.
+* **The blade kept spinning over the hub.** AudioDirector is an autoload and
+  outlives the chapter, so the engine has to be handed back: `_exit_tree` stops
+  it, and the stop LATCHES — `set_engine_state` restarts a stopped player on its
+  own, so without the flag a dying scene's last frame would start it again.
+* **The robot crawled** at §7's 2.1 next to a 3.0 push mower. Now 3.2; the §7
+  table in `g3_check` records the deviation.
+* **The blade's camera turns again.** It was locked in G9.2 to stop the control
+  frame drifting mid-drag, but the drift came from reading the LIVE camera yaw
+  while the camera chased the blade. Latching the frame at press
+  (`pad_camera_yaw`) removes the loop, so rotation and stable controls coexist.
+* **The tractor has a bed**, and the haul rides in it — a seated driver cannot
+  carry a stack on their back. Plus two spinning cutter discs at the front. The
+  first pass put them at z −0.86, inside the existing deck box (z −1.25..−0.35),
+  so both were invisible; they sit in front of it now.
+* **A home button on the HUD.** Returning to town was one tap inside the pause
+  sheet and players reported there was no way out at all.
+* **The mower picker uses drawn icons.** It showed an emoji plus a label; on a
+  phone the emoji is a blank box that still takes its width, which is why the
+  labels looked shoved right. `MowerIcons` paints a small silhouette per machine
+  into an ImageTexture at startup — no font, no art file — and the labels are
+  centred under them.
+* The wallet chip and evidence counter moved left to clear the new home button.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

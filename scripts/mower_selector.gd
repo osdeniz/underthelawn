@@ -19,10 +19,19 @@ func _ready() -> void:
 			continue
 		var info: Dictionary = GameConfig.MOWER_TYPES[i]
 		var button := Button.new()
-		button.text = "%s %s" % [info["emoji"], tr(info["label"])]
+		# A drawn icon, not the emoji: on a phone the emoji is a blank box that
+		# still takes its width, which is what pushed these labels right (G12.9).
+		button.icon = MowerIcons.icon_for(i)
+		button.expand_icon = true
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.custom_minimum_size = Vector2(150, 150)
+		button.add_theme_constant_override("h_separation", 0)
+		button.text = tr(info["label"])
 		button.focus_mode = Control.FOCUS_NONE
 		button.mouse_filter = Control.MOUSE_FILTER_STOP
-		button.add_theme_font_size_override("font_size", 40)
+		button.add_theme_font_size_override("font_size", 30)
 		button.pressed.connect(_on_pressed.bind(i))
 		add_child(button)
 		_buttons.append(button)

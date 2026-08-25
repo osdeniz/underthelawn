@@ -344,7 +344,7 @@ const MOWER_TYPES: Array[Dictionary] = [
 	},
 	{
 		"id": "robot", "emoji": "🤖", "label": "MOWER_ROBOT",
-		"speed": 2.1, "deck": 0.75, "max_turn": 2.6, "body": 0.45, "reverse": 0.45,
+		"speed": 3.2, "deck": 0.75, "max_turn": 2.6, "body": 0.45, "reverse": 0.45,
 		# G6.7: the robot chases waypoints, so it needs to snap onto a heading
 		# quickly; its own 2.6 rad/s ceiling still bounds the rate.
 		"steer_gain": 7.0, "turn_drag": 0.30,
@@ -407,6 +407,17 @@ const ROBOT_LED_PERIOD := 0.9
 # ---------------------------------------------------------------- tractor model (§6)
 const TRACTOR_BODY_COLOR := Color(0.22, 0.45, 0.16)
 const TRACTOR_ACCENT_COLOR := Color(0.95, 0.78, 0.15)
+## G12.9: the tractor gets a bed behind the seat, so the haul rides IN the
+## machine instead of on a driver who is sitting down, and a pair of spinning
+## cutter discs up front where the deck actually meets the grass.
+const TRACTOR_BED_SIZE := Vector3(0.80, 0.06, 0.62)
+const TRACTOR_BED_POS := Vector3(0.0, 0.60, 0.95)
+const TRACTOR_BED_WALL := 0.16
+const TRACTOR_DISC_RADIUS := 0.30
+## In FRONT of the existing cutting deck (which spans z -1.25..-0.35 at y 0.11),
+## not inside it: the first pass buried both discs in the deck box.
+const TRACTOR_DISC_OFFSET := Vector3(0.40, 0.20, -1.34)
+const TRACTOR_DISC_SPIN_DEG := 900.0
 
 # ---------------------------------------------------------------- movement (§7)
 const ACCEL_TIME := 0.4

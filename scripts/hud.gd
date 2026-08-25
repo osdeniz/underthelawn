@@ -637,6 +637,22 @@ func _build_pause() -> void:
 	_pause_button.pressed.connect(_open_pause)
 	add_child(_pause_button)
 
+	# Going back to town was buried one tap inside the pause sheet, so players
+	# reported there was no way out at all. This is that exit, on the bar.
+	var home := Button.new()
+	home.text = "⌂"
+	home.add_theme_font_size_override("font_size", 46)
+	home.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	home.offset_left = -278
+	home.offset_right = -174
+	home.offset_top = 94
+	home.offset_bottom = 178
+	_style_button(home)
+	home.pressed.connect(func() -> void:
+		Haptics.light()
+		return_requested.emit())
+	add_child(home)
+
 	_pause_layer = Control.new()
 	_pause_layer.name = "PausePanel"
 	_pause_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

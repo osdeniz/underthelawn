@@ -24,10 +24,12 @@ func _ready() -> void:
 	#    so the deck could straddle a cell corner and cut nothing.
 	#  - push/robot reverse 0.0 -> 0.45: the shared drag pad gives every mower a
 	#    reverse, so pulling the finger back has to do something.
+	#  - robot speed 2.1 -> 3.2 (G12.9): at Sec7 speed it crawled beside the
+	#    others, and a mower you watch work has to at least keep pace.
 	var expected := [
 		{ "speed": 3.0, "deck": 0.75, "max_turn": 2.6, "body": 0.55, "reverse": 0.45 },
 		{ "speed": 4.8, "deck": 1.1, "max_turn": 1.5, "body": 0.85, "reverse": 0.5 },
-		{ "speed": 2.1, "deck": 0.75, "max_turn": 2.6, "body": 0.45, "reverse": 0.45 },
+		{ "speed": 3.2, "deck": 0.75, "max_turn": 2.6, "body": 0.45, "reverse": 0.45 },
 	]
 	for i in 3:
 		var got: Dictionary = GameConfig.MOWER_TYPES[i]

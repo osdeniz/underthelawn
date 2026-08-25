@@ -180,6 +180,11 @@ func _ensure_all_mowers() -> void:
 		built.model = model
 		built.tuft_field = lawn.tuft_field
 		built.cells_mown.connect(_on_cells_mown)
+		# The same wiring the scene's own mowers get in _ready. Without these two
+		# lines a code-spawned mower drives over money and nothing happens —
+		# which was every mower except the push one.
+		built.scrap_found.connect(_on_scrap_found)
+		built.scrap_field = scrap_field
 		built.set_active(false)
 		_mowers.insert(i, built)
 
@@ -265,9 +270,16 @@ func _reparent_carry(index: int) -> void:
 		return
 	var host: Node3D = mower
 	var offset := GameConfig.CARRY_DECK_OFFSET
-	if index == GameConfig.MOWER_PUSH or index == GameConfig.MOWER_TRACTOR:
+	if index == GameConfig.MOWER_PUSH:
 		host = character
 		offset = GameConfig.CARRY_BACK_OFFSET
+	elif index == GameConfig.MOWER_TRACTOR:
+		# A seated driver cannot carry a stack on their back, so the tractor's
+		# load goes in its bed (G12.9).
+		var anchor: Node3D = mower.get("carry_anchor")
+		if anchor != null:
+			host = anchor
+			offset = Vector3.ZERO
 	if carry.get_parent() != host:
 		if carry.get_parent() != null:
 			carry.get_parent().remove_child(carry)
@@ -549,3 +561,10 @@ func _check_echo(col: int, row: int) -> void:
 		{"chapter": variant_id, "echo": info.get("id", "")})
 	hud.show_echo_card(str(info["emoji"]), str(info["name"]), str(info["line"]),
 		str(info.get("id", "")))
+
+
+## Audio lives on the AudioDirector autoload, which outlives this scene, so a
+## chapter has to hand back the engine when it leaves — otherwise the blade goes
+## on spinning over the hub (G12.9).
+func _exit_tree() -> void:
+	AudioDirector.stop_engine()

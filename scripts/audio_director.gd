@@ -32,6 +32,7 @@ var muted: bool = false:
 
 var _streams := {}
 var _engine_player: AudioStreamPlayer
+var _engine_off := false
 var _ambient_player: AudioStreamPlayer
 var _one_shot: AudioStreamPlayer
 var _cut_players: Array[AudioStreamPlayer] = []
@@ -141,6 +142,8 @@ func start_ambient() -> void:
 ## Swaps the engine mix when the player changes mower: push and tractor share
 ## the loop at different pitches, the robot uses it as a quiet high whine (§14).
 func set_engine_profile(type_index: int) -> void:
+	# A new chapter is starting, so the engine is wanted again.
+	_engine_off = false
 	_profile = GameConfig.ENGINE_PROFILES[clampi(type_index, 0,
 		GameConfig.ENGINE_PROFILES.size() - 1)]
 	# G6: a real blade_spin recording is preferred over the loop at pitch 2.6.
@@ -155,9 +158,20 @@ func set_engine_profile(type_index: int) -> void:
 		_engine_player.play()
 
 
+## Silences the engine when a chapter ends. set_engine_state restarts a stopped
+## player on its own, so this also has to latch: without the flag the next
+## set_engine_state call from a dying scene would start it again (G12.9).
+func stop_engine() -> void:
+	_engine_off = true
+	if _engine_player != null:
+		_engine_player.stop()
+
+
 ## speed_fraction 0 = idle, 1 = full speed. turn_amount 0..1 adds the pitch
 ## boost the spec asks for while cornering (§14).
 func set_engine_state(speed_fraction: float, turn_amount: float = 0.0) -> void:
+	if _engine_off:
+		return
 	_engine_target = clampf(speed_fraction, 0.0, 1.0)
 	_turn_amount = clampf(turn_amount, 0.0, 1.0)
 	if _engine_player.stream != null and not _engine_player.playing:
