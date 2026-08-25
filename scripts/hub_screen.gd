@@ -229,12 +229,27 @@ func _build_top_bar() -> void:
 	wallet.add_theme_stylebox_override("panel", chip)
 	columns.add_child(wallet)
 
+	# PanelContainer holds one child, so the icon and the amount share a row.
+	var wallet_row := HBoxContainer.new()
+	wallet_row.add_theme_constant_override("separation", 8)
+	wallet_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wallet.add_child(wallet_row)
+
+	var wallet_icon := TextureRect.new()
+	wallet_icon.texture = UiIcons.money()
+	wallet_icon.custom_minimum_size = Vector2(38, 38)
+	wallet_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	wallet_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	wallet_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	wallet_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wallet_row.add_child(wallet_icon)
+
 	_scrap_label = Label.new()
 	_scrap_label.add_theme_font_size_override("font_size", 40)
 	_scrap_label.add_theme_color_override("font_color", Color(0.62, 0.95, 0.60))
 	_scrap_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_scrap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	wallet.add_child(_scrap_label)
+	wallet_row.add_child(_scrap_label)
 	_refresh_progress()
 
 
@@ -243,7 +258,7 @@ func _refresh_progress() -> void:
 		"case": Story.text("case.id"),
 		"done": ChapterProgress.done_count(),
 		"total": ChapterProgress.count()})
-	_scrap_label.text = "%s %d" % [GameConfig.SCRAP_ICON, GameState.scrap_total()]
+	_scrap_label.text = "%d" % GameState.scrap_total()
 
 
 # ---------------------------------------------------------------- pages
@@ -332,16 +347,25 @@ func _make_tile(tile: Dictionary) -> Button:
 	var hint := tr(str(tile.get("hint", ""))) if not locked \
 		else Story.text("hub.locked_note")
 	var label := tr(str(tile.get("label", "")))
-	var icon := str(tile.get("icon", ""))
+	var icon_id := str(tile.get("id", ""))
 	# G12.7: once the station is built, the case screens live in it and the card
 	# says so. Grouping, not a new screen — the chapter list and the corkboard
 	# are already two tabs behind this one door.
 	if str(tile.get("id", "")) == "case_board" and RestoreBoard.station_built():
 		label = tr("HUB_STATION")
 		hint = tr("HUB_STATION_HINT")
-		icon = "🏛️"
+		icon_id = "station"
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.text = "%s   %s\n%s" % [icon, label, hint]
+	# Drawn icon, not an emoji glyph: iOS renders those as a blank box that
+	# still takes its width (G12.10).
+	var art := UiIcons.for_tile(icon_id)
+	if art != null:
+		button.icon = art
+		button.expand_icon = false
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+		button.add_theme_constant_override("h_separation", 20)
+	button.text = "%s\n%s" % [label, hint]
 	if locked:
 		button.add_theme_color_override("font_color", Color(0.66, 0.66, 0.62))
 	_style_card(button, locked)
@@ -448,7 +472,7 @@ func _make_project_row(project: Dictionary) -> Button:
 		else tr("RESTORE_BUY").format({"cost": cost})
 	if locked and not built:
 		# Locked doors stay priced and visible: that is what makes them a goal.
-		tail = "🔒  %s   ·   %s" % [RestoreBoard.lock_reason(id),
+		tail = "%s   ·   %s" % [RestoreBoard.lock_reason(id),
 			tr("RESTORE_BUY").format({"cost": cost})]
 	var bonus := str(project.get("bonus_text", ""))
 	if bonus == "":
@@ -532,10 +556,11 @@ func _apply_restore_layers() -> void:
 			add_child(layer)
 			move_child(layer, 2)
 			continue
-		var badge := Label.new()
+		var badge := TextureRect.new()
 		badge.name = "Restore_" + id
-		badge.text = "🏘️"
-		badge.add_theme_font_size_override("font_size", 44)
+		badge.texture = UiIcons.house()
+		badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 		badge.offset_left = -120 - badges * 64
 		badge.offset_right = -60 - badges * 64
@@ -726,14 +751,21 @@ func _make_chapter_row(chapter: Dictionary, current: String) -> Button:
 	var id := str(chapter.get("variant_id", ""))
 	var playable := bool(chapter.get("playable", false))
 	var done := ChapterProgress.is_done(id)
-	var mark := "🔒"
+	# A padlock emoji here was a blank box on iOS; the tick and the play mark
+	# are plain glyphs the default font carries, so only the lock became art.
+	var mark := ""
+	var locked_art := true
 	var state := Story.text("case_board.locked")
 	if done:
 		mark = "✓"
+		locked_art = false
 		state = Story.text("case_board.done")
 	elif playable and id == current:
 		mark = "▶"
+		locked_art = false
 		state = Story.text("case_board.active")
+	elif playable:
+		locked_art = false
 
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(0, 162)
@@ -743,8 +775,15 @@ func _make_chapter_row(chapter: Dictionary, current: String) -> Button:
 	var evidence := Story.text("case_board.evidence").format({
 		"found": ChapterProgress.evidence_found(id),
 		"total": ChapterProgress.evidence_total(id)})
-	button.text = "%s  %s\n%s · %s" % [mark, tr(str(chapter.get("name", ""))),
+	var head: String = "%s  " % mark if mark != "" else ""
+	button.text = "%s%s\n%s · %s" % [head, tr(str(chapter.get("name", ""))),
 		state, evidence]
+	if locked_art:
+		button.icon = UiIcons.lock()
+		button.expand_icon = false
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+		button.add_theme_constant_override("h_separation", 18)
 	if not playable:
 		button.add_theme_color_override("font_color", Color(0.64, 0.65, 0.61))
 	elif done:
@@ -869,11 +908,27 @@ func _make_person_row(person: Dictionary) -> Button:
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	# A badge per finished project for this person: whose life changed, at a
 	# glance, without a second screen (G12.7).
-	var badges := ""
-	for project: Dictionary in RestoreBoard.projects_for(id):
-		badges += " 🏠"
-	button.text = "%s%s\n%s" % [tr(str(person.get("name", ""))), badges,
+	# One drawn house per finished project, laid in a row beside the name; this
+	# was a string of emoji, which is a row of blank boxes on iOS (G12.10).
+	var projects: Array = RestoreBoard.projects_for(id)
+	button.text = "%s\n%s" % [tr(str(person.get("name", ""))),
 		tr(str(person.get("role", "")))]
+	if not projects.is_empty():
+		var marks := HBoxContainer.new()
+		marks.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		marks.offset_left = -40.0 - 44.0 * projects.size()
+		marks.offset_right = -20.0
+		marks.offset_top = 22.0
+		marks.add_theme_constant_override("separation", 6)
+		marks.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		for _project in projects:
+			var mark_icon := TextureRect.new()
+			mark_icon.texture = UiIcons.house()
+			mark_icon.custom_minimum_size = Vector2(38, 38)
+			mark_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			mark_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			marks.add_child(mark_icon)
+		button.add_child(marks)
 	button.add_theme_font_size_override("font_size", 40)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_style_card(button)

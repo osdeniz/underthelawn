@@ -135,15 +135,31 @@ func _make_card(index: int) -> PanelContainer:
 	rows.add_theme_constant_override("separation", 12)
 	card.add_child(rows)
 
+	# The machine's drawn silhouette, not its emoji: the picker already learned
+	# that an emoji is a blank box on iOS (G12.9), and these cards kept one.
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 14)
+	rows.add_child(head)
+	var badge := TextureRect.new()
+	badge.texture = MowerIcons.icon_for(index)
+	badge.custom_minimum_size = Vector2(52, 52)
+	badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	badge.modulate = Color.WHITE if unlocked else Color(0.62, 0.62, 0.60)
+	head.add_child(badge)
+
 	var title := Label.new()
 	var pips := ""
 	for step in GameConfig.UPGRADE_MAX_TIER:
 		pips += "●" if step < tier else "○"
-	title.text = "%s %s   %s" % [str(info["emoji"]), tr(str(info["label"])), pips]
+	title.text = "%s   %s" % [tr(str(info["label"])), pips]
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 44)
 	title.add_theme_color_override("font_color",
 		Color(0.95, 0.94, 0.9) if unlocked else Color(0.6, 0.6, 0.56))
-	rows.add_child(title)
+	head.add_child(title)
 
 	var state := Label.new()
 	state.add_theme_font_size_override("font_size", 30)
@@ -161,6 +177,10 @@ func _make_card(index: int) -> PanelContainer:
 		rows.add_child(pitch)
 		var buy := Button.new()
 		buy.text = tr("WS_UNLOCK").format({"cost": Garage.unlock_cost(index)})
+		# The price used to carry a banknote emoji, which is a blank box on iOS.
+		buy.icon = UiIcons.money()
+		buy.expand_icon = false
+		buy.add_theme_constant_override("h_separation", 12)
 		buy.add_theme_font_size_override("font_size", 38)
 		HubScreen.style_primary(buy)
 		buy.pressed.connect(_ask.bind(index, true, buy))
@@ -183,6 +203,9 @@ func _make_card(index: int) -> PanelContainer:
 			rows.add_child(effect)
 			var up := Button.new()
 			up.text = tr("WS_UPGRADE").format({"cost": cost})
+			up.icon = UiIcons.money()
+			up.expand_icon = false
+			up.add_theme_constant_override("h_separation", 12)
 			up.add_theme_font_size_override("font_size", 38)
 			HubScreen.style_secondary(up)
 			up.pressed.connect(_ask.bind(index, false, up))

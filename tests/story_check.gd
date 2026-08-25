@@ -28,7 +28,7 @@ func _ready() -> void:
 	for path in [
 		"case.hud_line", "case.id", "case.title", "case.objective",
 		"opening.headline", "opening.subline",
-		"evidence.card_header", "evidence.counter_icon", "evidence.counter_label",
+		"evidence.card_header", "evidence.counter_label",
 		"complete.title", "complete.notes_header", "complete.notes_full",
 		"complete.notes_partial", "complete.incomplete",
 		"complete.teaser_title", "complete.teaser_line", "complete.teaser_locked",

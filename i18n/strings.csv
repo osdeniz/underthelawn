@@ -1,6 +1,6 @@
 keys,en,tr
 UI_PERCENT_MOWED,"{pct}% mowed","%{pct} biçildi"
-UI_EVIDENCE_COUNTER,"{icon} Evidence {found}/{total}","{icon} Kanıt {found}/{total}"
+UI_EVIDENCE_COUNTER,"Evidence {found}/{total}","Kanıt {found}/{total}"
 UI_STATS,"{cells} cells searched · {time}","{cells} hücre arandı · {time}"
 UI_RESTART,RESTART,YENİDEN BAŞLA
 UI_STORY,STORY,HİKÂYE
@@ -37,7 +37,7 @@ COMPLETE_NOTES_HEADER,CASE NOTES,VAKA NOTLARI
 COMPLETE_01_NOTES_FULL,"The toy confirms it. She came through here — heading east.","Oyuncak doğruluyor. Buradan geçmiş — doğuya doğru."
 COMPLETE_01_NOTES_PARTIAL,Something here is still unaccounted for.,Burada hâlâ açıklanamayan bir şey var.
 COMPLETE_01_INCOMPLETE,The search feels incomplete...,Arama yarım kalmış gibi...
-COMPLETE_01_TEASER_TITLE,NEXT: The Neighbor's Yard 🔒,SIRADAKİ: Komşunun Bahçesi 🔒
+COMPLETE_01_TEASER_TITLE,NEXT: The Neighbor's Yard,SIRADAKİ: Komşunun Bahçesi
 COMPLETE_01_TEASER_LINE,Something moved behind that fence.,O çitin arkasında bir şey hareket etti.
 COMPLETE_TEASER_LOCKED,Coming soon,Yakında
 UI_BACK,BACK,GERİ
@@ -186,11 +186,11 @@ DLG_TOWN_ELLIE_1A,"East... then she's past the fence line. Please hurry.","Doğu
 WS_TITLE,WORKSHOP,ATÖLYE
 WS_ACTIVE,OWNED,SENDE
 WS_LOCKED,LOCKED,KİLİTLİ
-WS_UNLOCK,"UNLOCK · {cost} 💵","AÇ · {cost} 💵"
-WS_UPGRADE,"UPGRADE · {cost} 💵","GELİŞTİR · {cost} 💵"
+WS_UNLOCK,"UNLOCK · {cost}","AÇ · {cost}"
+WS_UPGRADE,"UPGRADE · {cost}","GELİŞTİR · {cost}"
 WS_MAXED,FULLY UPGRADED,TAM GELİŞMİŞ
-WS_CONFIRM_UNLOCK,"Unlock {name} for {cost} 💵?","{name} {cost} 💵 karşılığında açılsın mı?"
-WS_CONFIRM_UPGRADE,"Upgrade {name} for {cost} 💵?","{name} {cost} 💵 karşılığında geliştirilsin mi?"
+WS_CONFIRM_UNLOCK,"Unlock {name} for {cost}?","{name} {cost} karşılığında açılsın mı?"
+WS_CONFIRM_UPGRADE,"Upgrade {name} for {cost}?","{name} {cost} karşılığında geliştirilsin mi?"
 WS_EFFECT_SPEED,"+{pct}% speed","+%{pct} hız"
 WS_EFFECT_BLADE,"Bigger disk, wider cut","Daha büyük disk, daha geniş kesim"
 WS_BUY,BUY,SATIN AL
@@ -285,8 +285,8 @@ LOC_LAMP,in the lamplight,lamba ışığında
 LOC_BEDS,among the beds,tarhların arasında
 RESTORE_TITLE,TOWN RESTORATION,KASABA ONARIMI
 RESTORE_DONE,DONE,YAPILDI
-RESTORE_BUY,"BUILD · {cost} 💵","YAPTIR · {cost} 💵"
-RESTORE_CONFIRM,"Build {name} for {cost} 💵?","{name} {cost} 💵 karşılığında yapılsın mı?"
+RESTORE_BUY,"BUILD · {cost}","YAPTIR · {cost}"
+RESTORE_CONFIRM,"Build {name} for {cost}?","{name} {cost} karşılığında yapılsın mı?"
 RESTORE_POOR,The town can wait. Come back richer.,Kasaba bekleyebilir. Daha zenginken gel.
 PRJ_SWING_NAME,Ellie's Swing,Ellie'nin Salıncağı
 PRJ_SWING_DESC,A rope and a plank under the big tree.,Büyük ağacın altına bir ip ve bir tahta.

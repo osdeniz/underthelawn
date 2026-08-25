@@ -63,6 +63,9 @@ var _poster: Control
 @onready var _teaser_locked: Label = %TeaserLocked
 @onready var _return_button: Button = %ReturnButton
 @onready var _scrap_label: Label = %ScrapLabel
+@onready var _wallet_icon: TextureRect = %WalletIcon
+@onready var _evidence_icon: TextureRect = %EvidenceIcon
+@onready var _evidence_chip: HBoxContainer = %EvidenceChip
 @onready var _exit_card: PanelContainer = %ExitCard
 @onready var _exit_title: Label = %ExitTitle
 @onready var _exit_continue: Button = %ExitContinue
@@ -93,6 +96,9 @@ func _ready() -> void:
 	# present, so a non-Latin language does not render as boxes.
 	LocaleSupport.apply()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Drawn, not emoji: iOS renders an emoji glyph as a blank box (G12.10).
+	_wallet_icon.texture = UiIcons.money()
+	_evidence_icon.texture = UiIcons.evidence()
 	_complete_panel.visible = false
 	_secret_card.visible = false
 	_missed_label.visible = false
@@ -147,19 +153,19 @@ func _apply_percent() -> void:
 # ---------------------------------------------------------------- secrets
 
 func set_secret_count(found: int, total: int) -> void:
-	# G7: evidence, not secrets — "📋 Evidence 1/2".
+	# G7: evidence, not secrets. The clipboard beside it is a drawn icon node
+	# now, not a glyph in this string (G12.10).
 	_secret_counter.text = tr("UI_EVIDENCE_COUNTER").format({
-		"icon": Story.raw("evidence.counter_icon", "📋"),
 		"found": found, "total": total})
 
 
 func bump_secret_counter() -> void:
 	if _counter_tween and _counter_tween.is_valid():
 		_counter_tween.kill()
-	_secret_counter.pivot_offset = _secret_counter.size * 0.5
-	_secret_counter.scale = Vector2(1.35, 1.35)
+	_evidence_chip.pivot_offset = _evidence_chip.size * 0.5
+	_evidence_chip.scale = Vector2(1.35, 1.35)
 	_counter_tween = create_tween()
-	_counter_tween.tween_property(_secret_counter, "scale", Vector2.ONE, 0.35) \
+	_counter_tween.tween_property(_evidence_chip, "scale", Vector2.ONE, 0.35) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
@@ -316,7 +322,10 @@ func _on_mute_pressed() -> void:
 
 
 func _refresh_mute_label() -> void:
-	_mute_button.text = "🔇" if AudioDirector.muted else "🔊"
+	# Drawn speaker, not an emoji glyph (G12.10).
+	_mute_button.text = ""
+	_mute_button.icon = UiIcons.sound(not AudioDirector.muted)
+	_mute_button.expand_icon = false
 
 
 # ---------------------------------------------------------------- case framing (G7/G8)
@@ -484,7 +493,7 @@ func _on_teaser_pressed() -> void:
 # ---------------------------------------------------------------- G9 economy
 
 func set_scrap(total: int) -> void:
-	_scrap_label.text = "%s %d" % [GameConfig.SCRAP_ICON, total]
+	_scrap_label.text = "%d" % total
 
 
 ## A value flies from the pickup's screen position to the counter, so the number
@@ -576,13 +585,21 @@ func _build_payout(payout: Dictionary) -> void:
 		name_label.text = str(row[0])
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_label.add_theme_font_size_override("font_size", 34)
+		var coin := TextureRect.new()
+		coin.texture = UiIcons.money()
+		coin.custom_minimum_size = Vector2(34, 34)
+		coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		var value_label := Label.new()
-		value_label.text = "%s %d" % [GameConfig.SCRAP_ICON, int(row[1])]
+		value_label.text = "%d" % int(row[1])
 		value_label.add_theme_font_size_override("font_size", 34)
 		if bool(row[2]):
 			for label in [name_label, value_label]:
 				label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+		line.add_theme_constant_override("separation", 8)
 		line.add_child(name_label)
+		line.add_child(coin)
 		line.add_child(value_label)
 		_payout_list.add_child(line)
 
@@ -736,7 +753,9 @@ func _build_pause() -> void:
 	sound.add_theme_font_size_override("font_size", 42)
 	_style_button(sound)
 	var refresh_sound := func() -> void:
-		sound.text = "🔇" if AudioDirector.muted else "🔊"
+		sound.text = ""
+		sound.icon = UiIcons.sound(not AudioDirector.muted)
+		sound.expand_icon = false
 	refresh_sound.call()
 	sound.pressed.connect(func() -> void:
 		AudioDirector.muted = not AudioDirector.muted
@@ -756,7 +775,7 @@ func _build_pause() -> void:
 	# Balance testing only: ships disabled, so it costs nothing at runtime.
 	if GameConfig.DEV_GRANT_SCRAP:
 		var grant := Button.new()
-		grant.text = "DEV +%d 💵" % GameConfig.DEV_GRANT_AMOUNT
+		grant.text = "DEV +%d" % GameConfig.DEV_GRANT_AMOUNT
 		grant.add_theme_font_size_override("font_size", 38)
 		_style_button(grant)
 		grant.pressed.connect(func() -> void:

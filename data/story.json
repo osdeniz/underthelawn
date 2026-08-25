@@ -55,7 +55,6 @@
   },
   "evidence": {
     "card_header": "EVIDENCE_CARD_HEADER",
-    "counter_icon": "📋",
     "counter_label": "EVIDENCE_COUNTER_LABEL",
     "items": [
       {
@@ -89,35 +88,30 @@
         "id": "case_board",
         "label": "HUB_CASE_BOARD",
         "hint": "HUB_CASE_BOARD_HINT",
-        "icon": "📋",
         "locked": false
       },
       {
         "id": "town",
         "label": "HUB_TOWN",
         "hint": "HUB_TOWN_HINT",
-        "icon": "🏘️",
         "locked": false
       },
       {
         "id": "restore",
         "label": "HUB_RESTORE",
         "hint": "HUB_RESTORE_HINT",
-        "icon": "🏘️",
         "locked": false
       },
       {
         "id": "workshop",
         "label": "HUB_WORKSHOP",
         "hint": "HUB_WORKSHOP_HINT2",
-        "icon": "🔧",
         "locked": false
       },
       {
         "id": "echoes",
         "label": "HUB_ECHOES",
         "hint": "HUB_ECHOES_HINT",
-        "icon": "📜",
         "locked": false
       }
     ],
