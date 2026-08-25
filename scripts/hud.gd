@@ -24,6 +24,10 @@ signal next_chapter_requested()
 ## VIEW CASE BOARD on the case-notes panel (G10).
 signal board_requested()
 
+## Render sizes for the evidence thumbnails on the completion screen (G12.10).
+const SLOT_VIEW := Vector2i(190, 190)
+const NOTE_VIEW := Vector2i(120, 120)
+
 @onready var _percent_label: Label = %PercentLabel
 @onready var _secret_counter: Label = %SecretCounter
 @onready var _progress: ProgressBar = %Progress
@@ -225,16 +229,39 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	for child in _collection.get_children():
 		child.queue_free()
 	for i in total_secrets:
-		var slot := Label.new()
-		slot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		slot.add_theme_font_size_override("font_size", 40)
+		# The object itself above its name. This was an emoji, which is a blank
+		# box on iOS - the default font carries no emoji glyphs (G12.10).
+		var slot := VBoxContainer.new()
+		slot.add_theme_constant_override("separation", 4)
+		# Wide enough for a two-word name to wrap on words. At the preview's own
+		# 96 px the captions broke mid-syllable.
+		slot.custom_minimum_size = Vector2(200, 0)
+		var caption := Label.new()
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		caption.add_theme_font_size_override("font_size", 30)
 		if i < collected.size():
 			var entry: Dictionary = collected[i]
-			slot.text = "%s\n%s" % [entry.get("emoji", "?"), entry.get("name", "")]
-			slot.add_theme_color_override("font_color", Color(1.0, 0.91, 0.62))
+			var preview := ItemPreview.new()
+			preview.view_size = SLOT_VIEW
+			preview.spin = false
+			preview.custom_minimum_size = Vector2(0, 96)
+			slot.add_child(preview)
+			preview.show_item(str(entry.get("id", "")))
+			caption.text = str(entry.get("name", ""))
+			caption.add_theme_color_override("font_color", Color(1.0, 0.91, 0.62))
 		else:
-			slot.text = "?\n" + tr("UI_EMPTY_SLOT")
-			slot.add_theme_color_override("font_color", Color(0.55, 0.58, 0.52))
+			var empty := Label.new()
+			empty.text = "?"
+			empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			empty.custom_minimum_size = Vector2(0, 96)
+			empty.add_theme_font_size_override("font_size", 52)
+			empty.add_theme_color_override("font_color", Color(0.55, 0.58, 0.52))
+			slot.add_child(empty)
+			caption.text = tr("UI_EMPTY_SLOT")
+			caption.add_theme_color_override("font_color", Color(0.55, 0.58, 0.52))
+		slot.add_child(caption)
 		_collection.add_child(slot)
 
 	_clear_opening_title()
@@ -414,17 +441,31 @@ func _build_case_notes(collected: Array, total: int) -> void:
 	for child in _notes_list.get_children():
 		child.queue_free()
 	for entry: Dictionary in collected:
+		# A thumbnail of the object where the bullet's emoji used to be.
+		var line := HBoxContainer.new()
+		line.add_theme_constant_override("separation", 12)
+		var thumb := ItemPreview.new()
+		thumb.view_size = NOTE_VIEW
+		thumb.spin = false
+		thumb.custom_minimum_size = Vector2(56, 56)
+		# Centred against a note that may wrap to two lines.
+		thumb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		line.add_child(thumb)
+		thumb.show_item(str(entry.get("id", "")))
 		var row := Label.new()
 		var where := str(entry.get("where", ""))
-		row.text = "· %s  %s" % [entry.get("emoji", "?"), entry.get("name", "")]
+		row.text = str(entry.get("name", ""))
 		if where != "":
 			# Where it turned up: the case notes should read like notes, and a
 			# place is what makes a line of evidence a memory.
 			row.text += "  —  %s" % where
 		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		row.add_theme_font_size_override("font_size", 36)
 		row.add_theme_color_override("font_color", Color(1.0, 0.91, 0.62))
-		_notes_list.add_child(row)
+		line.add_child(row)
+		_notes_list.add_child(line)
 	if collected.is_empty():
 		var none := Label.new()
 		none.text = "· " + tr("UI_NOTHING_RECOVERED")

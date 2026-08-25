@@ -360,8 +360,10 @@ func _collect_evidence(prop: Node3D) -> void:
 	var info := variant.evidence_info(kind) if variant != null else {}
 	if info.is_empty():
 		info = SecretItem.info_for(kind)
+	# id travels with the entry so the completion screen can render the object
+	# rather than an emoji (G12.10).
 	_collected.append({ "emoji": info["emoji"], "name": info["name"],
-		"where": info.get("where", "") })
+		"where": info.get("where", ""), "id": str(info.get("id", "")) })
 	hud.show_secret_card(info["emoji"], info["name"], info["line"],
 		func() -> void:
 			hud.set_secret_count(_collected.size(), _evidence_total())

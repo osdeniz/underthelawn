@@ -1557,8 +1557,12 @@ eleven suites are scene tests.
   that has not been found keeps a plain "?". `show_item` now queues the request
   when the node is not in the tree yet — the board builds a whole card and adds
   it afterwards, so `_ready` had not run and the first version threw 32 nulls.
-  Still emoji, and still blank on a phone: the HUD evidence strip
-  (`hud.gd:233`) and the case-notes list (`hud.gd:419`).
+* **The completion screen followed.** The evidence strip and the case-notes
+  list drew the same emoji; both now render the object. `_collected` entries
+  carry an `id` so the screen can build the mesh. Slots are 200 px wide, since
+  at the preview's own 96 px the captions wrapped mid-syllable.
+  Still emoji, and still blank on a phone: the top bar's evidence and wallet
+  chips (`hud.gd`).
 
 ## Not in G1-G9
 
