@@ -29,6 +29,71 @@ static func of(project_id: String) -> Dictionary:
 	return {}
 
 
+## Tier 2 needs enough tier-1 work done first; a project with `requires` also
+## needs that specific one. Locked projects stay VISIBLE — a priced door the
+## player cannot open yet is a goal; a hidden one is nothing.
+static func is_locked(project_id: String) -> bool:
+	var project := of(project_id)
+	if project.is_empty():
+		return true
+	if int(project.get("tier", 1)) >= 2 \
+			and tier1_built() < GameConfig.TIER2_REQUIRES_TIER1:
+		return true
+	var needs := str(project.get("requires", ""))
+	return needs != "" and not is_built(needs)
+
+
+## Why a project is locked, as a ready-to-show line ("" if it is not).
+static func lock_reason(project_id: String) -> String:
+	var project := of(project_id)
+	var needs := str(project.get("requires", ""))
+	if needs != "" and not is_built(needs):
+		return TranslationServer.translate("RESTORE_NEEDS").format(
+			{"name": TranslationServer.translate(str(of(needs).get("name", "")))})
+	if int(project.get("tier", 1)) >= 2 \
+			and tier1_built() < GameConfig.TIER2_REQUIRES_TIER1:
+		return TranslationServer.translate("RESTORE_LOCKED")
+	return ""
+
+
+static func tier1_built() -> int:
+	var total := 0
+	for project: Dictionary in projects():
+		if int(project.get("tier", 1)) == 1 and is_built(str(project.get("id", ""))):
+			total += 1
+	return total
+
+
+## True the first time tier 2 becomes reachable, for the analytics event.
+static func tier2_open() -> bool:
+	return tier1_built() >= GameConfig.TIER2_REQUIRES_TIER1
+
+
+## The station regroups the case screens under one hub card.
+static func station_built() -> bool:
+	return is_built("station")
+
+
+## Percentage added to a chapter's payout by completed projects.
+static func payout_bonus() -> float:
+	var bonus := 0.0
+	for project: Dictionary in projects():
+		if str(project.get("bonus", "")) == "payout_percent" \
+				and is_built(str(project.get("id", ""))):
+			bonus += float(project.get("bonus_value", 0)) * 0.01
+	return bonus
+
+
+## Every project this NPC has finished, for the town card's badges.
+static func projects_for(npc_id: String) -> Array:
+	var out: Array = []
+	for project: Dictionary in projects():
+		if str(project.get("npc_id", "")) == npc_id \
+				and is_built(str(project.get("id", ""))):
+			out.append(project)
+	return out
+
+
 static func is_built(project_id: String) -> bool:
 	return bool(GameState.get_setting(SECTION, project_id, false))
 
@@ -63,14 +128,17 @@ static func scrap_bonus() -> int:
 
 static func buy(project_id: String) -> bool:
 	var project := of(project_id)
-	if project.is_empty() or is_built(project_id):
+	if project.is_empty() or is_built(project_id) or is_locked(project_id):
 		return false
 	var cost := int(project.get("cost", 0))
 	if GameState.scrap_total() < cost:
 		return false
 	GameState.set_setting("economy", "scrap", GameState.scrap_total() - cost)
 	GameState.set_setting(SECTION, project_id, true)
-	Analytics.track("restore_bought", {"id": project_id, "cost": cost})
+	Analytics.track("restore_bought",
+		{"id": project_id, "cost": cost, "tier": int(project.get("tier", 1))})
+	if project_id == "station":
+		Analytics.track("station_completed", {})
 	return true
 
 

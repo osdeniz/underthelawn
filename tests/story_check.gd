@@ -157,15 +157,48 @@ func _ready() -> void:
 			ck("%s kanit %d konum etiketi" % [vid, slot], tag != "", "")
 			ck("konum etiketi csv'de: %s" % tag, known.has(tag), tag)
 
-	ck("5 onarim projesi", RestoreBoard.projects().size() == 5,
+	# G12.7: 5 tier-1 repairs + 5 tier-2 buildings.
+	ck("10 onarim projesi", RestoreBoard.projects().size() == 10,
 		str(RestoreBoard.projects().size()))
+	var by_tier := {1: 0, 2: 0}
+	for project: Dictionary in RestoreBoard.projects():
+		by_tier[int(project.get("tier", 1))] += 1
+	ck("her kademede 5 proje", by_tier[1] == 5 and by_tier[2] == 5, str(by_tier))
+	# What actually creates the spend curve is the GATE, not the sticker price:
+	# the watchtower (600) undercuts the tier-1 mast (800), but no tier-2
+	# project is reachable until two tier-1 repairs are done. So the assertions
+	# are the two things that are really true — tier 2 costs more in total, and
+	# every tier-2 project is gated.
+	var total_t1 := 0
+	var total_t2 := 0
+	for project: Dictionary in RestoreBoard.projects():
+		var cost := int(project.get("cost", 0))
+		if int(project.get("tier", 1)) == 1:
+			total_t1 += cost
+		else:
+			total_t2 += cost
+	ck("tier2 toplami tier1'i asiyor", total_t2 > total_t1,
+		"%d > %d" % [total_t2, total_t1])
+	RestoreBoard.reset()
+	for project: Dictionary in RestoreBoard.projects():
+		if int(project.get("tier", 1)) < 2:
+			continue
+		ck("tier2 basta kilitli: %s" % project.get("id", ""),
+			RestoreBoard.is_locked(str(project.get("id", ""))), "")
+
+	# Every `requires` must name a real project.
+	for project: Dictionary in RestoreBoard.projects():
+		var needs := str(project.get("requires", ""))
+		if needs != "":
+			ck("bagimlilik gercek: %s" % needs,
+				not RestoreBoard.of(needs).is_empty(), needs)
 	for project: Dictionary in RestoreBoard.projects():
 		for field in ["name", "desc", "thanks", "crumb"]:
 			var key := str(project.get(field, ""))
 			ck("proje %s csv'de" % key, known.has(key), key)
 		ck("proje maliyeti makul: %s" % project.get("id", ""),
 			int(project.get("cost", 0)) >= 200
-			and int(project.get("cost", 0)) <= 1000, str(project.get("cost", 0)))
+			and int(project.get("cost", 0)) <= 1500, str(project.get("cost", 0)))
 		# Every project thanks somebody who is actually in town.
 		var npc := str(project.get("npc_id", ""))
 		var found := false

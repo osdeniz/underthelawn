@@ -1320,6 +1320,62 @@ must never be able to break gameplay.
 `GameState`, and in `--script` mode autoloads register AFTER script compilation,
 so the suite failed to compile at all.
 
+## G12.7 — restoration tier 2: buildings
+
+Five buildings on the same shape as the tier-1 repairs — cost, hub layer, NPC
+thank-you phase, story crumb, at most a mild bonus. No walkable town, no
+production loop, no timers.
+
+| project | cost | npc | effect |
+| --- | --- | --- | --- |
+| Marshal's Station | 1200 | marshal | groups the case screens under one STATION card |
+| The Farm | 900 | gus | +5% search payout |
+| The Barn | 500 | gus | none — gated behind the Farm |
+| Two Homes | 700 | sarah | none |
+| Watchtower | 600 | marshal | none |
+
+Tier 2 stays **visible but locked** until two tier-1 repairs are done
+(`TIER2_REQUIRES_TIER1`), with the price and the reason both on the card: a
+priced door you cannot open yet is a goal, a hidden one is nothing. The Barn
+additionally requires the Farm.
+
+The station's "effect" is regrouping, not a new screen — the chapter list and
+the corkboard are already two tabs behind one door, so finishing the station
+renames that door to STATION and reskins its icon. Town cards gain a small badge
+per finished project, so whose life changed is visible at a glance.
+
+### Economy table (measured, not estimated)
+
+| | total |
+| --- | --- |
+| Case 1 earnings, all 8 chapters at 100% | **1 548** |
+| Workshop (unlocks 2 600 + upgrades 5 560) | 8 160 |
+| Restoration (tier 1 2 350 + tier 2 3 900) | 6 250 |
+| Everything | 14 410 |
+
+**The targets are not met yet, and the gap is worth stating plainly.** Case 1
+earns 66% of tier 1's total, so "about half of tier 1 affordable by the end of
+V1" holds — but only for a player who buys nothing in the workshop, and the
+Robot alone is 300. Across V1+V2 (~3 100) a player who unlocks the Robot and the
+Tractor and takes a few upgrades has roughly 1 000 left, which does **not** reach
+the 1 200 Station. To hit the brief's target, either chapter earnings roughly
+double (per-chapter ~190 → ~380) or costs come down about 40%.
+
+Per the brief these numbers wait for real play measurement, so nothing was
+silently rebalanced. `GameConfig.DEV_GRANT_SCRAP` (ships `false`) adds a
++2 000 button to the pause menu for exactly that testing.
+
+An observation from writing the tests: the Watchtower (600) and the Barn (500)
+both undercut the tier-1 Radio Mast (800), so "tier 2 is pricier" is not true
+item by item. What actually creates the curve is the GATE, and the tests assert
+the two things that are true — tier 2 costs more in total, and every tier-2
+project starts locked.
+
+### Analytics
+
+`restore_bought` now carries its tier, plus `restore_tier2_unlocked` and
+`station_completed`.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

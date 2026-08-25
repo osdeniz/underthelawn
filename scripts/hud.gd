@@ -686,6 +686,17 @@ func _build_pause() -> void:
 		return_requested.emit())
 	rows.add_child(town)
 
+	# Balance testing only: ships disabled, so it costs nothing at runtime.
+	if GameConfig.DEV_GRANT_SCRAP:
+		var grant := Button.new()
+		grant.text = "DEV +%d 💵" % GameConfig.DEV_GRANT_AMOUNT
+		grant.add_theme_font_size_override("font_size", 38)
+		_style_button(grant)
+		grant.pressed.connect(func() -> void:
+			GameState.add_scrap(GameConfig.DEV_GRANT_AMOUNT)
+			set_scrap(GameState.scrap_total()))
+		rows.add_child(grant)
+
 	var restart := Button.new()
 	restart.text = tr("UI_RESTART")
 	restart.add_theme_font_size_override("font_size", 42)

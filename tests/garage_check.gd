@@ -60,6 +60,50 @@ func _ready() -> void:
 	ck("blade diski buyudu", is_equal_approx(GameConfig.BLADE_SCALE, 1.15),
 		str(GameConfig.BLADE_SCALE))
 
+	# --- G12.7 restoration tiers
+	RestoreBoard.reset()
+	GameState.set_setting("economy", "scrap", 20000)
+	ck("10 proje", RestoreBoard.projects().size() == 10,
+		str(RestoreBoard.projects().size()))
+	# Tier 2 is locked until enough tier-1 work is done, and a locked project
+	# cannot be bought even with money in hand.
+	ck("tier2 basta kilitli", RestoreBoard.is_locked("station"), "")
+	ck("kilitliyken alinamaz", not RestoreBoard.buy("station"), "")
+	ck("tier1 acik", not RestoreBoard.is_locked("swing"), "")
+	ck("kilit sebebi var", RestoreBoard.lock_reason("station") != "", "")
+	RestoreBoard.buy("swing")
+	ck("1 tier1 sonrasi hala kilitli", RestoreBoard.is_locked("station"), "")
+	RestoreBoard.buy("lantern")
+	ck("2 tier1 sonrasi acildi", not RestoreBoard.is_locked("station"), "")
+	ck("tier2 acik bayragi", RestoreBoard.tier2_open(), "")
+
+	# The barn hangs off the farm regardless of tier progress.
+	ck("ambar ciftlige bagli kilitli", RestoreBoard.is_locked("barn"), "")
+	ck("ciftlik acik", not RestoreBoard.is_locked("farm"), "")
+	RestoreBoard.buy("farm")
+	ck("ciftlikten sonra ambar acildi", not RestoreBoard.is_locked("barn"), "")
+
+	# The farm lifts the payout; the clinic adds a salvage point.
+	ck("ciftlik payout bonusu", is_equal_approx(RestoreBoard.payout_bonus(), 0.05),
+		str(RestoreBoard.payout_bonus()))
+	var plain := ScrapField.payout(10, 1.0, 9)
+	RestoreBoard.reset()
+	var bare := ScrapField.payout(10, 1.0, 9)
+	ck("ciftlik odemeyi artiriyor", int(plain["bonus"]) > int(bare["bonus"]),
+		"%d vs %d" % [int(plain["bonus"]), int(bare["bonus"])])
+
+	# The station regroups the case screens.
+	GameState.set_setting("economy", "scrap", 20000)
+	RestoreBoard.buy("swing")
+	RestoreBoard.buy("lantern")
+	ck("karakol once yok", not RestoreBoard.station_built(), "")
+	RestoreBoard.buy("station")
+	ck("karakol yapildi", RestoreBoard.station_built(), "")
+	ck("marshal projesi var",
+		RestoreBoard.projects_for("marshal").size() >= 1, "")
+	RestoreBoard.reset()
+	GameState.set_setting("economy", "scrap", 0)
+
 	# --- board data contract
 	var pins := Story.list("board.pins")
 	ck("8 pano pini", pins.size() == 8, str(pins.size()))

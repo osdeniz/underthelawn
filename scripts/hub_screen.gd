@@ -83,6 +83,7 @@ var _echoes_page: Control
 var _restore_list: VBoxContainer
 var _echo_list: VBoxContainer
 var _restore_note: Label
+var _tier2_announced := false
 var _progress_label: Label
 var _dialogue: DialogueBox
 
@@ -285,6 +286,7 @@ func _build_tiles() -> Control:
 
 	for tile: Dictionary in Story.list("hub.tiles"):
 		column.add_child(_make_tile(tile))
+	page.set_meta("column", column)
 
 	var story := Button.new()
 	story.text = tr("UI_STORY")
@@ -328,9 +330,17 @@ func _make_tile(tile: Dictionary) -> Button:
 	# The tile dictionary carries the keys directly, so translate them here.
 	var hint := tr(str(tile.get("hint", ""))) if not locked \
 		else Story.text("hub.locked_note")
+	var label := tr(str(tile.get("label", "")))
+	var icon := str(tile.get("icon", ""))
+	# G12.7: once the station is built, the case screens live in it and the card
+	# says so. Grouping, not a new screen — the chapter list and the corkboard
+	# are already two tabs behind this one door.
+	if str(tile.get("id", "")) == "case_board" and RestoreBoard.station_built():
+		label = tr("HUB_STATION")
+		hint = tr("HUB_STATION_HINT")
+		icon = "🏛️"
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.text = "%s   %s\n%s" % [str(tile.get("icon", "")),
-		tr(str(tile.get("label", ""))), hint]
+	button.text = "%s   %s\n%s" % [icon, label, hint]
 	if locked:
 		button.add_theme_color_override("font_color", Color(0.66, 0.66, 0.62))
 	_style_card(button, locked)
@@ -410,13 +420,23 @@ func _refresh_restore() -> void:
 	_restore_note.add_theme_font_size_override("font_size", 30)
 	_restore_note.add_theme_color_override("font_color", Color(0.78, 0.76, 0.7))
 	_restore_list.add_child(_restore_note)
+	var tier2_shown := false
 	for project: Dictionary in RestoreBoard.projects():
+		if int(project.get("tier", 1)) >= 2 and not tier2_shown:
+			tier2_shown = true
+			var header := Label.new()
+			header.text = tr("RESTORE_TIER2")
+			header.add_theme_font_size_override("font_size", 34)
+			header.add_theme_color_override("font_color",
+				Color(0.86, 0.84, 0.78))
+			_restore_list.add_child(header)
 		_restore_list.add_child(_make_project_row(project))
 
 
 func _make_project_row(project: Dictionary) -> Button:
 	var id := str(project.get("id", ""))
 	var built := RestoreBoard.is_built(id)
+	var locked := RestoreBoard.is_locked(id)
 	var cost := int(project.get("cost", 0))
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(0, 190)
@@ -425,22 +445,35 @@ func _make_project_row(project: Dictionary) -> Button:
 	button.add_theme_font_size_override("font_size", 38)
 	var tail := tr("RESTORE_DONE") if built \
 		else tr("RESTORE_BUY").format({"cost": cost})
+	if locked and not built:
+		# Locked doors stay priced and visible: that is what makes them a goal.
+		tail = "🔒  %s   ·   %s" % [RestoreBoard.lock_reason(id),
+			tr("RESTORE_BUY").format({"cost": cost})]
 	var bonus := str(project.get("bonus_text", ""))
+	if bonus == "":
+		bonus = str(project.get("effect_text", ""))
 	var extra := "\n%s" % tr(bonus) if bonus != "" else ""
 	button.text = "%s\n%s%s\n%s" % [tr(str(project.get("name", ""))),
 		tr(str(project.get("desc", ""))), extra, tail]
 	if built:
 		button.add_theme_color_override("font_color", Color(0.62, 0.86, 0.56))
 		_style_card(button, true)
+	elif locked:
+		button.add_theme_color_override("font_color", Color(0.64, 0.65, 0.61))
+		_style_card(button, true)
 	else:
 		_style_card(button)
-	button.pressed.connect(_on_project.bind(id, built, button))
+	button.pressed.connect(_on_project.bind(id, built or locked, button))
 	return button
 
 
 func _on_project(project_id: String, built: bool, source: Button) -> void:
 	Haptics.light()
 	if built:
+		return
+	if RestoreBoard.is_locked(project_id):
+		_restore_note.text = RestoreBoard.lock_reason(project_id)
+		_shake(source)
 		return
 	var project := RestoreBoard.of(project_id)
 	if GameState.scrap_total() < int(project.get("cost", 0)):
@@ -451,9 +484,13 @@ func _on_project(project_id: String, built: bool, source: Button) -> void:
 		AudioDirector.play_scrap()
 		Haptics.success()
 		_restore_note.text = tr(str(project.get("crumb", "")))
+		if RestoreBoard.tier2_open() and not _tier2_announced:
+			_tier2_announced = true
+			Analytics.track("restore_tier2_unlocked", {})
 		_refresh_restore()
 		_refresh_progress()
 		_apply_restore_layers()
+		_refresh_tiles()
 
 
 ## Completed projects add a layer to the hub art; without the art file they add
@@ -761,7 +798,12 @@ func _make_person_row(person: Dictionary) -> Button:
 		button.add_theme_constant_override("h_separation", 30)
 		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.text = "%s\n%s" % [tr(str(person.get("name", ""))),
+	# A badge per finished project for this person: whose life changed, at a
+	# glance, without a second screen (G12.7).
+	var badges := ""
+	for project: Dictionary in RestoreBoard.projects_for(id):
+		badges += " 🏠"
+	button.text = "%s%s\n%s" % [tr(str(person.get("name", ""))), badges,
 		tr(str(person.get("role", "")))]
 	button.add_theme_font_size_override("font_size", 40)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -837,3 +879,25 @@ func refresh() -> void:
 	_show_board_tab(false)
 	_apply_restore_layers()
 	_show_page(_tiles_page)
+
+
+## Rebuilt when a project lands, so the STATION card renames itself the moment
+## the station is finished rather than on the next hub visit.
+func _refresh_tiles() -> void:
+	if _tiles_page == null:
+		return
+	var column: VBoxContainer = _tiles_page.get_meta("column")
+	for child in column.get_children():
+		child.queue_free()
+	for tile: Dictionary in Story.list("hub.tiles"):
+		column.add_child(_make_tile(tile))
+	var story := Button.new()
+	story.text = tr("UI_STORY")
+	story.custom_minimum_size = Vector2(0, 110)
+	story.add_theme_font_size_override("font_size", 34)
+	story.add_theme_color_override("font_color", Color(0.8, 0.8, 0.76))
+	_style_card(story, true)
+	story.pressed.connect(func() -> void:
+		Haptics.light()
+		replay_intro_requested.emit())
+	column.add_child(story)

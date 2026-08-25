@@ -105,6 +105,8 @@ static func payout(ground: int, mown_ratio: float, budget: int) -> Dictionary:
 	var ratio := clampf(mown_ratio, 0.0, 1.0)
 	var scaled := lerpf(GameConfig.SCRAP_BONUS_FLOOR, 1.0, ratio)
 	var bonus := int(round(bonus_pool * scaled))
+	# G12.7: a working farm lifts every payout a little.
+	bonus = int(round(float(bonus) * (1.0 + GameConfig.restore_payout_bonus())))
 	var thorough := 0
 	if ratio >= 0.999:
 		thorough = int(round(bonus_pool * GameConfig.SCRAP_THOROUGH_BONUS))

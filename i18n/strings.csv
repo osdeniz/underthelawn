@@ -309,3 +309,30 @@ PRJ_MAST_NAME,Radio Mast Repair,Telsiz Direği Onarımı
 PRJ_MAST_DESC,Get the old mast talking again.,Eski direği yeniden konuştur.
 PRJ_MAST_THANKS,Signals are cleaner now. Not that anyone answers.,Sinyaller artık daha net. Kimse cevap vermiyor gerçi.
 PRJ_MAST_CRUMB,"Something repeats on the east band. Same pattern, every night.","Doğu bandında bir şey tekrarlanıyor. Aynı örüntü, her gece."
+RESTORE_TIER2,BUILDINGS,BİNALAR
+RESTORE_LOCKED,"The town isn't ready yet.","Kasaba henüz hazır değil."
+RESTORE_NEEDS,"Needs {name} first.","Önce {name} gerekiyor."
+PRJ_STATION_NAME,Marshal's Station,Şerif Karakolu
+PRJ_STATION_DESC,"A desk, a door that locks, and a wall for the board.","Bir masa, kilitlenen bir kapı ve pano için bir duvar."
+PRJ_STATION_BONUS,The case board moves into the station,Vaka panosu karakola taşınır
+PRJ_STATION_THANKS,"Feels like a precinct again. Almost.","Yine bir karakol gibi. Neredeyse."
+PRJ_STATION_CRUMB,"I set out a second desk. Rivera's. It can stay empty a while longer.","İkinci bir masa koydum. Rivera'nın. Biraz daha boş kalabilir."
+PRJ_FARM_NAME,The Farm,Çiftlik
+PRJ_FARM_DESC,Fenced plots and a well on the east slope.,Doğu yamacında çitli tarhlar ve bir kuyu.
+PRJ_FARM_BONUS,+5% search payout,Arama kazancına +%5
+PRJ_FARM_THANKS,"The Barretos found seed. Real seed, not the sweepings.","Barreto'lar tohum buldu. Gerçek tohum, süpürüntü değil."
+PRJ_FARM_CRUMB,"Four families eat from that slope now. Four.","O yamaçtan artık dört aile besleniyor. Dört."
+PRJ_BARN_NAME,The Barn,Ambar
+PRJ_BARN_DESC,Somewhere to put a harvest.,Hasadı koyacak bir yer.
+PRJ_BARN_THANKS,"Getting ready for the first winter. First one in years.","İlk kışa hazırlanıyoruz. Yıllardır ilki."
+PRJ_BARN_CRUMB,"We used to ration by the spoon. Nobody's counting spoons this year.","Eskiden kaşıkla paylaştırırdık. Bu yıl kimse kaşık saymıyor."
+PRJ_HOMES_NAME,Two Homes,İki Ev
+PRJ_HOMES_DESC,Roofs on the two empty houses by the path.,Yol kenarındaki iki boş eve çatı.
+PRJ_HOMES_THANKS,"A family came in off the east road and stayed. Just like that.","Doğu yolundan bir aile geldi ve kaldı. Öylece."
+PRJ_HOMES_CRUMB,"They'd heard there was a town here. I didn't know we were a place people heard about.","Burada bir kasaba olduğunu duymuşlar. İnsanların duyduğu bir yer olduğumuzu bilmiyordum."
+PRJ_WATCHTOWER_NAME,Watchtower,Gözetleme Kulesi
+PRJ_WATCHTOWER_DESC,Timber platform at the end of the lane.,Yolun ucunda ahşap bir platform.
+PRJ_WATCHTOWER_THANKS,"We can see the east road now. All the way to the bend.","Doğu yolunu artık görebiliyoruz. Virajına kadar."
+PRJ_WATCHTOWER_CRUMB,"Nothing's come up that road in three years. I still like being able to look.","Üç yıldır o yoldan bir şey gelmedi. Yine de bakabilmek hoşuma gidiyor."
+HUB_STATION,STATION,KARAKOL
+HUB_STATION_HINT,The board is on the wall now.,Pano artık duvarda.

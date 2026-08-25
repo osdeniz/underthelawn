@@ -459,6 +459,17 @@ const FIND_PAN_ENABLED := true
 const FIND_PAN_TIME := 0.6
 ## Extra salvage points granted by a completed restoration project.
 const RESTORE_SCRAP_BONUS := 1
+## Tier 2 (buildings) stays locked until this many tier-1 repairs are done, so
+## the spend curve steps instead of presenting a wall of four-figure prices.
+const TIER2_REQUIRES_TIER1 := 2
+## Debug only: grants money from the pause menu for balance testing. Ships false.
+const DEV_GRANT_SCRAP := false
+const DEV_GRANT_AMOUNT := 2000
+
+## Payout multiplier from completed restoration projects. Routed through here so
+## ScrapField (pure math, unit tested) never has to know about the town.
+static func restore_payout_bonus() -> float:
+	return RestoreBoard.payout_bonus()
 
 # ---------------------------------------------------------------- G9.2 assists
 ## The last-5% finder (PowerWash lesson): past this completion ratio the
