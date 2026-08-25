@@ -638,26 +638,48 @@ func _on_diorama_building(project_id: String) -> void:
 ## cards fade out so the model is unobstructed, and a tap anywhere skips.
 func _play_restore_scene(project_id: String) -> void:
 	var skipper := Button.new()
+	skipper.name = "RestoreSkip"
 	skipper.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	skipper.flat = true
 	skipper.pressed.connect(_diorama.skip)
 	add_child(skipper)
+
 	var pages: Array = []
 	for child in get_children():
 		var page := child as Control
-		if page != null and page.visible and page != skipper \
-				and not (page is SubViewportContainer):
-			pages.append(page)
-			page.modulate.a = 0.0
+		if page == null or page == skipper or not page.visible:
+			continue
+		if page is SubViewportContainer:
+			continue
+		# The Restore_* badges are rebuilt on every purchase, so they will be
+		# gone before this animation ends. Fading them is pointless and holding
+		# a reference to them is what used to break the hub.
+		if page.name.begins_with("Restore_"):
+			continue
+		pages.append(page)
+		page.modulate.a = 0.0
+
 	await _diorama.play_restore(project_id)
-	for page_any: Variant in pages:
-		(page_any as Control).modulate.a = 1.0
+
+	# The skip button comes off FIRST and unconditionally. It covers the whole
+	# screen and is invisible, so if anything below throws and leaves it there,
+	# every touch after that lands on it and the hub looks frozen — which is
+	# exactly what happened when a faded page was freed mid-animation (G13.2).
 	skipper.queue_free()
+	for page_any: Variant in pages:
+		# is_instance_valid BEFORE the cast: casting a freed object throws in
+		# GDScript, so a guard written after the cast never runs.
+		if not is_instance_valid(page_any):
+			continue
+		(page_any as Control).modulate.a = 1.0
 
 
 func _apply_restore_layers() -> void:
+	# remove_child before queue_free: queue_free defers a frame, and anything
+	# still parented here can be picked up by code that runs in between.
 	for child in get_children():
 		if child is Control and (child as Control).name.begins_with("Restore_"):
+			remove_child(child)
 			child.queue_free()
 	var badges := 0
 	for project: Dictionary in RestoreBoard.projects():

@@ -1654,6 +1654,27 @@ ends at a blank wall of fog.
 `docs/g13/yard_reference.jpg` and `docs/g13/hub_diorama.jpg` are the two scenes
 shot the same way, for judging the gap.
 
+### G13.2 — the frozen hub after a purchase
+
+Buying the station left the hub unresponsive. `_play_restore_scene` fades every
+visible page out, waits for the four-second animation, then fades them back —
+but `_apply_restore_layers` queue_frees the `Restore_*` badges the instant a
+project is bought, so by the time the animation ended those nodes were gone.
+The cast threw, `skipper.queue_free()` on the next line never ran, and a
+full-screen invisible Button stayed over the hub swallowing every touch.
+
+* **`is_instance_valid` has to come BEFORE the cast.** Casting a freed object
+  throws in GDScript, so a guard written after the cast never runs. The first
+  fix put the guard after `as Node` and still threw. The same trap was live in
+  `town_diorama.gd`'s `_life` loops; those are guarded now too.
+* The skip button is removed FIRST and unconditionally, so no later failure can
+  leave the hub covered.
+* `Restore_*` badges are skipped when collecting pages — they are rebuilt on
+  every purchase, so fading them was pointless and holding them was the bug.
+* `tests/DioramaCheck.tscn` reproduces it: it frees a visible page mid-animation
+  and asserts no blocking button survives and no page is left faded. Without the
+  fix it reports 1 blocking button and 6 faded pages.
+
 **Not in the slice.** The other seven projects — swing, lantern, greenhouse,
 clinic, mast, farm, barn — have no building in the scene yet. Adding one is a
 `DIORAMA_BUILDINGS` entry plus a ruined/restored builder pair; nothing else.

@@ -12,6 +12,7 @@ func _ready() -> void:
 	await _check_legacy()
 	await _check_diorama_hub()
 	await _check_transition()
+	await _check_purchase_screen()
 
 	if _fails > 0:
 		push_error("%d DIYORAMA TESTI BASARISIZ" % _fails)
@@ -130,6 +131,63 @@ func _check_transition() -> void:
 		"%.2f" % town.camera.v_offset)
 	town.queue_free()
 	await get_tree().process_frame
+
+
+## Buying a project must hand the screen back afterwards.
+##
+## It did not: _apply_restore_layers queue_frees the hub's Restore_* badges the
+## moment a project is bought, those nodes were still in the "pages to fade
+## back in" list, and by the time the 4-second animation ended they were gone.
+## The cast threw, the full-screen skip button was never freed, and every touch
+## after that landed on an invisible button - the hub looked frozen.
+func _check_purchase_screen() -> void:
+	GameConfig.hub_mode = GameConfig.HUB_MODE_DIORAMA
+	RestoreBoard.reset()
+	GameState.set_setting("economy", "scrap", 90000)
+	# station is tier 2, so tier 1 has to be open first.
+	for opener: String in ["swing", "lantern", "greenhouse"]:
+		RestoreBoard.buy(opener)
+	var hub := HubScreen.new()
+	add_child(hub)
+	await get_tree().process_frame
+	hub._on_tile("restore", false, Button.new())
+	await get_tree().process_frame
+
+	# Buy a building that IS in the diorama, so the transition runs.
+	hub._on_project("station", false, Button.new())
+	await get_tree().process_frame
+	# THE FAILURE: a node that was on screen when the transition started is gone
+	# before it ends. _apply_restore_layers queue_frees the Restore_* badges the
+	# instant a project is bought, and queue_free lands a frame later - long
+	# before a four-second animation is over.
+	for child in hub.get_children():
+		var doomed := child as Control
+		if doomed != null and doomed.visible and doomed is ColorRect:
+			doomed.queue_free()
+			break
+	# Long enough for the whole transition plus its tail.
+	await get_tree().create_timer(6.5).timeout
+
+	var blockers := 0
+	var faded := 0
+	for child in hub.get_children():
+		var control := child as Control
+		if control == null or not is_instance_valid(control):
+			continue
+		# The skip button covers the screen and is flat, so it is invisible: if
+		# one survives, the hub is unusable even though it looks fine.
+		if control is Button and control.size.x >= hub.size.x - 1.0:
+			blockers += 1
+		if control.visible and control.modulate.a < 0.99:
+			faded += 1
+	ck("satin alma sonrasi ekrani kapatan buton kalmadi", blockers == 0,
+		"%d buton" % blockers)
+	ck("satin alma sonrasi sayfalar geri geldi", faded == 0,
+		"%d sayfa soluk kaldi" % faded)
+	ck("bina onarilmis sayiliyor", RestoreBoard.is_built("station"), "")
+	hub.queue_free()
+	await get_tree().process_frame
+	RestoreBoard.reset()
 
 
 func _forms(town: TownDiorama, id: String) -> Array:

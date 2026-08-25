@@ -469,26 +469,27 @@ func _life(delta: float) -> void:
 	_life_t += delta
 	# Crowns lean on the same wind the grass shader uses.
 	for entry: Dictionary in _canopies:
-		var node := entry["node"] as Node3D
-		if node == null or not is_instance_valid(node):
+		# Guard BEFORE the cast: casting a freed object throws in GDScript.
+		if not is_instance_valid(entry["node"]):
 			continue
+		var node := entry["node"] as Node3D
 		var phase := float(entry["phase"]) + _life_t * GameConfig.WIND_SPEED * 0.35
 		node.rotation.z = sin(phase) * 0.035
 		node.rotation.x = cos(phase * 0.7) * 0.022
 	# Washing on the line, which is the grass sway's sibling.
 	for entry: Dictionary in _cloths:
-		var peg := entry["node"] as Node3D
-		if peg == null or not is_instance_valid(peg):
+		if not is_instance_valid(entry["node"]):
 			continue
+		var peg := entry["node"] as Node3D
 		var phase := float(entry["phase"]) + _life_t * 1.6
 		peg.rotation.x = sin(phase) * 0.30
 		peg.rotation.z = sin(phase * 0.6) * 0.12
 	# Lantern flame: a small irregular wobble, never a clean sine, or it reads
 	# as a pulsing LED instead of a flame.
 	for light_any: Variant in _lamps:
-		var lamp := light_any as OmniLight3D
-		if lamp == null or not is_instance_valid(lamp):
+		if not is_instance_valid(light_any):
 			continue
+		var lamp := light_any as OmniLight3D
 		var f := sin(_life_t * 6.1) * 0.5 + sin(_life_t * 11.3) * 0.3 \
 			+ sin(_life_t * 2.7) * 0.2
 		lamp.light_energy = lamp.get_meta("base") * (1.0 + f * 0.14)
@@ -504,10 +505,10 @@ func _fly_birds(delta: float) -> void:
 		_launch_birds()
 	for i in range(_birds.size() - 1, -1, -1):
 		var bird: Dictionary = _birds[i]
-		var node := bird["node"] as Node3D
-		if node == null or not is_instance_valid(node):
+		if not is_instance_valid(bird["node"]):
 			_birds.remove_at(i)
 			continue
+		var node := bird["node"] as Node3D
 		bird["t"] = float(bird["t"]) + delta
 		var t := float(bird["t"])
 		node.position = (bird["from"] as Vector3).lerp(bird["to"] as Vector3,
@@ -1065,15 +1066,11 @@ func play_restore(project_id: String) -> void:
 	parts.sort_custom(func(a: Node3D, b: Node3D) -> bool:
 		return (a.get_meta(PART_META) as Vector3).y < (b.get_meta(PART_META) as Vector3).y)
 
-	print("[G13] zoom basladi, parca=%d" % parts.size())
 	await _zoom_to(plot.position, GameConfig.RESTORE_ZOOM_IN)
-	print("[G13] zoom bitti cam=%v" % camera.position)
 	await _collapse(ruined)
 	ruined.visible = false
 	restored.visible = true
-	print("[G13] raise basliyor")
 	await _raise(parts)
-	print("[G13] raise bitti")
 	await _flash(restored)
 	await _zoom_home(GameConfig.RESTORE_ZOOM_OUT)
 
