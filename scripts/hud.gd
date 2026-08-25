@@ -566,8 +566,9 @@ func _build_pad_ring() -> void:
 	_drive_hint.text = tr("HINT_DRIVE")
 	_drive_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_drive_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	_drive_hint.anchor_top = 0.68
-	_drive_hint.anchor_bottom = 0.68
+	# Below the evidence card, which grew in G10.2 and now reaches 0.74.
+	_drive_hint.anchor_top = 0.83
+	_drive_hint.anchor_bottom = 0.83
 	_drive_hint.offset_left = -520
 	_drive_hint.offset_right = 520
 	_drive_hint.add_theme_font_size_override("font_size", 44)

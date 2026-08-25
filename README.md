@@ -1428,6 +1428,65 @@ against one equation. The lantern's halo and the darkest core of each cast
 shadow keep some pattern. The fix is upstream — generate on a FLAT colour
 instead — and `FLAT_KEY` in the tool already implements that path exactly.
 
+## G12.8 — play-test fixes
+
+Six findings from playing on device.
+
+### Evidence had two meshes for sixteen objects
+
+`SecretItem` only knew the teddy bear and the radio, so a found ribbon lay in
+the grass as a bear and rode home on the driver's back as one. There is now a
+builder per evidence id (16 pieces + 8 echoes), each small on purpose — at
+gameplay distance these read as a silhouette and a colour, not as detail. All
+sixteen were checked side by side on a contact sheet.
+
+### The icons were invisible on the phone
+
+The ground marker and the reveal card both drew an EMOJI. macOS falls back to
+its colour-emoji font, so it looked right on the desktop; iOS's default font has
+no emoji glyphs and Godot does not reach for the system one, so on device every
+marker and every card was blank. Both now show the OBJECT: the marker drops a
+small copy of the mesh, and `ItemPreview` renders the mesh live into the card
+through a `SubViewport` with its own world. Font-independent, always matches what
+is lying in the grass, and needs no art.
+
+### The camera lurched, late
+
+`FIND_PAN_ENABLED` is off. The glance fired after the evidence card closed —
+3.6 s after the find — so the camera moved to a spot the player had stopped
+thinking about. The permanent light beam already does the spatial-memory job the
+pan was there for.
+
+### Economy: earnings roughly tripled
+
+The measured gap was real: all eight chapters at 100% paid **1 548** against a
+workshop of 8 160 and a town of 6 250, so a player who bought the Robot and the
+Tractor could not reach the 1 200 station across two whole cases. Pickups went
+4-8 → 9-16 and per-yard budgets rose with yard size, which lifts the completion
+bonus too since the bonus pool is derived from the expected ground haul.
+
+Case 1 at 100% now pays **4 192**. After the Robot and the Tractor (1 100) a
+player finishes V1 with ~3 100 — enough for all of tier 1 — and across V1+V2 can
+afford the station plus two or three buildings. The split is unchanged: ground
+pickups stay the smaller half.
+
+### Ellie is on screen
+
+A MISSING poster sits under the top bar during a search — her face, her name,
+"since last night" — and the opening now ends on a fifth card with the same
+photo and the reason to start. The word for what happened to the world is still
+never used.
+
+`DEV_STARTING_SCRAP` (50 000) seeds a fresh save so systems downstream of the
+economy can be exercised without grinding to them; it ships at 0.
+
+### Test suites are all scenes now
+
+`model_check`, `g3_check` and `variant_check` ran through `--script`, where
+autoloads register after compilation — with `RestoreBoard` now in the dependency
+chain that surfaced as a confusing "Compilation failed" line before a pass. All
+eleven suites are scene tests.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

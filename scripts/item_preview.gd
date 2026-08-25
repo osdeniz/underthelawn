@@ -30,9 +30,9 @@ func _ready() -> void:
 	_viewport.add_child(_pivot)
 
 	var camera := Camera3D.new()
-	camera.position = Vector3(0.0, 0.55, 1.15)
-	camera.rotation.x = -0.42
-	camera.fov = 42.0
+	camera.position = Vector3(0.0, 0.46, 0.95)
+	camera.rotation.x = -0.44
+	camera.fov = 40.0
 	_viewport.add_child(camera)
 
 	# Two lights and a soft ambient, tuned so a dark object still reads.
@@ -64,20 +64,34 @@ func show_item(evidence_id: String) -> void:
 	_item.setup_by_id(evidence_id, Vector3.ZERO)
 	# Objects vary a lot in size; frame them all to a similar height.
 	_item.scale = Vector3.ONE * _fit_scale(evidence_id)
+	# Most of these meshes are built standing on y=0 for the lawn, so the pivot
+	# drops to put their middle, not their feet, in front of the camera.
+	_item.position.y = -_item_height(evidence_id) * 0.5
 	_pivot.rotation.y = 0.0
+
+
+## Roughly how tall each object stands, for centring it in the card.
+func _item_height(evidence_id: String) -> float:
+	match evidence_id:
+		"ellie": return 0.55
+		"rabbit", "toy": return 0.45
+		"radio", "can", "candle", "flashlight": return 0.28
+		"boot", "seedlings", "gap": return 0.30
+		"ribbon", "thread", "arrow", "prints", "stones", "hatch": return 0.12
+	return 0.14
 
 
 ## Per-object framing. Measured by eye against the card, since these meshes were
 ## authored at world scale for the lawn, not for a portrait.
 func _fit_scale(evidence_id: String) -> float:
 	match evidence_id:
-		"ellie": return 1.05
-		"hatch", "prints", "arrow", "stones", "seedlings": return 1.25
-		"gap": return 1.15
-		"ribbon", "thread", "patch", "candle": return 2.0
-		"boot", "can", "flashlight", "drawing", "map", "notebook": return 1.6
-		"note", "leaflet", "letter", "log", "headline": return 1.4
-	return 1.35
+		"ellie": return 0.80
+		"hatch", "prints", "arrow", "stones", "seedlings": return 0.95
+		"gap": return 0.95
+		"ribbon", "thread", "patch", "candle": return 1.55
+		"boot", "can", "flashlight", "drawing", "map", "notebook": return 1.15
+		"note", "leaflet", "letter", "log", "headline": return 1.05
+	return 1.10
 
 
 func _process(delta: float) -> void:

@@ -118,4 +118,4 @@ func _ready() -> void:
 	ck("robot pitch 1.9", is_equal_approx(float(robot_profile["idle_pitch"]), 1.9))
 
 	print("--- %s ---" % ("TUM G3 TESTLERI GECTI" if fails == 0 else "%d TEST BASARISIZ" % fails))
-	quit(fails)
+	get_tree().quit(fails)

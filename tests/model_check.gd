@@ -127,4 +127,4 @@ func _ready() -> void:
 		m.mowed_count == 0 and m.mowable_cells > 0, str(m.mowable_cells))
 
 	print("--- %s ---" % ("TUM TESTLER GECTI" if fails == 0 else "%d TEST BASARISIZ" % fails))
-	quit(fails)
+	get_tree().quit(fails)
