@@ -1259,6 +1259,67 @@ lightened because dark ones turned into featureless slabs at the frame edge.
 Art: `textures/story/reunion.jpg` and `textures/hub/case2_teaser.jpg` are in.
 The reunion file arrived in a `textures/stroy/` folder (typo) and was moved.
 
+## G12.6 — world depth, find markers, town restoration
+
+### World depth
+
+A fourth opening card ("bigger settlements survived, somewhere east") sits
+between the rebuild and the disappearance, and every chapter hides ONE **echo**
+— a world-history find kept entirely separate from the case evidence
+(`echo_def` in levels.json, `EchoLog` for state). A yellowed headline, an
+evacuation leaflet, a child's notebook, a guard patch from an emblem nobody here
+recognises, a broadcast log whose last east-relay contact was three years ago.
+
+They never advance the case, they are buried like evidence with no glow at all,
+and the word "zombie" appears nowhere — the register is *the dead years*. Found
+echoes are readable in a new **ECHOES** hub screen; unfound ones are blank slots,
+so the collection shows its size without spoiling its contents. The echo card
+deliberately drops the evidence card's fly-to-counter flourish: dressing an
+aside like a story beat would lie about its importance.
+
+### Find markers
+
+Every find now leaves a permanent mark: a green ring, a thin beam, and the
+object's own icon lying at its foot. It flares for 2.4 s and settles to a faint
+shaft for the rest of the chapter, so a mown lawn becomes a map of the player's
+own search. The camera also glances at the spot for 0.6 s once the card clears
+(`FIND_PAN_ENABLED` turns it off), and the case notes now say WHERE each piece
+turned up (`location_tag` per evidence, e.g. *near the fence line*).
+
+The beam is a thin cylinder rather than particles: cheaper, steadier, and it
+reads from across the lawn, which is the entire job.
+
+### Town restoration — what the money is FOR
+
+A new hub screen (`projects.json`, `RestoreBoard`) spends money on the town
+rather than the machine: Ellie's Swing 300, Square Lantern 250, Sarah's
+Greenhouse 400, Clinic Supplies 600 (the one with a mechanical effect: +1
+salvage point per search), Radio Mast Repair 800 — whose crumb is the bridge to
+Case 2 ("something repeats on the east band, same pattern, every night").
+
+Each finished project adds a hub background layer
+(`textures/hub/restore_<id>.png`, falling back to a badge) and appends a
+**permanent thank-you plus one crumb** to that NPC's town dialogue.
+
+**Economy note.** Restoration is deliberately a SEPARATE screen from the
+workshop, and priced above it at the low end: the workshop answers "what do I
+need", restoration answers "what is the money for now that I have it". Mixing
+them into one list would let a sentimental purchase starve a functional one.
+Only the clinic feeds back into income, and only mildly — the swing is the one
+I expect players to buy first, and it does nothing at all except exist.
+
+### Analytics
+
+`Analytics.track()` records `echo_found`, `restore_bought` and
+`evidence_location_panned`. Nothing leaves the device: events buffer in memory
+and print, so the funnel's shape is visible now and a real backend is a change
+in one function. It is static and dependency-free on purpose — an analytics call
+must never be able to break gameplay.
+
+**Trap, again:** `story_check` had to become a scene test. `RestoreBoard` reads
+`GameState`, and in `--script` mode autoloads register AFTER script compilation,
+so the suite failed to compile at all.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

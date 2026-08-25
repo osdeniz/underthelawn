@@ -14,18 +14,26 @@
           "id": "rabbit",
           "icon": "🧸",
           "name": "EV_CH01_A_NAME",
-          "flavor_text": "EV_CH01_A_LINE"
+          "flavor_text": "EV_CH01_A_LINE",
+          "location_tag": "LOC_FENCE"
         },
         {
           "id": "radio",
           "icon": "📻",
           "name": "EV_CH01_B_NAME",
-          "flavor_text": "EV_CH01_B_LINE"
+          "flavor_text": "EV_CH01_B_LINE",
+          "location_tag": "LOC_PORCH"
         }
       ],
       "opening": {
         "headline": "OPENING_01_HEADLINE",
         "subline": "OPENING_01_SUBLINE"
+      },
+      "echo_def": {
+        "id": "headline",
+        "icon": "📰",
+        "name": "ECHO_CH01_NAME",
+        "flavor_text": "ECHO_CH01_LINE"
       }
     },
     "ch02_neighbor": {
@@ -41,18 +49,26 @@
           "id": "boot",
           "icon": "👢",
           "name": "EV_CH02_A_NAME",
-          "flavor_text": "EV_CH02_A_LINE"
+          "flavor_text": "EV_CH02_A_LINE",
+          "location_tag": "LOC_POOL"
         },
         {
           "id": "gap",
           "icon": "🕳️",
           "name": "EV_CH02_B_NAME",
-          "flavor_text": "EV_CH02_B_LINE"
+          "flavor_text": "EV_CH02_B_LINE",
+          "location_tag": "LOC_FENCE"
         }
       ],
       "opening": {
         "headline": "OPENING_02_HEADLINE",
         "subline": "OPENING_02_SUBLINE"
+      },
+      "echo_def": {
+        "id": "leaflet",
+        "icon": "📄",
+        "name": "ECHO_CH02_NAME",
+        "flavor_text": "ECHO_CH02_LINE"
       }
     },
     "ch03_playground": {
@@ -68,18 +84,26 @@
           "id": "ribbon",
           "icon": "🎀",
           "name": "EV_CH03_A_NAME",
-          "flavor_text": "EV_CH03_A_LINE"
+          "flavor_text": "EV_CH03_A_LINE",
+          "location_tag": "LOC_SWINGS"
         },
         {
           "id": "arrow",
           "icon": "➡️",
           "name": "EV_CH03_B_NAME",
-          "flavor_text": "EV_CH03_B_LINE"
+          "flavor_text": "EV_CH03_B_LINE",
+          "location_tag": "LOC_SANDPIT"
         }
       ],
       "opening": {
         "headline": "OPENING_03_HEADLINE",
         "subline": "OPENING_03_SUBLINE"
+      },
+      "echo_def": {
+        "id": "notebook",
+        "icon": "📕",
+        "name": "ECHO_CH03_NAME",
+        "flavor_text": "ECHO_CH03_LINE"
       }
     },
     "ch04_flooded": {
@@ -95,18 +119,26 @@
           "id": "prints",
           "icon": "👣",
           "name": "EV_CH04_A_NAME",
-          "flavor_text": "EV_CH04_A_LINE"
+          "flavor_text": "EV_CH04_A_LINE",
+          "location_tag": "LOC_WATER"
         },
         {
           "id": "can",
           "icon": "🥫",
           "name": "EV_CH04_B_NAME",
-          "flavor_text": "EV_CH04_B_LINE"
+          "flavor_text": "EV_CH04_B_LINE",
+          "location_tag": "LOC_STONES"
         }
       ],
       "opening": {
         "headline": "OPENING_04_HEADLINE",
         "subline": "OPENING_04_SUBLINE"
+      },
+      "echo_def": {
+        "id": "patch",
+        "icon": "🎖️",
+        "name": "ECHO_CH04_NAME",
+        "flavor_text": "ECHO_CH04_LINE"
       }
     },
     "ch05_greenhouse": {
@@ -122,18 +154,26 @@
           "id": "seedlings",
           "icon": "🌱",
           "name": "EV_CH05_A_NAME",
-          "flavor_text": "EV_CH05_A_LINE"
+          "flavor_text": "EV_CH05_A_LINE",
+          "location_tag": "LOC_BENCH"
         },
         {
           "id": "thread",
           "icon": "🧵",
           "name": "EV_CH05_B_NAME",
-          "flavor_text": "EV_CH05_B_LINE"
+          "flavor_text": "EV_CH05_B_LINE",
+          "location_tag": "LOC_DOOR"
         }
       ],
       "opening": {
         "headline": "OPENING_05_HEADLINE",
         "subline": "OPENING_05_SUBLINE"
+      },
+      "echo_def": {
+        "id": "letter",
+        "icon": "🌻",
+        "name": "ECHO_CH05_NAME",
+        "flavor_text": "ECHO_CH05_LINE"
       }
     },
     "ch06_watertower": {
@@ -149,18 +189,26 @@
           "id": "flashlight",
           "icon": "🔦",
           "name": "EV_CH06_A_NAME",
-          "flavor_text": "EV_CH06_A_LINE"
+          "flavor_text": "EV_CH06_A_LINE",
+          "location_tag": "LOC_TOWER"
         },
         {
           "id": "note",
           "icon": "📄",
           "name": "EV_CH06_B_NAME",
-          "flavor_text": "EV_CH06_B_LINE"
+          "flavor_text": "EV_CH06_B_LINE",
+          "location_tag": "LOC_OPEN"
         }
       ],
       "opening": {
         "headline": "OPENING_06_HEADLINE",
         "subline": "OPENING_06_SUBLINE"
+      },
+      "echo_def": {
+        "id": "log",
+        "icon": "📻",
+        "name": "ECHO_CH06_NAME",
+        "flavor_text": "ECHO_CH06_LINE"
       }
     },
     "ch07_mill": {
@@ -176,18 +224,26 @@
           "id": "hatch",
           "icon": "🚪",
           "name": "EV_CH07_A_NAME",
-          "flavor_text": "EV_CH07_A_LINE"
+          "flavor_text": "EV_CH07_A_LINE",
+          "location_tag": "LOC_MILL"
         },
         {
           "id": "stones",
           "icon": "🪨",
           "name": "EV_CH07_B_NAME",
-          "flavor_text": "EV_CH07_B_LINE"
+          "flavor_text": "EV_CH07_B_LINE",
+          "location_tag": "LOC_GRASS"
         }
       ],
       "opening": {
         "headline": "OPENING_07_HEADLINE",
         "subline": "OPENING_07_SUBLINE"
+      },
+      "echo_def": {
+        "id": "candle",
+        "icon": "🕯️",
+        "name": "ECHO_CH07_NAME",
+        "flavor_text": "ECHO_CH07_LINE"
       }
     },
     "ch08_cellar": {
@@ -204,18 +260,26 @@
           "id": "ellie",
           "icon": "👧",
           "name": "EV_CH08_A_NAME",
-          "flavor_text": "EV_CH08_A_LINE"
+          "flavor_text": "EV_CH08_A_LINE",
+          "location_tag": "LOC_LAMP"
         },
         {
           "id": "drawing",
           "icon": "🖼️",
           "name": "EV_CH08_B_NAME",
-          "flavor_text": "EV_CH08_B_LINE"
+          "flavor_text": "EV_CH08_B_LINE",
+          "location_tag": "LOC_BEDS"
         }
       ],
       "opening": {
         "headline": "OPENING_08_HEADLINE",
         "subline": "OPENING_08_SUBLINE"
+      },
+      "echo_def": {
+        "id": "map",
+        "icon": "🗺️",
+        "name": "ECHO_CH08_NAME",
+        "flavor_text": "ECHO_CH08_LINE"
       }
     }
   }

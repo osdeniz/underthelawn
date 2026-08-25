@@ -49,6 +49,10 @@ var _exit_offered := false
 var _evidence_props: Array = []
 ## The haul riding on the driver's back / the machine's deck.
 var carry: CarryStack
+## The chapter's echo: one buried world-history find, no glow, no hint — the
+## surprise is the point (G12.6).
+var _echo_prop: Node3D
+var _echo_cell := Vector2i(-1, -1)
 
 
 ## The variant has to be applied before ANY child _ready runs: EnvironmentBuilder
@@ -69,7 +73,10 @@ func _ready() -> void:
 	scrap_field = ScrapField.new()
 	scrap_field.name = "ScrapField"
 	add_child(scrap_field)
-	scrap_field.setup(model, variant.scrap_budget, variant.decor_seed)
+	# A finished clinic puts one more salvage point in every yard (G12.6).
+	scrap_field.setup(model, variant.scrap_budget + RestoreBoard.scrap_bonus(),
+		variant.decor_seed)
+	_place_echo()
 	var hint := RemainderHint.new()
 	hint.name = "RemainderHint"
 	add_child(hint)
@@ -300,6 +307,8 @@ func _on_secret_uncovered(col: int, row: int) -> void:
 	_fx_root.add_child(prop)
 	prop.setup_prop(kind, LawnModel.cell_center(col, row))
 	prop.set_meta("kind", kind)
+	var reveal_info := variant.evidence_info(kind) if variant != null else {}
+	prop.set_meta("icon", str(reveal_info.get("emoji", "")))
 	_evidence_props.append(prop)
 	AudioDirector.play_discovery()
 	Haptics.medium()
@@ -328,6 +337,8 @@ func _collect_evidence(prop: Node3D) -> void:
 	prop.queue_free()
 
 	DigBurst.spawn(_fx_root, ground)
+	# The find leaves a permanent mark, so the lawn remembers where it paid out.
+	FindMarker.spawn(_fx_root, ground, str(prop.get_meta("icon", "")))
 	AudioDirector.play_discovery()
 	Haptics.success()
 	if carry != null:
@@ -336,16 +347,30 @@ func _collect_evidence(prop: Node3D) -> void:
 	var info := variant.evidence_info(kind) if variant != null else {}
 	if info.is_empty():
 		info = SecretItem.info_for(kind)
-	_collected.append({ "emoji": info["emoji"], "name": info["name"] })
+	_collected.append({ "emoji": info["emoji"], "name": info["name"],
+		"where": info.get("where", "") })
 	hud.show_secret_card(info["emoji"], info["name"], info["line"],
 		func() -> void:
 			hud.set_secret_count(_collected.size(), _evidence_total())
+			_glance_at(ground)
 			if _collected.size() >= _evidence_total():
 				_offer_exit())
 
 
+## A short look back at the spot once the card clears: spatial memory, cheaply.
+func _glance_at(at: Vector3) -> void:
+	if not GameConfig.FIND_PAN_ENABLED or cam == null:
+		return
+	Analytics.track("evidence_location_panned", {"chapter": variant_id})
+	cam.glance_at(at, GameConfig.FIND_PAN_TIME)
+
+
 func _on_cells_mown(_count: int) -> void:
 	hud.set_progress(model.completion_ratio())
+	# The echo is revealed by cutting its cell, same as evidence — but silently,
+	# with no marker until it is actually picked up.
+	if _echo_cell.x >= 0 and model.is_cut(_echo_cell.x, _echo_cell.y):
+		_check_echo(_echo_cell.x, _echo_cell.y)
 
 
 func _on_completed() -> void:
@@ -480,3 +505,44 @@ func _next_chapter() -> void:
 	var root := get_parent()
 	if root != null and root.has_method("start_next_chapter"):
 		root.start_next_chapter(variant_id)
+
+
+# ---------------------------------------------------------------- echoes (G12.6)
+
+## Buries the chapter's echo on a mowable cell that holds nothing else. Seeded
+## from decor_seed, so a yard's echo is always in the same place.
+func _place_echo() -> void:
+	if variant == null or variant.echo_def.is_empty():
+		return
+	if EchoLog.is_found(variant_id):
+		# Already collected in a previous run: a collectible found twice is not
+		# a collectible.
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = variant.decor_seed + 7717
+	for _try in 300:
+		var col := rng.randi_range(1, GameConfig.GRID_COLS - 2)
+		var row := rng.randi_range(1, GameConfig.GRID_ROWS - 2)
+		if not model.is_mowable(col, row):
+			continue
+		if model.secret_cells.has(Vector2i(col, row)):
+			continue
+		_echo_cell = Vector2i(col, row)
+		return
+
+
+func _check_echo(col: int, row: int) -> void:
+	if _echo_cell.x < 0 or Vector2i(col, row) != _echo_cell:
+		return
+	_echo_cell = Vector2i(-1, -1)
+	var info := variant.echo_info()
+	if info.is_empty():
+		return
+	var at := LawnModel.cell_center(col, row)
+	EchoLog.mark_found(variant_id)
+	FindMarker.spawn(_fx_root, at, str(info["emoji"]))
+	AudioDirector.play_discovery()
+	Haptics.light()
+	Analytics.track("echo_found",
+		{"chapter": variant_id, "echo": info.get("id", "")})
+	hud.show_echo_card(str(info["emoji"]), str(info["name"]), str(info["line"]))

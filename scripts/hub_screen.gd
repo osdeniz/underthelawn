@@ -78,6 +78,11 @@ var _board_view: EvidenceBoard
 var _board_tab_places: Button
 var _board_tab_evidence: Button
 var _scrap_label: Label
+var _restore_page: Control
+var _echoes_page: Control
+var _restore_list: VBoxContainer
+var _echo_list: VBoxContainer
+var _restore_note: Label
 var _progress_label: Label
 var _dialogue: DialogueBox
 
@@ -91,10 +96,14 @@ func _ready() -> void:
 	_board_page = _build_board()
 	_town_page = _build_town()
 	_workshop_page = _build_workshop()
+	_restore_page = _build_restore()
+	_echoes_page = _build_echoes()
 	add_child(_tiles_page)
 	add_child(_board_page)
 	add_child(_town_page)
 	add_child(_workshop_page)
+	add_child(_restore_page)
+	add_child(_echoes_page)
 	_show_page(_tiles_page)
 
 
@@ -245,7 +254,8 @@ func _new_page() -> Control:
 
 
 func _show_page(page: Control) -> void:
-	for candidate in [_tiles_page, _board_page, _town_page, _workshop_page]:
+	for candidate in [_tiles_page, _board_page, _town_page, _workshop_page,
+			_restore_page, _echoes_page]:
 		if candidate == null:
 			continue
 		candidate.visible = candidate == page
@@ -344,6 +354,12 @@ func _on_tile(id: String, locked: bool, button: Button) -> void:
 		"workshop":
 			_workshop_page.refresh()
 			_show_page(_workshop_page)
+		"restore":
+			_refresh_restore()
+			_show_page(_restore_page)
+		"echoes":
+			_refresh_echoes()
+			_show_page(_echoes_page)
 		_:
 			_shake(button)
 
@@ -354,6 +370,193 @@ func _shake(control: Control) -> void:
 	for offset: float in [16.0, -12.0, 8.0, -4.0, 0.0]:
 		tw.tween_property(control, "position", home + Vector2(offset, 0.0), 0.055)
 	tw.tween_callback(func() -> void: control.position = home)
+
+
+# ---------------------------------------------------------------- restore (G12.6)
+
+## What the money is FOR once the workshop has what it needs. Deliberately a
+## separate screen from the workshop: mixing "the tool I need" with "the thing I
+## give back" would let one crowd out the other.
+func _build_restore() -> Control:
+	var page := _new_page()
+	page.add_child(_list_backdrop(280.0))
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 50
+	scroll.offset_right = -50
+	scroll.offset_top = 300
+	scroll.offset_bottom = -190
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	page.add_child(scroll)
+
+	_restore_list = VBoxContainer.new()
+	_restore_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_restore_list.add_theme_constant_override("separation", 20)
+	scroll.add_child(_restore_list)
+	page.add_child(_back_button())
+	return page
+
+
+func _refresh_restore() -> void:
+	for child in _restore_list.get_children():
+		child.queue_free()
+	var heading := Label.new()
+	heading.text = Story.text("restore.title")
+	heading.add_theme_font_size_override("font_size", 40)
+	heading.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+	_restore_list.add_child(heading)
+	_restore_note = Label.new()
+	_restore_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_restore_note.add_theme_font_size_override("font_size", 30)
+	_restore_note.add_theme_color_override("font_color", Color(0.78, 0.76, 0.7))
+	_restore_list.add_child(_restore_note)
+	for project: Dictionary in RestoreBoard.projects():
+		_restore_list.add_child(_make_project_row(project))
+
+
+func _make_project_row(project: Dictionary) -> Button:
+	var id := str(project.get("id", ""))
+	var built := RestoreBoard.is_built(id)
+	var cost := int(project.get("cost", 0))
+	var button := Button.new()
+	button.custom_minimum_size = Vector2(0, 190)
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.add_theme_font_size_override("font_size", 38)
+	var tail := tr("RESTORE_DONE") if built \
+		else tr("RESTORE_BUY").format({"cost": cost})
+	var bonus := str(project.get("bonus_text", ""))
+	var extra := "\n%s" % tr(bonus) if bonus != "" else ""
+	button.text = "%s\n%s%s\n%s" % [tr(str(project.get("name", ""))),
+		tr(str(project.get("desc", ""))), extra, tail]
+	if built:
+		button.add_theme_color_override("font_color", Color(0.62, 0.86, 0.56))
+		_style_card(button, true)
+	else:
+		_style_card(button)
+	button.pressed.connect(_on_project.bind(id, built, button))
+	return button
+
+
+func _on_project(project_id: String, built: bool, source: Button) -> void:
+	Haptics.light()
+	if built:
+		return
+	var project := RestoreBoard.of(project_id)
+	if GameState.scrap_total() < int(project.get("cost", 0)):
+		_restore_note.text = Story.text("restore.locked_note")
+		_shake(source)
+		return
+	if RestoreBoard.buy(project_id):
+		AudioDirector.play_scrap()
+		Haptics.success()
+		_restore_note.text = tr(str(project.get("crumb", "")))
+		_refresh_restore()
+		_refresh_progress()
+		_apply_restore_layers()
+
+
+## Completed projects add a layer to the hub art; without the art file they add
+## a small badge instead, so progress is always visible.
+func _apply_restore_layers() -> void:
+	for child in get_children():
+		if child is Control and (child as Control).name.begins_with("Restore_"):
+			child.queue_free()
+	var badges := 0
+	for project: Dictionary in RestoreBoard.projects():
+		var id := str(project.get("id", ""))
+		if not RestoreBoard.is_built(id):
+			continue
+		var art := TextureLibrary.find("hub/" + str(project.get("layer", "")))
+		if art != null:
+			var layer := TextureRect.new()
+			layer.name = "Restore_" + id
+			layer.texture = art
+			layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(layer)
+			move_child(layer, 2)
+			continue
+		var badge := Label.new()
+		badge.name = "Restore_" + id
+		badge.text = "🏘️"
+		badge.add_theme_font_size_override("font_size", 44)
+		badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		badge.offset_left = -120 - badges * 64
+		badge.offset_right = -60 - badges * 64
+		badge.offset_top = 262
+		badge.offset_bottom = 322
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(badge)
+		badges += 1
+
+
+# ---------------------------------------------------------------- echoes (G12.6)
+
+func _build_echoes() -> Control:
+	var page := _new_page()
+	page.add_child(_list_backdrop(280.0))
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 50
+	scroll.offset_right = -50
+	scroll.offset_top = 300
+	scroll.offset_bottom = -190
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	page.add_child(scroll)
+	_echo_list = VBoxContainer.new()
+	_echo_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_echo_list.add_theme_constant_override("separation", 18)
+	scroll.add_child(_echo_list)
+	page.add_child(_back_button())
+	return page
+
+
+## Found echoes are readable; the rest are blank slots, so the collection shows
+## its own size without spoiling what is in it.
+func _refresh_echoes() -> void:
+	for child in _echo_list.get_children():
+		child.queue_free()
+	var heading := Label.new()
+	heading.text = "%s   %d/%d" % [Story.text("echoes.title"),
+		EchoLog.found_count(), EchoLog.total()]
+	heading.add_theme_font_size_override("font_size", 40)
+	heading.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+	_echo_list.add_child(heading)
+	var sub := Label.new()
+	sub.text = Story.text("echoes.header")
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sub.add_theme_font_size_override("font_size", 30)
+	sub.add_theme_color_override("font_color", Color(0.76, 0.74, 0.68))
+	_echo_list.add_child(sub)
+
+	if EchoLog.found_count() == 0:
+		var empty := Label.new()
+		empty.text = Story.text("echoes.empty")
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.add_theme_font_size_override("font_size", 34)
+		empty.add_theme_color_override("font_color", Color(0.66, 0.64, 0.6))
+		_echo_list.add_child(empty)
+
+	for chapter: Dictionary in ChapterProgress.chapters():
+		var vid := str(chapter.get("variant_id", ""))
+		var info := LevelVariant.of(vid).echo_info()
+		if info.is_empty():
+			continue
+		var found := EchoLog.is_found(vid)
+		var row := Label.new()
+		row.custom_minimum_size = Vector2(0, 110)
+		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.add_theme_font_size_override("font_size", 34)
+		if found:
+			row.text = "%s  %s\n%s" % [info["emoji"], info["name"], info["line"]]
+			row.add_theme_color_override("font_color", Color(0.92, 0.90, 0.84))
+		else:
+			row.text = "·  ———"
+			row.add_theme_color_override("font_color", Color(0.5, 0.5, 0.46))
+		_echo_list.add_child(row)
 
 
 # ---------------------------------------------------------------- workshop
@@ -572,6 +775,15 @@ func _on_person(person_id: String) -> void:
 		return
 	Haptics.light()
 	var lines := Dialogue.town_lines(person_id, ChapterProgress.done_count())
+	# A finished project earns a permanent thank-you, appended after whatever
+	# this character normally says (G12.6).
+	var project := RestoreBoard.thanks_for(person_id)
+	if not project.is_empty():
+		lines = lines.duplicate()
+		lines.append({"speaker": person_id,
+			"text": str(project.get("thanks", ""))})
+		lines.append({"speaker": person_id,
+			"text": str(project.get("crumb", ""))})
 	if lines.is_empty():
 		return
 	_dialogue = DialogueBox.new()
@@ -623,4 +835,5 @@ func refresh() -> void:
 	_refresh_progress()
 	_refresh_board()
 	_show_board_tab(false)
+	_apply_restore_layers()
 	_show_page(_tiles_page)

@@ -406,7 +406,13 @@ func _build_case_notes(collected: Array, total: int) -> void:
 		child.queue_free()
 	for entry: Dictionary in collected:
 		var row := Label.new()
+		var where := str(entry.get("where", ""))
 		row.text = "· %s  %s" % [entry.get("emoji", "?"), entry.get("name", "")]
+		if where != "":
+			# Where it turned up: the case notes should read like notes, and a
+			# place is what makes a line of evidence a memory.
+			row.text += "  —  %s" % where
+		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		row.add_theme_font_size_override("font_size", 36)
 		row.add_theme_color_override("font_color", Color(1.0, 0.91, 0.62))
 		_notes_list.add_child(row)
@@ -699,3 +705,38 @@ func _open_pause() -> void:
 func _close_pause() -> void:
 	_pause_layer.visible = false
 	get_tree().paused = false
+
+
+# ---------------------------------------------------------------- echoes (G12.6)
+
+## The echo card reuses the evidence card's body but says ECHO and drops the
+## fly-to-counter flourish: a world-history find is a quiet aside, not a beat in
+## the case, and dressing it like one would lie about its importance.
+func show_echo_card(emoji: String, item_name: String, line: String) -> void:
+	_card_header.text = tr("ECHO_HEADER")
+	_card_header.add_theme_color_override("font_color", Color(0.70, 0.78, 0.88))
+	_card_art.text = emoji
+	_card_title.text = item_name
+	_card_line.text = line
+
+	if _card_tween and _card_tween.is_valid():
+		_card_tween.kill()
+	if _card_home == Vector2.ZERO:
+		_card_home = _secret_card.position
+	_secret_card.position = _card_home
+	_secret_card.pivot_offset = _secret_card.size * 0.5
+	_secret_card.scale = Vector2(0.9, 0.9)
+	_secret_card.modulate.a = 0.0
+	_secret_card.visible = true
+
+	_card_tween = create_tween()
+	_card_tween.tween_property(_secret_card, "modulate:a", 1.0, 0.25)
+	_card_tween.parallel().tween_property(_secret_card, "scale", Vector2.ONE, 0.4) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_card_tween.tween_interval(GameConfig.CARD_SHOW_TIME)
+	_card_tween.tween_property(_secret_card, "modulate:a", 0.0, 0.35)
+	_card_tween.tween_callback(func() -> void:
+		_secret_card.visible = false
+		# Put the header back the way the evidence card expects to find it.
+		_card_header.add_theme_color_override("font_color",
+			GameConfig.CASE_ACCENT))

@@ -242,3 +242,70 @@ DLG_TOWN_COLE_2A,"Somebody grew a garden under my fields and I never knew.","Bir
 DLG_TOWN_ELLIE_2A,"Mum cried. I told her the garden was safe.","Annem ağladı. Ona bahçenin güvenli olduğunu söyledim."
 DLG_TOWN_ELLIE_2B,He was never scary. He kept saying I shouldn't have followed him. That it wasn't safe... for ME to be seen.,Hiç korkutucu değildi. Onu takip etmemeliymişim deyip durdu. Görülmemin... benim için güvenli olmadığını söyledi.
 DLG_TOWN_STRANGER_2A,"So the girl's home. Funny how these things sort themselves out.","Demek kız evde. Bu işlerin kendiliğinden çözülmesi tuhaf."
+INTRO_2B_L1,"They say bigger settlements survived, somewhere east.","Doğuda bir yerlerde daha büyük yerleşimlerin kurtulduğunu söylüyorlar."
+INTRO_2B_L2,We stopped waiting for them years ago.,Onları beklemeyi yıllar önce bıraktık.
+ECHO_HEADER,ECHO,YANKI
+ECHOES_TITLE,ECHOES,YANKILAR
+ECHOES_HEADER,What the dead years left behind,Ölü yılların geride bıraktıkları
+ECHOES_EMPTY,Nothing found yet. Keep cutting.,Henüz bir şey yok. Biçmeye devam.
+HUB_ECHOES,ECHOES,YANKILAR
+HUB_ECHOES_HINT,Scraps of the years before.,Önceki yıllardan kalıntılar.
+HUB_RESTORE,RESTORE,ONARIM
+HUB_RESTORE_HINT,Put the money back into the town.,Parayı kasabaya geri koy.
+ECHO_CH01_NAME,Yellowed Headline,Sararmış Manşet
+ECHO_CH01_LINE,"""THE CITIES CLOSE THEIR GATES""","""ŞEHİRLER KAPILARINI KAPATIYOR"""
+ECHO_CH02_NAME,Evacuation Leaflet,Tahliye Broşürü
+ECHO_CH02_LINE,"""ZONE 4 — DO NOT RETURN""","""BÖLGE 4 — GERİ DÖNMEYİN"""
+ECHO_CH03_NAME,Child's Notebook,Çocuk Defteri
+ECHO_CH03_LINE,"""Day 40. Dad says the quiet is good now.""","""40. gün. Babam artık sessizliğin iyi olduğunu söylüyor."""
+ECHO_CH04_NAME,Guard Patch,Muhafız Arması
+ECHO_CH04_LINE,An emblem nobody in this town recognises.,Bu kasabada kimsenin tanımadığı bir amblem.
+ECHO_CH05_NAME,Seed Packet Letter,Tohum Paketi Mektubu
+ECHO_CH05_LINE,"""Plant these when it's over. —M""","""Bittiğinde bunları ek. —M"""
+ECHO_CH06_NAME,Broadcast Log,Yayın Kaydı
+ECHO_CH06_LINE,"""Last contact: east relay, 3 years ago""","""Son bağlantı: doğu rölesi, 3 yıl önce"""
+ECHO_CH07_NAME,Memorial Candle Tin,Anma Mumu Kutusu
+ECHO_CH07_LINE,Burned down to the base. Someone kept it lit a long time.,Dibine kadar yanmış. Biri onu uzun süre yakık tutmuş.
+ECHO_CH08_NAME,Hand-Drawn Map Fragment,Elle Çizilmiş Harita Parçası
+ECHO_CH08_LINE,A road marked east. The rest of the page is missing.,Doğuya işaretlenmiş bir yol. Sayfanın kalanı yok.
+LOC_FENCE,near the fence line,çit hattının yakınında
+LOC_PORCH,by the porch steps,veranda basamaklarının yanında
+LOC_POOL,beside the empty pool,boş havuzun kenarında
+LOC_SWINGS,under the swings,salıncakların altında
+LOC_SANDPIT,in the sandpit,kum havuzunda
+LOC_WATER,at the water's edge,suyun kıyısında
+LOC_STONES,among the stones,taşların arasında
+LOC_BENCH,under the benches,tezgâhların altında
+LOC_DOOR,at the door frame,kapı çerçevesinde
+LOC_TOWER,below the tower legs,kule ayaklarının dibinde
+LOC_OPEN,out in the open,açık alanda
+LOC_MILL,against the mill wall,değirmen duvarının dibinde
+LOC_GRASS,deep in the grass,çimin derinliğinde
+LOC_LAMP,in the lamplight,lamba ışığında
+LOC_BEDS,among the beds,tarhların arasında
+RESTORE_TITLE,TOWN RESTORATION,KASABA ONARIMI
+RESTORE_DONE,DONE,YAPILDI
+RESTORE_BUY,"BUILD · {cost} 💵","YAPTIR · {cost} 💵"
+RESTORE_CONFIRM,"Build {name} for {cost} 💵?","{name} {cost} 💵 karşılığında yapılsın mı?"
+RESTORE_POOR,The town can wait. Come back richer.,Kasaba bekleyebilir. Daha zenginken gel.
+PRJ_SWING_NAME,Ellie's Swing,Ellie'nin Salıncağı
+PRJ_SWING_DESC,A rope and a plank under the big tree.,Büyük ağacın altına bir ip ve bir tahta.
+PRJ_SWING_THANKS,She asks to go every evening now. Every single one.,Artık her akşam gitmek istiyor. Her akşam.
+PRJ_SWING_CRUMB,"She won't say what she and the swing talk about.","Salıncakla ne konuştuklarını söylemiyor."
+PRJ_LANTERN_NAME,Square Lantern,Meydan Feneri
+PRJ_LANTERN_DESC,Light in the square after dark.,Karanlıktan sonra meydanda ışık.
+PRJ_LANTERN_THANKS,"People sit out again. Small thing. Big thing.","İnsanlar yine dışarı oturuyor. Küçük şey. Büyük şey."
+PRJ_LANTERN_CRUMB,"We used to leave one burning for whoever was still walking.","Eskiden hâlâ yolda olanlar için bir tane yanık bırakırdık."
+PRJ_GREENHOUSE_NAME,Sarah's Greenhouse,Sarah'nın Serası
+PRJ_GREENHOUSE_DESC,"Glass, frames, and something to grow.","Cam, çerçeve ve yetiştirilecek bir şey."
+PRJ_GREENHOUSE_THANKS,Tomatoes by autumn. I'd forgotten what that felt like.,Sonbahara domates. Bunun nasıl bir his olduğunu unutmuşum.
+PRJ_GREENHOUSE_CRUMB,Ellie wants to plant the seeds from that letter.,Ellie o mektuptaki tohumları ekmek istiyor.
+PRJ_CLINIC_NAME,Clinic Supplies,Klinik Malzemesi
+PRJ_CLINIC_DESC,"Bandages, antiseptic, a working lamp.","Sargı, antiseptik, çalışan bir lamba."
+PRJ_CLINIC_BONUS,+1 salvage point per search,Arama başına +1 para noktası
+PRJ_CLINIC_THANKS,"Nobody's died of a cut in this town for two years. Let's keep it that way.","Bu kasabada iki yıldır kimse bir kesikten ölmedi. Öyle kalsın."
+PRJ_CLINIC_CRUMB,"The first winter, we had nothing. I don't talk about that winter.","İlk kış hiçbir şeyimiz yoktu. O kıştan bahsetmem."
+PRJ_MAST_NAME,Radio Mast Repair,Telsiz Direği Onarımı
+PRJ_MAST_DESC,Get the old mast talking again.,Eski direği yeniden konuştur.
+PRJ_MAST_THANKS,Signals are cleaner now. Not that anyone answers.,Sinyaller artık daha net. Kimse cevap vermiyor gerçi.
+PRJ_MAST_CRUMB,"Something repeats on the east band. Same pattern, every night.","Doğu bandında bir şey tekrarlanıyor. Aynı örüntü, her gece."

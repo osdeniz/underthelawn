@@ -1,0 +1,22 @@
+{
+  "_comment": "Town restoration (G12.6): what the money is FOR once the workshop has what it needs. Costs are draft and will move with economy calibration. Text fields are translation keys; npc_id gates a permanent thank-you phase on that character's town dialogue; layer names a hub background overlay (textures/hub/restore_<id>.png, falling back to a badge).",
+
+  "projects": [
+    { "id": "swing",     "name": "PRJ_SWING_NAME",     "desc": "PRJ_SWING_DESC",
+      "cost": 300, "npc_id": "sarah",   "layer": "restore_swing",
+      "thanks": "PRJ_SWING_THANKS",   "crumb": "PRJ_SWING_CRUMB" },
+    { "id": "lantern",   "name": "PRJ_LANTERN_NAME",   "desc": "PRJ_LANTERN_DESC",
+      "cost": 250, "npc_id": "cole",    "layer": "restore_lantern",
+      "thanks": "PRJ_LANTERN_THANKS", "crumb": "PRJ_LANTERN_CRUMB" },
+    { "id": "greenhouse","name": "PRJ_GREENHOUSE_NAME","desc": "PRJ_GREENHOUSE_DESC",
+      "cost": 400, "npc_id": "sarah",   "layer": "restore_greenhouse",
+      "thanks": "PRJ_GREENHOUSE_THANKS", "crumb": "PRJ_GREENHOUSE_CRUMB" },
+    { "id": "clinic",    "name": "PRJ_CLINIC_NAME",    "desc": "PRJ_CLINIC_DESC",
+      "cost": 600, "npc_id": "marshal", "layer": "restore_clinic",
+      "bonus": "scrap_point", "bonus_text": "PRJ_CLINIC_BONUS",
+      "thanks": "PRJ_CLINIC_THANKS",  "crumb": "PRJ_CLINIC_CRUMB" },
+    { "id": "mast",      "name": "PRJ_MAST_NAME",      "desc": "PRJ_MAST_DESC",
+      "cost": 800, "npc_id": "gus",     "layer": "restore_mast",
+      "thanks": "PRJ_MAST_THANKS",    "crumb": "PRJ_MAST_CRUMB" }
+  ]
+}

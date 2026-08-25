@@ -17,6 +17,15 @@
         ]
       },
       {
+        "image": "intro/intro_2b",
+        "fallback_image": "intro/intro_2",
+        "ken_burns": "reverse",
+        "lines": [
+          "INTRO_2B_L1",
+          "INTRO_2B_L2"
+        ]
+      },
+      {
         "image": "intro/intro_3",
         "lines": [
           "INTRO_03_L1",
@@ -83,10 +92,24 @@
         "locked": false
       },
       {
+        "id": "restore",
+        "label": "HUB_RESTORE",
+        "hint": "HUB_RESTORE_HINT",
+        "icon": "🏘️",
+        "locked": false
+      },
+      {
         "id": "workshop",
         "label": "HUB_WORKSHOP",
         "hint": "HUB_WORKSHOP_HINT2",
         "icon": "🔧",
+        "locked": false
+      },
+      {
+        "id": "echoes",
+        "label": "HUB_ECHOES",
+        "hint": "HUB_ECHOES_HINT",
+        "icon": "📜",
         "locked": false
       }
     ],
@@ -281,5 +304,17 @@
     "locked_note": "CASE_02_LOCKED",
     "chapters": [],
     "_comment": "Skeleton only (G11). Case 2 content lands in a later sprint; the keys exist so the shape of what follows is visible in the data, not just in a plan."
+  },
+  "echoes": {
+    "title": "ECHOES_TITLE",
+    "empty": "ECHOES_EMPTY",
+    "header": "ECHOES_HEADER"
+  },
+  "restore": {
+    "title": "RESTORE_TITLE",
+    "done": "RESTORE_DONE",
+    "buy": "RESTORE_BUY",
+    "confirm": "RESTORE_CONFIRM",
+    "locked_note": "RESTORE_POOR"
   }
 }

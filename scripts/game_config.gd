@@ -445,6 +445,21 @@ const UPGRADE_MAX_TIER := 3
 ## Every mower selectable regardless of unlocks — for tests and dev runs.
 const DEV_UNLOCK_ALL := false
 
+# ---------------------------------------------------------------- G12.6 finds
+## The mark a find leaves behind: a ring, a beam, and the icon at its foot. It
+## flares, then settles to a faint shaft for the rest of the chapter, so a mown
+## lawn becomes a map of the player's own search.
+const FIND_MARK_COLOR := Color(0.45, 1.0, 0.55)
+const FIND_MARK_RADIUS := 0.55
+const FIND_MARK_BEAM_HEIGHT := 5.0
+const FIND_MARK_FLARE_ALPHA := 0.80
+const FIND_MARK_IDLE_ALPHA := 0.18
+## Short camera glance back at the spot once the card closes. Off => no pan.
+const FIND_PAN_ENABLED := true
+const FIND_PAN_TIME := 0.6
+## Extra salvage points granted by a completed restoration project.
+const RESTORE_SCRAP_BONUS := 1
+
 # ---------------------------------------------------------------- G9.2 assists
 ## The last-5% finder (PowerWash lesson): past this completion ratio the
 ## remaining uncut cells get a soft pulsing marker, because hunting the final

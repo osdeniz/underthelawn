@@ -32,6 +32,9 @@ var evidence_defs: Array = []
 ## Per-chapter opening title keys; "" falls back to story.json's default.
 var opening_headline := ""
 var opening_subline := ""
+## One optional world-history find per chapter, separate from the case evidence
+## (G12.6). It never advances the case; it only says what the dead years left.
+var echo_def: Dictionary = {}
 
 
 static func data() -> Dictionary:
@@ -68,6 +71,9 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.scrap_budget = int(spec.get("scrap_budget", variant.scrap_budget))
 	variant.vignette = bool(spec.get("vignette", false))
 	variant.evidence_defs = spec.get("evidence_defs", [])
+	var echo: Variant = spec.get("echo_def", {})
+	if echo is Dictionary:
+		variant.echo_def = echo
 	var opening: Variant = spec.get("opening", {})
 	if opening is Dictionary:
 		variant.opening_headline = str((opening as Dictionary).get("headline", ""))
@@ -103,6 +109,19 @@ func evidence_info(index: int) -> Dictionary:
 		"name": TranslationServer.translate(str(entry.get("name", ""))),
 		"line": TranslationServer.translate(str(entry.get("flavor_text", ""))),
 		"id": str(entry.get("id", "")),
+		"where": TranslationServer.translate(str(entry.get("location_tag", ""))),
+	}
+
+
+## The chapter's echo in the same shape, or {} if it has none.
+func echo_info() -> Dictionary:
+	if echo_def.is_empty():
+		return {}
+	return {
+		"emoji": str(echo_def.get("icon", "?")),
+		"name": TranslationServer.translate(str(echo_def.get("name", ""))),
+		"line": TranslationServer.translate(str(echo_def.get("flavor_text", ""))),
+		"id": str(echo_def.get("id", "")),
 	}
 
 

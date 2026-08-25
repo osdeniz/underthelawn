@@ -1,4 +1,4 @@
-extends SceneTree
+extends Node
 ## G7: every narrative string the UI asks for must exist in data/story.json.
 ##
 ## The UI falls back to placeholder text for a missing key rather than crashing,
@@ -23,7 +23,7 @@ const STORY_KEY_PATHS: Array[String] = [
 var _fails := 0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	# Each of these must resolve, through the key, to a non-empty sentence.
 	for path in [
 		"case.hud_line", "case.id", "case.title", "case.objective",
@@ -38,8 +38,9 @@ func _initialize() -> void:
 		ck("metin %s" % path, value != "", "'%s'" % value)
 
 	# Exactly three opening cards, each with art and one or two lines.
+	# G12.6 added a fourth card (the settlements to the east).
 	var cards := Story.list("intro.cards")
-	ck("aciliş kart sayisi", cards.size() == 3, str(cards.size()))
+	ck("aciliş kart sayisi", cards.size() == 4, str(cards.size()))
 	for i in cards.size():
 		var card: Dictionary = cards[i]
 		ck("kart %d gorseli" % i, str(card.get("image", "")) != "", str(card))
@@ -144,6 +145,35 @@ func _initialize() -> void:
 			if key != "":
 				ck("acilis anahtari csv'de: %s" % key, known.has(key), key)
 
+	# G12.6: every chapter's echo, and every restoration project, must resolve.
+	for vid: String in LevelVariant.ids():
+		var v := LevelVariant.of(vid)
+		ck("%s echo tanimli" % vid, not v.echo_def.is_empty(), "")
+		for field in ["name", "flavor_text"]:
+			var key := str(v.echo_def.get(field, ""))
+			ck("echo anahtari csv'de: %s" % key, known.has(key), key)
+		for slot in v.evidence_count():
+			var tag := str((v.evidence_defs[slot] as Dictionary).get("location_tag", ""))
+			ck("%s kanit %d konum etiketi" % [vid, slot], tag != "", "")
+			ck("konum etiketi csv'de: %s" % tag, known.has(tag), tag)
+
+	ck("5 onarim projesi", RestoreBoard.projects().size() == 5,
+		str(RestoreBoard.projects().size()))
+	for project: Dictionary in RestoreBoard.projects():
+		for field in ["name", "desc", "thanks", "crumb"]:
+			var key := str(project.get(field, ""))
+			ck("proje %s csv'de" % key, known.has(key), key)
+		ck("proje maliyeti makul: %s" % project.get("id", ""),
+			int(project.get("cost", 0)) >= 200
+			and int(project.get("cost", 0)) <= 1000, str(project.get("cost", 0)))
+		# Every project thanks somebody who is actually in town.
+		var npc := str(project.get("npc_id", ""))
+		var found := false
+		for person: Dictionary in Story.list("town.people"):
+			if str(person.get("id", "")) == npc:
+				found = true
+		ck("proje npc'si kasabada: %s" % npc, found, npc)
+
 	# Mower labels are keys too (they show in the picker).
 	for entry: Dictionary in GameConfig.MOWER_TYPES:
 		var key := str(entry["label"])
@@ -235,7 +265,7 @@ func _initialize() -> void:
 		print("--- %d ANLATI TESTI BASARISIZ ---" % _fails)
 	else:
 		print("--- TUM ANLATI TESTLERI GECTI ---")
-	quit()
+	get_tree().quit()
 
 
 ## Every line entry across every conversation and every town variant.

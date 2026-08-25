@@ -18,6 +18,8 @@ var yaw: float = 0.0
 
 var _focus := Vector3.ZERO
 var _bird_view := false
+var _glance_point := Vector3.ZERO
+var _glance_weight := 0.0
 
 
 func _ready() -> void:
@@ -50,9 +52,24 @@ func _process(delta: float) -> void:
 		return
 	# Focus follows at 4.0/s, camera yaw lags the mower at 2.6/s.
 	_focus = _focus.lerp(target.position, 1.0 - exp(-GameConfig.CAMERA_FOCUS_LERP * delta))
+	if _glance_weight > 0.0:
+		_focus = _focus.lerp(_glance_point, _glance_weight * 0.65)
 	if not target.camera_yaw_locked():
 		yaw += wrapf(target.yaw - yaw, -PI, PI) * (1.0 - exp(-GameConfig.CAMERA_YAW_LERP * delta))
 	_place()
+
+
+## G12.6: a brief look at a point, then back to the mower. The rig keeps
+## following its target throughout — this only biases the focus, so the player
+## never loses control of the machine.
+func glance_at(at: Vector3, duration: float) -> void:
+	var tw := create_tween()
+	tw.tween_method(func(weight: float) -> void: _glance_weight = weight,
+		0.0, 1.0, duration * 0.4).set_trans(Tween.TRANS_SINE)
+	tw.tween_interval(duration * 0.2)
+	tw.tween_method(func(weight: float) -> void: _glance_weight = weight,
+		1.0, 0.0, duration * 0.4).set_trans(Tween.TRANS_SINE)
+	_glance_point = at
 
 
 ## G7 opening: glide down from high above onto the mower's own preset while the
