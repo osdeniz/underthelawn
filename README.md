@@ -1564,6 +1564,101 @@ eleven suites are scene tests.
   Still emoji, and still blank on a phone: the top bar's evidence and wallet
   chips (`hud.gd`).
 
+## Sprint G13 — 3D kasaba diyoraması (dikey dilim)
+
+A TRIAL of replacing the hub's 2D collage with a small fixed-camera 3D town.
+Three buildings only: Marshal's station, two homes, the watchtower. If the
+slice is rejected, `GameConfig.hub_mode = "legacy"` puts the collage back — the
+legacy path is still wired, and `tests/DioramaCheck.tscn` asserts it builds a
+hub with no diorama in it and that `set_diorama_active` is safe to call there.
+
+| Piece | Where |
+| --- | --- |
+| Scene | `scenes/TownDiorama.tscn` → `scripts/town_diorama.gd` |
+| Tuning | `GameConfig` `DIORAMA_*`, `RESTORE_*` |
+| Hub host | `hub_screen.gd` `_build_diorama_background`, `_play_restore_scene` |
+| Tests | `tests/DioramaCheck.tscn` |
+| Frames | `docs/g13/` — ruined vs restored, and the five transition beats |
+
+**Framing was the hard part, and it is a portrait-screen problem.** Godot
+measures `fov` VERTICALLY. At 1170x2532 a 42-degree vertical fov leaves about a
+20-degree horizontal window, so the two side buildings sat completely outside
+the frame while the measurements all looked correct. Two fixes together:
+`camera.keep_aspect = KEEP_WIDTH` makes the angle horizontal, and the plate is
+17x23 — NARROW AND DEEP, turned to face the phone. Laid the other way (24x16)
+it filled the width and left two thirds of the screen empty.
+
+`camera.v_offset` shifts the model up into the half the hub's cards do not
+cover. It is a frustum shift, not a rotation: turning the camera up would tilt
+the model off its plate. The restore close-up tweens it back to 0, or the
+building it flew to ends up off the top of the screen.
+
+**The transition** (`play_restore`): push in along the camera's OWN view line
+(going in along the line from the square outward swung round behind whichever
+building sat on that side), the ruin sinks and flattens with a dust puff, then
+the restored parts fall from 2.8 m — sorted by resting height, so it reads as
+construction rather than collapse in reverse — each with a tick and a puff, then
+a warm light blooms inside and fades. A tap anywhere skips; `skip()` is checked
+between every step, and the test asserts a skipped transition still leaves the
+building standing with no part left in the air.
+
+* The parts are the restored form's TOP-LEVEL children; anything nested deeper
+  rides along with its parent instead of landing on its own.
+* The flash is an OmniLight3D inside the building, not a tint: the materials in
+  `_mats` are shared with every other building.
+* `_drop_part` is started with `.call(...)`, not awaited — the parts have to
+  overlap, and a coroutine cannot be called bare.
+
+**Performance.** 40 visible meshes / 1266 triangles ruined, 67 / 1806 fully
+restored — far under the yard. The SubViewport draws every other frame (30 fps
+behind menus), and `set_diorama_active(false)` disables it entirely while a
+chapter is playing: `root.gd` only HIDES the hub, so without that the town
+would keep rendering behind the yard.
+
+### G13.1 — the yard's quality recipe, applied
+
+The first slice was small, empty, untextured and dead. Every part of the yard's
+recipe now runs in the diorama too.
+
+| | before | after |
+| --- | --- | --- |
+| Plate | 17x23, flat plane, one albedo colour | 26x34, `lawn_ground.gdshader` + `grass_normal` + a noise tint texture |
+| Grass | none | `TuftField.cluster_mesh` MultiMesh, ~600 clumps, `grass_clump.gdshader` wind |
+| Buildings | flat colours | `siding_albedo`, `roof_shingles_albedo`, `wood_albedo`, layered windows, ivy on the ruins |
+| Light | flat ambient colour | sky as ambient AND reflection source, warm sun, soft shadows, fog, screen overlay |
+| Life | nothing | swaying crowns and washing, flickering lanterns, chimney smoke, birds crossing |
+| Edges | bare ground into fog | tree clusters, hedges, and a `Horizon` ring of hills and rooftops |
+| Draws / triangles | 40 / 1.3k | 432 / 19k — the yard measures 580 / 30k |
+
+Things that had to be measured rather than guessed:
+
+* **`grass_albedo` is a GREYSCALE pattern**, tinted by `lawn_ground.gdshader`.
+  Used as a StandardMaterial albedo it renders grey. The diorama runs the same
+  shader, and its `cell_tint` texture carries the COLOUR, not just brightness —
+  a tint of pale greys left the plate white.
+* **Unshaded meshes bypass the tonemapper.** The horizon hills had to be
+  authored much darker than they should look; at "correct" values they came out
+  near-white and read as snowfields standing over the town.
+* **Fog at 30/58 reached the middle of the plate.** It is 52/96 now, so only the
+  far rim dissolves, and `fog_sky_affect` is 0.15 or the sky is fog too.
+* **Clearing only the clumps TAGGED to a plot was invisible.** The open-field
+  grass around a finished house kept it looking abandoned, so anything inside
+  the overgrowth radius is cleared.
+* No SDFGI and no SSAO: broken on the mobile renderer. Every contact shadow here
+  is a painted AO blob, same as the yard.
+
+**`Horizon` runs in every yard too** (`environment_builder.gd`), not just the
+hub — distant hills and rooftops at `GameConfig.HORIZON_RADIUS`, so no chapter
+ends at a blank wall of fog.
+
+`docs/g13/yard_reference.jpg` and `docs/g13/hub_diorama.jpg` are the two scenes
+shot the same way, for judging the gap.
+
+**Not in the slice.** The other seven projects — swing, lantern, greenhouse,
+clinic, mast, farm, barn — have no building in the scene yet. Adding one is a
+`DIORAMA_BUILDINGS` entry plus a ruined/restored builder pair; nothing else.
+The dead oak in the square is where the swing will hang.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

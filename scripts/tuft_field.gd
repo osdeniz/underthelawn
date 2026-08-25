@@ -70,10 +70,17 @@ func _build_variants(seed_value: int) -> void:
 ## base, plus tiny white flower blobs on the flowered variant. Vertex colours
 ## carry the variant's root->tip gradient; UV.y carries the height fraction for
 ## the wind. Everything is opaque — no texture, no alpha.
-func _make_cluster(rng: RandomNumberGenerator, variant: int) -> ArrayMesh:
+## Static so the town diorama can grow the same grass with no LawnModel behind
+## it: one clump mesh, one source of truth for what this game's grass looks
+## like (G13.1).
+static func cluster_mesh(rng: RandomNumberGenerator, variant: int) -> ArrayMesh:
+	return _make_cluster(rng, variant)
+
+
+static func _make_cluster(rng: RandomNumberGenerator, variant: int) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var spec: Dictionary = _variants[variant]
+	var spec: Dictionary = GameConfig.clump_variants()[variant]
 	var root_col: Color = spec["base"]
 	var tip_col: Color = spec["tip"]
 	# One cell = one instance whose MESH holds TUFTS_PER_CLUSTER clumps spread
@@ -92,7 +99,7 @@ func _make_cluster(rng: RandomNumberGenerator, variant: int) -> ArrayMesh:
 	return st.commit()
 
 
-func _add_clump(st: SurfaceTool, rng: RandomNumberGenerator, center: Vector3,
+static func _add_clump(st: SurfaceTool, rng: RandomNumberGenerator, center: Vector3,
 		clump_h: float, root_col: Color, tip_col: Color, flowered: bool) -> void:
 	var blades := GameConfig.CLUMP_BLADES + rng.randi_range(-1, 1)
 	var base := rng.randf_range(GameConfig.CLUMP_BASE_MIN, GameConfig.CLUMP_BASE_MAX)
@@ -117,7 +124,7 @@ func _add_clump(st: SurfaceTool, rng: RandomNumberGenerator, center: Vector3,
 
 ## A V-folded 2-segment blade: three columns of vertices (left, creased centre,
 ## right) so it reads thick from every angle without alpha.
-func _add_blade(st: SurfaceTool, root: Vector3, dir: Vector3, lean: float,
+static func _add_blade(st: SurfaceTool, root: Vector3, dir: Vector3, lean: float,
 		height: float, width: float, root_col: Color, tip_col: Color,
 		rng: RandomNumberGenerator) -> Vector3:
 	var side := Vector3(-dir.z, 0.0, dir.x)
@@ -154,7 +161,7 @@ func _add_blade(st: SurfaceTool, root: Vector3, dir: Vector3, lean: float,
 	return tp[0]
 
 
-func _vquad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3,
+static func _vquad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3,
 		col_ab: Color, col_b: Color, col_cd: Color, col_c: Color,
 		v0: float, v1: float) -> void:
 	var n := (b - a).cross(d - a).normalized()
@@ -166,7 +173,7 @@ func _vquad(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3,
 	_v(st, d, col_cd, v1, n)
 
 
-func _vtri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3,
+static func _vtri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3,
 		col_a: Color, col_b: Color, col_c: Color, v0: float, v1: float) -> void:
 	var n := (b - a).cross(c - a).normalized()
 	_v(st, a, col_a, v0, n)
@@ -174,7 +181,7 @@ func _vtri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3,
 	_v(st, c, col_c, v1, n)
 
 
-func _v(st: SurfaceTool, pos: Vector3, col: Color, height_frac: float, n: Vector3) -> void:
+static func _v(st: SurfaceTool, pos: Vector3, col: Color, height_frac: float, n: Vector3) -> void:
 	# Vertex colours reach a custom spatial shader as LINEAR data; baking the
 	# sRGB palette values raw would render washed-out pale (it did).
 	st.set_color(col.srgb_to_linear())
@@ -184,7 +191,7 @@ func _v(st: SurfaceTool, pos: Vector3, col: Color, height_frac: float, n: Vector
 
 
 ## Tiny white flower: a 6-vertex octahedron at a blade tip. Opaque, cheap.
-func _add_flower(st: SurfaceTool, tip: Vector3) -> void:
+static func _add_flower(st: SurfaceTool, tip: Vector3) -> void:
 	var r := 0.045
 	var white := Color(0.96, 0.96, 0.92)
 	var c := tip + Vector3(0.0, r * 0.6, 0.0)

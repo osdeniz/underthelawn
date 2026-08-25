@@ -1038,3 +1038,101 @@ static func linear_to_db_safe(gain: float) -> float:
 	if gain <= 0.0001:
 		return -80.0
 	return 20.0 * (log(gain) / log(10.0))
+
+
+## How far out the distant hills and rooftops ring sits, in the yard. Well
+## beyond the fence and the road, so nothing there is ever approached (G13.1).
+const HORIZON_RADIUS := 78.0
+
+# ---------------------------------------------------------------- hub diorama (G13)
+## The hub's backdrop is either the 2D collage it has always been, or a small
+## fixed-camera 3D town. This is a TRIAL: legacy stays wired and working, and
+## flipping this one value returns the hub to it.
+const HUB_MODE_DIORAMA := "diorama"
+const HUB_MODE_LEGACY := "legacy"
+static var hub_mode := HUB_MODE_DIORAMA
+
+## The plate the town sits on. Small on purpose — this reads as a model of a
+## town, not a place you walk around in.
+## Narrow and DEEP, not wide and shallow. The screen is 1170x2532: a 24x16
+## plate laid the other way filled the width and left two thirds of the screen
+## empty above and below it. Turning it to face the phone is what made the
+## model fill the frame.
+## Big enough that the frame is FULL: the edges are trees, hedges and fog, not
+## bare ground running out (G13.1). Still narrow-and-deep for a portrait screen.
+const DIORAMA_PLATE := Vector2(26.0, 34.0)
+## How far the ground bevels in at the rim, which is what sells "model".
+const DIORAMA_BEVEL := 2.4
+const DIORAMA_BEVEL_DROP := 1.6
+## The hub does not need 60: it is a still scene behind menus.
+const DIORAMA_FPS := 30
+
+## Framed for a PORTRAIT screen. Godot measures fov vertically by default, and
+## at 1170x2532 that leaves a ~20 degree horizontal window — the two side
+## buildings sat completely outside it. keep_aspect KEEP_WIDTH makes this a
+## HORIZONTAL angle instead, and the tall screen then has depth to spare.
+const DIORAMA_CAM_POS := Vector3(0.0, 20.5, 21.0)
+const DIORAMA_CAM_LOOK := Vector3(0.0, 1.6, -2.6)
+const DIORAMA_CAM_FOV := 48.0
+## The hub's cards cover the bottom half of the screen, so the model is pushed
+## up into the half that stays visible. This is a frustum shift, not a rotation:
+## turning the camera up would have tilted the whole model off its plate.
+const DIORAMA_V_OFFSET := -7.2
+## The plate's grass. grass_albedo is a greyscale pattern, so this is what makes
+## it green (the yard tints it in a shader instead).
+const DIORAMA_GRASS_TINT := Color(0.40, 0.58, 0.28)
+
+# ---- the diorama's grass field (G13.1)
+## Sparse across the plate, dense where a ruin stands: nature took the town
+## back, and a rebuilt plot gets cleared.
+const DIORAMA_TUFT_SPACING := 0.78
+const DIORAMA_TUFT_JITTER := 0.34
+## Radius around a ruined building that grows thick weeds, and how many extra
+## clumps go in it.
+const DIORAMA_OVERGROWTH_RADIUS := 4.6
+const DIORAMA_OVERGROWTH_COUNT := 40
+## Kept clear of the paving so the square does not sprout grass.
+const DIORAMA_SQUARE_RADIUS := 4.2
+## Trees and hedges that close the frame. Radius from centre, count.
+const DIORAMA_EDGE_TREES := 16
+const DIORAMA_EDGE_BUSHES := 30
+## A breath of movement so the scene is not a photograph. Degrees and Hz.
+const DIORAMA_SWAY_DEG := 0.55
+const DIORAMA_SWAY_HZ := 0.06
+## Optional finger pan, clamped hard: this is a diorama, not a camera you fly.
+const DIORAMA_PAN_ENABLED := true
+const DIORAMA_PAN_DEG := 10.0
+const DIORAMA_PAN_PER_PIXEL := 0.02
+const DIORAMA_PAN_RETURN := 1.6
+
+## Where each restorable building stands, and which way it faces. Only three
+## exist in this slice; the rest of projects.json is not in the scene yet.
+## The buildings are authored at roughly 3 m; the plate is much bigger than
+## that, so each plot is scaled as one piece rather than every box being
+## rewritten.
+const DIORAMA_BUILDING_SCALE := 1.55
+
+const DIORAMA_BUILDINGS := {
+	"station": {"pos": Vector3(-5.6, 0.0, 3.4), "yaw": 0.34},
+	"homes": {"pos": Vector3(5.5, 0.0, 4.2), "yaw": -0.34},
+	"watchtower": {"pos": Vector3(1.4, 0.0, -9.4), "yaw": 0.10},
+}
+## The dead oak in the square. The swing project will hang from it later.
+const DIORAMA_TREE_POS := Vector3(-0.9, 0.0, -3.2)
+
+# ---- the restore transition (G13 §3)
+## Camera push-in, the collapse, then parts landing one after another.
+const RESTORE_ZOOM_IN := 1.0
+const RESTORE_ZOOM_OUT := 0.7
+const RESTORE_COLLAPSE := 0.55
+const RESTORE_PART_GAP := 0.15
+const RESTORE_PART_FALL := 0.34
+## How high a part starts above its resting place.
+## Low enough that a falling wall stays inside the frame. At 5.0 the station's
+## wall block filled the screen on its way down.
+const RESTORE_PART_RISE := 2.8
+const RESTORE_SHINE := 0.5
+## How close the camera gets to the building it is rebuilding.
+## Along the camera's own view line, so this is a true distance from the
+## building. Under about 8 the building overflows the frame.
+const RESTORE_CAM_DISTANCE := 13.0

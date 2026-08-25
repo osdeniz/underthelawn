@@ -89,6 +89,7 @@ func _open_hub() -> void:
 		_hub.chapter_chosen.connect(_on_chapter_chosen)
 		_hub.replay_intro_requested.connect(_play_intro)
 	_hub.get_parent().visible = true
+	_hub.set_diorama_active(true)
 	_hub.refresh()
 	AudioDirector.play_theme()
 	_fade_in()
@@ -139,6 +140,7 @@ func _start_chapter() -> void:
 	_fade_out_then(func() -> void:
 		_clear_game()
 		if _hub != null and is_instance_valid(_hub):
+			_hub.set_diorama_active(false)
 			_hub.get_parent().visible = false
 		_game = load(GAME_SCENE).instantiate()
 		# Handed the id BEFORE _ready, so the scene can build from it in G9.

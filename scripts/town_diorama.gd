@@ -1,0 +1,1387 @@
+class_name TownDiorama
+extends Node3D
+## The hub's 3D town, a fixed-camera model of the square (G13).
+##
+## This is a TRIAL of replacing the hub's 2D collage. Scope is deliberately
+## three buildings: Marshal's station, two homes, the watchtower. The other
+## seven projects in data/projects.json are not in this scene yet — they get
+## added with the same recipe once the slice is approved.
+##
+## Everything here is primitives and flat materials, built in code, so a
+## building's ruined and restored forms are two node trees that can be swapped
+## and animated part by part. There is no skeleton and no animation resource.
+##
+## Nothing in this file may become a path to a .glb or a per-building scene:
+## the whole point is that adding building four is a dictionary entry plus one
+## builder function.
+
+signal building_pressed(project_id: String)
+
+const PART_META := "rest_pos"
+
+var camera: Camera3D
+## The building nodes, keyed by project id: {"ruined": Node3D, "restored": Node3D}
+var _buildings: Dictionary = {}
+var _mats: Dictionary = {}
+var _sway_t := 0.0
+var _pan := 0.0
+var _pan_target := 0.0
+var _pan_finger := -1
+var _pan_from := 0.0
+var _cam_base := Vector3.ZERO
+var _cam_look := Vector3.ZERO
+## Set while a restore transition owns the camera.
+var _busy := false
+var _rng := RandomNumberGenerator.new()
+## The long-grass field: one MultiMesh per clump variant, plus where every
+## clump stands and which ruin's overgrowth it belongs to (G13.1).
+var _tuft_meshes: Array[MultiMesh] = []
+var _tuft_spots: Array = []
+## Plots whose weeds have been cleared by rebuilding.
+var _cleared: Dictionary = {}
+## Tree crowns that sway, with their phase offsets.
+var _canopies: Array = []
+## Cloth on the washing line, lantern lights, and birds in transit.
+var _cloths: Array = []
+var _lamps: Array = []
+var _birds: Array = []
+var _bird_timer := 3.0
+var _life_t := 0.0
+
+
+func _ready() -> void:
+	_rng.seed = 13
+	_cam_base = GameConfig.DIORAMA_CAM_POS
+	_cam_look = GameConfig.DIORAMA_CAM_LOOK
+	_build_environment()
+	_build_plate()
+	_build_dead_oak(GameConfig.DIORAMA_TREE_POS)
+	for id: String in GameConfig.DIORAMA_BUILDINGS:
+		_build_building(id)
+	_build_edge_planting()
+	_build_horizon()
+	_build_tufts()
+	refresh_state()
+
+
+## Shows each building in the form its project data says it should be in. Called
+## on entry and after a purchase that was not animated.
+func refresh_state() -> void:
+	for id: String in _buildings:
+		set_built(id, RestoreBoard.is_built(id), false)
+
+
+func set_built(project_id: String, built: bool, animated: bool) -> void:
+	var pair: Dictionary = _buildings.get(project_id, {})
+	if pair.is_empty():
+		return
+	var ruined: Node3D = pair["ruined"]
+	var restored: Node3D = pair["restored"]
+	ruined.visible = not built
+	restored.visible = built
+	# A rebuilt plot loses its overgrowth: the town taking itself back.
+	if built:
+		_cleared[project_id] = true
+	else:
+		_cleared.erase(project_id)
+	if not _tuft_meshes.is_empty():
+		_write_tufts()
+	if built and not animated:
+		# Straight to standing: no half-fallen parts left over from a skipped
+		# transition.
+		for part in restored.get_children():
+			var node := part as Node3D
+			if node != null and node.has_meta(PART_META):
+				node.position = node.get_meta(PART_META)
+				node.scale = Vector3.ONE
+
+
+func has_building(project_id: String) -> bool:
+	return _buildings.has(project_id)
+
+
+# ---------------------------------------------------------------- environment
+
+func _build_environment() -> void:
+	var world := WorldEnvironment.new()
+	var env := Environment.new()
+	env.background_mode = Environment.BG_SKY
+	var sky := Sky.new()
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = Color(0.36, 0.60, 0.90)
+	sky_mat.sky_horizon_color = Color(0.97, 0.88, 0.72)
+	sky_mat.sky_curve = 0.16
+	# The camera looks down, so most of the backdrop is the sky's GROUND half.
+	# Warm and dim: the model should sit in haze, not on a grey wall.
+	sky_mat.ground_bottom_color = Color(0.42, 0.36, 0.28)
+	sky_mat.ground_horizon_color = Color(0.90, 0.82, 0.68)
+	sky.sky_material = sky_mat
+	env.sky = sky
+	# The sky IS the ambient light and the reflection source, same as the yard:
+	# a flat ambient colour is what made the first pass look like a toy under a
+	# lightbox. NOT SDFGI and NOT SSAO — both are broken on the mobile renderer,
+	# which is why every contact shadow here is a painted AO blob.
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_energy = 0.55
+	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	# The fog is the diorama's edge: the plate does not end, it dissolves.
+	env.fog_enabled = true
+	env.fog_mode = Environment.FOG_MODE_DEPTH
+	env.fog_light_color = Color(0.94, 0.90, 0.82)
+	env.fog_density = 1.0
+	env.fog_depth_curve = 1.6
+	# Only the far RIM dissolves. At 30/58 the fog reached the middle of the
+	# plate and turned the back half into a white haze (G13.1).
+	env.fog_depth_begin = 52.0
+	env.fog_depth_end = 96.0
+	# Without this the sky is fog too, and the whole backdrop goes flat cream.
+	env.fog_sky_affect = 0.15
+	world.environment = env
+	add_child(world)
+
+	# Warm low morning sun, same shadow settings as the yard.
+	var sun := DirectionalLight3D.new()
+	sun.name = "Sun"
+	sun.rotation = Vector3(deg_to_rad(-38.0), deg_to_rad(38.0), 0.0)
+	sun.light_color = Color(1.0, 0.94, 0.83)
+	sun.light_energy = 1.15
+	sun.shadow_enabled = true
+	sun.shadow_blur = 3.0
+	sun.directional_shadow_max_distance = 44.0
+	add_child(sun)
+
+	camera = Camera3D.new()
+	camera.name = "DioramaCamera"
+	camera.fov = GameConfig.DIORAMA_CAM_FOV
+	camera.keep_aspect = Camera3D.KEEP_WIDTH
+	camera.v_offset = GameConfig.DIORAMA_V_OFFSET
+	camera.position = _cam_base
+	add_child(camera)
+	camera.look_at(_cam_look)
+
+
+## The plate: a grass top, a bevelled rim that falls away, and a soil skirt. The
+## bevel is what reads as "model on a table" rather than "ground that got cut".
+func _build_plate() -> void:
+	var half := GameConfig.DIORAMA_PLATE * 0.5
+	var bevel := GameConfig.DIORAMA_BEVEL
+	var grass := _ground_material()
+	var soil := _tex_mat("soil", "dirt_albedo", GameConfig.TINT_SOIL, 1.0,
+		Vector3(8.0, 3.0, 1.0))
+
+	var top := PlaneMesh.new()
+	top.size = GameConfig.DIORAMA_PLATE - Vector2.ONE * bevel * 2.0
+	# Subdivided, so the ground shader has vertices to work with and the plate
+	# is not one flat quad (G13.1).
+	top.subdivide_width = 12
+	top.subdivide_depth = 16
+	_mesh(self, top, grass, Vector3.ZERO)
+
+	# Four bevel skirts. A skirt that drops `h` over a run of `b` is
+	# sqrt(b*b + h*h) long, and its centre sits half a bevel in from the outer
+	# edge, half the drop down.
+	var drop := GameConfig.DIORAMA_BEVEL_DROP
+	var run := sqrt(bevel * bevel + drop * drop)
+	var tilt := atan2(drop, bevel)
+	var inner := half - Vector2.ONE * bevel * 0.5
+	var sides := [
+		{"size": Vector2(GameConfig.DIORAMA_PLATE.x - bevel * 2.0, run),
+			"pos": Vector3(0.0, -drop * 0.5, -inner.y), "rot": Vector3(-tilt, 0.0, 0.0)},
+		{"size": Vector2(GameConfig.DIORAMA_PLATE.x - bevel * 2.0, run),
+			"pos": Vector3(0.0, -drop * 0.5, inner.y), "rot": Vector3(tilt, 0.0, 0.0)},
+		{"size": Vector2(run, GameConfig.DIORAMA_PLATE.y - bevel * 2.0),
+			"pos": Vector3(-inner.x, -drop * 0.5, 0.0), "rot": Vector3(0.0, 0.0, tilt)},
+		{"size": Vector2(run, GameConfig.DIORAMA_PLATE.y - bevel * 2.0),
+			"pos": Vector3(inner.x, -drop * 0.5, 0.0), "rot": Vector3(0.0, 0.0, -tilt)},
+	]
+	for side: Dictionary in sides:
+		var skirt := PlaneMesh.new()
+		skirt.size = side["size"]
+		skirt.subdivide_width = 8
+		_mesh(self, skirt, grass, side["pos"], side["rot"])
+
+	var body := BoxMesh.new()
+	body.size = Vector3(GameConfig.DIORAMA_PLATE.x - bevel * 2.0, 3.0,
+		GameConfig.DIORAMA_PLATE.y - bevel * 2.0)
+	_mesh(self, body, soil, Vector3(0.0, -drop - 1.5, 0.0))
+
+	_build_square()
+
+
+## The yard's ground recipe, not a flat colour: grass_albedo tiled through
+## lawn_ground.gdshader with its normal map and a per-plate tint texture. The
+## first version was a StandardMaterial with one albedo colour, which is what
+## made the plate read as coloured cardboard (G13.1).
+func _ground_material() -> ShaderMaterial:
+	if _mats.has("ground"):
+		return _mats["ground"]
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/lawn_ground.gdshader")
+	var albedo := TextureLibrary.find("grass_albedo")
+	var normal := TextureLibrary.find("grass_normal")
+	if albedo != null:
+		mat.set_shader_parameter("grass_albedo", albedo)
+		mat.set_shader_parameter("has_albedo", true)
+	else:
+		TextureLibrary.warn_missing("grass_albedo", "duz renk zemin")
+	if normal != null:
+		mat.set_shader_parameter("grass_normal", normal)
+		mat.set_shader_parameter("has_normal", true)
+	mat.set_shader_parameter("fallback_albedo", GameConfig.DIORAMA_GRASS_TINT)
+	mat.set_shader_parameter("uv_repeat", Vector2(9.0, 12.0))
+	mat.set_shader_parameter("normal_strength", GameConfig.GROUND_NORMAL_STRENGTH)
+	mat.set_shader_parameter("surface_roughness", 0.95)
+	mat.set_shader_parameter("cell_tint", _tint_texture())
+	_mats["ground"] = mat
+	return mat
+
+
+## A low-resolution noise tint the ground shader multiplies over the grass, so
+## the plate has patches of lighter and darker green instead of one flat wash.
+func _tint_texture() -> ImageTexture:
+	var size := 24
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var noise := FastNoiseLite.new()
+	noise.seed = 13
+	noise.frequency = 0.09
+	# The tint carries the COLOUR, not just brightness: grass_albedo is a
+	# greyscale pattern, so a tint of pale greys left the whole plate white.
+	var lush := GameConfig.DIORAMA_GRASS_TINT
+	var dry_colour := Color(0.62, 0.58, 0.30)
+	for y in size:
+		for x in size:
+			var n := noise.get_noise_2d(float(x), float(y)) * 0.5 + 0.5
+			var dry := clampf((n - 0.62) * 2.4, 0.0, 1.0)
+			var shade := lerpf(0.82, 1.24, n)
+			var c := lush.lerp(dry_colour, dry) * shade
+			img.set_pixel(x, y, Color(c.r, c.g, c.b))
+	return ImageTexture.create_from_image(img)
+
+
+## The paved square and the dirt paths that reach the three plots.
+func _build_square() -> void:
+	var stone := _tex_mat("stone", "asphalt_albedo", Color(0.56, 0.55, 0.52),
+		0.95, Vector3(4.0, 4.0, 1.0))
+	stone.albedo_color = Color(1.35, 1.34, 1.28)
+	var dirt := _tex_mat("path", "dirt_albedo", Color(0.46, 0.36, 0.25), 1.0,
+		Vector3(1.2, 6.0, 1.0))
+	var joint := _flat("joint", Color(0.40, 0.39, 0.36), 0.95)
+
+	var pave := CylinderMesh.new()
+	pave.top_radius = 3.6
+	pave.bottom_radius = 3.6
+	pave.height = 0.10
+	pave.radial_segments = 24
+	_mesh(self, pave, stone, Vector3(0.0, 0.03, 0.0))
+	# Joints across the paving: eight thin dark strips, so it reads as slabs
+	# rather than a poured disc.
+	for i in 8:
+		var a := PI * float(i) / 8.0
+		_box(self, Vector3(7.2, 0.02, 0.06), joint, Vector3(0.0, 0.09, 0.0),
+			Vector3(0.0, a, 0.0))
+	for id: String in GameConfig.DIORAMA_BUILDINGS:
+		var spot: Vector3 = GameConfig.DIORAMA_BUILDINGS[id]["pos"]
+		var to := Vector2(spot.x, spot.z)
+		var path := BoxMesh.new()
+		path.size = Vector3(1.6, 0.05, to.length())
+		_mesh(self, path, dirt,
+			Vector3(to.x * 0.5, 0.025, to.y * 0.5),
+			Vector3(0.0, atan2(to.x, to.y), 0.0))
+
+
+## The square's oak: leaning, thick-limbed, and big enough to be the landmark
+## the town is arranged around. The swing project will hang from it.
+func _build_dead_oak(at: Vector3) -> void:
+	var bark := _tex_mat("bark", "bark_albedo", Color(0.30, 0.23, 0.17), 0.98,
+		Vector3(1.0, 2.0, 1.0))
+	var tree := Node3D.new()
+	tree.name = "DeadOak"
+	tree.position = at
+	tree.rotation.y = 0.4
+	add_child(tree)
+	# A leaning trunk in two stages: thick and rooted, then narrower and tipped
+	# further over, so it has a silhouette rather than being a post.
+	_cyl(tree, 0.34, 0.62, 3.2, bark, Vector3(0.0, 1.6, 0.0),
+		Vector3(0.0, 0.0, 0.10))
+	_cyl(tree, 0.22, 0.36, 2.0, bark, Vector3(-0.42, 4.0, 0.10),
+		Vector3(0.06, 0.0, 0.26))
+	var limbs := [
+		{"r": [0.09, 0.24], "len": 3.1, "at": Vector3(0.95, 4.3, 0.20),
+			"rot": Vector3(0.0, 0.3, -0.95)},
+		{"r": [0.08, 0.22], "len": 2.8, "at": Vector3(-1.15, 4.5, -0.30),
+			"rot": Vector3(0.25, -0.2, 0.88)},
+		{"r": [0.07, 0.18], "len": 2.2, "at": Vector3(-0.20, 5.4, -0.90),
+			"rot": Vector3(-0.85, 0.0, 0.18)},
+		{"r": [0.05, 0.11], "len": 1.4, "at": Vector3(1.85, 5.5, 0.55),
+			"rot": Vector3(0.0, 0.2, -1.15)},
+		{"r": [0.04, 0.10], "len": 1.2, "at": Vector3(-2.05, 5.6, 0.05),
+			"rot": Vector3(0.0, 0.0, 1.05)},
+		{"r": [0.04, 0.09], "len": 1.0, "at": Vector3(-0.75, 6.1, 0.65),
+			"rot": Vector3(0.7, 0.0, 0.5)},
+	]
+	for limb: Dictionary in limbs:
+		var radii: Array = limb["r"]
+		_cyl(tree, float(radii[0]), float(radii[1]), float(limb["len"]), bark,
+			limb["at"], limb["rot"])
+	_ao_blob(tree, Vector2(5.6, 4.6), Vector3(1.1, 0.03, 0.7), 0.6)
+	_build_square_props(tree)
+
+
+## What is left lying around the square: a barrow on its side, two barrels, a
+## crate, and a heap of cut weeds nobody came back for.
+func _build_square_props(near: Node3D) -> void:
+	var wood := _tex_mat("prop_wood", "wood_albedo", Color(0.52, 0.38, 0.24),
+		0.95, Vector3(2.0, 1.0, 1.0))
+	var rust := _flat("rust", Color(0.46, 0.30, 0.20), 0.9, 0.3)
+	var iron := _flat("iron", Color(0.34, 0.34, 0.36), 0.6, 0.5)
+	var straw := _flat("straw", Color(0.52, 0.48, 0.26), 1.0)
+
+	# Two barrels by the trunk.
+	for spec: Array in [[Vector3(2.4, 0.44, 1.5), 0.0], [Vector3(3.1, 0.42, 0.7), 0.3]]:
+		var barrel := _cyl(near, 0.42, 0.46, 0.88, rust, spec[0],
+			Vector3(0.0, float(spec[1]), 0.0))
+		_box(near, Vector3(0.9, 0.06, 0.9), iron,
+			(spec[0] as Vector3) + Vector3(0.0, 0.16, 0.0))
+		barrel.name = "Barrel"
+	# A crate, and a plank leaning on it.
+	_box(near, Vector3(0.9, 0.7, 0.9), wood, Vector3(-2.6, 0.35, 1.3),
+		Vector3(0.0, 0.5, 0.0))
+	_box(near, Vector3(0.14, 1.5, 0.5), wood, Vector3(-3.2, 0.6, 1.9),
+		Vector3(0.0, 0.4, 0.9))
+	# The barrow: a tipped tray, one wheel, two handles.
+	var barrow := Node3D.new()
+	barrow.position = Vector3(-1.6, 0.0, -2.4)
+	barrow.rotation = Vector3(0.0, 1.1, 0.0)
+	near.add_child(barrow)
+	_box(barrow, Vector3(1.1, 0.5, 0.7), rust, Vector3(0.0, 0.42, 0.0),
+		Vector3(0.0, 0.0, 0.5))
+	_cyl(barrow, 0.24, 0.24, 0.10, iron, Vector3(0.62, 0.24, 0.0),
+		Vector3(0.0, 0.0, deg_to_rad(90.0)))
+	for side: float in [-1.0, 1.0]:
+		_box(barrow, Vector3(1.3, 0.07, 0.07), wood,
+			Vector3(-0.45, 0.30, side * 0.28), Vector3(0.0, 0.0, 0.22))
+	# The heap of dry cuttings at the foot of the tree.
+	for i in 5:
+		var a := TAU * float(i) / 5.0
+		_box(near, Vector3(1.1, 0.22, 0.8), straw,
+			Vector3(cos(a) * 0.8 - 0.6, 0.11, sin(a) * 0.7 + 1.9),
+			Vector3(0.1, a, 0.06))
+
+
+## Trees and hedges around the rim, so the frame is FULL and the plate does not
+## simply run out into empty ground. Same idea as the yard's neighbour
+## silhouettes: the edge of the world is scenery, not an edge (G13.1).
+func _build_edge_planting() -> void:
+	var bark := _tex_mat("bark", "bark_albedo", Color(0.30, 0.23, 0.17), 0.98,
+		Vector3(1.0, 2.0, 1.0))
+	var leaf_dark := _flat("leaf_dark", GameConfig.TREE_LEAF_DARK, 1.0)
+	var leaf_light := _flat("leaf_light", GameConfig.TREE_LEAF_LIGHT, 1.0)
+	var hedge := _flat("hedge", Color(0.20, 0.34, 0.16), 1.0)
+	var half := GameConfig.DIORAMA_PLATE * 0.5
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 606
+
+	for i in GameConfig.DIORAMA_EDGE_TREES:
+		var at := _rim_point(rng, half, 0.6, 3.2)
+		# Behind the camera line there is nothing to frame, so the back half
+		# gets most of the trees.
+		if at.z > half.y * 0.65 and rng.randf() < 0.6:
+			continue
+		var tree := Node3D.new()
+		tree.position = at
+		tree.rotation.y = rng.randf() * TAU
+		var size := rng.randf_range(0.9, 1.5)
+		tree.scale = Vector3.ONE * size
+		add_child(tree)
+		_cyl(tree, 0.16, 0.26, 2.8, bark, Vector3(0.0, 1.4, 0.0),
+			Vector3(0.0, 0.0, rng.randf_range(-0.09, 0.09)))
+		var canopy := Node3D.new()
+		canopy.name = "Canopy"
+		tree.add_child(canopy)
+		_canopies.append({"node": canopy, "phase": rng.randf() * TAU})
+		for b in 8:
+			var a := TAU * float(b) / 8.0
+			var ring := 0.62 + rng.randf_range(-0.18, 0.3)
+			var y := 3.1 + (0.95 if b % 3 == 0 else 0.35) + rng.randf_range(-0.2, 0.25)
+			_ball(canopy, 0.66, leaf_light if y > 3.8 else leaf_dark,
+				Vector3(cos(a) * ring, y, sin(a) * ring),
+				Vector3(rng.randf_range(0.85, 1.35), rng.randf_range(0.65, 1.05),
+					rng.randf_range(0.85, 1.35)))
+		_ao_blob(tree, Vector2(3.4, 2.8), Vector3(0.7, 0.03, 0.45), 0.55)
+
+	for i in GameConfig.DIORAMA_EDGE_BUSHES:
+		var at := _rim_point(rng, half, 0.3, 2.2)
+		var bush := Node3D.new()
+		bush.position = at
+		add_child(bush)
+		for b in 3:
+			_ball(bush, rng.randf_range(0.45, 0.8), hedge,
+				Vector3(rng.randf_range(-0.4, 0.4), rng.randf_range(0.2, 0.45),
+					rng.randf_range(-0.4, 0.4)),
+				Vector3(1.2, rng.randf_range(0.6, 0.9), 1.2))
+
+
+## A point in the band just inside the plate's rim.
+func _rim_point(rng: RandomNumberGenerator, half: Vector2, inset: float,
+		band: float) -> Vector3:
+	var side := rng.randi_range(0, 3)
+	var along := rng.randf_range(-1.0, 1.0)
+	var depth := inset + rng.randf() * band
+	match side:
+		0: return Vector3(along * half.x, 0.0, -half.y + depth)
+		1: return Vector3(along * half.x, 0.0, half.y - depth)
+		2: return Vector3(-half.x + depth, 0.0, along * half.y)
+	return Vector3(half.x - depth, 0.0, along * half.y)
+
+
+func _ball(parent: Node3D, radius: float, mat: Material, pos: Vector3,
+		scale := Vector3.ONE) -> MeshInstance3D:
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	mesh.radial_segments = 7
+	mesh.rings = 4
+	var node := _mesh(parent, mesh, mat, pos)
+	node.scale = scale
+	return node
+
+
+# ---------------------------------------------------------------- camera life
+
+func _process(delta: float) -> void:
+	_life(delta)
+	if camera == null or _busy:
+		return
+	_sway_t += delta
+	if GameConfig.DIORAMA_PAN_ENABLED and _pan_finger < 0:
+		# Eases back to centre once the finger is gone.
+		_pan = move_toward(_pan, _pan_target,
+			GameConfig.DIORAMA_PAN_RETURN * delta * maxf(1.0, absf(_pan) * 2.0))
+	var sway := sin(_sway_t * TAU * GameConfig.DIORAMA_SWAY_HZ) \
+		* deg_to_rad(GameConfig.DIORAMA_SWAY_DEG)
+	_place_camera(_pan + sway)
+
+
+## Everything that moves. All of it is cheap transform work on a handful of
+## nodes — the town has to feel alive without costing the hub its frame rate.
+func _life(delta: float) -> void:
+	_life_t += delta
+	# Crowns lean on the same wind the grass shader uses.
+	for entry: Dictionary in _canopies:
+		var node := entry["node"] as Node3D
+		if node == null or not is_instance_valid(node):
+			continue
+		var phase := float(entry["phase"]) + _life_t * GameConfig.WIND_SPEED * 0.35
+		node.rotation.z = sin(phase) * 0.035
+		node.rotation.x = cos(phase * 0.7) * 0.022
+	# Washing on the line, which is the grass sway's sibling.
+	for entry: Dictionary in _cloths:
+		var peg := entry["node"] as Node3D
+		if peg == null or not is_instance_valid(peg):
+			continue
+		var phase := float(entry["phase"]) + _life_t * 1.6
+		peg.rotation.x = sin(phase) * 0.30
+		peg.rotation.z = sin(phase * 0.6) * 0.12
+	# Lantern flame: a small irregular wobble, never a clean sine, or it reads
+	# as a pulsing LED instead of a flame.
+	for light_any: Variant in _lamps:
+		var lamp := light_any as OmniLight3D
+		if lamp == null or not is_instance_valid(lamp):
+			continue
+		var f := sin(_life_t * 6.1) * 0.5 + sin(_life_t * 11.3) * 0.3 \
+			+ sin(_life_t * 2.7) * 0.2
+		lamp.light_energy = lamp.get_meta("base") * (1.0 + f * 0.14)
+	_fly_birds(delta)
+
+
+## Two or three birds crossing now and then. Billboards on a straight line, not
+## a flock simulation.
+func _fly_birds(delta: float) -> void:
+	_bird_timer -= delta
+	if _bird_timer <= 0.0:
+		_bird_timer = _rng.randf_range(7.0, 14.0)
+		_launch_birds()
+	for i in range(_birds.size() - 1, -1, -1):
+		var bird: Dictionary = _birds[i]
+		var node := bird["node"] as Node3D
+		if node == null or not is_instance_valid(node):
+			_birds.remove_at(i)
+			continue
+		bird["t"] = float(bird["t"]) + delta
+		var t := float(bird["t"])
+		node.position = (bird["from"] as Vector3).lerp(bird["to"] as Vector3,
+			t / float(bird["span"]))
+		# A little bob, so it is not a sticker sliding across the sky.
+		node.position.y += sin(t * 5.0 + float(bird["phase"])) * 0.35
+		if t >= float(bird["span"]):
+			node.queue_free()
+			_birds.remove_at(i)
+
+
+func _launch_birds() -> void:
+	var half := GameConfig.DIORAMA_PLATE * 0.5
+	var mat := _flat("bird", Color(0.16, 0.15, 0.17), 1.0)
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var dir := 1.0 if _rng.randf() < 0.5 else -1.0
+	var height := _rng.randf_range(9.0, 13.0)
+	var span := _rng.randf_range(5.5, 8.0)
+	var z := _rng.randf_range(-half.y * 0.7, half.y * 0.2)
+	for i in _rng.randi_range(2, 3):
+		var bird := Node3D.new()
+		add_child(bird)
+		# Two swept quads: a bird at this distance is a silhouette, nothing more.
+		for wing: float in [-1.0, 1.0]:
+			var quad := QuadMesh.new()
+			quad.size = Vector2(0.9, 0.22)
+			_mesh(bird, quad, mat, Vector3(wing * 0.45, 0.0, 0.0),
+				Vector3(0.0, 0.0, wing * 0.5))
+		var from := Vector3(-dir * (half.x + 6.0), height + float(i) * 0.7,
+			z + float(i) * 1.4)
+		_birds.append({"node": bird, "t": 0.0, "span": span,
+			"phase": _rng.randf() * TAU, "from": from,
+			"to": from + Vector3(dir * (GameConfig.DIORAMA_PLATE.x + 12.0), 0.0, 0.0)})
+		bird.position = from
+
+
+func _place_camera(yaw: float) -> void:
+	var offset := _cam_base - _cam_look
+	camera.position = _cam_look + offset.rotated(Vector3.UP, yaw)
+	camera.look_at(_cam_look)
+
+
+## Horizontal drag turns the model a little. Deliberately clamped: this is a
+## thing on a table you lean around, not a camera you fly.
+func on_pan_pressed(finger: int, at: Vector2) -> void:
+	if not GameConfig.DIORAMA_PAN_ENABLED or _busy or _pan_finger >= 0:
+		return
+	_pan_finger = finger
+	_pan_from = at.x
+
+
+func on_pan_dragged(finger: int, at: Vector2) -> void:
+	if finger != _pan_finger:
+		return
+	var limit := deg_to_rad(GameConfig.DIORAMA_PAN_DEG)
+	_pan = clampf(deg_to_rad((at.x - _pan_from) * GameConfig.DIORAMA_PAN_PER_PIXEL),
+		-limit, limit)
+	_pan_target = 0.0
+
+
+func on_pan_released(finger: int) -> void:
+	if finger == _pan_finger:
+		_pan_finger = -1
+
+
+# ---------------------------------------------------------------- primitives
+
+func _tex_mat(key: String, tex_name: String, fallback: Color, rough := 0.9,
+		uv_scale := Vector3.ONE) -> StandardMaterial3D:
+	if _mats.has(key):
+		return _mats[key]
+	var m := StandardMaterial3D.new()
+	var tex := TextureLibrary.find(tex_name)
+	if tex != null:
+		m.albedo_texture = tex
+		m.uv1_scale = uv_scale
+	else:
+		TextureLibrary.warn_missing(tex_name, "duz renk kullaniliyor")
+		m.albedo_color = fallback
+	m.roughness = rough
+	_mats[key] = m
+	return m
+
+
+func _flat(key: String, color: Color, rough := 0.9, metal := 0.0) -> StandardMaterial3D:
+	if _mats.has(key):
+		return _mats[key]
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.roughness = rough
+	m.metallic = metal
+	_mats[key] = m
+	return m
+
+
+## A material that glows: lamps and lantern glass, lit even at this hour so the
+## restored buildings read as inhabited.
+func _glow(key: String, color: Color, energy := 1.4) -> StandardMaterial3D:
+	if _mats.has(key):
+		return _mats[key]
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.emission_enabled = true
+	m.emission = color
+	m.emission_energy_multiplier = energy
+	m.roughness = 0.4
+	_mats[key] = m
+	return m
+
+
+func _mesh(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3,
+		rot := Vector3.ZERO) -> MeshInstance3D:
+	var node := MeshInstance3D.new()
+	node.mesh = mesh
+	node.material_override = mat
+	node.position = pos
+	node.rotation = rot
+	parent.add_child(node)
+	return node
+
+
+func _box(parent: Node3D, size: Vector3, mat: Material, pos: Vector3,
+		rot := Vector3.ZERO) -> MeshInstance3D:
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	return _mesh(parent, mesh, mat, pos, rot)
+
+
+func _cyl(parent: Node3D, r_top: float, r_bottom: float, height: float,
+		mat: Material, pos: Vector3, rot := Vector3.ZERO) -> MeshInstance3D:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = r_top
+	mesh.bottom_radius = r_bottom
+	mesh.height = height
+	mesh.radial_segments = 10
+	return _mesh(parent, mesh, mat, pos, rot)
+
+
+## A soft dark blob on the ground: cheap contact shadow, and the reason SSAO
+## stays off on this renderer.
+func _ao_blob(parent: Node3D, size: Vector2, pos: Vector3, alpha := 0.6) -> void:
+	var mesh := PlaneMesh.new()
+	mesh.size = size
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = TextureLibrary.ao_radial()
+	mat.albedo_color = Color(0.0, 0.0, 0.0, alpha)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.no_depth_test = false
+	_mesh(parent, mesh, mat, pos)
+
+
+# ---------------------------------------------------------------- buildings
+
+## Both forms of one building, parented to a plot node. The restored form's
+## direct children are the "parts" the transition drops into place, so each
+## builder keeps its restored pieces as TOP-LEVEL children — anything nested
+## deeper rides along with its parent instead of landing on its own.
+func _build_building(project_id: String) -> void:
+	var spec: Dictionary = GameConfig.DIORAMA_BUILDINGS[project_id]
+	var plot := Node3D.new()
+	plot.name = project_id.capitalize()
+	plot.position = spec["pos"]
+	plot.rotation.y = float(spec["yaw"])
+	# The buildings are authored around 3 m; on a 26x34 plate that read as
+	# models on a lawn, so the whole plot is scaled up as one.
+	plot.scale = Vector3.ONE * GameConfig.DIORAMA_BUILDING_SCALE
+	add_child(plot)
+
+	var ruined := Node3D.new()
+	ruined.name = "Ruined"
+	plot.add_child(ruined)
+	var restored := Node3D.new()
+	restored.name = "Restored"
+	plot.add_child(restored)
+
+	match project_id:
+		"station":
+			_station_ruined(ruined)
+			_station_restored(restored)
+		"homes":
+			_homes_ruined(ruined)
+			_homes_restored(restored)
+		"watchtower":
+			_tower_ruined(ruined)
+			_tower_restored(restored)
+
+	# Each part remembers where it belongs, so the transition can start it in
+	# the air and tween it home.
+	for child in restored.get_children():
+		var node := child as Node3D
+		if node != null:
+			node.set_meta(PART_META, node.position)
+
+	# One flat body per plot, big enough to catch a tap over the whole building.
+	var touch := StaticBody3D.new()
+	touch.name = "Touch"
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(4.4, 4.0, 4.4)
+	shape.shape = box
+	shape.position.y = 2.0
+	touch.add_child(shape)
+	touch.input_ray_pickable = true
+	touch.input_event.connect(
+		func(_cam: Node, event: InputEvent, _pos: Vector3, _n: Vector3,
+				_i: int) -> void:
+			if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+				building_pressed.emit(project_id))
+	plot.add_child(touch)
+
+	_buildings[project_id] = {"ruined": ruined, "restored": restored,
+		"plot": plot}
+
+
+## The building palette. Every surface here is a TextureLibrary texture, not a
+## flat colour: siding, shingles, wood and bark are the same files the yard's
+## house is built from, and they are what stops these reading as painted boxes
+## (G13.1).
+func _wall_mat(key: String, tint: Color) -> StandardMaterial3D:
+	var mat := _tex_mat(key, "siding_albedo", tint, 0.95, Vector3(2.4, 1.6, 1.0))
+	mat.albedo_color = tint
+	return mat
+
+
+func _roof_mat(key: String, tint: Color) -> StandardMaterial3D:
+	var mat := _tex_mat(key, "roof_shingles_albedo", tint, 0.9,
+		Vector3(2.2, 1.8, 1.0))
+	mat.albedo_color = tint
+	return mat
+
+
+func _wood_mat(key: String, tint: Color) -> StandardMaterial3D:
+	var mat := _tex_mat(key, "wood_albedo", tint, 0.95, Vector3(1.6, 1.0, 1.0))
+	mat.albedo_color = tint
+	return mat
+
+
+## A window is three layers: a dark recess, the glass, and a frame around it.
+## One flat blue rectangle reads as a sticker; the recess is what gives it
+## depth at this camera distance.
+func _window(root: Node3D, size: Vector2, at: Vector3, lit := false) -> void:
+	var recess := _flat("window_dark", Color(0.06, 0.07, 0.09), 1.0)
+	var glass := _glow("window_lit", Color(1.0, 0.86, 0.55), 1.1) if lit \
+		else _flat("window_glass", Color(0.34, 0.44, 0.50), 0.25, 0.35)
+	var frame := _wood_mat("frame_wood", Color(0.42, 0.32, 0.24))
+	_box(root, Vector3(size.x, size.y, 0.06), recess,
+		at - Vector3(0.0, 0.0, 0.04))
+	_box(root, Vector3(size.x - 0.14, size.y - 0.14, 0.03), glass, at)
+	# Four bars, not a solid border: a solid one hid the glass entirely.
+	_box(root, Vector3(size.x + 0.10, 0.09, 0.08), frame,
+		at + Vector3(0.0, size.y * 0.5, 0.02))
+	_box(root, Vector3(size.x + 0.10, 0.09, 0.08), frame,
+		at - Vector3(0.0, size.y * 0.5, -0.02))
+	_box(root, Vector3(0.09, size.y + 0.10, 0.08), frame,
+		at + Vector3(size.x * 0.5, 0.0, 0.02))
+	_box(root, Vector3(0.09, size.y + 0.10, 0.08), frame,
+		at - Vector3(size.x * 0.5, 0.0, -0.02))
+	_box(root, Vector3(0.05, size.y - 0.14, 0.05), frame,
+		at + Vector3(0.0, 0.0, 0.03))
+
+
+## Thin green straps climbing a ruin: ivy, cheaply. Nature is halfway up the
+## walls of everything nobody rebuilt.
+func _ivy(root: Node3D, base: Vector3, height: float, count: int,
+		seed_value: int) -> void:
+	var vine := _flat("ivy", Color(0.20, 0.36, 0.16), 1.0)
+	var leaf := _flat("ivy_leaf", Color(0.26, 0.46, 0.20), 1.0)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	for i in count:
+		var x := base.x + rng.randf_range(-0.9, 0.9)
+		var h := height * rng.randf_range(0.45, 0.95)
+		_box(root, Vector3(0.07, h, 0.05), vine,
+			Vector3(x, base.y + h * 0.5, base.z),
+			Vector3(0.0, 0.0, rng.randf_range(-0.10, 0.10)))
+		for l in 3:
+			var ly := base.y + h * (0.3 + 0.3 * float(l)) 
+			_box(root, Vector3(0.20, 0.16, 0.04), leaf,
+				Vector3(x + rng.randf_range(-0.18, 0.18), ly, base.z + 0.02),
+				Vector3(0.0, 0.0, rng.randf_range(-0.6, 0.6)))
+
+
+# ---- Marshal's station
+
+func _station_ruined(root: Node3D) -> void:
+	var wood := _wall_mat("ruin_wall", Color(0.50, 0.47, 0.42))
+	var board := _wood_mat("ruin_board", Color(0.38, 0.34, 0.29))
+	_box(root, Vector3(3.6, 2.2, 2.8), wood, Vector3(0.0, 1.1, 0.0))
+	# The roof came down at one corner and stayed there.
+	_box(root, Vector3(3.9, 0.16, 3.1), board, Vector3(0.25, 2.05, 0.1),
+		Vector3(0.0, 0.0, deg_to_rad(-11.0)))
+	# Boarded window: two planks nailed across the opening.
+	_box(root, Vector3(1.1, 0.9, 0.06), board,
+		Vector3(-0.9, 1.4, 1.42))
+	_box(root, Vector3(1.4, 0.16, 0.08), wood, Vector3(-0.9, 1.55, 1.46),
+		Vector3(0.0, 0.0, deg_to_rad(9.0)))
+	_box(root, Vector3(1.4, 0.16, 0.08), wood, Vector3(-0.9, 1.25, 1.46),
+		Vector3(0.0, 0.0, deg_to_rad(-7.0)))
+	# Sign in the dirt where it fell.
+	_box(root, Vector3(1.7, 0.5, 0.08), board, Vector3(1.7, 0.06, 2.0),
+		Vector3(deg_to_rad(-84.0), deg_to_rad(14.0), 0.0))
+	_ao_blob(root, Vector2(5.2, 4.4), Vector3(0.4, 0.03, 0.4), 0.5)
+
+
+func _station_restored(root: Node3D) -> void:
+	var wall := _wall_mat("station_wall", Color(0.86, 0.80, 0.68))
+	var roof := _roof_mat("station_roof", Color(0.52, 0.56, 0.62))
+	var trim := _wood_mat("station_trim", Color(0.56, 0.38, 0.27))
+	var lamp := _glow("lamp_warm", Color(1.0, 0.86, 0.52), 2.2)
+	_box(root, Vector3(3.4, 2.4, 2.6), wall, Vector3(0.0, 1.2, 0.0))
+	_roof_prism(root, Vector3(0.0, 2.44, 0.0), 2.9, 0.85, roof)
+	# A plain sill under the front wall instead of a porch: the porch roof sat
+	# beneath the gable and the pair read as two roofs on one building.
+	_box(root, Vector3(3.6, 0.14, 0.30), trim, Vector3(0.0, 0.07, 1.42))
+	# Door, and the lantern beside it that says someone is in.
+	_box(root, Vector3(0.9, 1.6, 0.10), trim, Vector3(0.85, 0.8, 1.33))
+	_box(root, Vector3(0.20, 0.28, 0.20), lamp, Vector3(1.52, 1.68, 1.36))
+	_lantern(root, Vector3(1.52, 1.68, 1.36), 2.6, 3.4)
+	# Window, with the corkboard's silhouette standing behind the glass.
+	_window(root, Vector2(1.3, 0.95), Vector3(-0.85, 1.45, 1.33), true)
+	# STATION board over the door, upright this time.
+	_box(root, Vector3(1.9, 0.48, 0.10), trim, Vector3(-0.1, 2.62, 1.20))
+	_box(root, Vector3(1.5, 0.15, 0.04), wall, Vector3(-0.1, 2.62, 1.26))
+	_ao_blob(root, Vector2(5.2, 4.4), Vector3(0.4, 0.03, 0.4), 0.5)
+
+
+## A warm point light at a lamp, registered for the flicker in _life.
+func _lantern(root: Node3D, at: Vector3, energy: float, range_m: float) -> void:
+	var light := OmniLight3D.new()
+	light.position = at
+	light.light_color = Color(1.0, 0.86, 0.58)
+	light.light_energy = energy
+	light.omni_range = range_m
+	light.shadow_enabled = false
+	light.set_meta("base", energy)
+	root.add_child(light)
+	_lamps.append(light)
+
+
+## Thin smoke from a chimney: the clearest single sign that somebody moved back
+## in. Deliberately weak — a plume would read as a fire.
+func _chimney_smoke(root: Node3D, at: Vector3) -> void:
+	var puff := GPUParticles3D.new()
+	puff.position = at
+	puff.amount = 14
+	puff.lifetime = 2.6
+	puff.preprocess = 2.0
+	var mat := ParticleProcessMaterial.new()
+	mat.direction = Vector3(0.25, 1.0, 0.0)
+	mat.spread = 12.0
+	mat.initial_velocity_min = 0.22
+	mat.initial_velocity_max = 0.42
+	mat.gravity = Vector3(0.12, 0.10, 0.0)
+	mat.scale_min = 0.16
+	mat.scale_max = 0.46
+	mat.scale_curve = _fade_curve()
+	mat.color = Color(0.88, 0.87, 0.84, 0.16)
+	puff.process_material = mat
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE
+	var draw := StandardMaterial3D.new()
+	# A soft radial texture, not a bare quad: an untextured billboard smoked in
+	# hard-edged squares.
+	draw.albedo_texture = TextureLibrary.ao_radial()
+	draw.albedo_color = Color(0.94, 0.93, 0.90, 0.22)
+	draw.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	draw.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	draw.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	draw.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	quad.material = draw
+	puff.draw_pass_1 = quad
+	root.add_child(puff)
+	puff.emitting = true
+
+
+## Smoke grows as it rises; one curve shared by every chimney.
+func _fade_curve() -> CurveTexture:
+	if _mats.has("smoke_curve"):
+		return _mats["smoke_curve"]
+	var curve := Curve.new()
+	curve.add_point(Vector2(0.0, 0.35))
+	curve.add_point(Vector2(1.0, 1.0))
+	var tex := CurveTexture.new()
+	tex.curve = curve
+	_mats["smoke_curve"] = tex
+	return tex
+
+
+# ---- two homes
+
+func _homes_ruined(root: Node3D) -> void:
+	var wood := _wall_mat("ruin_wall", Color(0.50, 0.47, 0.42))
+	var board := _wood_mat("ruin_board", Color(0.38, 0.34, 0.29))
+	# Left hut: one wall gone, so it is three walls and a sagging roof.
+	_box(root, Vector3(2.0, 1.8, 2.0), wood, Vector3(-1.5, 0.9, 0.0))
+	_box(root, Vector3(0.12, 1.1, 2.0), board, Vector3(-2.5, 0.55, 0.0),
+		Vector3(0.0, 0.0, deg_to_rad(14.0)))
+	_box(root, Vector3(2.3, 0.14, 2.3), board, Vector3(-1.45, 1.72, 0.0),
+		Vector3(deg_to_rad(6.0), 0.0, deg_to_rad(-9.0)))
+	# Right hut: standing, but blind and patched.
+	_box(root, Vector3(1.9, 1.7, 1.9), wood, Vector3(1.6, 0.85, 0.2))
+	_box(root, Vector3(2.2, 0.14, 2.2), board, Vector3(1.6, 1.68, 0.2),
+		Vector3(0.0, 0.0, deg_to_rad(5.0)))
+	_box(root, Vector3(0.9, 0.8, 0.06), board, Vector3(1.6, 1.0, 1.18))
+	_ivy(root, Vector3(-1.5, 0.0, 1.02), 1.7, 5, 311)
+	_ivy(root, Vector3(1.6, 0.0, 0.98), 1.5, 4, 977)
+	_ao_blob(root, Vector2(6.4, 4.0), Vector3(0.0, 0.03, 0.3), 0.5)
+
+
+func _homes_restored(root: Node3D) -> void:
+	var wall_a := _wall_mat("home_a", Color(0.90, 0.84, 0.72))
+	var wall_b := _wall_mat("home_b", Color(0.78, 0.84, 0.78))
+	var roof := _roof_mat("home_roof", Color(0.66, 0.36, 0.29))
+	var trim := _wood_mat("home_trim", Color(0.50, 0.35, 0.26))
+	_box(root, Vector3(2.0, 2.0, 2.0), wall_a, Vector3(-1.5, 1.0, 0.0))
+	_roof_prism(root, Vector3(-1.5, 2.32, 0.0), 2.3, 0.7, roof)
+	_box(root, Vector3(0.66, 1.2, 0.09), trim, Vector3(-1.5, 0.6, 1.02))
+	_window(root, Vector2(0.62, 0.58), Vector3(-0.72, 1.42, 1.02), true)
+
+	_box(root, Vector3(1.9, 1.9, 1.9), wall_b, Vector3(1.6, 0.95, 0.2))
+	_roof_prism(root, Vector3(1.6, 2.22, 0.2), 2.2, 0.66, roof)
+	_box(root, Vector3(0.62, 1.15, 0.09), trim, Vector3(1.6, 0.58, 1.18))
+	_window(root, Vector2(0.60, 0.56), Vector3(0.85, 1.36, 1.18), true)
+
+	# Chimneys, and the thin smoke that says someone is home.
+	_box(root, Vector3(0.34, 0.7, 0.34), trim, Vector3(-2.05, 2.75, -0.45))
+	_chimney_smoke(root, Vector3(-2.05, 3.20, -0.45))
+	_box(root, Vector3(0.32, 0.62, 0.32), trim, Vector3(2.15, 2.62, -0.25))
+	_chimney_smoke(root, Vector3(2.15, 3.05, -0.25))
+
+	# The washing line between them, and the cloth on it. The cloth sways: it
+	# is the sibling of the grass sway, and it is what makes the plot read as
+	# lived in rather than merely repaired.
+	_box(root, Vector3(2.6, 0.03, 0.03), trim, Vector3(0.05, 1.82, 0.9))
+	var cloth_colours := [Color(0.90, 0.86, 0.78), Color(0.66, 0.74, 0.86),
+		Color(0.88, 0.72, 0.60), Color(0.78, 0.84, 0.70)]
+	var line := Node3D.new()
+	line.name = "Washing"
+	line.position = Vector3(0.05, 1.80, 0.9)
+	root.add_child(line)
+	for i in cloth_colours.size():
+		var peg := Node3D.new()
+		peg.position = Vector3(-1.0 + float(i) * 0.66, 0.0, 0.0)
+		line.add_child(peg)
+		_cloths.append({"node": peg, "phase": float(i) * 1.3})
+		_box(peg, Vector3(0.44, 0.56, 0.02),
+			_flat("cloth_%d" % i, cloth_colours[i], 1.0),
+			Vector3(0.0, -0.30, 0.0))
+	_ao_blob(root, Vector2(6.4, 4.0), Vector3(0.0, 0.03, 0.3), 0.5)
+
+
+## A simple gable: two tilted slabs meeting at a ridge.
+func _roof_prism(parent: Node3D, at: Vector3, span: float, rise: float,
+		mat: Material) -> void:
+	var slope := atan2(rise, span * 0.5)
+	var length := sqrt(rise * rise + span * span * 0.25)
+	for side: float in [-1.0, 1.0]:
+		_box(parent, Vector3(length, 0.12, span),
+			mat, at + Vector3(side * span * 0.25, rise * 0.5, 0.0),
+			Vector3(0.0, 0.0, -side * slope))
+
+
+# ---- watchtower
+
+func _tower_ruined(root: Node3D) -> void:
+	var wood := _wood_mat("ruin_beam", Color(0.46, 0.42, 0.36))
+	var board := _wood_mat("ruin_board", Color(0.38, 0.34, 0.29))
+	# The skeleton went over sideways and lies where it fell.
+	var fallen := Node3D.new()
+	fallen.rotation = Vector3(0.0, deg_to_rad(20.0), deg_to_rad(-78.0))
+	fallen.position = Vector3(-0.6, 0.35, 0.6)
+	root.add_child(fallen)
+	for side: float in [-1.0, 1.0]:
+		_box(fallen, Vector3(0.16, 4.2, 0.16), wood,
+			Vector3(side * 0.5, 2.1, 0.0))
+	for height: float in [1.2, 2.6, 3.8]:
+		_box(fallen, Vector3(1.16, 0.12, 0.12), board,
+			Vector3(0.0, height, 0.0))
+	_box(fallen, Vector3(1.5, 0.14, 1.5), board, Vector3(0.0, 4.3, 0.0))
+	# Two struts still standing, snapped off short.
+	_box(root, Vector3(0.16, 1.1, 0.16), wood, Vector3(0.6, 0.55, -0.5),
+		Vector3(0.0, 0.0, deg_to_rad(6.0)))
+	_box(root, Vector3(0.16, 0.7, 0.16), wood, Vector3(1.0, 0.35, 0.1))
+	_ivy(root, Vector3(0.4, 0.0, 0.7), 1.2, 4, 5501)
+	_ao_blob(root, Vector2(5.6, 4.4), Vector3(-0.3, 0.03, 0.4), 0.5)
+
+
+func _tower_restored(root: Node3D) -> void:
+	var wood := _wood_mat("tower_wood", Color(0.66, 0.48, 0.30))
+	var deck := _wood_mat("tower_deck", Color(0.54, 0.40, 0.27))
+	var roof := _roof_mat("tower_roof", Color(0.50, 0.54, 0.60))
+	var metal := _flat("tower_metal", Color(0.55, 0.57, 0.60), 0.5, 0.6)
+	var beam := _glow("beacon", Color(1.0, 0.90, 0.60), 3.0)
+	# Four legs, splayed slightly, braced twice.
+	for corner: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1),
+			Vector2(1, 1)]:
+		_box(root, Vector3(0.18, 4.2, 0.18), wood,
+			Vector3(corner.x * 0.78, 2.1, corner.y * 0.78),
+			Vector3(corner.y * 0.03, 0.0, -corner.x * 0.03))
+	for height: float in [1.3, 2.8]:
+		_box(root, Vector3(1.75, 0.12, 0.12), deck,
+			Vector3(0.0, height, -0.78))
+		_box(root, Vector3(1.75, 0.12, 0.12), deck,
+			Vector3(0.0, height, 0.78))
+		_box(root, Vector3(0.12, 0.12, 1.75), deck,
+			Vector3(-0.78, height, 0.0))
+		_box(root, Vector3(0.12, 0.12, 1.75), deck,
+			Vector3(0.78, height, 0.0))
+	# Platform, rail, roof.
+	_box(root, Vector3(2.3, 0.14, 2.3), deck, Vector3(0.0, 4.25, 0.0))
+	for side: Vector3 in [Vector3(0, 0, -1.15), Vector3(0, 0, 1.15),
+			Vector3(-1.15, 0, 0), Vector3(1.15, 0, 0)]:
+		var along := Vector3(2.4, 0.10, 0.10) if absf(side.z) > 0.0 \
+			else Vector3(0.10, 0.10, 2.4)
+		_box(root, along, deck, Vector3(0.0, 4.72, 0.0) + side)
+	_box(root, Vector3(2.5, 0.14, 2.5), roof, Vector3(0.0, 5.45, 0.0))
+	for corner: Vector2 in [Vector2(-1, -1), Vector2(1, 1)]:
+		_box(root, Vector3(0.10, 0.75, 0.10), deck,
+			Vector3(corner.x * 1.02, 5.10, corner.y * 1.02))
+	# The beacon on top, and the glass turned east toward the road out.
+	_cyl(root, 0.26, 0.26, 0.34, beam, Vector3(0.0, 5.70, 0.0))
+	_lantern(root, Vector3(0.0, 5.70, 0.0), 4.5, 7.0)
+	_cyl(root, 0.10, 0.10, 0.55, metal, Vector3(0.92, 4.65, 0.0),
+		Vector3(0.0, 0.0, deg_to_rad(90.0)))
+	_ao_blob(root, Vector2(5.6, 4.4), Vector3(-0.3, 0.03, 0.4), 0.5)
+
+
+# ---------------------------------------------------------------- restoration
+
+## The moment the money turns into a building (G13 §3).
+##
+## Camera pushes in, the ruin drops and puffs, then the restored parts come
+## down from above one at a time, each with a tick and a puff of dust, then the
+## whole thing flashes and the camera pulls back. Awaited, so the caller knows
+## when the hub can be touched again. `skip()` cuts it short at any point.
+func play_restore(project_id: String) -> void:
+	var pair: Dictionary = _buildings.get(project_id, {})
+	if pair.is_empty() or _busy:
+		set_built(project_id, true, false)
+		return
+	_busy = true
+	_skipped = false
+	var plot: Node3D = pair["plot"]
+	var ruined: Node3D = pair["ruined"]
+	var restored: Node3D = pair["restored"]
+
+	var parts: Array = []
+	for child in restored.get_children():
+		var node := child as Node3D
+		if node != null and node.has_meta(PART_META):
+			parts.append(node)
+	# Ground up: a building that assembles roof-first reads as falling apart in
+	# reverse. Sorting by resting height is what makes it read as construction.
+	parts.sort_custom(func(a: Node3D, b: Node3D) -> bool:
+		return (a.get_meta(PART_META) as Vector3).y < (b.get_meta(PART_META) as Vector3).y)
+
+	print("[G13] zoom basladi, parca=%d" % parts.size())
+	await _zoom_to(plot.position, GameConfig.RESTORE_ZOOM_IN)
+	print("[G13] zoom bitti cam=%v" % camera.position)
+	await _collapse(ruined)
+	ruined.visible = false
+	restored.visible = true
+	print("[G13] raise basliyor")
+	await _raise(parts)
+	print("[G13] raise bitti")
+	await _flash(restored)
+	await _zoom_home(GameConfig.RESTORE_ZOOM_OUT)
+
+	set_built(project_id, true, false)
+	_busy = false
+	Analytics.track("restore_animation_%s" % ("skipped" if _skipped else "watched"),
+		{"id": project_id})
+
+
+## A tap anywhere during the transition cuts to the end. The tweens check this
+## between steps, so the scene never ends up half-built.
+func skip() -> void:
+	if _busy:
+		_skipped = true
+
+
+var _skipped := false
+
+
+func _zoom_to(at: Vector3, seconds: float) -> void:
+	if _skipped:
+		return
+	var focus := at + Vector3(0.0, 1.5, 0.0)
+	# Straight in along the LINE THE CAMERA ALREADY LOOKS DOWN, not along the
+	# line from the square outward. The outward version swung round to whichever
+	# side of the plate the building sat on and ended up behind it.
+	var dir := (_cam_base - _cam_look).normalized()
+	var eye := focus + dir * GameConfig.RESTORE_CAM_DISTANCE
+	await _fly(eye, focus, seconds, 0.0)
+
+
+func _zoom_home(seconds: float) -> void:
+	await _fly(_cam_base, _cam_look, seconds, GameConfig.DIORAMA_V_OFFSET)
+
+
+func _fly(eye: Vector3, look: Vector3, seconds: float, v_offset := 0.0) -> void:
+	var from_eye := camera.position
+	var from_look := _look_point()
+	var from_v := camera.v_offset
+	var elapsed := 0.0
+	while elapsed < seconds and not _skipped:
+		elapsed += get_process_delta_time()
+		var k := ease(clampf(elapsed / seconds, 0.0, 1.0), 0.4)
+		camera.position = from_eye.lerp(eye, k)
+		camera.look_at(from_look.lerp(look, k))
+		# The hub shifts the frustum up to clear its cards; a close-up must undo
+		# that, or the building it flew to sits off the top of the screen.
+		camera.v_offset = lerpf(from_v, v_offset, k)
+		await get_tree().process_frame
+	camera.position = eye
+	camera.look_at(look)
+	camera.v_offset = v_offset
+
+
+## Where the camera is pointed right now, so a fly can start from it.
+func _look_point() -> Vector3:
+	return camera.position - camera.global_transform.basis.z * 10.0
+
+
+func _collapse(ruined: Node3D) -> void:
+	if _skipped:
+		ruined.visible = false
+		return
+	var seconds := GameConfig.RESTORE_COLLAPSE
+	var elapsed := 0.0
+	var start := ruined.position
+	_dust(ruined.get_parent() as Node3D, Vector3(0.0, 0.4, 0.0), 1.8)
+	AudioDirector.play_cut()
+	while elapsed < seconds and not _skipped:
+		elapsed += get_process_delta_time()
+		var k := clampf(elapsed / seconds, 0.0, 1.0)
+		# Sinks and flattens: the ruin goes back into the ground it came from.
+		ruined.position = start + Vector3(0.0, -1.2 * k * k, 0.0)
+		ruined.scale = Vector3(1.0 + 0.10 * k, maxf(0.02, 1.0 - k), 1.0 + 0.10 * k)
+		await get_tree().process_frame
+	ruined.position = start
+	ruined.scale = Vector3.ONE
+
+
+## Parts fall in from above, one every RESTORE_PART_GAP seconds, each landing
+## with a tick and a small puff.
+func _raise(parts: Array) -> void:
+	for i in parts.size():
+		if _skipped:
+			break
+		var part: Node3D = parts[i]
+		var rest: Vector3 = part.get_meta(PART_META)
+		part.position = rest + Vector3(0.0, GameConfig.RESTORE_PART_RISE, 0.0)
+		# .call, not a plain call: _drop_part is a coroutine, and this one has to
+		# run alongside the others rather than blocking the next part's start.
+		_drop_part.call(part, rest)
+		var waited := 0.0
+		while waited < GameConfig.RESTORE_PART_GAP and not _skipped:
+			waited += get_process_delta_time()
+			await get_tree().process_frame
+	# Let the last few finish their fall before the flash.
+	var tail := 0.0
+	while tail < GameConfig.RESTORE_PART_FALL and not _skipped:
+		tail += get_process_delta_time()
+		await get_tree().process_frame
+	for part_any: Variant in parts:
+		var node := part_any as Node3D
+		node.position = node.get_meta(PART_META)
+
+
+func _drop_part(part: Node3D, rest: Vector3) -> void:
+	var seconds := GameConfig.RESTORE_PART_FALL
+	var from := part.position
+	var elapsed := 0.0
+	while elapsed < seconds and not _skipped:
+		elapsed += get_process_delta_time()
+		var k := clampf(elapsed / seconds, 0.0, 1.0)
+		# Accelerating fall, then a small settle: linear looked like a lift.
+		part.position = from.lerp(rest, k * k)
+		await get_tree().process_frame
+	part.position = rest
+	if not _skipped:
+		AudioDirector.play_scrap()
+		_dust(part.get_parent() as Node3D, rest, 0.7)
+
+
+## The "it is done" beat: a warm light blooms inside the finished building and
+## fades. A tint would mean touching the shared materials in _mats, which every
+## other building draws with — this only touches one node.
+func _flash(restored: Node3D) -> void:
+	AudioDirector.play_discovery()
+	Haptics.success()
+	if _skipped:
+		return
+	var bloom := OmniLight3D.new()
+	bloom.light_color = Color(1.0, 0.92, 0.70)
+	bloom.omni_range = 7.0
+	bloom.position = Vector3(0.0, 1.8, 0.0)
+	restored.add_child(bloom)
+	var seconds := GameConfig.RESTORE_SHINE
+	var elapsed := 0.0
+	while elapsed < seconds and not _skipped:
+		elapsed += get_process_delta_time()
+		var k := 1.0 - clampf(elapsed / seconds, 0.0, 1.0)
+		bloom.light_energy = 6.0 * k
+		await get_tree().process_frame
+	bloom.queue_free()
+
+
+## A short-lived puff of pale dust. Deliberately tiny: this is punctuation for
+## a part landing, not weather.
+func _dust(parent: Node3D, at: Vector3, scale := 1.0) -> void:
+	if parent == null:
+		return
+	var puff := GPUParticles3D.new()
+	puff.position = at
+	puff.amount = 10
+	puff.lifetime = 0.5
+	puff.one_shot = true
+	puff.explosiveness = 0.95
+	var mat := ParticleProcessMaterial.new()
+	mat.direction = Vector3(0.0, 1.0, 0.0)
+	mat.spread = 55.0
+	mat.initial_velocity_min = 0.4 * scale
+	mat.initial_velocity_max = 1.1 * scale
+	mat.gravity = Vector3(0.0, -1.2, 0.0)
+	mat.scale_min = 0.12 * scale
+	mat.scale_max = 0.3 * scale
+	mat.color = Color(0.82, 0.76, 0.66, 0.75)
+	puff.process_material = mat
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE
+	var draw := StandardMaterial3D.new()
+	draw.albedo_color = Color(0.86, 0.80, 0.70, 0.8)
+	draw.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	draw.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	draw.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	quad.material = draw
+	puff.draw_pass_1 = quad
+	parent.add_child(puff)
+	puff.emitting = true
+	puff.finished.connect(puff.queue_free)
+
+
+## Hills and rooftops past the rim, sunk in haze. Without them the plate ends
+## at a blank wall of fog and the town reads as an island (G13.1).
+func _build_horizon() -> void:
+	Horizon.build(self, GameConfig.DIORAMA_PLATE.length() * 0.86, 20260826)
+
+
+# ---------------------------------------------------------------- the field
+
+## Long grass across the plate, from the SAME clump meshes and the same wind
+## shader the yard uses (TuftField.cluster_mesh). Sparse in the open, thick at
+## the foot of every ruin: nature took the town back while nobody was here.
+## Rebuilding a plot clears its weeds — see set_built (G13.1).
+func _build_tufts() -> void:
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/grass_clump.gdshader")
+	mat.set_shader_parameter("wind_amplitude", GameConfig.WIND_AMPLITUDE * 1.4)
+	mat.set_shader_parameter("wind_speed", GameConfig.WIND_SPEED)
+
+	var variants := GameConfig.clump_variants().size()
+	for v in variants:
+		var mesh_rng := RandomNumberGenerator.new()
+		mesh_rng.seed = 4801 + v * 7919
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_colors = true
+		mm.mesh = TuftField.cluster_mesh(mesh_rng, v)
+		mm.instance_count = 0
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "TuftVariant%d" % v
+		mmi.multimesh = mm
+		mmi.material_override = mat
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(mmi)
+		_tuft_meshes.append(mm)
+
+	_scatter_tufts()
+
+
+## Decides where every clump stands. Each one remembers which plot's overgrowth
+## it belongs to (or "" for the open field), so clearing a plot is a rewrite of
+## the transform list rather than a rebuild.
+func _scatter_tufts() -> void:
+	_tuft_spots.clear()
+	var half := GameConfig.DIORAMA_PLATE * 0.5 - Vector2.ONE * GameConfig.DIORAMA_BEVEL
+	var step := GameConfig.DIORAMA_TUFT_SPACING
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 91117
+
+	var x := -half.x
+	while x <= half.x:
+		var z := -half.y
+		while z <= half.y:
+			var at := Vector3(x + rng.randf_range(-1.0, 1.0) * GameConfig.DIORAMA_TUFT_JITTER,
+				0.0, z + rng.randf_range(-1.0, 1.0) * GameConfig.DIORAMA_TUFT_JITTER)
+			z += step
+			if not _open_ground(at):
+				continue
+			# Thinned out in the open so the plate reads as mown-ish ground with
+			# grass coming through, not a meadow.
+			if rng.randf() > 0.80:
+				continue
+			_tuft_spots.append({"at": at, "owner": "",
+				"scale": rng.randf_range(0.46, 0.8), "yaw": rng.randf() * TAU,
+				"variant": rng.randi_range(0, _tuft_meshes.size() - 1)})
+		x += step
+
+	# The overgrowth rings: dense, taller, and owned by their building.
+	for id: String in GameConfig.DIORAMA_BUILDINGS:
+		var spot: Vector3 = GameConfig.DIORAMA_BUILDINGS[id]["pos"]
+		for _i in GameConfig.DIORAMA_OVERGROWTH_COUNT:
+			var a := rng.randf() * TAU
+			var r := sqrt(rng.randf()) * GameConfig.DIORAMA_OVERGROWTH_RADIUS
+			var at := spot + Vector3(cos(a) * r, 0.0, sin(a) * r)
+			if absf(at.x) > half.x or absf(at.z) > half.y:
+				continue
+			_tuft_spots.append({"at": at, "owner": id,
+				"scale": rng.randf_range(0.75, 1.2), "yaw": rng.randf() * TAU,
+				"variant": rng.randi_range(0, _tuft_meshes.size() - 1)})
+	_write_tufts()
+
+
+## True once the plot this clump belongs to — or simply stands near — has been
+## rebuilt. Clearing only the clumps TAGGED to a plot was not visible: the
+## open-field grass around a finished house kept the yard looking abandoned.
+func _is_cleared_ground(spot: Dictionary) -> bool:
+	var owner_id := str(spot["owner"])
+	if owner_id != "" and _cleared.has(owner_id):
+		return true
+	var at: Vector3 = spot["at"]
+	for id: Variant in _cleared:
+		var plot: Vector3 = GameConfig.DIORAMA_BUILDINGS[id]["pos"]
+		if at.distance_to(plot) < GameConfig.DIORAMA_OVERGROWTH_RADIUS:
+			return true
+	return false
+
+
+## Keeps grass off the paving and off the paths.
+func _open_ground(at: Vector3) -> bool:
+	if Vector2(at.x, at.z).length() < GameConfig.DIORAMA_SQUARE_RADIUS:
+		return false
+	for id: String in GameConfig.DIORAMA_BUILDINGS:
+		var spot: Vector3 = GameConfig.DIORAMA_BUILDINGS[id]["pos"]
+		var to := Vector2(spot.x, spot.z)
+		# Distance from the path's centre line, which runs square -> building.
+		var point := Vector2(at.x, at.z)
+		var k := clampf(point.dot(to.normalized()) / to.length(), 0.0, 1.0)
+		if point.distance_to(to * k) < 1.1:
+			return false
+	return true
+
+
+## Pushes the surviving clumps into the MultiMeshes. A clump whose owner has
+## been rebuilt is simply not written.
+func _write_tufts() -> void:
+	var per_variant: Array = []
+	for _v in _tuft_meshes.size():
+		per_variant.append([])
+	for spot: Dictionary in _tuft_spots:
+		if _is_cleared_ground(spot):
+			continue
+		per_variant[int(spot["variant"])].append(spot)
+	for v in _tuft_meshes.size():
+		var list: Array = per_variant[v]
+		var mm: MultiMesh = _tuft_meshes[v]
+		mm.instance_count = list.size()
+		for i in list.size():
+			var spot: Dictionary = list[i]
+			var basis := Basis(Vector3.UP, float(spot["yaw"])).scaled(
+				Vector3.ONE * float(spot["scale"]))
+			mm.set_instance_transform(i, Transform3D(basis, spot["at"]))
+			var shade := 0.82 + fmod(float(i) * 0.137, 0.34)
+			mm.set_instance_color(i, Color(shade, shade, shade))

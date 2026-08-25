@@ -43,6 +43,9 @@ func _ready() -> void:
 	_build_neighbors()
 	_build_smalls()
 	_build_clouds()
+	# G13.1: distant hills and rooftops in EVERY yard, not just the hub's
+	# diorama. Every chapter used to end at a fog wall with nothing behind it.
+	Horizon.build(self, GameConfig.HORIZON_RADIUS, _rng.randi())
 	if GameConfig.SKY_HIGH_CLOUDS_ENABLED:
 		_build_high_clouds()
 	_build_driveways()

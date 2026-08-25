@@ -70,6 +70,12 @@ static func style_secondary(button: Button) -> void:
 	button.add_theme_stylebox_override("focus", base)
 
 var _background: TextureRect
+## G13: the live 3D town behind the cards, when hub_mode is "diorama". Null in
+## legacy mode, and every use is guarded — legacy has to keep working, because
+## this whole thing is a trial.
+var _diorama: TownDiorama
+var _diorama_view: SubViewport
+var _diorama_tick := 0
 var _tiles_page: Control
 var _board_page: Control
 var _town_page: Control
@@ -112,6 +118,15 @@ func _ready() -> void:
 # ---------------------------------------------------------------- chrome
 
 func _build_background() -> void:
+	if GameConfig.hub_mode == GameConfig.HUB_MODE_DIORAMA:
+		_build_diorama_background()
+		return
+	_build_collage_background()
+
+
+## The 2D collage: the hub's original backdrop, kept whole so hub_mode can go
+## back to it (G13).
+func _build_collage_background() -> void:
 	# Warm gradient ground, used as the fallback and as the letterbox behind an
 	# illustration that does not match the screen aspect.
 	var ground := TextureRect.new()
@@ -516,10 +531,130 @@ func _on_project(project_id: String, built: bool, source: Button) -> void:
 		_refresh_progress()
 		_apply_restore_layers()
 		_refresh_tiles()
+		if _diorama != null and _diorama.has_building(project_id):
+			await _play_restore_scene(project_id)
+
+
+## The live model of the town, rendered into the page behind the cards.
+func _build_diorama_background() -> void:
+	var frame := SubViewportContainer.new()
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.stretch = true
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(frame)
+
+	_diorama_view = SubViewport.new()
+	_diorama_view.size = Vector2i(get_viewport_rect().size)
+	_diorama_view.own_world_3d = true
+	_diorama_view.world_3d = World3D.new()
+	_diorama_view.render_target_update_mode = SubViewport.UPDATE_ONCE
+	# The hub is menus over a still model: half the yard's frame rate is plenty,
+	# and it is the whole reason this can sit behind every page.
+	_diorama_view.physics_object_picking = true
+	frame.add_child(_diorama_view)
+
+	set_process(true)
+	_diorama = load("res://scenes/TownDiorama.tscn").instantiate()
+	_diorama.building_pressed.connect(_on_diorama_building)
+	_diorama_view.add_child(_diorama)
+
+	# The yard's screen overlay: warm gradient plus a vignette. Same shader the
+	# HUD runs, so the hub and the game are graded alike (G13.1).
+	var grade := ColorRect.new()
+	grade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	grade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var grade_mat := ShaderMaterial.new()
+	grade_mat.shader = load("res://shaders/screen_overlay.gdshader")
+	grade_mat.set_shader_parameter("vignette_strength", 0.22)
+	grade_mat.set_shader_parameter("warm_strength", 0.13)
+	grade_mat.set_shader_parameter("cool_strength", 0.07)
+	grade.material = grade_mat
+	add_child(grade)
+
+	# The same darkening the collage gets, so cards stay readable over it.
+	var shade := ColorRect.new()
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0.05, 0.06, 0.05, 0.55))
+	grad.set_color(1, Color(0.05, 0.06, 0.05, 0.05))
+	var grad_tex := GradientTexture2D.new()
+	grad_tex.gradient = grad
+	grad_tex.fill_from = Vector2(0.0, 1.0)
+	grad_tex.fill_to = Vector2(0.0, 0.35)
+	var wash := TextureRect.new()
+	wash.texture = grad_tex
+	wash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	wash.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	wash.stretch_mode = TextureRect.STRETCH_SCALE
+	wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(wash)
+
+
+## The hub is menus over a still model, so the 3D half runs at half rate: the
+## SubViewport is told to draw one frame, then left alone until the next tick.
+## UPDATE_ALWAYS would redraw the whole town every frame of a 60 fps menu.
+func _process(_delta: float) -> void:
+	if _diorama_view == null:
+		return
+	_diorama_tick += 1
+	if _diorama_tick % 2 == 0:
+		_diorama_view.render_target_update_mode = SubViewport.UPDATE_ONCE
+
+
+## Stops the town rendering while a chapter is being played, and starts it again
+## on the way back. The hub node stays alive (root only hides it), so without
+## this the diorama would keep drawing behind the yard (G13 §4).
+func set_diorama_active(active: bool) -> void:
+	set_process(active and _diorama_view != null)
+	if _diorama_view == null:
+		return
+	_diorama_view.render_target_update_mode = (SubViewport.UPDATE_ONCE if active
+		else SubViewport.UPDATE_DISABLED)
+	if _diorama != null:
+		_diorama.process_mode = (Node.PROCESS_MODE_INHERIT if active
+			else Node.PROCESS_MODE_DISABLED)
+		if active:
+			_diorama.refresh_state()
+
+
+## A restored building is a shortcut to the screen it stands for (G13 §4).
+func _on_diorama_building(project_id: String) -> void:
+	if not RestoreBoard.is_built(project_id):
+		return
+	Haptics.light()
+	match project_id:
+		"station":
+			open_evidence_board()
+		"homes":
+			_on_tile("town", false, Button.new())
+		"watchtower":
+			_restore_note.text = tr("DIORAMA_TOWER_LINE")
 
 
 ## Completed projects add a layer to the hub art; without the art file they add
 ## a small badge instead, so progress is always visible.
+## Hands the screen to the diorama while it rebuilds, then gives it back. The
+## cards fade out so the model is unobstructed, and a tap anywhere skips.
+func _play_restore_scene(project_id: String) -> void:
+	var skipper := Button.new()
+	skipper.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	skipper.flat = true
+	skipper.pressed.connect(_diorama.skip)
+	add_child(skipper)
+	var pages: Array = []
+	for child in get_children():
+		var page := child as Control
+		if page != null and page.visible and page != skipper \
+				and not (page is SubViewportContainer):
+			pages.append(page)
+			page.modulate.a = 0.0
+	await _diorama.play_restore(project_id)
+	for page_any: Variant in pages:
+		(page_any as Control).modulate.a = 1.0
+	skipper.queue_free()
+
+
 func _apply_restore_layers() -> void:
 	for child in get_children():
 		if child is Control and (child as Control).name.begins_with("Restore_"):
