@@ -75,6 +75,7 @@ var _board_page: Control
 var _town_page: Control
 var _workshop_page: WorkshopPage
 var _board_view: EvidenceBoard
+var _board_scroll: ScrollContainer
 var _board_tab_places: Button
 var _board_tab_evidence: Button
 var _scrap_label: Label
@@ -651,9 +652,16 @@ func _build_board() -> Control:
 	column.add_child(heading)
 
 	# G10: the detective corkboard lives behind a tab pair on the same page.
+	# The corkboard is taller than the screen, so it scrolls (G12.10).
+	_board_scroll = ScrollContainer.new()
+	_board_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_board_scroll.offset_top = 366
+	_board_scroll.offset_bottom = -190
+	_board_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_board_scroll.visible = false
+	page.add_child(_board_scroll)
 	_board_view = EvidenceBoard.new()
-	_board_view.visible = false
-	page.add_child(_board_view)
+	_board_scroll.add_child(_board_view)
 
 	var tabs := HBoxContainer.new()
 	tabs.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
@@ -687,7 +695,7 @@ func _show_board_tab(evidence: bool) -> void:
 	Haptics.light()
 	var scroll: Control = _board_page.get_meta("scroll")
 	scroll.visible = not evidence
-	_board_view.visible = evidence
+	_board_scroll.visible = evidence
 	if evidence:
 		_board_view.refresh()
 	if _board_tab_evidence != null:
@@ -792,12 +800,58 @@ func _rebuild_town() -> void:
 		return
 	var column: VBoxContainer = _town_page.get_meta("column")
 	for child in column.get_children():
-		if child is Button:
+		if child is Button or child is PanelContainer:
 			child.queue_free()
+	# Ellie heads the page until she is found. She is not someone you can talk
+	# to, so she is a poster rather than a person row — putting a missing child
+	# in the list of neighbours to chat with read wrong (G12.10).
+	if ChapterProgress.done_count() < GameConfig.ELLIE_FOUND_AFTER:
+		column.add_child(_make_missing_card())
 	for person: Dictionary in Story.list("town.people"):
 		if ChapterProgress.done_count() < int(person.get("requires_done", 0)):
 			continue
 		column.add_child(_make_person_row(person))
+
+
+## The MISSING poster for the town page: portrait, name, and how long she has
+## been gone. Deliberately not a Button — there is nothing to press.
+func _make_missing_card() -> PanelContainer:
+	var frame := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = GameConfig.POSTER_BG
+	style.border_color = GameConfig.CASE_ACCENT
+	style.set_border_width_all(4)
+	style.set_corner_radius_all(14)
+	style.set_content_margin_all(22)
+	frame.add_theme_stylebox_override("panel", style)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 26)
+	frame.add_child(row)
+
+	var face := TextureLibrary.find("portraits/face_ellie")
+	if face != null:
+		var picture := TextureRect.new()
+		picture.texture = face
+		picture.custom_minimum_size = Vector2(190, 190)
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		row.add_child(picture)
+
+	var text := VBoxContainer.new()
+	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(text)
+	for line: Array in [[tr("POSTER_MISSING"), 46, GameConfig.CASE_ACCENT],
+			[tr("POSTER_NAME"), 52, Color.WHITE],
+			[tr("POSTER_SINCE"), 34, GameConfig.CASE_MUTED]]:
+		var label := Label.new()
+		label.text = str(line[0])
+		label.add_theme_font_size_override("font_size", int(line[1]))
+		label.add_theme_color_override("font_color", line[2])
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		text.add_child(label)
+	return frame
 
 
 func _make_person_row(person: Dictionary) -> Button:

@@ -18,6 +18,8 @@ var yaw: float = 0.0
 
 var _focus := Vector3.ZERO
 var _bird_view := false
+## Held still while a gesture is in progress; see BladeMower.camera_yaw_locked.
+var freeze_yaw := false
 var _glance_point := Vector3.ZERO
 var _glance_weight := 0.0
 
@@ -54,7 +56,7 @@ func _process(delta: float) -> void:
 	_focus = _focus.lerp(target.position, 1.0 - exp(-GameConfig.CAMERA_FOCUS_LERP * delta))
 	if _glance_weight > 0.0:
 		_focus = _focus.lerp(_glance_point, _glance_weight * 0.65)
-	if not target.camera_yaw_locked():
+	if not target.camera_yaw_locked() and not freeze_yaw:
 		yaw += wrapf(target.yaw - yaw, -PI, PI) * (1.0 - exp(-GameConfig.CAMERA_YAW_LERP * delta))
 	_place()
 

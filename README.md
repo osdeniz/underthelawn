@@ -1516,6 +1516,41 @@ eleven suites are scene tests.
   centred under them.
 * The wallet chip and evidence counter moved left to clear the new home button.
 
+## Yama G12.10 — dört bulgu
+
+* **Blade steering: the camera now freezes for the duration of a gesture.**
+  G12.9 latched the control frame at press instead, which is self-consistent but
+  the camera kept swinging underneath it, so "right on screen" and "right in the
+  frame" drifted further apart the longer a finger was held — exactly the
+  reported "stop and re-drag and then it works". `CameraRig.freeze_yaw` holds the
+  camera still while `_has_finger`, so the live yaw and the control frame are the
+  same number by construction, and the camera swings to the new heading on
+  release. `tests/BladeFrame.tscn` measured 1.29 rad (74°) of drift during a
+  single held drag before the fix and 0.00 after; a first version of that test
+  passed on the old code because it drove north, where the camera had no reason
+  to turn — worth remembering when writing the next one.
+* **Bigger tractor discs, with teeth.** 0.30 m → 0.46 m, 14 saw teeth angled
+  into the spin, a fatter hub. A plain plate at phone size reads as a wheel.
+* **A new grass-cut sound.** The old one was a single lowpassed noise burst — a
+  flat "shhh". It is now band-passed hiss plus 7-11 randomly scattered stem pops
+  plus a short deck thump. Measured band split: 3 % under 500 Hz, 32 % mid,
+  45 % in the 2-6 kHz shearing band, 20 % above.
+* **Ellie is on the town page**, as a MISSING poster above the neighbours rather
+  than a person row — she is not someone you can talk to until she is found.
+* **The corkboard scrolls and nothing overlaps.** Eight chapters of two cards
+  plus a wrapped note plus the finale do not fit one portrait screen; the notes
+  were free-positioned Labels with no collision check at all.
+  `tests/BoardLayout.tscn` counted 6 real overlaps before, 0 after. The fix is a
+  two-pass layout (every card placed before any note dodges anything), a note
+  solver that tries below-then-above and nine horizontal offsets, and a board
+  that is `BOARD_SCALE` screens tall inside a ScrollContainer.
+  - Card positions come from `_layout_width`/`_layout_height`, NOT `size`: inside
+    a ScrollContainer the control has no size when `refresh()` runs, and deriving
+    from a size that grows to fit the notes would move the cards every refresh.
+  - `refresh()` uses `remove_child` before `queue_free`. `queue_free` defers to
+    the end of the frame, so tabbing in and out in one frame laid a second set of
+    cards over the first.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

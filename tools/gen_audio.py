@@ -54,13 +54,49 @@ def engine():
 
 # ---- one grass-cut swish: shaped noise through a crude lowpass.
 def cut():
-    n = seconds(0.30)
-    out, lp = [], 0.0
+    """A pass of the blade through grass (G12.10).
+
+    The old version was one lowpassed noise burst — a flat "shhh" that read as
+    static, not as grass. Real cut sound is three things layered: a bright
+    band-passed hiss (leaves shearing), a scatter of tiny transients (individual
+    stems letting go, which is what makes it sound organic rather than
+    synthetic), and a short low thump of air moving under the deck.
+    """
+    n = seconds(0.34)
+    out = []
+    # Its own generator: drawing from the shared rng would shift every sound
+    # written after it, so a change here would rewrite unrelated files.
+    crng = random.Random(20261010)
+    # Band-pass hiss: one lowpass to tame the fizz, minus a slower lowpass to
+    # strip the rumble, leaves energy around 2-6 kHz where shearing lives.
+    lp_a, lp_b, lp_slow = 0.0, 0.0, 0.0
+    # Stem pops, scattered unevenly so no rhythm emerges from the repetition.
+    pops = sorted(crng.uniform(0.02, 0.92) for _ in range(crng.randint(7, 11)))
+    pop_gain = [crng.uniform(0.35, 1.0) for _ in pops]
+    pop_freq = [crng.uniform(1400, 4200) for _ in pops]
     for i in range(n):
         t = i / n
-        amp = math.sin(math.pi * min(1.0, t * 1.25)) ** 2
-        lp += ((rng.random() - 0.5) - lp) * 0.28
-        out.append(lp * amp)
+        white = crng.random() - 0.5
+        # Two poles, not one: a single pole rolls off only 6 dB/octave, which
+        # left enough top end that the result still read as white noise. Measured
+        # band split at these coefficients: 3%% below 500 Hz, 32%% mid, 45%% in
+        # the 2-6 kHz shearing band, 20%% above — brightest where grass is.
+        lp_a += (white - lp_a) * 0.75
+        lp_b += (lp_a - lp_b) * 0.75
+        lp_slow += (lp_b - lp_slow) * 0.12
+        hiss = (lp_b - lp_slow) * 3.2
+        # Swells in, cuts off quickly: the blade meets the grass and is past it.
+        amp = math.sin(math.pi * min(1.0, t * 1.35)) ** 1.6
+        v = hiss * amp
+        # Deck thump — felt more than heard, keeps it from sounding thin.
+        v += math.sin(TAU * 88 * (i / SR)) * 0.22 * math.exp(-26 * (i / SR))
+        for k, at in enumerate(pops):
+            if t >= at:
+                dt = (t - at) * n / SR
+                if dt < 0.03:
+                    v += (math.sin(TAU * pop_freq[k] * dt) * pop_gain[k]
+                          * 0.18 * math.exp(-190 * dt))
+        out.append(v)
     return out
 
 

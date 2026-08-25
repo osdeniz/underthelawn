@@ -10,6 +10,13 @@ extends Control
 ## data fits every screen. Drawing order: cork, strings (_draw), cards, notes.
 
 const CARD_SIZE := Vector2(190, 150)
+## Breathing room around a pinned note, and how far it stays off the board edge.
+const NOTE_GAP := 14.0
+const NOTE_MARGIN := 28.0
+## The board is taller than the screen and scrolls. Eight chapters of two cards
+## plus a wrapped note plus the finale simply do not fit one portrait screen;
+## squeezing them was what put the sentences on top of each other (G12.10).
+const BOARD_SCALE := 2.5
 
 var _cork: Control
 var _cards_layer: Control
@@ -17,10 +24,26 @@ var _cards_layer: Control
 ## so drawing on the board itself put the thread beneath the cork.
 var _strings: Control
 var _pin_points: Array[Vector2] = []   # per chapter: midpoint between its cards
+## Every card and note already placed, so a note can be pushed clear of them
+## instead of landing on top (G12.10).
+var _claimed: Array[Rect2] = []
+## The height card positions are derived from. Fixed, so the board can grow to
+## fit its notes without moving the cards on the next refresh.
+var _layout_height := 0.0
+## Likewise the width: inside a ScrollContainer the control has no size until
+## the container lays it out, and refresh() runs before that.
+var _layout_width := 0.0
 
 
 func _ready() -> void:
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Sized by its host ScrollContainer, not anchored to the screen.
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Whatever the host already gave us, else the screen: inside a
+	# ScrollContainer the control still has no size at this point.
+	var screen := get_viewport_rect().size
+	_layout_width = size.x if size.x > 0.0 else screen.x
+	_layout_height = maxf(size.y, screen.y * BOARD_SCALE)
+	custom_minimum_size = Vector2(0.0, _layout_height)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_cork()
 	_strings = Control.new()
@@ -29,6 +52,7 @@ func _ready() -> void:
 	_strings.draw.connect(_draw_strings)
 	add_child(_strings)
 	_cards_layer = Control.new()
+	_cards_layer.name = "Cards"
 	_cards_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_cards_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Strings draw on THIS control (under the cards layer added after).
@@ -65,16 +89,32 @@ func _build_cork() -> void:
 
 
 func refresh() -> void:
+	# remove_child, not queue_free: queue_free defers to the end of the frame,
+	# so a second refresh in the same frame (tab in, tab out) laid a fresh set
+	# of cards over the old one and the solver counted both.
 	for child in _cards_layer.get_children():
+		_cards_layer.remove_child(child)
 		child.queue_free()
 	_pin_points.clear()
+	_claimed.clear()
 	var pins := Story.list("board.pins")
+	# Two passes. Notes dodge whatever is already on the board, so every card
+	# has to exist before the first note is positioned — a single pass let each
+	# note dodge only the chapters above it and get landed on from below.
 	for pin: Dictionary in pins:
 		_place_chapter(pin)
-	# The finished case: Ellie's card in the middle once B8 is done.
+	for pin: Dictionary in pins:
+		_place_chapter_note(pin)
+	# Last, so it can sit under everything the chapters claimed.
 	if not pins.is_empty() and ChapterProgress.is_done(
 			str((pins.back() as Dictionary).get("chapter", ""))):
 		_place_finale()
+	# Grow to whatever the notes actually needed. Card positions came from
+	# _layout_height, so this cannot shift them on the next refresh.
+	var needed := 0.0
+	for taken: Rect2 in _claimed:
+		needed = maxf(needed, taken.end.y)
+	custom_minimum_size.y = maxf(_layout_height, needed + NOTE_MARGIN)
 	_strings.queue_redraw()
 
 
@@ -88,14 +128,13 @@ func _place_chapter(pin: Dictionary) -> void:
 	for slot in 2:
 		var info := variant.evidence_info(slot)
 		var at := at_a if slot == 0 else at_b
-		_cards_layer.add_child(_make_card(info, slot < found, at))
+		var card := _make_card(info, slot < found, at)
+		_cards_layer.add_child(card)
 		_cards_layer.add_child(_pin_head(at))
-	# The Marshal's note under the chapter's cards, once it is done.
-	var note_key := str(pin.get("note", ""))
-	if note_key != "" and ChapterProgress.is_done(chapter_id):
-		var note := _make_note(tr(note_key))
-		note.position = (at_a + at_b) * 0.5 + Vector2(-40, CARD_SIZE.y + 8)
-		_cards_layer.add_child(note)
+		# A PanelContainer grows past custom_minimum_size when its label wraps,
+		# so claim what the card will actually occupy, not CARD_SIZE.
+		_claimed.append(Rect2(at, card.get_combined_minimum_size().max(CARD_SIZE)))
+
 
 
 func _make_card(info: Dictionary, found: bool, at: Vector2) -> PanelContainer:
@@ -142,6 +181,77 @@ func _pin_head(at: Vector2) -> ColorRect:
 	return pin_dot
 
 
+## The Marshal's note under a chapter's cards, once that chapter is done.
+func _place_chapter_note(pin: Dictionary) -> void:
+	var note_key := str(pin.get("note", ""))
+	if note_key == "" or not ChapterProgress.is_done(str(pin.get("chapter", ""))):
+		return
+	var note := _make_note(tr(note_key))
+	_cards_layer.add_child(note)
+	_place_note(note,
+		_at(float(pin.get("x", 0.5)), float(pin.get("y", 0.5))),
+		_at(float(pin.get("x2", 0.5)), float(pin.get("y2", 0.5))))
+
+
+## Places a note clear of everything already pinned, and inside the board.
+##
+## The board does not scroll, and the last chapters sit near the bottom edge, so
+## "always below the cards" ran the final notes off the screen. Candidates are
+## tried below first (it reads as a note pinned under its evidence), then above,
+## and the first one that is both on the board and untouched wins.
+func _place_note(note: Label, at_a: Vector2, at_b: Vector2) -> void:
+	# The Label only knows its own height once it has laid its text out.
+	note.size = Vector2(note.custom_minimum_size.x, 0.0)
+	var height := note.get_combined_minimum_size().y
+	note.size.y = height
+
+	var width := note.custom_minimum_size.x
+	var centre: float = (at_a.x + at_b.x) * 0.5 + CARD_SIZE.x * 0.5 - width * 0.5
+	var below: float = maxf(at_a.y, at_b.y) + CARD_SIZE.y + NOTE_GAP
+	var above: float = minf(at_a.y, at_b.y) - height - NOTE_GAP
+
+	var best := Vector2(centre, below)
+	var best_score := INF
+	# Below reads best (a note pinned under its evidence), then above; each is
+	# tried centred first and then shouldered aside, because on a board this
+	# dense the vertical push alone runs out of room.
+	for top_start: float in [below, above]:
+		for nudge: float in [0.0, -width * 0.25, width * 0.25,
+				-width * 0.5, width * 0.5, -width * 0.75, width * 0.75,
+				-width, width]:
+			var left := clampf(centre + nudge, NOTE_MARGIN,
+				maxf(NOTE_MARGIN, _layout_width - width - NOTE_MARGIN))
+			var top := top_start
+			for _attempt in 12:
+				var rect := Rect2(Vector2(left, top), Vector2(width, height))
+				var hit := 0.0
+				var pushed := top
+				for taken: Rect2 in _claimed:
+					var area := rect.intersection(taken).get_area()
+					if area > 0.0:
+						hit += area
+						pushed = maxf(pushed, taken.end.y + NOTE_GAP)
+				var off: bool = (top < NOTE_MARGIN
+					or top + height > _layout_height - NOTE_MARGIN)
+				var score := hit + (1.0e6 if off else 0.0)
+				if score < best_score:
+					best_score = score
+					best = Vector2(left, clampf(top, NOTE_MARGIN,
+						maxf(NOTE_MARGIN,
+							_layout_height - height - NOTE_MARGIN)))
+				if score <= 0.0 or pushed <= top:
+					break
+				top = pushed
+			if best_score <= 0.0:
+				break
+		if best_score <= 0.0:
+			break
+	note.position = best
+	# Claimed with its gap included, so the next note keeps its distance instead
+	# of coming to rest exactly against this one.
+	_claimed.append(Rect2(best, Vector2(width, height)).grow(NOTE_GAP * 0.5))
+
+
 func _make_note(text: String) -> Label:
 	var note := Label.new()
 	note.text = text
@@ -157,8 +267,17 @@ func _make_note(text: String) -> Label:
 
 func _place_finale() -> void:
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(260, 220)
-	card.position = _at(0.5, 0.42) - Vector2(35, 35)
+	var card_size := Vector2(260, 220)
+	card.custom_minimum_size = card_size
+	# Below every chapter, centred: this is the note the board ends on, and
+	# dropping it in the middle at a fixed 0.42 landed it on the mid-board
+	# chapters and then off the bottom edge when pushed clear (G12.10).
+	var lowest := 0.0
+	for taken: Rect2 in _claimed:
+		lowest = maxf(lowest, taken.end.y)
+	var spot := Vector2((_layout_width - card_size.x) * 0.5, lowest + NOTE_GAP * 2.0)
+	card.position = spot
+	_claimed.append(Rect2(spot, card_size))
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.95, 0.92, 0.84)
 	style.set_corner_radius_all(10)
@@ -175,18 +294,19 @@ func _place_finale() -> void:
 	var art := TextureLibrary.find("hub/case2_teaser")
 	face.texture = art if art != null else TextureLibrary.find("portraits/face_ellie")
 	rows.add_child(face)
-	var final_note := _make_note(Story.text("board.final_note"))
-	final_note.position = card.position + Vector2(-60, 240)
 	_cards_layer.add_child(card)
+	var final_note := _make_note(Story.text("board.final_note"))
 	_cards_layer.add_child(final_note)
+	_place_note(final_note, spot, spot + Vector2(card_size.x - CARD_SIZE.x,
+		card_size.y - CARD_SIZE.y))
 
 
 func _at(fx: float, fy: float) -> Vector2:
 	# Positions are fractions of the usable board (under the top bar, above the
 	# back button), minus the card so nothing hangs off the right edge.
-	var top := 260.0
-	var bottom := size.y - 200.0
-	return Vector2(fx * (size.x - CARD_SIZE.x - 60.0) + 30.0,
+	var top := 40.0
+	var bottom := _layout_height - 60.0
+	return Vector2(fx * (_layout_width - CARD_SIZE.x - 60.0) + 30.0,
 		top + fy * (bottom - top - CARD_SIZE.y))
 
 

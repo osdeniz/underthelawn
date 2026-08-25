@@ -79,10 +79,11 @@ func on_touch_released(index: int, _screen_pos: Vector2) -> void:
 func _physics_process(delta: float) -> void:
 	var stick := pad_stick()
 	if _has_finger and stick != Vector2.ZERO:
-		# The stick IS the direction, read against the camera as it was when the
-		# finger landed. The camera turns with the disk, so using its LIVE yaw
-		# would feed the blade's own heading back into the controls.
-		var heading := pad_camera_yaw() + atan2(stick.x, stick.y)
+		# The stick IS the direction, read against the LIVE camera — which is
+		# frozen for the duration of this gesture (see _physics_process), so the
+		# frame cannot drift out from under the finger the way a latched copy
+		# did while the camera kept turning.
+		var heading := camera_yaw + atan2(stick.x, stick.y)
 		var dir := Vector3(sin(heading), 0.0, -cos(heading))
 		var desired := minf(stick.length(), 1.0) * GameConfig.BLADE_MAX_SPEED
 		_velocity = dir * desired
@@ -101,6 +102,13 @@ func _physics_process(delta: float) -> void:
 	speed = _velocity.length()
 	if speed > 0.2:
 		yaw = atan2(_velocity.x, -_velocity.z)
+
+	# The camera holds still while a finger is down and swings to the new
+	# heading once it lifts: rotation the player can see, controls that cannot
+	# drift mid-drag (G12.10).
+	var rig := camera as CameraRig
+	if rig != null:
+		rig.freeze_yaw = _has_finger
 
 	_resolve_walls()
 	_resolve_obstacles()

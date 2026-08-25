@@ -73,21 +73,31 @@ func _build_discs() -> void:
 		var plate := CylinderMesh.new()
 		plate.top_radius = GameConfig.TRACTOR_DISC_RADIUS
 		plate.bottom_radius = GameConfig.TRACTOR_DISC_RADIUS
-		plate.height = 0.03
-		plate.radial_segments = 18
+		plate.height = 0.04
+		plate.radial_segments = 22
 		_mesh_child(pivot, plate, steel, Vector3.ZERO)
-		# Four blades on the plate, so the spin is visible rather than a smear.
+		# Saw teeth around the rim, angled into the direction of spin. At phone
+		# size these — not the plate — are what says the thing cuts.
+		for i in GameConfig.TRACTOR_DISC_TEETH:
+			var angle := TAU * float(i) / float(GameConfig.TRACTOR_DISC_TEETH)
+			var tooth := BoxMesh.new()
+			tooth.size = GameConfig.TRACTOR_DISC_TOOTH_SIZE
+			var reach := GameConfig.TRACTOR_DISC_RADIUS * 0.97
+			_mesh_child(pivot, tooth, steel,
+				Vector3(sin(angle) * reach, 0.01, cos(angle) * reach),
+				Vector3(0.0, angle + 0.45, 0.0))
+		# Four spokes, so the spin reads as rotation rather than a smear.
 		for i in 4:
 			var blade := BoxMesh.new()
-			blade.size = Vector3(GameConfig.TRACTOR_DISC_RADIUS * 1.9, 0.02, 0.07)
-			_mesh_child(pivot, blade, steel, Vector3(0.0, 0.025, 0.0),
+			blade.size = Vector3(GameConfig.TRACTOR_DISC_RADIUS * 1.8, 0.03, 0.10)
+			_mesh_child(pivot, blade, steel, Vector3(0.0, 0.03, 0.0),
 				Vector3(0.0, TAU * float(i) / 8.0, 0.0))
 		var hub := CylinderMesh.new()
-		hub.top_radius = 0.07
-		hub.bottom_radius = 0.07
-		hub.height = 0.06
+		hub.top_radius = 0.10
+		hub.bottom_radius = 0.10
+		hub.height = 0.08
 		hub.radial_segments = 10
-		_mesh_child(pivot, hub, hub_mat, Vector3(0.0, 0.04, 0.0))
+		_mesh_child(pivot, hub, hub_mat, Vector3(0.0, 0.05, 0.0))
 		_discs.append(pivot)
 
 

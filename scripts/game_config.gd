@@ -413,11 +413,15 @@ const TRACTOR_ACCENT_COLOR := Color(0.95, 0.78, 0.15)
 const TRACTOR_BED_SIZE := Vector3(0.80, 0.06, 0.62)
 const TRACTOR_BED_POS := Vector3(0.0, 0.60, 0.95)
 const TRACTOR_BED_WALL := 0.16
-const TRACTOR_DISC_RADIUS := 0.30
+const TRACTOR_DISC_RADIUS := 0.46
 ## In FRONT of the existing cutting deck (which spans z -1.25..-0.35 at y 0.11),
 ## not inside it: the first pass buried both discs in the deck box.
-const TRACTOR_DISC_OFFSET := Vector3(0.40, 0.20, -1.34)
+const TRACTOR_DISC_OFFSET := Vector3(0.54, 0.20, -1.50)
 const TRACTOR_DISC_SPIN_DEG := 900.0
+## Saw teeth around the rim. They are what reads as "this cuts" at phone size —
+## a plain plate just looks like a wheel (G12.10).
+const TRACTOR_DISC_TEETH := 14
+const TRACTOR_DISC_TOOTH_SIZE := Vector3(0.09, 0.022, 0.13)
 
 # ---------------------------------------------------------------- movement (§7)
 const ACCEL_TIME := 0.4
@@ -589,6 +593,12 @@ const INTRO_GROUND := Color(0.13, 0.10, 0.08)
 const CASE_PANEL := Color(0.09, 0.09, 0.08, 0.94)
 ## Case title / objective text.
 const CASE_ACCENT := Color(0.95, 0.82, 0.45)
+## The town-page MISSING poster for Ellie (G12.10).
+const POSTER_BG := Color(0.13, 0.12, 0.10)
+const CASE_MUTED := Color(0.72, 0.70, 0.64)
+## Chapters that must be finished before Ellie stops being a poster and becomes
+## someone you can talk to. Matches her requires_done in data/story.json.
+const ELLIE_FOUND_AFTER := 8
 ## Seconds the "LAST MOWED" opening title holds before it fades.
 const OPENING_TITLE_HOLD := 2.6
 const OPENING_TITLE_FADE := 1.0
