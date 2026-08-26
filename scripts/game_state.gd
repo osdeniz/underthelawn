@@ -9,6 +9,18 @@ signal run_started()
 signal run_finished(elapsed: float)
 
 const SETTINGS_PATH := "user://settings.cfg"
+## The save file's format version (G14.1).
+##
+## This is the one piece of desktop-readiness that CANNOT be added later: once
+## players have save files, a file with no version in it is indistinguishable
+## from a future format that happens to lack the key. Stamping it now means any
+## later change to how progress is stored can be migrated instead of silently
+## misread — or worse, wiped.
+##
+## Bump this when the MEANING of stored keys changes, and add a branch to
+## `_migrate`. Adding a brand-new key needs no bump: readers already default.
+const SAVE_VERSION := 1
+const META := "meta"
 ## G9 currency section. Nowhere to spend it until G10's Workshop, so the total is
 ## the only thing stored.
 const ECONOMY := "economy"
@@ -64,6 +76,42 @@ func _load_settings() -> void:
 	var err := _config.load(SETTINGS_PATH)
 	if err != OK and err != ERR_FILE_NOT_FOUND:
 		push_warning("GameState: could not read %s (error %d)" % [SETTINGS_PATH, err])
+		return
+	_migrate()
+
+
+## Brings an older save up to SAVE_VERSION. A file with no version key is
+## either brand new or predates versioning; both are treated as version 0 and
+## walked forward through every step, so a player who has been on an old build
+## keeps their town.
+func _migrate() -> void:
+	var found := int(_config.get_value(META, "save_version", 0))
+	if found == SAVE_VERSION:
+		return
+	if found > SAVE_VERSION:
+		# A newer build wrote this. Refuse to rewrite it rather than mangling
+		# keys this build does not understand.
+		push_warning("GameState: save is version %d, this build knows %d"
+			% [found, SAVE_VERSION])
+		return
+	# while-loop rather than a match, so several versions can be crossed in one
+	# launch by a player who skipped updates.
+	while found < SAVE_VERSION:
+		match found:
+			0:
+				# 0 -> 1: versioning introduced. Nothing to rewrite; the file's
+				# existing keys already mean what version 1 means.
+				pass
+		found += 1
+	_config.set_value(META, "save_version", SAVE_VERSION)
+	var err := _config.save(SETTINGS_PATH)
+	if err != OK:
+		push_warning("GameState: could not stamp save version (error %d)" % err)
+
+
+## Which format the file on disk is in. Zero means unversioned or absent.
+func save_version() -> int:
+	return int(_config.get_value(META, "save_version", 0))
 
 
 # ---------------------------------------------------------------- scrap (G9)

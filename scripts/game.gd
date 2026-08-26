@@ -453,6 +453,23 @@ func _glance_at(at: Vector3) -> void:
 	cam.glance_at(at, GameConfig.FIND_PAN_TIME)
 
 
+## Backgrounding the app pauses the search (G14.1).
+##
+## Audio already suspended itself here, but the LAWN kept being mown: a phone
+## call, a locked screen or an alt-tab left the mower driving with nobody
+## watching. The same notification covers both platforms — iOS sends
+## APPLICATION_PAUSED, a desktop window sends WM_WINDOW_FOCUS_OUT.
+##
+## Resuming does NOT unpause: the sheet stays up and the player chooses when to
+## go back in, which is what every mobile game does and the only safe thing to
+## do when you cannot know how long they were gone.
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+			if _search_started and hud != null and is_instance_valid(hud):
+				hud.pause_for_background()
+
+
 ## Tab / Space: the next machine the player actually owns.
 func _cycle_mower() -> void:
 	var count := GameConfig.MOWER_TYPES.size()

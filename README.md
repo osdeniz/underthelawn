@@ -1904,6 +1904,45 @@ which is why the blade appeared to steer 90 degrees off.
 column down the middle — it does not USE the extra width. Controller support,
 key rebinding, and a settings screen do not exist.
 
+### G14.1 — the parts that cannot wait
+
+Mobile is the priority; Steam is later. These are the three things that get
+EXPENSIVE or impossible if they are left until then. Everything else on the
+desktop list is deliberately deferred.
+
+**Save versioning — the only truly one-way one.** `settings.cfg` had no format
+version. Once players have save files, a file with no version is
+indistinguishable from a future format that happens to lack the key, so a later
+change to how progress is stored can only guess — or wipe. `SAVE_VERSION` is
+stamped now and `_migrate()` walks a file forward through every step it missed,
+in a while-loop rather than a match, so someone who skipped updates crosses
+several versions in one launch. A file written by a NEWER build is left alone
+rather than mangled.
+
+**Backgrounding pauses the search — and this was a live mobile bug.** Audio
+already suspended itself on `NOTIFICATION_APPLICATION_PAUSED`, but the lawn kept
+being mown: a phone call, a locked screen or an alt-tab left the mower driving
+with nobody watching. The same notification covers both platforms (iOS sends
+APPLICATION_PAUSED, a desktop window sends WM_WINDOW_FOCUS_OUT). Resuming does
+NOT unpause — the sheet stays up and the player chooses, which is the only safe
+thing when you cannot know how long they were gone.
+
+**Gamepad bindings on the SAME actions.** Left stick and d-pad on the four
+driving actions, Y and Start on the two shortcuts. Nothing in the input code
+changes: it reads actions, so a pad works the moment the bindings exist. Adding
+them now means every screen built from here is automatically pad-aware, rather
+than needing an audit later.
+
+`tests/InputMapCheck.tscn` asserts every action answers to both a key and a pad,
+that the movement keys are bound by `physical_keycode`, that the save carries a
+version, and that backgrounding really pauses the tree — verified by removing
+the fix and watching it fail.
+
+**Deliberately left for when Steam is actually on the table:** a settings screen
+(resolution, fullscreen, volumes), key rebinding UI, controller-driven menu
+navigation and button glyphs, using the extra width for landscape menu layouts,
+and the Steam SDK itself (achievements, cloud saves).
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

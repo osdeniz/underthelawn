@@ -885,6 +885,15 @@ func _build_pause() -> void:
 	rows.add_child(restart)
 
 
+## Opens the pause sheet because the app lost focus, never closes it. Silent —
+## no haptic, no click — since the player is not looking (G14.1).
+func pause_for_background() -> void:
+	if _pause_layer == null or _pause_layer.visible:
+		return
+	_pause_layer.visible = true
+	get_tree().paused = true
+
+
 ## Escape on the desktop build: opens the sheet, or closes it if it is already
 ## open, which is what a keyboard player expects from that key (G14).
 func toggle_pause() -> void:
