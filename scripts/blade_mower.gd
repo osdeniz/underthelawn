@@ -16,6 +16,14 @@ var _trail: GPUParticles3D
 var _sparks: GPUParticles3D
 var _spark_audio: AudioStreamPlayer3D
 var _spark_cooldown := 0.0
+## The stone rects this yard actually has, resolved once. It used to be a bare
+## `collision_rects[1]`, which crashed on the layouts that have no obstacles at
+## all (the playground and the harvest field are "open") and pointed at a
+## sunbed on the pool layout (G14.1).
+var _stone_rects: Array[Rect2] = []
+## The model the cache above was built from. Comparing the count would miss a
+## new yard that happens to have the same number of stones somewhere else.
+var _stone_model: LawnModel = null
 var _spin_rate := GameConfig.BLADE_SPIN_IDLE_DEG
 
 
@@ -150,19 +158,39 @@ func _idle_shake(_delta: float) -> void:
 	pass
 
 
+## Every stone in the yard, in world space. Rebuilt when the model changes, so
+## the per-frame check below is a walk over a short list and not a search.
+func _resolve_stones() -> void:
+	_stone_rects.clear()
+	_stone_model = model
+	if model == null:
+		return
+	for i in model.obstacles.size():
+		if str((model.obstacles[i] as Dictionary).get("name", "")) != "stone":
+			continue
+		if i < model.collision_rects.size():
+			_stone_rects.append(model.collision_rects[i])
+
+
 ## Orange spark burst + metallic clink + 25 ms haptic when the disk grinds the
-## stone obstacle's edge (collision rect index 1 in LawnModel.OBSTACLES).
+## edge of a stone. A yard with no stones simply never sparks.
 func _check_spark(delta: float) -> void:
 	_spark_cooldown = maxf(_spark_cooldown - delta, 0.0)
 	if not GameConfig.BLADE_FX_ENABLED or model == null or _spark_cooldown > 0.0:
 		return
 	if speed < 1.0:
 		return
-	var stone: Rect2 = model.collision_rects[1]
+	if _stone_model != model:
+		_resolve_stones()
 	var p := Vector2(position.x, position.z)
-	var closest := Vector2(clampf(p.x, stone.position.x, stone.end.x),
-		clampf(p.y, stone.position.y, stone.end.y))
-	if p.distance_to(closest) > body_radius() + 0.06:
+	var touching := false
+	for stone: Rect2 in _stone_rects:
+		var closest := Vector2(clampf(p.x, stone.position.x, stone.end.x),
+			clampf(p.y, stone.position.y, stone.end.y))
+		if p.distance_to(closest) <= body_radius() + 0.06:
+			touching = true
+			break
+	if not touching:
 		return
 	_spark_cooldown = GameConfig.BLADE_SPARK_COOLDOWN
 	if _sparks:

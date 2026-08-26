@@ -2240,6 +2240,29 @@ The warm one sits directly against the cold one on purpose. The middle beat
 uses `textures/story/birthday.png` when it exists and falls back to the reunion
 photograph, which already has the lanterns and the gathered town in it.
 
+### G14.1b — the crash the blade was always going to have
+
+`BladeMower._check_spark` read `model.collision_rects[1]` directly, with a
+comment saying index 1 was the stone. That was true of exactly one layout. On
+`open` — the playground and the harvest field — the array is EMPTY, so
+starting either level with the blade threw `Out of bounds get index '1'` every
+physics frame; on `pool`, index 1 is a sunbed, so the sparks were measuring
+garden furniture. It now resolves every obstacle actually named "stone" once
+per model and walks that list; a yard with no stones simply never sparks.
+`SparkCheck` drives the blade across all four layouts.
+
+**Review pass on the birthday text.** "Ellie didn't come home" implied an
+evening she never reached, which fights the morning disappearance — it reads
+"Ellie didn't come back" now. The Marshal's "before the candles mean something
+else" traded its shadow for want: "find her before the candles burn down — I
+want her blowing them out." The poster gained its photograph's caption, "Taken
+this morning, before the party."
+
+`textures/story/birthday.png` arrived at 2.37 MB; it is a 571 KB JPEG now, the
+same convention as `reunion.jpg`, with identical import settings. The card's
+scrim drops from 0.55 to 0.22 on that page — the art is lit by nine candles and
+the readable-text scrim was putting them out.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

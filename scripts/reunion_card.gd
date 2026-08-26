@@ -15,6 +15,7 @@ const FADE := 0.4
 
 var _page := 0
 var _art: TextureRect
+var _scrim: ColorRect
 var _title: Label
 var _line: Label
 var _hint: Label
@@ -43,7 +44,8 @@ func _build() -> void:
 	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_art)
 
-	var scrim := ColorRect.new()
+	_scrim = ColorRect.new()
+	var scrim := _scrim
 	scrim.color = Color(0, 0, 0, 0.55)
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -121,6 +123,7 @@ func _gui_input(event: InputEvent) -> void:
 
 func _apply() -> void:
 	_lock = 0.5
+	_scrim.color.a = 0.55
 	if _page == 0:
 		_art.texture = TextureLibrary.find("story/reunion")
 		if _art.texture == null:
@@ -135,6 +138,9 @@ func _apply() -> void:
 			_art.texture = TextureLibrary.find("story/reunion")
 		_title.text = tr("BIRTHDAY_TITLE")
 		_line.text = tr("BIRTHDAY_LINE")
+		# The party art is lit by candles and nothing else; the scrim that keeps
+		# text readable over the other two would put it out.
+		_scrim.color.a = 0.22
 	else:
 		_art.texture = TextureLibrary.find("hub/case2_teaser")
 		if _art.texture == null:

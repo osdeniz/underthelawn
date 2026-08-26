@@ -20,7 +20,7 @@ INTRO_01_L2,The world didn't end with it.,Dünya onunla birlikte bitmedi.
 INTRO_02_L1,We rebuild.,Yeniden kuruyoruz.
 INTRO_02_L2,Small towns. Small hopes.,Küçük kasabalar. Küçük umutlar.
 INTRO_03_L1,"Then, on the morning of her ninth birthday —","Sonra, dokuzuncu doğum gününün sabahı —"
-INTRO_03_L2,Ellie didn't come home.,Ellie eve dönmedi.
+INTRO_03_L2,Ellie didn't come back.,Ellie geri dönmedi.
 BRIEF_01_SPEAKER,Marshal,Şerif
 BRIEF_01_BODY,The Aldridge house. She was seen near the fence line. Search everything.,Aldridge evi. Çit hattının yakınında görülmüş. Her yeri ara.
 BRIEF_01_ACCEPT,SEARCH THE PROPERTY,ARAZİYİ ARA
@@ -405,7 +405,7 @@ HARVEST_CRUMB_4,Sarah wants half of it for seed. She can have it.,Sarah yarısı
 HARVEST_START,HARVEST THE FIELD,TARLAYI BİÇ
 HARVEST_PLACE,The Wheat Field,Buğday Tarlası
 HARVEST_HUD_LINE,HARVEST — Bring the field in,HASAT — Tarlayı içeri al
-DLG_BRIEF_CH01_2B,The tables are set in the square. Cake's still in Cole's oven. Find her before the candles mean something else.,Meydanda masalar kurulu. Pasta hâlâ Cole'un fırınında. Mumlar başka bir anlama gelmeden önce onu bul.
+DLG_BRIEF_CH01_2B,The tables are set in the square. Cake's still in Cole's oven. Find her before the candles burn down — I want her blowing them out.,Meydanda masalar kurulu. Pasta hâlâ Cole'un fırınında. Mumlar erimeden onu bul — onları o üflesin istiyorum.
 DLG_TOWN_MARSHAL_0C,The whole town raised her. The whole town is out looking.,Bütün kasaba büyüttü onu. Bütün kasaba arıyor.
 DLG_TOWN_SARAH_0C,"I'm not her mother. But nine years ago the town handed me a baby, and I've been hers ever since.","Ben onun annesi değilim. Ama dokuz yıl önce kasaba kucağıma bir bebek verdi, o gün bugündür onunum."
 DLG_TOWN_GUS_0B,Nine little packages in my workshop. We never wrote who they're from. We never do.,Atölyemde dokuz küçük paket var. Kimden geldiğini yazmadık. Hep öyle yaparız.
@@ -414,3 +414,4 @@ DLG_FINALE_1B,Did I miss it? The party?,Kaçırdım mı? Partiyi?
 DLG_FINALE_1C,Kid... the party was waiting for YOU.,Evlat... parti zaten SENİ bekliyordu.
 BIRTHDAY_TITLE,"MAKE A WISH, ELLIE","BİR DİLEK TUT, ELLIE"
 BIRTHDAY_LINE,Nine candles under the square's lantern. The whole town leans in.,Meydanın feneri altında dokuz mum. Bütün kasaba öne eğiliyor.
+POSTER_TAKEN,"Taken this morning, before the party.",Bu sabah çekildi — partiden önce.

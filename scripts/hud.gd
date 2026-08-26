@@ -1076,7 +1076,8 @@ func _build_poster() -> void:
 	_poster.offset_left = -250
 	_poster.offset_right = -40
 	_poster.offset_top = 306
-	_poster.offset_bottom = 566
+	# Room for the caption line under the date (G14.1).
+	_poster.offset_bottom = 626
 	_poster.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.93, 0.90, 0.80, 0.94)
@@ -1122,6 +1123,16 @@ func _build_poster() -> void:
 	since.add_theme_font_size_override("font_size", 20)
 	since.add_theme_color_override("font_color", Color(0.34, 0.30, 0.26))
 	rows.add_child(since)
+
+	# The photograph's own caption. It dates the picture to hours ago, which is
+	# the whole reason the poster is unbearable to look at (G14.1).
+	var taken := Label.new()
+	taken.text = tr("POSTER_TAKEN")
+	taken.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	taken.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	taken.add_theme_font_size_override("font_size", 17)
+	taken.add_theme_color_override("font_color", Color(0.42, 0.36, 0.30))
+	rows.add_child(taken)
 
 
 ## A harvest is a job, not a search: no evidence counter, no missing poster, and
