@@ -1,0 +1,53 @@
+{
+  "_comment": "STRUCTURE ONLY. Every title/desc/text is a TRANSLATION KEY; the sentences live in i18n/strings.csv. This file NEVER invents a goal - every objective here is something the game already asks of the player, written down so it can be seen. A condition's `check` is resolved by Objectives._passes(); adding a new kind of check means adding a branch there, not a new field shape. `reward_scrap` values are PLACEHOLDERS awaiting calibration.",
+  "objectives": [
+    {
+      "id": "find_ellie",
+      "type": "case",
+      "title": "OBJ_ELLIE_TITLE",
+      "desc": "OBJ_ELLIE_DESC",
+      "reward_scrap": 600,
+      "done_dialogue": "OBJ_ELLIE_DONE",
+      "conditions": [
+        { "text": "OBJ_ELLIE_C1", "check": "chapter:ch01_aldridge" },
+        { "text": "OBJ_ELLIE_C2", "check": "chapter:ch02_neighbor" },
+        { "text": "OBJ_ELLIE_C3", "check": "chapter:ch03_playground" },
+        { "text": "OBJ_ELLIE_C4", "check": "chapter:ch04_flooded" },
+        { "text": "OBJ_ELLIE_C5", "check": "chapter:ch05_greenhouse" },
+        { "text": "OBJ_ELLIE_C6", "check": "chapter:ch06_watertower" },
+        { "text": "OBJ_ELLIE_C7", "check": "chapter:ch07_mill" },
+        { "text": "OBJ_ELLIE_C8", "check": "chapter:ch08_cellar" }
+      ]
+    },
+    {
+      "id": "winter_store",
+      "type": "harvest",
+      "title": "OBJ_WINTER_TITLE",
+      "desc": "OBJ_WINTER_DESC",
+      "reward_scrap": 400,
+      "done_dialogue": "OBJ_WINTER_DONE",
+      "opens": "harvest",
+      "ready_step": { "text": "OBJ_WINTER_GO", "check": "harvest:1" },
+      "conditions": [
+        { "text": "OBJ_WINTER_C1", "check": "restore:farm" },
+        { "text": "OBJ_WINTER_C2", "check": "garage:tractor" },
+        { "text": "OBJ_WINTER_C3", "check": "chapters:3" }
+      ]
+    },
+    {
+      "id": "raise_town",
+      "type": "town",
+      "title": "OBJ_TOWN_TITLE",
+      "desc": "OBJ_TOWN_DESC",
+      "reward_scrap": 250,
+      "done_dialogue": "OBJ_TOWN_DONE",
+      "conditions": [
+        { "text": "OBJ_TOWN_C1", "check": "projects:3" }
+      ]
+    }
+  ],
+  "case_02": {
+    "_comment": "Skeleton only. Case 2's objectives land in a later sprint and sit in this same list; the shape is already the one above, so nothing here needs a new system.",
+    "objectives": []
+  }
+}

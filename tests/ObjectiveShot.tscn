@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/objective_shot.gd" id="1"]
+
+[node name="ObjectiveShot" type="Control"]
+script = ExtResource("1")

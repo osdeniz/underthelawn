@@ -2316,6 +2316,36 @@ before any of that. `SkyLifeCheck` now asserts they are visible — pinning the
 viewport to 1170x2532 first, because headless reports a SQUARE viewport and
 squareness alone flips the answer.
 
+### G14.2b — country past the fence, and the mission compass
+
+**The horizon band had grass and trees added to it.** Hills alone still read as
+paper: the country a town sits in has the same grass and the same trees, just
+smaller with distance. `Horizon` now owns the ground plane too — tinted from
+the level's own palette, so a wheat yard is not ringed in green — with two
+thinning bands of low-poly trees between the scene and the hills. The yard's
+separate meadow was folded into it; one place decides what is out there.
+
+**The objectives screen invents nothing.** Every entry in `data/objectives.json`
+is a goal the game already had — the eight chapters, the harvest the farm and
+the tractor unlock, the first three restorations — written down with its
+conditions ticked so the player can SEE what is missing instead of inferring
+it. Rewards are paid once, on the crossing from unmet to met, and that fact is
+the only thing stored: everything else is derived on read, which is what makes
+it safe to poll from anywhere.
+
+Two things that only showed up by running it:
+
+* The harvest objective could never complete. Its gate is "three chapters since
+  the last harvest", and bringing a harvest in RESETS that counter — so the
+  conditions unticked themselves at the exact moment the deed was done. The
+  deed alone finishes an objective now; conditions are the gate to reach it.
+* `_show_page` walked a hardcoded list of pages that did not include the new
+  one, so the objectives screen never closed once opened and drew on top of
+  whatever came next. It walks `_pages()` now — a list that cannot be forgotten.
+
+Reward values (600 / 400 / 250 scrap) are PLACEHOLDERS awaiting economy
+calibration and are marked as such in the data file.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

@@ -46,6 +46,12 @@ static func lock() -> Texture2D:
 	return _make("lock")
 
 
+## A checklist: the objectives door. Two ticked lines and one empty box, which
+## is the whole idea of the screen in one 64px picture.
+static func objectives() -> Texture2D:
+	return _make("objectives")
+
+
 ## A single house: one finished restoration project.
 static func house() -> Texture2D:
 	return _make("house")
@@ -190,6 +196,26 @@ static func _draw_station(img: Image) -> void:
 	_rect(img, 26, 38, 12, 18, dark)
 	_disc(img, 18, 38, 4, lamp)
 	_disc(img, 46, 38, 4, lamp)
+
+
+## Two ticked rows and one empty one.
+static func _draw_objectives(img: Image) -> void:
+	var paper := Color(0.86, 0.86, 0.82)
+	var ink := Color(0.30, 0.32, 0.34)
+	var tick := Color(0.36, 0.78, 0.38)
+	_rect(img, 8, 8, 48, 48, ink)
+	_rect(img, 11, 11, 42, 42, paper)
+	for row in 3:
+		var y := 17 + row * 14
+		if row < 2:
+			# A tick: a short down-stroke and a long up-stroke.
+			for i in 4:
+				_rect(img, 16 + i, y + 2 + i, 3, 3, tick)
+			for i in 7:
+				_rect(img, 20 + i, y + 6 - i, 3, 3, tick)
+		else:
+			_frame(img, 16, y, 10, 10, 2, ink)
+		_rect(img, 30, y + 3, 20, 4, ink)
 
 
 ## A triangular roof: `x` left edge, `y` apex, `w` span.

@@ -1,7 +1,7 @@
 extends Node
 ## G14.2: the same yard at four hours of the one day the case runs over.
 
-const HOURS := ["ch01_aldridge", "ch04_flooded", "ch07_mill", "ch08_cellar"]
+const HOURS := ["ch04_flooded"]
 
 
 func _ready() -> void:

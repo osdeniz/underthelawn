@@ -418,3 +418,32 @@ POSTER_TAKEN,"Taken this morning, before the party.",Bu sabah çekildi — parti
 HARVEST_DONE_TITLE,FIELD BROUGHT IN,TARLA KALDIRILDI
 HARVEST_STATS,{cells} cells cut · {time},{cells} hücre biçildi · {time}
 HARVEST_PAYOUT_BONUS,Harvest ({pct}% cut),Hasat (%{pct} biçildi)
+OBJ_TITLE,OBJECTIVES,GÖREVLER
+OBJ_HINT,What the town is asking of you.,Kasabanın senden istedikleri.
+OBJ_ACTIVE,ACTIVE,AKTİF
+OBJ_DONE_HEADER,DONE,TAMAMLANDI
+OBJ_EMPTY,Nothing open right now.,Şu an açık bir şey yok.
+OBJ_REWARD,Reward,Ödül
+OBJ_COMPLETED_TOAST,OBJECTIVE COMPLETE,GÖREV TAMAMLANDI
+OBJ_ELLIE_TITLE,FIND ELLIE,ELLIE'Yİ BUL
+OBJ_ELLIE_DESC,Eight places to search before the candles burn down.,Mumlar erimeden aranacak sekiz yer.
+OBJ_ELLIE_DONE,The Marshal has nothing to say. He just shakes your hand.,Marshal'ın söyleyecek sözü yok. Sadece elini sıkıyor.
+OBJ_ELLIE_C1,Search the Aldridge place,Aldridge evini ara
+OBJ_ELLIE_C2,Search the neighbour's yard,Komşunun bahçesini ara
+OBJ_ELLIE_C3,Search the playground,Oyun parkını ara
+OBJ_ELLIE_C4,Search the flooded lot,Su basmış arsayı ara
+OBJ_ELLIE_C5,Search the greenhouse,Serayı ara
+OBJ_ELLIE_C6,Search the water tower,Su kulesini ara
+OBJ_ELLIE_C7,Search the mill,Değirmeni ara
+OBJ_ELLIE_C8,Search the cellar,Mahzeni ara
+OBJ_WINTER_TITLE,WINTER STORE,KIŞ STOĞU
+OBJ_WINTER_DESC,Gus keeps the wheat standing. Somebody has to bring it in.,Gus buğdayı ayakta tutuyor. Birinin onu kaldırması lazım.
+OBJ_WINTER_DONE,"Winter store's in — the town owes you, Marshal.","Kış stoğu tamam — kasaba sana borçlu, Marshal."
+OBJ_WINTER_C1,Rebuild the farm,Çiftliği onar
+OBJ_WINTER_C2,Own the tractor,Traktörü al
+OBJ_WINTER_C3,Close three cases,Üç bölüm tamamla
+OBJ_WINTER_GO,BRING THE FIELD IN,TARLAYI KALDIR
+OBJ_TOWN_TITLE,GET THE TOWN BACK ON ITS FEET,KASABAYI AYAĞA KALDIR
+OBJ_TOWN_DESC,Three buildings standing again is where a town starts.,"Üç binanın yeniden ayakta olması, bir kasabanın başlangıcıdır."
+OBJ_TOWN_DONE,Three roofs. People are leaving their doors open again.,Üç çatı. İnsanlar kapılarını yine açık bırakıyor.
+OBJ_TOWN_C1,Finish three restorations,Üç onarım projesi bitir

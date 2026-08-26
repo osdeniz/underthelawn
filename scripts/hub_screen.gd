@@ -90,6 +90,9 @@ var _board_tab_evidence: Button
 var _scrap_label: Label
 var _restore_page: Control
 var _echoes_page: Control
+var _objectives_page: Control
+var _objectives_button: Button
+var _objective_list: VBoxContainer
 var _restore_list: VBoxContainer
 var _echo_list: VBoxContainer
 var _restore_note: Label
@@ -111,12 +114,14 @@ func _ready() -> void:
 	_workshop_page = _build_workshop()
 	_restore_page = _build_restore()
 	_echoes_page = _build_echoes()
+	_objectives_page = _build_objectives()
 	add_child(_tiles_page)
 	add_child(_board_page)
 	add_child(_town_page)
 	add_child(_workshop_page)
 	add_child(_restore_page)
 	add_child(_echoes_page)
+	add_child(_objectives_page)
 	_show_page(_tiles_page)
 
 
@@ -276,7 +281,42 @@ func _build_top_bar() -> void:
 	_scrap_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_scrap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wallet_row.add_child(_scrap_label)
+
+	# The objectives door. A chip like the wallet, but pressable, with the
+	# number of open objectives on it (G14.2).
+	_objectives_button = Button.new()
+	_objectives_button.name = "ObjectivesButton"
+	_objectives_button.custom_minimum_size = Vector2(104, 76)
+	_objectives_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_objectives_button.icon = UiIcons.objectives()
+	_objectives_button.expand_icon = false
+	_objectives_button.tooltip_text = tr("OBJ_TITLE")
+	var obj_chip := StyleBoxFlat.new()
+	obj_chip.bg_color = Color(0.10, 0.12, 0.16, 0.92)
+	obj_chip.set_corner_radius_all(18)
+	obj_chip.set_content_margin_all(10)
+	obj_chip.border_color = Color(0.55, 0.62, 0.74, 0.55)
+	obj_chip.set_border_width_all(2)
+	for state: String in ["normal", "hover", "pressed", "focus"]:
+		_objectives_button.add_theme_stylebox_override(state, obj_chip)
+	_objectives_button.add_theme_font_size_override("font_size", 30)
+	_objectives_button.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+	_objectives_button.pressed.connect(func() -> void:
+		Haptics.light()
+		Analytics.track("objective_viewed", {})
+		_show_page(_objectives_page))
+	columns.add_child(_objectives_button)
+
 	_refresh_progress()
+
+
+## The badge is the count of what is still open. It is text on the button
+## rather than a separate node: one label that can never drift out of place.
+func _refresh_objectives_badge() -> void:
+	if _objectives_button == null or not is_instance_valid(_objectives_button):
+		return
+	var open := Objectives.active_count()
+	_objectives_button.text = "" if open <= 0 else str(open)
 
 
 func _refresh_progress() -> void:
@@ -303,16 +343,27 @@ func _new_page() -> Control:
 
 
 func _show_page(page: Control) -> void:
-	for candidate in [_tiles_page, _board_page, _town_page, _workshop_page,
-			_restore_page, _echoes_page]:
-		if candidate == null:
-			continue
+	# Every page this screen owns, not a list someone has to remember to add to:
+	# the objectives page was added in G14.2 and the hardcoded list did not
+	# include it, so once opened it never closed again and drew on top of
+	# whatever came next.
+	for candidate in _pages():
 		candidate.visible = candidate == page
 	if page != _tiles_page:
 		page.modulate.a = 0.0
 		var tw := create_tween()
 		tw.tween_property(page, "modulate:a", 1.0, PANEL_FADE)
 	_refresh_progress()
+
+
+## Every full-screen page, in no particular order.
+func _pages() -> Array:
+	var list: Array = []
+	for candidate in [_tiles_page, _board_page, _town_page, _workshop_page,
+			_restore_page, _echoes_page, _objectives_page]:
+		if candidate != null and is_instance_valid(candidate):
+			list.append(candidate)
+	return list
 
 
 ## The three hub cards. A locked card is still shown and still responds, because
@@ -827,6 +878,153 @@ func _build_echoes() -> Control:
 	return page
 
 
+# ---------------------------------------------------------------- objectives
+
+## The mission compass (G14.2). One screen that answers "what does this town
+## want from me", with every condition ticked or not so the player can see what
+## is missing rather than guess at it.
+func _build_objectives() -> Control:
+	var page := _new_page()
+	page.add_child(_list_backdrop(280.0))
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 50
+	scroll.offset_right = -50
+	scroll.offset_top = 300
+	scroll.offset_bottom = -190
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	page.add_child(scroll)
+	_objective_list = VBoxContainer.new()
+	_objective_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_objective_list.add_theme_constant_override("separation", 22)
+	scroll.add_child(_objective_list)
+	page.add_child(_back_button())
+	return page
+
+
+## Open objectives first, finished ones dimmed underneath. Rebuilt on every
+## visit because every line of it is derived — there is no cached state here
+## that could go stale.
+func _refresh_objectives() -> void:
+	if _objective_list == null:
+		return
+	for child in _objective_list.get_children():
+		child.queue_free()
+
+	var heading := Label.new()
+	heading.text = tr("OBJ_TITLE")
+	heading.add_theme_font_size_override("font_size", 40)
+	heading.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+	_objective_list.add_child(heading)
+	var sub := Label.new()
+	sub.text = tr("OBJ_HINT")
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sub.add_theme_font_size_override("font_size", 30)
+	sub.add_theme_color_override("font_color", Color(0.76, 0.74, 0.68))
+	_objective_list.add_child(sub)
+
+	var open: Array = []
+	var closed: Array = []
+	for any: Variant in Objectives.all():
+		var spec: Dictionary = any
+		if Objectives.is_paid(str(spec.get("id", ""))):
+			closed.append(spec)
+		else:
+			open.append(spec)
+
+	if open.is_empty():
+		var none := Label.new()
+		none.text = tr("OBJ_EMPTY")
+		none.add_theme_font_size_override("font_size", 32)
+		none.add_theme_color_override("font_color", Color(0.62, 0.64, 0.60))
+		_objective_list.add_child(none)
+	for spec_any: Variant in open:
+		_objective_list.add_child(_objective_card(spec_any as Dictionary, false))
+	if not closed.is_empty():
+		var done_header := Label.new()
+		done_header.text = tr("OBJ_DONE_HEADER")
+		done_header.add_theme_font_size_override("font_size", 32)
+		done_header.add_theme_color_override("font_color", Color(0.58, 0.60, 0.56))
+		_objective_list.add_child(done_header)
+		for spec_any2: Variant in closed:
+			_objective_list.add_child(_objective_card(spec_any2 as Dictionary, true))
+
+
+## One objective: title, one line of why, then its conditions with a tick or an
+## empty circle each. A counted condition also shows how far along it is, so
+## "three cases" is never a mystery.
+func _objective_card(spec: Dictionary, dim: bool) -> Control:
+	var id := str(spec.get("id", ""))
+	var state := Objectives.state(id)
+	var card := PanelContainer.new()
+	card.name = "Objective_" + id
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = Color(0.07, 0.08, 0.07, 0.55 if dim else 0.88)
+	skin.set_corner_radius_all(18)
+	skin.set_content_margin_all(22)
+	skin.set_border_width_all(2)
+	# A ready objective is the one thing on this screen that wants to be acted
+	# on right now, so it gets the harvest's own gold.
+	skin.border_color = GameConfig.HARVEST_GOLD if state["ready"] \
+		else Color(0.42, 0.44, 0.40, 0.55)
+	card.add_theme_stylebox_override("panel", skin)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 10)
+	card.add_child(rows)
+
+	var title := Label.new()
+	title.text = tr(str(spec.get("title", "")))
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_color_override("font_color",
+		Color(0.60, 0.62, 0.58) if dim else GameConfig.HARVEST_GOLD \
+		if state["ready"] else Color(0.95, 0.94, 0.90))
+	rows.add_child(title)
+
+	var desc := Label.new()
+	desc.text = tr(str(spec.get("desc", "")))
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.add_theme_font_size_override("font_size", 28)
+	desc.add_theme_color_override("font_color", Color(0.72, 0.72, 0.68))
+	rows.add_child(desc)
+
+	for step_any: Variant in state["steps"]:
+		var step: Dictionary = step_any
+		var line := Label.new()
+		var mark := "\u2713" if step["done"] else "\u25cb"
+		var tail: String = str(step["progress"])
+		line.text = "%s  %s%s" % [mark, step["text"],
+			"   %s" % tail if tail != "" else ""]
+		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		line.add_theme_font_size_override("font_size", 28)
+		line.add_theme_color_override("font_color",
+			Color(0.62, 0.86, 0.54) if step["done"] else Color(0.78, 0.78, 0.74))
+		rows.add_child(line)
+
+	var reward := int(spec.get("reward_scrap", 0))
+	if reward > 0 and not dim:
+		var pay := Label.new()
+		pay.text = "%s: %d" % [tr("OBJ_REWARD"), reward]
+		pay.add_theme_font_size_override("font_size", 26)
+		pay.add_theme_color_override("font_color", Color(0.62, 0.95, 0.60))
+		rows.add_child(pay)
+
+	# The harvest objective is a third door to the same panel the gold tile and
+	# Gus's radio card open (G13.6): three doors, one destination.
+	if str(spec.get("opens", "")) == "harvest" and state["ready"]:
+		var go := Button.new()
+		go.text = tr("HARVEST_START")
+		go.custom_minimum_size = Vector2(0, 92)
+		go.add_theme_font_size_override("font_size", 32)
+		HubScreen.style_primary(go)
+		go.pressed.connect(func() -> void:
+			Haptics.light()
+			open_map_at(GameConfig.HARVEST_VARIANT))
+		rows.add_child(go)
+	return card
+
+
 ## Found echoes are readable; the rest are blank slots, so the collection shows
 ## its own size without spoiling what is in it.
 func _refresh_echoes() -> void:
@@ -1275,9 +1473,84 @@ func _back_button() -> Button:
 func refresh() -> void:
 	_refresh_progress()
 	_refresh_board()
+	_refresh_objectives()
+	_refresh_objectives_badge()
 	_show_board_tab(false)
 	_show_page(_tiles_page)
 	_harvest_call()
+	# Anything finished while the player was out in a yard is paid for here, on
+	# the way back in — the hub is the only screen that can afford a toast.
+	_announce_objectives(Objectives.collect())
+
+
+## One line sliding down from the top per completed objective, the reward in the
+## wallet behind it. Deliberately the same shape as Gus's radio card: this is
+## the town telling you something, not a system congratulating you.
+func _announce_objectives(earned: Array) -> void:
+	if earned.is_empty():
+		return
+	_refresh_objectives()
+	_refresh_objectives_badge()
+	_refresh_progress()
+	AudioDirector.play_discovery()
+	Haptics.medium()
+	var index := 0
+	for any: Variant in earned:
+		var spec: Dictionary = any
+		_objective_toast(spec, float(index) * 0.35)
+		index += 1
+
+
+func _objective_toast(spec: Dictionary, delay: float) -> void:
+	var card := PanelContainer.new()
+	card.name = "ObjectiveToast"
+	card.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	card.offset_left = 40
+	card.offset_right = -40
+	card.offset_top = 250
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = Color(0.09, 0.14, 0.09, 0.96)
+	skin.set_corner_radius_all(20)
+	skin.set_content_margin_all(22)
+	skin.border_color = GameConfig.HARVEST_GOLD
+	skin.set_border_width_all(3)
+	card.add_theme_stylebox_override("panel", skin)
+	add_child(card)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 6)
+	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(rows)
+	for line: Array in [
+			[tr("OBJ_COMPLETED_TOAST"), 26, GameConfig.HARVEST_GOLD],
+			[tr(str(spec.get("title", ""))), 38, Color(0.96, 0.95, 0.92)],
+			[tr(str(spec.get("done_dialogue", ""))), 27, Color(0.78, 0.78, 0.74)]]:
+		var label := Label.new()
+		label.text = str(line[0])
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", int(line[1]))
+		label.add_theme_color_override("font_color", line[2])
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rows.add_child(label)
+	var reward := int(spec.get("reward_scrap", 0))
+	if reward > 0:
+		var pay := Label.new()
+		pay.text = "+%d" % reward
+		pay.add_theme_font_size_override("font_size", 34)
+		pay.add_theme_color_override("font_color", Color(0.62, 0.95, 0.60))
+		pay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rows.add_child(pay)
+
+	card.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_interval(delay)
+	tween.tween_property(card, "modulate:a", 1.0, 0.3)
+	tween.tween_interval(4.2)
+	tween.tween_property(card, "modulate:a", 0.0, 0.7)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(card):
+			card.queue_free())
 
 
 ## Gus on the radio, once per open invitation: the field is ready. Tapping it
