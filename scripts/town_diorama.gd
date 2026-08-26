@@ -726,7 +726,11 @@ func _ao_blob(parent: Node3D, size: Vector2, pos: Vector3, alpha := 0.6) -> void
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.no_depth_test = false
-	_mesh(parent, mesh, mat, pos)
+	var node := _mesh(parent, mesh, mat, pos)
+	# Never baked: welding the transparent contact shadows into one mesh threw
+	# their depth sorting away and scattered black blotches over the buildings
+	# (G13.7).
+	node.set_meta("no_bake", true)
 
 
 # ---------------------------------------------------------------- buildings
@@ -1165,6 +1169,8 @@ func play_restore(project_id: String) -> void:
 	await _zoom_home(GameConfig.RESTORE_ZOOM_OUT)
 
 	set_built(project_id, true, false)
+	# The parts have finished moving, so this building can be welded now.
+	_bake_static()
 	_busy = false
 	Analytics.track("restore_animation_%s" % ("skipped" if _skipped else "watched"),
 		{"id": project_id})
@@ -1243,6 +1249,10 @@ func _collapse(ruined: Node3D) -> void:
 ## Parts fall in from above, one every RESTORE_PART_GAP seconds, each landing
 ## with a tick and a small puff.
 func _raise(parts: Array) -> void:
+	# Spread the parts across a fixed span rather than a fixed gap each, so a
+	# thirty-part greenhouse takes as long as an eight-part lantern.
+	var gap := minf(GameConfig.RESTORE_PART_GAP,
+		GameConfig.RESTORE_RAISE_SECONDS / maxf(1.0, float(parts.size())))
 	for i in parts.size():
 		if _skipped:
 			break
@@ -1253,7 +1263,7 @@ func _raise(parts: Array) -> void:
 		# run alongside the others rather than blocking the next part's start.
 		_drop_part.call(part, rest)
 		var waited := 0.0
-		while waited < GameConfig.RESTORE_PART_GAP and not _skipped:
+		while waited < gap and not _skipped:
 			waited += get_process_delta_time()
 			await get_tree().process_frame
 	# Let the last few finish their fall before the flash.
@@ -1443,7 +1453,9 @@ func _scatter_tufts() -> void:
 			_tuft_spots.append({"at": at, "owner": id,
 				"scale": rng.randf_range(0.75, 1.2), "yaw": rng.randf() * TAU,
 				"variant": rng.randi_range(0, _tuft_meshes.size() - 1)})
-	_write_tufts()
+	# NOT written here: refresh_state() runs next and writes them once the
+	# cleared plots are known. Writing now showed every clump for a frame and
+	# then dropped the cleared ones — the town flashed overgrown on entry.
 
 
 ## True once the plot this clump belongs to — or simply stands near — has been

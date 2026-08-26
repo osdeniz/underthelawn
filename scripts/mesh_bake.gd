@@ -25,7 +25,7 @@ static func bake(root: Node3D) -> int:
 	var sources: Array = []
 	for node in root.find_children("*", "MeshInstance3D", true, false):
 		var mi := node as MeshInstance3D
-		if mi.mesh == null:
+		if mi.mesh == null or mi.get_meta("no_bake", false):
 			continue
 		sources.append(mi)
 	if sources.size() < 2:

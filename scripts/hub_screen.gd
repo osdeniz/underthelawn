@@ -765,6 +765,11 @@ func _play_restore_scene(project_id: String) -> void:
 
 
 func _apply_restore_layers() -> void:
+	# These are the LEGACY collage's building layers. In diorama mode the town
+	# is built in 3D, so pasting a picture of the swing over the screen puts a
+	# giant swing in front of everything — which is exactly what it did (G13.7).
+	if GameConfig.hub_mode == GameConfig.HUB_MODE_DIORAMA:
+		return
 	# remove_child before queue_free: queue_free defers a frame, and anything
 	# still parented here can be picked up by code that runs in between.
 	for child in get_children():

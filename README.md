@@ -1782,6 +1782,29 @@ contradicted the theme. New keys: `HUB_RECLAIMED`, `RECLAIM_CH01`–`CH08`,
 
 Frames: `docs/g134/`.
 
+### G13.7 — four things the device showed
+
+* **A giant swing pasted over the screen.** `_apply_restore_layers` adds a 2D
+  picture of each finished building to the hub — that is the LEGACY collage's
+  mechanism, and in diorama mode the town is already built in 3D, so every
+  purchase stuck a full-screen picture in front of it. It now returns early
+  unless `hub_mode` is legacy.
+* **Black blotches on the buildings.** The AO blobs are transparent quads;
+  welding them into one mesh threw away their per-quad depth sorting. They
+  carry a `no_bake` meta now and `MeshBake` skips them. Everything else in a
+  plot still welds.
+* **The grass flashed overgrown on entry.** `_build_tufts` wrote every clump,
+  then `refresh_state` immediately dropped the ones on cleared plots. The first
+  write is gone; `refresh_state` does it once, with the cleared plots known.
+* **Long rebuilds, the greenhouse worst.** `RESTORE_PART_GAP` was a fixed 0.15 s
+  per part, so a thirty-part building took five seconds. It is a CEILING now,
+  with `RESTORE_RAISE_SECONDS` spreading however many parts there are across a
+  fixed span. Measured after: lantern 3.1 s, greenhouse 3.3, farm 3.3,
+  station 3.4 — all inside the brief's 3-4 s.
+
+A building is also welded when its rebuild animation ends, which the first bake
+pass missed: a purchase now reports a second, smaller saving.
+
 **Not in the slice.** The other seven projects — swing, lantern, greenhouse,
 clinic, mast, farm, barn — have no building in the scene yet. Adding one is a
 `DIORAMA_BUILDINGS` entry plus a ruined/restored builder pair; nothing else.

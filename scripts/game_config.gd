@@ -1190,7 +1190,13 @@ const DIORAMA_TREE_POS := Vector3(-1.2, 0.0, -4.6)
 const RESTORE_ZOOM_IN := 1.0
 const RESTORE_ZOOM_OUT := 0.7
 const RESTORE_COLLAPSE := 0.55
+## The gap between two parts landing. It is a CEILING, not a fixed value: a
+## building with many parts (the greenhouse has about thirty) would otherwise
+## take five seconds to raise, and the brief's whole transition is meant to be
+## three or four (G13.7).
 const RESTORE_PART_GAP := 0.15
+## However many parts a building has, the raise takes about this long.
+const RESTORE_RAISE_SECONDS := 1.7
 const RESTORE_PART_FALL := 0.34
 ## How high a part starts above its resting place.
 ## Low enough that a falling wall stays inside the frame. At 5.0 the station's
