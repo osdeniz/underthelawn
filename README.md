@@ -2276,6 +2276,46 @@ the stats line, verified by breaking them on purpose first.
 The lesson repeats one already in this file: writing a special case is not the
 same as looking at it.
 
+## Sprint G14.2 — the day, the country, and a measurement that was wrong
+
+Two things were asked for: make the eight chapters feel like different times,
+and stop the world ending in brown dirt. A third — a dynamic sky addon — was
+turned down, and the reason is in the numbers below.
+
+**The one day, made visible.** `GameConfig.TIME_OF_DAY` holds six presets and
+each chapter names one: B1 dawn, B2-B3 morning, B4-B5 midday, B6 afternoon,
+B7 golden, B8 dusk. Sun angle, sun colour, sky colours, ambient and fog, on
+the two nodes the scene already had. No addon, no textures, nothing per frame.
+The first pass was rejected by its own screenshots — dawn and dusk were so dark
+that tall grass and cut stripe stopped being distinguishable. The hour is
+carried by COLOUR; a low sun is paid for with ambient light, never with gloom.
+`SkyCheck` enforces that as a floor (`ambient_energy >= 0.40`, `elev >= 10`)
+and enforces that the day never runs backwards.
+
+**The hills had never been visible. Not once.** The horizon ring was built at
+78 units and the fog closed at 70 — in front of it. Every distant hill and
+rooftop this project has drawn since G13.1 was inside solid fog. The fog now
+reaches 210, the hills were repainted paler (they had been authored to be read
+through a fog wall), and a 420-unit meadow sits under everything so the yard
+stops being a brown island.
+
+**And the measurement that was wrong.** Asked for clouds and birds, the first
+probe said the cameras never show sky at all — top edge 2.8 degrees BELOW the
+horizon in the hub. It was taken in the 1519-wide test window. The camera keeps
+its WIDTH, so a wider window sees LESS vertically than the phone: at the
+shipping 1170x2532 the hub's top edge is 4.5 degrees ABOVE the horizon. The
+yard's is 11 degrees below, so that half of the conclusion held — there are no
+clouds in a yard because a yard camera cannot see any.
+
+The hub got both, and getting them ON SCREEN took three corrections a
+screenshot would not have caught: a ring centred on the plate is mostly behind
+a camera that stands at (0, 28, 28.5); a 38-degree spread is wider than the
+24-degree horizontal half-angle; and the sky band is thin enough that height
+matters to the metre. A probe found 0 of 11 clouds and 0 of 30 birds on screen
+before any of that. `SkyLifeCheck` now asserts they are visible — pinning the
+viewport to 1170x2532 first, because headless reports a SQUARE viewport and
+squareness alone flips the answer.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

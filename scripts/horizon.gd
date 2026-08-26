@@ -15,10 +15,15 @@ extends RefCounted
 ## Unshaded meshes bypass the tonemapper, so these have to be authored DARKER
 ## than they should look: at the values the sky ends up at, the first pass came
 ## out near-white and the hills read as snowfields.
-const HILL_COLOURS := [Color(0.30, 0.35, 0.31), Color(0.38, 0.42, 0.38),
-	Color(0.46, 0.48, 0.45)]
-const ROOF_COLOUR := Color(0.30, 0.29, 0.29)
-const WALL_COLOUR := Color(0.38, 0.37, 0.36)
+## Repainted in G14.2. These were authored to be read through a fog wall that
+## closed at 70 units — in front of the ring they stand on, so they had never
+## actually been seen. With the fog pushed out to 210 the old values came out as
+## a hard dark ridge; land trailing away is paler and bluer than the ground in
+## front of it, band by band.
+const HILL_COLOURS := [Color(0.48, 0.55, 0.48), Color(0.58, 0.63, 0.60),
+	Color(0.68, 0.72, 0.72)]
+const ROOF_COLOUR := Color(0.46, 0.45, 0.46)
+const WALL_COLOUR := Color(0.56, 0.55, 0.55)
 
 
 ## Adds the horizon to `parent`, on a ring of `radius`. Deterministic per seed.

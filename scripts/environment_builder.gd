@@ -234,9 +234,27 @@ func _ao_blob(parent: Node3D, size: Vector2, pos: Vector3, alpha := 1.0) -> Mesh
 ## Dirt apron under everything that is not lawn — without it the house, road
 ## and porch float over the sky.
 func _build_yard() -> void:
+	_build_meadow()
 	var dirt := _tex_mat("dirt", "dirt_albedo", Color(0.38, 0.28, 0.18), 1.0,
 		Vector3(14.0, 12.0, 1.0))
 	_ground_quad(self, Vector2(90.0, 76.0), dirt, Vector3(0.0, -0.04, 6.0))
+
+
+## Open country out to the horizon ring. The dirt apron ends at 45 units and
+## used to be the last thing in the world; past it the ground simply stopped and
+## the yard sat on a brown island. This is one quad, unlit by choice — at that
+## distance a lit plane only shows the sun's angle as a flat wash.
+func _build_meadow() -> void:
+	var pal := GameConfig.grass_palette()
+	var far: Color = (pal["ground_mowed"] as Array)[0]
+	# Duller and greyer than the lawn: the country is not a second garden.
+	var tint := far.lerp(GameConfig.MEADOW_GREY, GameConfig.MEADOW_FADE)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = tint
+	mat.roughness = 1.0
+	mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+	_ground_quad(self, Vector2(GameConfig.MEADOW_SIZE, GameConfig.MEADOW_SIZE),
+		mat, Vector3(0.0, -0.09, 0.0))
 
 
 # ---------------------------------------------------------------- house (§12)
@@ -889,17 +907,22 @@ func _build_clouds() -> void:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 
-	for i in GameConfig.CLOUD_COUNT:
+	# On a ring, not in a strip: the four clouds used to sit north of the house
+	# between z -34 and -6, so every other direction was empty sky (G14.2).
+	for i in GameConfig.CLOUD_RING_COUNT:
 		var size := _rng.randf_range(GameConfig.CLOUD_SIZE_MIN, GameConfig.CLOUD_SIZE_MAX)
 		var quad := QuadMesh.new()
 		quad.size = Vector2(size, size * 0.5)
 		quad.material = mat
 		var mi := MeshInstance3D.new()
 		mi.mesh = quad
-		var base_x := -24.0 + float(i) * 16.0
+		var a := TAU * (float(i) + _rng.randf_range(-0.3, 0.3)) \
+			/ float(GameConfig.CLOUD_RING_COUNT)
+		var ring := GameConfig.CLOUD_RING_RADIUS * _rng.randf_range(0.7, 1.25)
+		var base_x := cos(a) * ring
 		mi.position = Vector3(base_x,
 			_rng.randf_range(GameConfig.CLOUD_Y_MIN, GameConfig.CLOUD_Y_MAX),
-			_rng.randf_range(-34.0, -6.0))
+			sin(a) * ring)
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		_clouds.append({ "node": mi, "base_x": base_x, "phase": _rng.randf() * TAU })

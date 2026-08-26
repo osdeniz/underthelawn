@@ -902,8 +902,11 @@ const FLOWER_SWAY_PERIOD := 1.9
 const CLOUD_COUNT := 4
 const CLOUD_SIZE_MIN := 13.0
 const CLOUD_SIZE_MAX := 20.0
-const CLOUD_Y_MIN := 24.0
-const CLOUD_Y_MAX := 30.0
+## Measured, not guessed: the play camera leaves roughly five degrees of sky
+## above the horizon line. Clouds at y 24-30 on a 96 ring sit at nine degrees —
+## above the frame, which is why nobody had ever seen one (G14.2).
+const CLOUD_Y_MIN := 9.0
+const CLOUD_Y_MAX := 17.0
 const CLOUD_DRIFT := 2.5
 const CLOUD_PERIOD := 30.0
 
@@ -1346,3 +1349,134 @@ const CORN_STALK := Color(0.44, 0.56, 0.22)
 const CORN_LEAF := Color(0.38, 0.54, 0.20)
 const CORN_COB := Color(0.92, 0.82, 0.34)
 const CORN_TASSEL := Color(0.74, 0.66, 0.34)
+
+# ---------------------------------------------------------------- time of day
+
+## The eight chapters are ONE day (G14.1): Ellie goes missing on the morning of
+## her ninth birthday and is found in time for the evening. These presets make
+## that day visible without a dynamic sky — the same two nodes the scene already
+## has, with different numbers. No addon, no textures, nothing per frame.
+##
+## `elev` is the sun's height above the horizon in degrees and `azim` the
+## compass direction it comes from; midday is the hand-tuned angle the whole
+## game was lit and balanced against, so it is the one entry that must not
+## drift.
+const TIME_OF_DAY := {
+	# The hour, not the darkness: the grass still has to read tall-versus-cut,
+	# so the low sun is paid for with ambient rather than with gloom. First pass
+	# used elev 14 / energy 0.85 / ambient 0.50 and the yard was unplayable.
+	"dawn": {
+		"elev": 24.0, "azim": 95.0,
+		"sun": Color(1.00, 0.88, 0.74), "sun_energy": 1.02,
+		"sky_top": Color(0.42, 0.60, 0.86), "sky_horizon": Color(0.98, 0.86, 0.72),
+		"ground": Color(0.66, 0.66, 0.58),
+		"ambient": Color(0.62, 0.66, 0.78), "ambient_energy": 0.64,
+		"fog": Color(0.90, 0.86, 0.82),
+	},
+	"morning": {
+		"elev": 34.0, "azim": 78.0,
+		"sun": Color(1.00, 0.95, 0.86), "sun_energy": 1.00,
+		"sky_top": Color(0.33, 0.58, 0.92), "sky_horizon": Color(0.95, 0.91, 0.80),
+		"ground": Color(0.63, 0.68, 0.60),
+		"ambient": Color(0.55, 0.62, 0.72), "ambient_energy": 0.45,
+		"fog": Color(0.85, 0.90, 0.95),
+	},
+	"midday": {
+		"elev": 50.0, "azim": 47.7,
+		"sun": Color(1.00, 0.96, 0.88), "sun_energy": 1.05,
+		"sky_top": Color(0.28, 0.56, 0.94), "sky_horizon": Color(0.93, 0.89, 0.78),
+		"ground": Color(0.62, 0.68, 0.60),
+		"ambient": Color(0.55, 0.62, 0.70), "ambient_energy": 0.42,
+		"fog": Color(0.80, 0.88, 0.95),
+	},
+	"afternoon": {
+		"elev": 38.0, "azim": 8.0,
+		"sun": Color(1.00, 0.94, 0.82), "sun_energy": 1.00,
+		"sky_top": Color(0.31, 0.57, 0.90), "sky_horizon": Color(0.96, 0.88, 0.74),
+		"ground": Color(0.64, 0.66, 0.56),
+		"ambient": Color(0.58, 0.60, 0.66), "ambient_energy": 0.42,
+		"fog": Color(0.86, 0.88, 0.90),
+	},
+	"golden": {
+		"elev": 16.0, "azim": -22.0,
+		"sun": Color(1.00, 0.82, 0.58), "sun_energy": 1.15,
+		"sky_top": Color(0.36, 0.52, 0.82), "sky_horizon": Color(1.00, 0.78, 0.52),
+		"ground": Color(0.62, 0.58, 0.46),
+		"ambient": Color(0.64, 0.58, 0.54), "ambient_energy": 0.48,
+		"fog": Color(0.95, 0.80, 0.62),
+	},
+	# Same rule as dawn, harder: this is the chapter Ellie is found in, and it
+	# must not be the chapter nobody can see. Colour carries the hour; ambient
+	# keeps the lawn legible.
+	"dusk": {
+		"elev": 14.0, "azim": -40.0,
+		"sun": Color(1.00, 0.72, 0.52), "sun_energy": 1.00,
+		"sky_top": Color(0.28, 0.38, 0.66), "sky_horizon": Color(0.96, 0.66, 0.50),
+		"ground": Color(0.52, 0.50, 0.48),
+		"ambient": Color(0.60, 0.58, 0.70), "ambient_energy": 0.62,
+		"fog": Color(0.84, 0.70, 0.68),
+	},
+}
+
+## The one a level falls back to. Everything looked like this before G14.2.
+const TIME_OF_DAY_DEFAULT := "midday"
+
+# ---------------------------------------------------------------- open country
+
+## What lies past the fence. Every yard used to end in a 90x76 dirt apron with
+## nothing beyond it, and the distant hills were built at 78 while the fog
+## closed at 70 — so the hills had never once been visible in the game (G14.2).
+const MEADOW_SIZE := 420.0
+## How far the meadow's colour sits from the yard's own grass: the country
+## around a bright lawn is duller and greyer, never a second lawn.
+const MEADOW_FADE := 0.45
+const MEADOW_GREY := Color(0.42, 0.46, 0.34)
+
+## Fog now has to reach past the horizon ring instead of stopping in front of
+## it. Begin still sits just past the yard so the near ground is untouched.
+const FOG_BEGIN := 34.0
+const FOG_END := 210.0
+
+## Clouds ring the whole sky rather than sitting in a strip to the north, so
+## tilting the camera anywhere finds some.
+const CLOUD_RING_RADIUS := 118.0
+const CLOUD_RING_COUNT := 14
+
+## Slow birds, high up and always in silhouette. Sound is deliberately NOT part
+## of this: the ambient bird loop was removed from gameplay in G9.4 and stays
+## removed.
+const BIRDS_ENABLED := true
+## Two flocks of four. Every bird is two unshaded quads, so this is 16 draws on
+## a hub that was cut from 752 to 226 — a third of a percent is worth it, three
+## percent would not be.
+const BIRD_FLOCKS := 2
+const BIRDS_PER_FLOCK := 4
+const BIRD_SPEED := Vector2(0.020, 0.045)
+const BIRD_COLOUR := Color(0.26, 0.28, 0.30, 0.70)
+
+## The hub's own sky. These are placed RELATIVE TO THE CAMERA, not around the
+## plate: the hub camera stands at (0, 28, 28.5) looking north and down, so a
+## ring centred on the town put most of its clouds beside and behind it. A probe
+## found 0 of 11 clouds and 0 of 30 birds actually on screen.
+##
+## `SPREAD` is the half-angle either side of the view direction, `DIST` how far
+## out along it, and `DROP` how far below the camera's own height they sit —
+## which is what decides where on the screen they land.
+const DIORAMA_CLOUD_COUNT := 11
+## The camera's horizontal half-angle is 24 degrees (fov 48, keep-width), so a
+## 38 degree spread threw most of the clouds off the sides before height was
+## even considered.
+const DIORAMA_SKY_SPREAD := 20.0
+const DIORAMA_CLOUD_DIST := Vector2(58.0, 115.0)
+## NEGATIVE drop = above the camera, i.e. in the actual sky. Measured at the
+## shipping 1170x2532: the hub camera's top edge is 4.5 degrees ABOVE the
+## horizon, so it has a real, if thin, band of sky. (An earlier measurement said
+## the opposite; it was taken in a 1519-wide test window, and the camera keeps
+## its WIDTH — a wider window sees LESS vertically than the phone does.)
+const DIORAMA_CLOUD_DROP := Vector2(-0.5, 4.5)
+const DIORAMA_CLOUD_SIZE := Vector2(9.0, 17.0)
+## Birds fly nearer and lower than the clouds, so they cross in front of the
+## far hills rather than sitting in empty haze.
+const DIORAMA_BIRD_DIST := Vector2(46.0, 78.0)
+const DIORAMA_BIRD_DROP := Vector2(19.0, 26.0)
+const DIORAMA_BIRD_SIZE := 0.75

@@ -37,7 +37,8 @@
         "name": "ECHO_CH01_NAME",
         "flavor_text": "ECHO_CH01_LINE"
       },
-      "reclaim_line": "RECLAIM_CH01"
+      "reclaim_line": "RECLAIM_CH01",
+      "time_of_day": "dawn"
     },
     "ch02_neighbor": {
       "palette_id": "GREEN_COOL",
@@ -75,7 +76,8 @@
         "name": "ECHO_CH02_NAME",
         "flavor_text": "ECHO_CH02_LINE"
       },
-      "reclaim_line": "RECLAIM_CH02"
+      "reclaim_line": "RECLAIM_CH02",
+      "time_of_day": "morning"
     },
     "ch03_playground": {
       "palette_id": "DRY_GOLD",
@@ -113,7 +115,8 @@
         "name": "ECHO_CH03_NAME",
         "flavor_text": "ECHO_CH03_LINE"
       },
-      "reclaim_line": "RECLAIM_CH03"
+      "reclaim_line": "RECLAIM_CH03",
+      "time_of_day": "morning"
     },
     "ch04_flooded": {
       "palette_id": "MARSH",
@@ -151,7 +154,8 @@
         "name": "ECHO_CH04_NAME",
         "flavor_text": "ECHO_CH04_LINE"
       },
-      "reclaim_line": "RECLAIM_CH04"
+      "reclaim_line": "RECLAIM_CH04",
+      "time_of_day": "midday"
     },
     "ch05_greenhouse": {
       "palette_id": "LUSH",
@@ -189,7 +193,8 @@
         "name": "ECHO_CH05_NAME",
         "flavor_text": "ECHO_CH05_LINE"
       },
-      "reclaim_line": "RECLAIM_CH05"
+      "reclaim_line": "RECLAIM_CH05",
+      "time_of_day": "midday"
     },
     "ch06_watertower": {
       "palette_id": "AMBER",
@@ -227,7 +232,8 @@
         "name": "ECHO_CH06_NAME",
         "flavor_text": "ECHO_CH06_LINE"
       },
-      "reclaim_line": "RECLAIM_CH06"
+      "reclaim_line": "RECLAIM_CH06",
+      "time_of_day": "afternoon"
     },
     "ch07_mill": {
       "palette_id": "DUSK_VIOLET",
@@ -265,7 +271,8 @@
         "name": "ECHO_CH07_NAME",
         "flavor_text": "ECHO_CH07_LINE"
       },
-      "reclaim_line": "RECLAIM_CH07"
+      "reclaim_line": "RECLAIM_CH07",
+      "time_of_day": "golden"
     },
     "ch08_cellar": {
       "palette_id": "EMERALD",
@@ -304,7 +311,8 @@
         "name": "ECHO_CH08_NAME",
         "flavor_text": "ECHO_CH08_LINE"
       },
-      "reclaim_line": "RECLAIM_CH08"
+      "reclaim_line": "RECLAIM_CH08",
+      "time_of_day": "dusk"
     },
     "harvest_field": {
       "level_type": "harvest",
@@ -319,7 +327,8 @@
         "headline": "HARVEST_HEADLINE",
         "subline": "HARVEST_SUBLINE"
       },
-      "evidence_defs": []
+      "evidence_defs": [],
+      "time_of_day": "golden"
     }
   }
 }

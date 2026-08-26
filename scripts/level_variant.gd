@@ -38,6 +38,9 @@ var echo_def: Dictionary = {}
 ## The one-line "town reclaimed" note this chapter adds to the case notes when
 ## it is finished (G13.4).
 var reclaim_line := ""
+## Which GameConfig.TIME_OF_DAY preset lights this chapter. The eight chapters
+## run from dawn to dusk across one day (G14.2).
+var time_of_day := "midday"
 ## "search" (the default) or "harvest" (G13.6). A harvest carries no evidence
 ## and no echo, pays more scrap, and stands in a field of crop.
 var level_type := "search"
@@ -79,6 +82,8 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.evidence_defs = spec.get("evidence_defs", [])
 	variant.reclaim_line = str(spec.get("reclaim_line", ""))
 	variant.level_type = str(spec.get("level_type", "search"))
+	variant.time_of_day = str(spec.get("time_of_day",
+		GameConfig.TIME_OF_DAY_DEFAULT))
 	var echo: Variant = spec.get("echo_def", {})
 	if echo is Dictionary:
 		variant.echo_def = echo

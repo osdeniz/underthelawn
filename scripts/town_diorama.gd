@@ -147,6 +147,72 @@ func has_building(project_id: String) -> bool:
 	return _buildings.has(project_id)
 
 
+## Clouds on a ring behind the plate, and two or three flocks over the town.
+## Both are unshaded billboards well outside the fog's far edge, so they read as
+## distance rather than as objects.
+func _build_sky_life() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 771
+	var tex := TextureLibrary.find("cloud_billboard")
+	var mat := StandardMaterial3D.new()
+	if tex != null:
+		mat.albedo_texture = tex
+	mat.albedo_color = Color(1, 1, 1, 0.55)
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	var sky := Node3D.new()
+	sky.name = "SkyLife"
+	# Never welded into the baked town: these move, and the bake is one-way.
+	sky.set_meta("no_bake", true)
+	add_child(sky)
+
+	for i in GameConfig.DIORAMA_CLOUD_COUNT:
+		var size := rng.randf_range(GameConfig.DIORAMA_CLOUD_SIZE.x,
+			GameConfig.DIORAMA_CLOUD_SIZE.y)
+		var quad := QuadMesh.new()
+		quad.size = Vector2(size, size * 0.5)
+		quad.material = mat
+		var mi := MeshInstance3D.new()
+		mi.mesh = quad
+		mi.set_meta("no_bake", true)
+		mi.position = _sky_spot(rng, GameConfig.DIORAMA_CLOUD_DIST,
+			GameConfig.DIORAMA_CLOUD_DROP)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		sky.add_child(mi)
+
+	# The flocks circle a point out in front rather than the town itself, for
+	# the same reason: a ring around the plate is mostly behind the camera.
+	var flock_root := Node3D.new()
+	flock_root.set_meta("no_bake", true)
+	flock_root.position = _sky_spot(rng, GameConfig.DIORAMA_BIRD_DIST,
+		GameConfig.DIORAMA_BIRD_DROP)
+	sky.add_child(flock_root)
+	var flock := Birds.build(flock_root, 4242, Vector2(0.0, 0.0),
+		Vector2(6.0, 15.0), GameConfig.DIORAMA_BIRD_SIZE)
+	if flock != null:
+		flock.set_meta("no_bake", true)
+
+
+## A point in front of the hub camera: `dist` out along its view direction,
+## `drop` below its own height, and up to DIORAMA_SKY_SPREAD degrees to either
+## side. Everything about where sky decoration ends up on screen is decided
+## here, which is why it is one function and not three copies of the same maths.
+func _sky_spot(rng: RandomNumberGenerator, dist: Vector2,
+		drop: Vector2) -> Vector3:
+	var eye := GameConfig.DIORAMA_CAM_POS
+	var forward := (GameConfig.DIORAMA_CAM_LOOK - eye)
+	var flat := Vector2(forward.x, forward.z).normalized()
+	var heading := atan2(flat.y, flat.x)
+	var a := heading + deg_to_rad(
+		rng.randf_range(-GameConfig.DIORAMA_SKY_SPREAD,
+			GameConfig.DIORAMA_SKY_SPREAD))
+	var out := rng.randf_range(dist.x, dist.y)
+	return Vector3(eye.x + cos(a) * out,
+		eye.y - rng.randf_range(drop.x, drop.y),
+		eye.z + sin(a) * out)
+
+
 # ---------------------------------------------------------------- environment
 
 func _build_environment() -> void:
@@ -1376,6 +1442,10 @@ func _dust_quad() -> QuadMesh:
 ## at a blank wall of fog and the town reads as an island (G13.1).
 func _build_horizon() -> void:
 	Horizon.build(self, GameConfig.DIORAMA_PLATE.length() * 0.86, 20260826)
+	# The hub is where the sky is actually ON SCREEN — a third of the frame,
+	# against five degrees in a yard. Clouds and birds earn their place here
+	# first (G14.2).
+	_build_sky_life()
 	var ring := get_node_or_null("Horizon") as Node3D
 	if ring != null:
 		_bake_targets.append(ring)
