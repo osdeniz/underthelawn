@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bf4jsc4e6oe0v"
-path="res://.godot/imported/restore_swing.jpg-f083ae8963a10f0585a87e10b866ad19.ctex"
+uid="uid://bv03dtdwch7jv"
+path="res://.godot/imported/place_panel.jpg-ad04e6ff5dea22326b10c16a74d8ffbe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/hub/restore_swing.jpg"
-dest_files=["res://.godot/imported/restore_swing.jpg-f083ae8963a10f0585a87e10b866ad19.ctex"]
+source_file="res://docs/g135/place_panel.jpg"
+dest_files=["res://.godot/imported/place_panel.jpg-ad04e6ff5dea22326b10c16a74d8ffbe.ctex"]
 
 [params]
 

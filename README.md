@@ -2022,6 +2022,46 @@ the fix and watching it fail.
 navigation and button glyphs, using the extra width for landscape menu layouts,
 and the Steam SDK itself (achievements, cloud saves).
 
+### G14.2 — the asset audit
+
+Measured before launch on mobile, web and Steam. Four findings, all real:
+
+| | before | after |
+| --- | --- | --- |
+| Textures on disk | 77 MB | 32 MB |
+| Texture VRAM | 113 MB | 6 MB |
+| Duplicate images | 10 pairs | none |
+| 3D textures with mipmaps | 0 of 11 | 11 of 11 |
+
+**Ten pictures shipped twice.** Every `restore_*` layer existed as both `.png`
+and `.jpg`. `TextureLibrary.EXTENSIONS` tries `.png` first, so the JPEGs were
+never loaded — and could not have been, since the layers need alpha and JPEG has
+none. 19 MB of the package was a format that could not work.
+
+**113 MB of VRAM, most of it in screens the default build never opens.** The ten
+restore layers were up to 1536x2458 and imported LOSSLESS, which costs
+`w * h * 4` bytes each. They are hub-collage art, and diorama mode returns
+before drawing them (G13.7) — so that was ~100 MB reserved for a mode that is
+off by default. They are half-size and VRAM compressed now. Everything above
+256x256 is compressed; below that the saving is not worth the softening.
+
+**No 3D texture had mipmaps.** Not one of grass, dirt, asphalt, siding,
+shingles, wood or bark. Without them the GPU samples full resolution at every
+pixel however far away the surface is: it shimmers in motion AND burns memory
+bandwidth, which on a phone is heat. All eleven world textures generate mipmaps
+now; UI textures deliberately do not, since they are drawn at one size.
+
+Quality was checked by rendering afterwards, not assumed: the painted town map,
+the yard, and Ellie's portrait — the hardest case, since compression shows on
+faces first — are all unchanged to the eye.
+
+`tests/AssetCheck.tscn` locks all three rules in, and was confirmed by reverting
+one texture and watching it fail. Audio was already QOA-compressed at 2.3 MB.
+
+**Left alone deliberately:** `msaa_3d=2` (4x). It is affordable on the
+tile-based GPUs phones use, and dropping it is a visual-quality call rather than
+a correctness one — worth revisiting only if a real device says so.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

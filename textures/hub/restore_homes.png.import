@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdnlhsilcrbuf"
-path="res://.godot/imported/restore_homes.png-90a4754e08a9c4c539e40d3c42750e42.ctex"
+path.s3tc="res://.godot/imported/restore_homes.png-90a4754e08a9c4c539e40d3c42750e42.s3tc.ctex"
+path.etc2="res://.godot/imported/restore_homes.png-90a4754e08a9c4c539e40d3c42750e42.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://textures/hub/restore_homes.png"
-dest_files=["res://.godot/imported/restore_homes.png-90a4754e08a9c4c539e40d3c42750e42.ctex"]
+dest_files=["res://.godot/imported/restore_homes.png-90a4754e08a9c4c539e40d3c42750e42.s3tc.ctex", "res://.godot/imported/restore_homes.png-90a4754e08a9c4c539e40d3c42750e42.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

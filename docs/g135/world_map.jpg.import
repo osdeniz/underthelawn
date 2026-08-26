@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dmmgvr46ahyha"
-path="res://.godot/imported/restore_barn.jpg-3abef526b384fb3722d99484d92badd9.ctex"
+uid="uid://6xibybmu7xbv"
+path="res://.godot/imported/world_map.jpg-a803d9adac8bfd55797f85840abc1d4d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://textures/hub/restore_barn.jpg"
-dest_files=["res://.godot/imported/restore_barn.jpg-3abef526b384fb3722d99484d92badd9.ctex"]
+source_file="res://docs/g135/world_map.jpg"
+dest_files=["res://.godot/imported/world_map.jpg-a803d9adac8bfd55797f85840abc1d4d.ctex"]
 
 [params]
 
