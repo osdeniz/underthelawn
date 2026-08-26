@@ -20,6 +20,10 @@
           "text": "DLG_BRIEF_CH01_2"
         },
         {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH01_2B"
+        },
+        {
           "choice": {
             "options": [
               {
@@ -284,6 +288,14 @@
           "text": "DLG_FINALE_1"
         },
         {
+          "speaker": "ellie",
+          "text": "DLG_FINALE_1B"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_FINALE_1C"
+        },
+        {
           "speaker": "marshal",
           "text": "DLG_FINALE_2"
         },
@@ -314,6 +326,10 @@
           {
             "speaker": "marshal",
             "text": "DLG_TOWN_MARSHAL_0B"
+          },
+          {
+            "speaker": "marshal",
+            "text": "DLG_TOWN_MARSHAL_0C"
           }
         ]
       },
@@ -351,6 +367,10 @@
           {
             "speaker": "sarah",
             "text": "DLG_TOWN_SARAH_0B"
+          },
+          {
+            "speaker": "sarah",
+            "text": "DLG_TOWN_SARAH_0C"
           }
         ]
       },
@@ -380,6 +400,10 @@
           {
             "speaker": "gus",
             "text": "DLG_TOWN_GUS_0A"
+          },
+          {
+            "speaker": "gus",
+            "text": "DLG_TOWN_GUS_0B"
           }
         ]
       },
@@ -413,6 +437,10 @@
           {
             "speaker": "cole",
             "text": "DLG_TOWN_COLE_0B"
+          },
+          {
+            "speaker": "cole",
+            "text": "DLG_TOWN_COLE_0C"
           }
         ]
       },

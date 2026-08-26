@@ -2213,6 +2213,33 @@ looking. While the invitation is open there is now a gold HARVEST tile at the
 top of the hub, and `focus_place` knows the harvest is not a case place: it
 pans to the farm and opens the field's own sheet.
 
+## Sprint G14.1 — the birthday
+
+Case 1 gains one fact and never states it: the outbreak took Ellie's parents,
+and the town raised her between them. Sarah is the woman who took her — the
+Voss name is Sarah's. Ellie went missing on the morning of her ninth birthday,
+with the square already being set up for the party.
+
+Nothing dramatises the orphanhood. It is assembled by the player out of small
+things: nine unsigned packages in Gus's workshop ("we never wrote who they're
+from — we never do"), a cake nobody had the heart to take out of the oven, a
+Marshal who says the whole town raised her and the whole town is out looking,
+and Sarah's own "I'm not her mother. But nine years ago the town handed me a
+baby, and I've been hers ever since." Ellie still calls her Mum two screens
+later. That contradiction is the point, and it stays.
+
+**The clock moved with it.** She used to have vanished "last night"; the
+birthday ribbon Sarah tied "this morning" makes that impossible, so every
+reference — the intro card, the poster, the alert, the first-run sheet, the
+Marshal's answer in the briefing — now reads from this morning. `ROLE_SARAH`
+no longer says "Ellie's mother".
+
+**The case closes on the party it was interrupting.** The reunion card is three
+beats instead of two: Ellie home, then nine candles in the square, then Case 2.
+The warm one sits directly against the cold one on purpose. The middle beat
+uses `textures/story/birthday.png` when it exists and falls back to the reunion
+photograph, which already has the lanterns and the gathered town in it.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

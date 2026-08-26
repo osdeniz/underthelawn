@@ -1,9 +1,13 @@
 class_name ReunionCard
 extends Control
-## The end of Case 1 (G11): Ellie home, then the door to Case 2.
+## The end of Case 1 (G11): Ellie home, the party that was waiting for her, then
+## the door to Case 2.
 ##
-## Two full-screen beats, tapped through like the opening cards, because the
+## Three full-screen beats, tapped through like the opening cards, because the
 ## case should close the way it opened — quietly, with a picture and two lines.
+## The middle beat is the warm one and the last is the cold one, deliberately
+## next to each other (G14.1): the town gets its evening, and the question of
+## what Ellie saw is already standing behind it.
 
 signal finished()
 
@@ -106,7 +110,7 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	accept_event()
 	_page += 1
-	if _page > 1:
+	if _page > 2:
 		_close()
 		return
 	var tw := create_tween()
@@ -123,6 +127,14 @@ func _apply() -> void:
 			TextureLibrary.warn_missing("story/reunion", "kavusma karti = duz zemin")
 		_title.text = tr("REUNION_TITLE")
 		_line.text = tr("REUNION_LINE")
+	elif _page == 1:
+		# The party in the square. Its own art if it has been drawn; the reunion
+		# photograph carries the beat until then, and the words do the work.
+		_art.texture = TextureLibrary.find("story/birthday")
+		if _art.texture == null:
+			_art.texture = TextureLibrary.find("story/reunion")
+		_title.text = tr("BIRTHDAY_TITLE")
+		_line.text = tr("BIRTHDAY_LINE")
 	else:
 		_art.texture = TextureLibrary.find("hub/case2_teaser")
 		if _art.texture == null:

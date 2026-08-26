@@ -1,7 +1,7 @@
 keys,en,tr
-UI_PERCENT_MOWED,"{pct}% mowed","%{pct} biçildi"
-UI_EVIDENCE_COUNTER,"Evidence {found}/{total}","Kanıt {found}/{total}"
-UI_STATS,"{cells} cells searched · {time}","{cells} hücre arandı · {time}"
+UI_PERCENT_MOWED,{pct}% mowed,%{pct} biçildi
+UI_EVIDENCE_COUNTER,Evidence {found}/{total},Kanıt {found}/{total}
+UI_STATS,{cells} cells searched · {time},{cells} hücre arandı · {time}
 UI_RESTART,RESTART,YENİDEN BAŞLA
 UI_STORY,STORY,HİKÂYE
 UI_EMPTY_SLOT,—,—
@@ -13,16 +13,16 @@ MOWER_BLADE,Blade,Blade
 CASE_01_ID,CASE 01,VAKA 01
 CASE_01_TITLE,THE MISSING GIRL,KAYIP KIZ
 CASE_01_OBJECTIVE,Search the property,Araziyi ara
-CASE_01_HUD_LINE,"CASE 01 — THE MISSING GIRL · Search the property","VAKA 01 — KAYIP KIZ · Araziyi ara"
+CASE_01_HUD_LINE,CASE 01 — THE MISSING GIRL · Search the property,VAKA 01 — KAYIP KIZ · Araziyi ara
 INTRO_SKIP_HINT,tap to continue,devam etmek için dokun
 INTRO_01_L1,The outbreak ended years ago.,Salgın yıllar önce bitti.
 INTRO_01_L2,The world didn't end with it.,Dünya onunla birlikte bitmedi.
 INTRO_02_L1,We rebuild.,Yeniden kuruyoruz.
 INTRO_02_L2,Small towns. Small hopes.,Küçük kasabalar. Küçük umutlar.
-INTRO_03_L1,"Then, last night —","Sonra, dün gece —"
+INTRO_03_L1,"Then, on the morning of her ninth birthday —","Sonra, dokuzuncu doğum gününün sabahı —"
 INTRO_03_L2,Ellie didn't come home.,Ellie eve dönmedi.
 BRIEF_01_SPEAKER,Marshal,Şerif
-BRIEF_01_BODY,"The Aldridge house. She was seen near the fence line. Search everything.","Aldridge evi. Çit hattının yakınında görülmüş. Her yeri ara."
+BRIEF_01_BODY,The Aldridge house. She was seen near the fence line. Search everything.,Aldridge evi. Çit hattının yakınında görülmüş. Her yeri ara.
 BRIEF_01_ACCEPT,SEARCH THE PROPERTY,ARAZİYİ ARA
 OPENING_01_HEADLINE,LAST MOWED: 847 DAYS AGO,SON BİÇİM: 847 GÜN ÖNCE
 OPENING_01_SUBLINE,No one has lived here since.,O zamandan beri burada kimse yaşamadı.
@@ -34,7 +34,7 @@ EVIDENCE_RADIO_NAME,Old Radio,Eski Radyo
 EVIDENCE_RADIO_LINE,Still tuned to the emergency channel.,Hâlâ acil durum kanalında.
 COMPLETE_01_TITLE,AREA SEARCHED,ALAN ARANDI
 COMPLETE_NOTES_HEADER,CASE NOTES,VAKA NOTLARI
-COMPLETE_01_NOTES_FULL,"The toy confirms it. She came through here — heading east.","Oyuncak doğruluyor. Buradan geçmiş — doğuya doğru."
+COMPLETE_01_NOTES_FULL,The toy confirms it. She came through here — heading east.,Oyuncak doğruluyor. Buradan geçmiş — doğuya doğru.
 COMPLETE_01_NOTES_PARTIAL,Something here is still unaccounted for.,Burada hâlâ açıklanamayan bir şey var.
 COMPLETE_01_INCOMPLETE,The search feels incomplete...,Arama yarım kalmış gibi...
 COMPLETE_01_TEASER_TITLE,NEXT: The Neighbor's Yard,SIRADAKİ: Komşunun Bahçesi
@@ -42,7 +42,7 @@ COMPLETE_01_TEASER_LINE,Something moved behind that fence.,O çitin arkasında b
 COMPLETE_TEASER_LOCKED,Coming soon,Yakında
 UI_BACK,BACK,GERİ
 UI_RETURN_TOWN,RETURN TO TOWN,KASABAYA DÖN
-HUB_PROGRESS,"{case} · {done}/{total}","{case} · {done}/{total}"
+HUB_PROGRESS,{case} · {done}/{total},{case} · {done}/{total}
 HUB_CASE_BOARD,CASE BOARD,VAKA PANOSU
 HUB_CASE_BOARD_HINT,Pick where to search next.,Sıradaki arama yerini seç.
 HUB_TOWN,TOWN,KASABA
@@ -51,7 +51,7 @@ HUB_WORKSHOP,WORKSHOP,ATÖLYE
 HUB_WORKSHOP_HINT,Gus hasn't opened up yet.,Gus henüz açmadı.
 HUB_LOCKED,Locked for now.,Şimdilik kilitli.
 CASEBOARD_TITLE,CASE 01 — THE MISSING GIRL,VAKA 01 — KAYIP KIZ
-CASEBOARD_EVIDENCE,"Evidence {found}/{total}","Kanıt {found}/{total}"
+CASEBOARD_EVIDENCE,Evidence {found}/{total},Kanıt {found}/{total}
 CASEBOARD_LOCKED,Not yet,Henüz değil
 CASEBOARD_ACTIVE,Search here,Burayı ara
 CASEBOARD_DONE,Searched,Arandı
@@ -71,7 +71,7 @@ CHAR_COLE,Cole,Cole
 CHAR_ELLIE,Ellie,Ellie
 CHAR_STRANGER,The Stranger,Yabancı
 ROLE_MARSHAL,keeps the peace,düzeni sağlıyor
-ROLE_SARAH,Ellie's mother,Ellie'nin annesi
+ROLE_SARAH,Raised Ellie,Ellie'yi büyüten
 ROLE_GUS,fixes machines,makineleri tamir ediyor
 ROLE_COLE,knows the fields,tarlaları biliyor
 ROLE_ELLIE,missing,kayıp
@@ -80,8 +80,8 @@ DLG_BRIEF_CH01_1,The Aldridge house. Nobody's lived there since the year we stop
 DLG_BRIEF_CH01_2,Sarah says Ellie was seen near the fence line. The grass is waist high.,"Sarah, Ellie'nin çit hattının yakınında görüldüğünü söylüyor. Çim bel hizasında."
 DLG_BRIEF_CH01_A1,Why the grass?,Neden çim?
 DLG_BRIEF_CH01_A2,How long has it been?,Ne kadar zaman geçti?
-DLG_BRIEF_CH01_R1,"It's waist high. You won't see a thing until you cut it down.","Bel hizasında. Kesmeden hiçbir şey göremezsin."
-DLG_BRIEF_CH01_R2,"One night. That's still a good night, if we move.","Bir gece. Acele edersek hâlâ iyi bir gece sayılır."
+DLG_BRIEF_CH01_R1,It's waist high. You won't see a thing until you cut it down.,Bel hizasında. Kesmeden hiçbir şey göremezsin.
+DLG_BRIEF_CH01_R2,"Since this morning. That is still a good day, if we move.",Bu sabahtan beri. Acele edersek hâlâ iyi bir gün sayılır.
 DLG_BRIEF_CH01_3,Search everything. Bring me whatever you find.,Her yeri ara. Ne bulursan bana getir.
 DLG_DEBRIEF_CH01_FULL_1,The rabbit settles it. She came through here.,Tavşan kesinleştirdi. Buradan geçmiş.
 DLG_DEBRIEF_CH01_FULL_2,Heading east. Toward the neighbour's fence.,Doğuya doğru. Komşunun çitine doğru.
@@ -92,12 +92,12 @@ DLG_TOWN_MARSHAL_1A,East it is. I'll tell Sarah we have something.,Doğu demek. 
 DLG_TOWN_SARAH_0A,She takes that bear everywhere. She wouldn't leave it.,O ayıyı her yere götürür. Bırakıp gitmez.
 DLG_TOWN_SARAH_0B,Please. Just look.,Lütfen. Sadece bak.
 DLG_TOWN_SARAH_1A,You found it. Where is she?,Onu bulmuşsun. Nerede o?
-DLG_TOWN_GUS_0A,"Bring the mower back in one piece and we'll talk.","Makineyi tek parça getir, sonra konuşuruz."
+DLG_TOWN_GUS_0A,Bring the mower back in one piece and we'll talk.,"Makineyi tek parça getir, sonra konuşuruz."
 DLG_TOWN_GUS_1A,Heard you found something. I'll start on the deck tomorrow.,Bir şey bulduğunu duydum. Yarın kesme tablasına bakarım.
 DLG_TOWN_COLE_0A,I walk those fields every morning. Saw nothing.,Her sabah o tarlalarda yürürüm. Hiçbir şey görmedim.
 DLG_TOWN_COLE_0B,Doesn't mean nothing happened.,Bu bir şey olmadığı anlamına gelmez.
 DLG_TOWN_COLE_1A,East? The mill road runs that way.,Doğu mu? Değirmen yolu o tarafa gider.
-DLG_TOWN_ELLIE_0A,"Her room is exactly as she left it. I won't touch it.","Odası bıraktığı gibi duruyor. Elimi süremiyorum."
+DLG_TOWN_ELLIE_0A,Her room is exactly as she left it. I won't touch it.,Odası bıraktığı gibi duruyor. Elimi süremiyorum.
 DLG_TOWN_STRANGER_0A,I only got here last week. I don't know the girl.,Geçen hafta geldim. Kızı tanımıyorum.
 DLG_TOWN_STRANGER_1A,East. Hm. I'd be careful out there.,Doğu. Hmm. Orada dikkatli olurdum.
 EXIT_ALL_FOUND,All evidence found.,Tüm kanıtlar bulundu.
@@ -105,8 +105,8 @@ EXIT_CONTINUE,CONTINUE THE CASE →,VAKAYA DEVAM ET →
 EXIT_KEEP_MOWING,KEEP MOWING,BİÇMEYE DEVAM
 EXIT_BADGE,Continue →,Devam →
 PAYOUT_GROUND,Cash picked up,Yerden toplanan para
-PAYOUT_BONUS,"Search bonus ({pct}% mown)","Arama primi (%{pct} biçildi)"
-PAYOUT_THOROUGH,"Thorough Search +{pct}%","Eksiksiz Arama +%{pct}"
+PAYOUT_BONUS,Search bonus ({pct}% mown),Arama primi (%{pct} biçildi)
+PAYOUT_THOROUGH,Thorough Search +{pct}%,Eksiksiz Arama +%{pct}
 PAYOUT_TOTAL,Total,Toplam
 EV_CH02_A_NAME,Red Rain Boot,Kırmızı Yağmur Çizmesi
 EV_CH02_A_LINE,One boot. She kicked it off to run — or to climb.,Tek çizme. Koşmak için çıkarmış — ya da tırmanmak için.
@@ -164,7 +164,7 @@ DLG_BRIEF_CH08_1,"Down the steps, then. Whatever's under this town, she found it
 DLG_BRIEF_CH08_2,Cut a path to her. Gently. I don't want to frighten anyone down there.,Ona bir yol aç. Nazikçe. Aşağıdaki kimseyi korkutmak istemiyorum.
 DLG_DEBRIEF_CH08_FULL,...,...
 DLG_DEBRIEF_CH08_PART,She's close. Cut the rest and find her.,Yakında. Kalanı biç ve onu bul.
-UI_NEXT_CHAPTER,"NEXT: {name} →","SIRADAKİ: {name} →"
+UI_NEXT_CHAPTER,NEXT: {name} →,SIRADAKİ: {name} →
 HINT_DRIVE,Drag anywhere to drive,Sürmek için ekranın herhangi bir yerini sürükle
 OPENING_02_HEADLINE,EMPTY SINCE YEAR ONE,İLK YILDAN BERİ BOŞ
 OPENING_02_SUBLINE,They never came back for their things.,Eşyaları için bile geri dönmediler.
@@ -182,25 +182,25 @@ OPENING_08_HEADLINE,NO RECORD OF THIS PLACE,BU YERİN KAYDI YOK
 OPENING_08_SUBLINE,But someone kept the garden alive.,Ama biri bahçeyi yaşatmış.
 UI_RESUME,RESUME,DEVAM
 
-DLG_TOWN_ELLIE_1A,"East... then she's past the fence line. Please hurry.","Doğu... o zaman çit hattını geçmiş. Lütfen acele et."
+DLG_TOWN_ELLIE_1A,East... then she's past the fence line. Please hurry.,Doğu... o zaman çit hattını geçmiş. Lütfen acele et.
 WS_TITLE,WORKSHOP,ATÖLYE
 WS_ACTIVE,OWNED,SENDE
 WS_LOCKED,LOCKED,KİLİTLİ
-WS_UNLOCK,"UNLOCK · {cost}","AÇ · {cost}"
-WS_UPGRADE,"UPGRADE · {cost}","GELİŞTİR · {cost}"
+WS_UNLOCK,UNLOCK · {cost},AÇ · {cost}
+WS_UPGRADE,UPGRADE · {cost},GELİŞTİR · {cost}
 WS_MAXED,FULLY UPGRADED,TAM GELİŞMİŞ
-WS_CONFIRM_UNLOCK,"Unlock {name} for {cost}?","{name} {cost} karşılığında açılsın mı?"
-WS_CONFIRM_UPGRADE,"Upgrade {name} for {cost}?","{name} {cost} karşılığında geliştirilsin mi?"
-WS_EFFECT_SPEED,"+{pct}% speed","+%{pct} hız"
+WS_CONFIRM_UNLOCK,Unlock {name} for {cost}?,{name} {cost} karşılığında açılsın mı?
+WS_CONFIRM_UPGRADE,Upgrade {name} for {cost}?,{name} {cost} karşılığında geliştirilsin mi?
+WS_EFFECT_SPEED,+{pct}% speed,+%{pct} hız
 WS_EFFECT_BLADE,"Bigger disk, wider cut","Daha büyük disk, daha geniş kesim"
 WS_BUY,BUY,SATIN AL
 WS_CANCEL,CANCEL,VAZGEÇ
 DLG_WS_GUS_0,"Welcome to the mess. Everything here runs, eventually.","Dağınıklığa hoş geldin. Buradaki her şey çalışır, eninde sonunda."
-DLG_WS_GUS_1,"You're keeping me busy, detective. Good.","Beni meşgul ediyorsun dedektif. İyi."
+DLG_WS_GUS_1,"You're keeping me busy, detective. Good.",Beni meşgul ediyorsun dedektif. İyi.
 DLG_WS_GUS_POOR,"Come back with more scrap, detective.","Daha fazla parayla gel, dedektif."
 DLG_WS_GUS_TRACTOR,"That old tractor? Give me the parts, I'll give you a beast.","O eski traktör mü? Parçaları getir, sana bir canavar vereyim."
 DLG_WS_GUS_ROBOT,"The little runner. Cheap to wake up, loyal after.","Küçük koşucu. Uyandırması ucuz, sonrası sadık."
-DLG_WS_GUS_BLADE,"The disk? I don't ask where it came from. Neither should you.","Disk mi? Nereden geldiğini sormuyorum. Sen de sorma."
+DLG_WS_GUS_BLADE,The disk? I don't ask where it came from. Neither should you.,Disk mi? Nereden geldiğini sormuyorum. Sen de sorma.
 BOARD_TAB_CHAPTERS,PLACES,YERLER
 BOARD_TAB_EVIDENCE,THE BOARD,PANO
 BOARD_HINT,New evidence pinned to the board.,Panoya yeni kanıt iğnelendi.
@@ -213,13 +213,13 @@ NOTE_CH05,"Seedlings watered this week, her thread on the door frame. They were 
 NOTE_CH06,Serial half-filed. We only did that to one batch. Rivera's batch.,Seri numarası yarım eğelenmiş. Bunu yalnızca tek bir partide yaptık. Rivera'nın partisinde.
 NOTE_CH07,"An oiled hatch under the grass, and a child's game laid out beside it.",Çimin altında yağlanmış bir kapak ve yanına dizilmiş bir çocuk oyunu.
 NOTE_CH08,New face in town asking questions. Garden in the cellar. Same week. I don't believe in weeks like that.,Kasabada soru soran yeni bir yüz. Mahzende bir bahçe. Aynı hafta. Ben böyle haftalara inanmam.
-NOTE_FINAL,"Every pin leads down those stairs. Case 02 starts where this board ends.","Her iğne o merdivenlere çıkıyor. Vaka 02, bu panonun bittiği yerde başlıyor."
+NOTE_FINAL,Every pin leads down those stairs. Case 02 starts where this board ends.,"Her iğne o merdivenlere çıkıyor. Vaka 02, bu panonun bittiği yerde başlıyor."
 HUB_WORKSHOP_HINT2,Gus keeps the machines alive.,Makineleri Gus ayakta tutuyor.
 EV_CH01_A_NAME,Ellie's Rabbit,Ellie'nin Tavşanı
 EV_CH01_A_LINE,It's hers. She was here.,Bu onun. Buradaydı.
 EV_CH01_B_NAME,Old Radio,Eski Radyo
 EV_CH01_B_LINE,Still tuned to the emergency channel.,Hâlâ acil durum kanalında.
-DLG_BRIEF_CH03_3,That's... that's her ribbon. Please.,O... o onun kurdelesi. Lütfen.
+DLG_BRIEF_CH03_3,I tied that in her hair this morning. Birthday ribbon. She picked yellow because— just find her.,Onu bu sabah saçına ben bağladım. Doğum günü kurdelesi. Sarıyı seçti çünkü— sen sadece onu bul.
 DLG_BRIEF_CH06_3,That light... I need to see it when you're back.,O fener... döndüğünde onu görmem lazım.
 DLG_FINALE_1,You found me! Did you see the garden? HE grew it.,Beni buldun! Bahçeyi gördün mü? Onu O yetiştirdi.
 DLG_FINALE_2,Alive. Not a scratch on her. Thank God.,Yaşıyor. Üstünde tek çizik yok. Şükürler olsun.
@@ -234,15 +234,15 @@ CASE_02_TITLE,WHAT ELLIE SAW,ELLIE NE GÖRDÜ
 CASE_02_OBJECTIVE,Find the one who grew the garden.,Bahçeyi yetiştireni bul.
 CASE_02_LOCKED,To be continued,Devam edecek
 CASE_02_UNLOCKED,CASE 02 UNLOCKED,VAKA 02 AÇILDI
-DLG_TOWN_MARSHAL_1B,"Two sets of prints. I keep turning that over.","İki takım ayak izi. Aklımdan çıkmıyor."
-DLG_TOWN_MARSHAL_2A,"I've closed a hundred cases. This is the first one that ended with everyone alive.","Yüz vaka kapattım. Bu, herkesin sağ kaldığı ilki."
-DLG_TOWN_SARAH_2A,"She hasn't let go of my hand since. I don't mind.","O günden beri elimi bırakmadı. Umurumda değil."
-DLG_TOWN_GUS_2A,"Bring the machine in. First service is on me.","Makineyi getir. İlk bakım benden."
-DLG_TOWN_COLE_2A,"Somebody grew a garden under my fields and I never knew.","Biri tarlalarımın altında bir bahçe yetiştirmiş, haberim bile olmamış."
-DLG_TOWN_ELLIE_2A,"Mum cried. I told her the garden was safe.","Annem ağladı. Ona bahçenin güvenli olduğunu söyledim."
+DLG_TOWN_MARSHAL_1B,Two sets of prints. I keep turning that over.,İki takım ayak izi. Aklımdan çıkmıyor.
+DLG_TOWN_MARSHAL_2A,I've closed a hundred cases. This is the first one that ended with everyone alive.,"Yüz vaka kapattım. Bu, herkesin sağ kaldığı ilki."
+DLG_TOWN_SARAH_2A,She hasn't let go of my hand since. I don't mind.,O günden beri elimi bırakmadı. Umurumda değil.
+DLG_TOWN_GUS_2A,Bring the machine in. First service is on me.,Makineyi getir. İlk bakım benden.
+DLG_TOWN_COLE_2A,Somebody grew a garden under my fields and I never knew.,"Biri tarlalarımın altında bir bahçe yetiştirmiş, haberim bile olmamış."
+DLG_TOWN_ELLIE_2A,Mum cried. I told her the garden was safe.,Annem ağladı. Ona bahçenin güvenli olduğunu söyledim.
 DLG_TOWN_ELLIE_2B,He was never scary. He kept saying I shouldn't have followed him. That it wasn't safe... for ME to be seen.,Hiç korkutucu değildi. Onu takip etmemeliymişim deyip durdu. Görülmemin... benim için güvenli olmadığını söyledi.
-DLG_TOWN_STRANGER_2A,"So the girl's home. Funny how these things sort themselves out.","Demek kız evde. Bu işlerin kendiliğinden çözülmesi tuhaf."
-INTRO_2B_L1,"They say bigger settlements survived, somewhere east.","Doğuda bir yerlerde daha büyük yerleşimlerin kurtulduğunu söylüyorlar."
+DLG_TOWN_STRANGER_2A,So the girl's home. Funny how these things sort themselves out.,Demek kız evde. Bu işlerin kendiliğinden çözülmesi tuhaf.
+INTRO_2B_L1,"They say bigger settlements survived, somewhere east.",Doğuda bir yerlerde daha büyük yerleşimlerin kurtulduğunu söylüyorlar.
 INTRO_2B_L2,We stopped waiting for them years ago.,Onları beklemeyi yıllar önce bıraktık.
 ECHO_HEADER,ECHO,YANKI
 ECHOES_TITLE,ECHOES,YANKILAR
@@ -285,17 +285,17 @@ LOC_LAMP,in the lamplight,lamba ışığında
 LOC_BEDS,among the beds,tarhların arasında
 RESTORE_TITLE,TOWN RESTORATION,KASABA ONARIMI
 RESTORE_DONE,DONE,YAPILDI
-RESTORE_BUY,"BUILD · {cost}","YAPTIR · {cost}"
-RESTORE_CONFIRM,"Build {name} for {cost}?","{name} {cost} karşılığında yapılsın mı?"
-RESTORE_POOR,"The town can wait. Go clear another lawn.","Kasaba bekleyebilir. Git bir bahçe daha temizle."
+RESTORE_BUY,BUILD · {cost},YAPTIR · {cost}
+RESTORE_CONFIRM,Build {name} for {cost}?,{name} {cost} karşılığında yapılsın mı?
+RESTORE_POOR,The town can wait. Go clear another lawn.,Kasaba bekleyebilir. Git bir bahçe daha temizle.
 PRJ_SWING_NAME,Ellie's Swing,Ellie'nin Salıncağı
 PRJ_SWING_DESC,A rope and a plank under the big tree.,Büyük ağacın altına bir ip ve bir tahta.
 PRJ_SWING_THANKS,She asks to go every evening now. Every single one.,Artık her akşam gitmek istiyor. Her akşam.
-PRJ_SWING_CRUMB,"She won't say what she and the swing talk about.","Salıncakla ne konuştuklarını söylemiyor."
+PRJ_SWING_CRUMB,She won't say what she and the swing talk about.,Salıncakla ne konuştuklarını söylemiyor.
 PRJ_LANTERN_NAME,Square Lantern,Meydan Feneri
 PRJ_LANTERN_DESC,Light in the square after dark.,Karanlıktan sonra meydanda ışık.
-PRJ_LANTERN_THANKS,"People sit out again. Small thing. Big thing.","İnsanlar yine dışarı oturuyor. Küçük şey. Büyük şey."
-PRJ_LANTERN_CRUMB,"We used to leave one burning for whoever was still walking.","Eskiden hâlâ yolda olanlar için bir tane yanık bırakırdık."
+PRJ_LANTERN_THANKS,People sit out again. Small thing. Big thing.,İnsanlar yine dışarı oturuyor. Küçük şey. Büyük şey.
+PRJ_LANTERN_CRUMB,We used to leave one burning for whoever was still walking.,Eskiden hâlâ yolda olanlar için bir tane yanık bırakırdık.
 PRJ_GREENHOUSE_NAME,Sarah's Greenhouse,Sarah'nın Serası
 PRJ_GREENHOUSE_DESC,"Glass, frames, and something to grow.","Cam, çerçeve ve yetiştirilecek bir şey."
 PRJ_GREENHOUSE_THANKS,Tomatoes by autumn. I'd forgotten what that felt like.,Sonbahara domates. Bunun nasıl bir his olduğunu unutmuşum.
@@ -303,105 +303,114 @@ PRJ_GREENHOUSE_CRUMB,Ellie wants to plant the seeds from that letter.,Ellie o me
 PRJ_CLINIC_NAME,Clinic Supplies,Klinik Malzemesi
 PRJ_CLINIC_DESC,"Bandages, antiseptic, a working lamp.","Sargı, antiseptik, çalışan bir lamba."
 PRJ_CLINIC_BONUS,+1 salvage point per search,Arama başına +1 para noktası
-PRJ_CLINIC_THANKS,"Nobody's died of a cut in this town for two years. Let's keep it that way.","Bu kasabada iki yıldır kimse bir kesikten ölmedi. Öyle kalsın."
-PRJ_CLINIC_CRUMB,"The first winter, we had nothing. I don't talk about that winter.","İlk kış hiçbir şeyimiz yoktu. O kıştan bahsetmem."
+PRJ_CLINIC_THANKS,Nobody's died of a cut in this town for two years. Let's keep it that way.,Bu kasabada iki yıldır kimse bir kesikten ölmedi. Öyle kalsın.
+PRJ_CLINIC_CRUMB,"The first winter, we had nothing. I don't talk about that winter.",İlk kış hiçbir şeyimiz yoktu. O kıştan bahsetmem.
 PRJ_MAST_NAME,Radio Mast Repair,Telsiz Direği Onarımı
 PRJ_MAST_DESC,Get the old mast talking again.,Eski direği yeniden konuştur.
 PRJ_MAST_THANKS,Signals are cleaner now. Not that anyone answers.,Sinyaller artık daha net. Kimse cevap vermiyor gerçi.
 PRJ_MAST_CRUMB,"Something repeats on the east band. Same pattern, every night.","Doğu bandında bir şey tekrarlanıyor. Aynı örüntü, her gece."
 RESTORE_TIER2,BUILDINGS,BİNALAR
-RESTORE_LOCKED,"The town isn't ready yet.","Kasaba henüz hazır değil."
-RESTORE_NEEDS,"Needs {name} first.","Önce {name} gerekiyor."
+RESTORE_LOCKED,The town isn't ready yet.,Kasaba henüz hazır değil.
+RESTORE_NEEDS,Needs {name} first.,Önce {name} gerekiyor.
 PRJ_STATION_NAME,Marshal's Station,Şerif Karakolu
 PRJ_STATION_DESC,"A desk, a door that locks, and a wall for the board.","Bir masa, kilitlenen bir kapı ve pano için bir duvar."
 PRJ_STATION_BONUS,The case board moves into the station,Vaka panosu karakola taşınır
-PRJ_STATION_THANKS,"Feels like a precinct again. Almost.","Yine bir karakol gibi. Neredeyse."
-PRJ_STATION_CRUMB,"I set out a second desk. Rivera's. It can stay empty a while longer.","İkinci bir masa koydum. Rivera'nın. Biraz daha boş kalabilir."
+PRJ_STATION_THANKS,Feels like a precinct again. Almost.,Yine bir karakol gibi. Neredeyse.
+PRJ_STATION_CRUMB,I set out a second desk. Rivera's. It can stay empty a while longer.,İkinci bir masa koydum. Rivera'nın. Biraz daha boş kalabilir.
 PRJ_FARM_NAME,The Farm,Çiftlik
 PRJ_FARM_DESC,Fenced plots and a well on the east slope.,Doğu yamacında çitli tarhlar ve bir kuyu.
 PRJ_FARM_BONUS,+5% search payout,Arama kazancına +%5
 PRJ_FARM_THANKS,"The Barretos found seed. Real seed, not the sweepings.","Barreto'lar tohum buldu. Gerçek tohum, süpürüntü değil."
-PRJ_FARM_CRUMB,"Four families eat from that slope now. Four.","O yamaçtan artık dört aile besleniyor. Dört."
+PRJ_FARM_CRUMB,Four families eat from that slope now. Four.,O yamaçtan artık dört aile besleniyor. Dört.
 PRJ_BARN_NAME,The Barn,Ambar
 PRJ_BARN_DESC,Somewhere to put a harvest.,Hasadı koyacak bir yer.
-PRJ_BARN_THANKS,"Getting ready for the first winter. First one in years.","İlk kışa hazırlanıyoruz. Yıllardır ilki."
-PRJ_BARN_CRUMB,"We used to ration by the spoon. Nobody's counting spoons this year.","Eskiden kaşıkla paylaştırırdık. Bu yıl kimse kaşık saymıyor."
+PRJ_BARN_THANKS,Getting ready for the first winter. First one in years.,İlk kışa hazırlanıyoruz. Yıllardır ilki.
+PRJ_BARN_CRUMB,We used to ration by the spoon. Nobody's counting spoons this year.,Eskiden kaşıkla paylaştırırdık. Bu yıl kimse kaşık saymıyor.
 PRJ_HOMES_NAME,Two Homes,İki Ev
 PRJ_HOMES_DESC,Roofs on the two empty houses by the path.,Yol kenarındaki iki boş eve çatı.
-PRJ_HOMES_THANKS,"A family came in off the east road and stayed. Just like that.","Doğu yolundan bir aile geldi ve kaldı. Öylece."
-PRJ_HOMES_CRUMB,"They'd heard there was a town here. I didn't know we were a place people heard about.","Burada bir kasaba olduğunu duymuşlar. İnsanların duyduğu bir yer olduğumuzu bilmiyordum."
+PRJ_HOMES_THANKS,A family came in off the east road and stayed. Just like that.,Doğu yolundan bir aile geldi ve kaldı. Öylece.
+PRJ_HOMES_CRUMB,They'd heard there was a town here. I didn't know we were a place people heard about.,Burada bir kasaba olduğunu duymuşlar. İnsanların duyduğu bir yer olduğumuzu bilmiyordum.
 PRJ_WATCHTOWER_NAME,Watchtower,Gözetleme Kulesi
 PRJ_WATCHTOWER_DESC,Timber platform at the end of the lane.,Yolun ucunda ahşap bir platform.
-PRJ_WATCHTOWER_THANKS,"We can see the east road now. All the way to the bend.","Doğu yolunu artık görebiliyoruz. Virajına kadar."
-PRJ_WATCHTOWER_CRUMB,"Nothing's come up that road in three years. I still like being able to look.","Üç yıldır o yoldan bir şey gelmedi. Yine de bakabilmek hoşuma gidiyor."
+PRJ_WATCHTOWER_THANKS,We can see the east road now. All the way to the bend.,Doğu yolunu artık görebiliyoruz. Virajına kadar.
+PRJ_WATCHTOWER_CRUMB,Nothing's come up that road in three years. I still like being able to look.,Üç yıldır o yoldan bir şey gelmedi. Yine de bakabilmek hoşuma gidiyor.
 HUB_STATION,STATION,KARAKOL
 HUB_STATION_HINT,The board is on the wall now.,Pano artık duvarda.
 POSTER_MISSING,MISSING,KAYIP
 POSTER_NAME,Ellie Voss,Ellie Voss
-POSTER_SINCE,since last night,dün geceden beri
+POSTER_SINCE,since this morning,bu sabahtan beri
 ALERT_TITLE,SHE DIDN'T COME HOME,EVE DÖNMEDİ
-ALERT_LINE,"No word since last night. The town hasn't lost anyone in three years — and nobody wants to say why that might have changed.","Dün geceden beri haber yok. Kasaba üç yıldır kimseyi kaybetmedi — ve bunun neden değişmiş olabileceğini kimse söylemek istemiyor."
+ALERT_LINE,No word since this morning. The town hasn't lost anyone in three years — and nobody wants to say why that might have changed.,Bu sabahtan beri haber yok. Kasaba üç yıldır kimseyi kaybetmedi — ve bunun neden değişmiş olabileceğini kimse söylemek istemiyor.
 ALERT_CTA,FIND HER,ONU BUL
-DIORAMA_TOWER_LINE,"Cole keeps the lamp lit. Nothing on the road tonight.","Cole feneri yanık tutuyor. Bu gece yolda bir şey yok."
-HUB_RECLAIMED,"TOWN RECLAIMED {percent}%","KASABA GERİ ALINDI %{percent}"
+DIORAMA_TOWER_LINE,Cole keeps the lamp lit. Nothing on the road tonight.,Cole feneri yanık tutuyor. Bu gece yolda bir şey yok.
+HUB_RECLAIMED,TOWN RECLAIMED {percent}%,KASABA GERİ ALINDI %{percent}
 COLE_RABBIT,"Torn seam, and the ears are worn smooth. She carried it by them — the way she always did. Dropped running, not walking.","Dikişi yırtılmış, kulakları aşınmış. Onu kulaklarından taşırdı — hep öyle yapardı. Yürürken değil, koşarken düşürmüş."
-COLE_RADIO,"Battery corrosion says it died years ago. Someone changed it this month.","Pil aşınması yıllar önce öldüğünü söylüyor. Biri bu ay değiştirmiş."
+COLE_RADIO,Battery corrosion says it died years ago. Someone changed it this month.,Pil aşınması yıllar önce öldüğünü söylüyor. Biri bu ay değiştirmiş.
 COLE_BOOT,"One boot, laced. You do not lace a boot you are throwing away.","Tek çizme, bağcıkları bağlı. Attığın bir çizmenin bağcığını bağlamazsın."
-COLE_GAP,"The gap was widened from this side. Whoever made it wanted back IN.","Aralık bu taraftan genişletilmiş. Açan kişi içeri girmek istemiş."
+COLE_GAP,The gap was widened from this side. Whoever made it wanted back IN.,Aralık bu taraftan genişletilmiş. Açan kişi içeri girmek istemiş.
 COLE_RIBBON,"Same weave as the one in her hair in the photograph. Cut, not torn.","Fotoğraftaki saç kurdelesiyle aynı dokuma. Yırtılmamış, kesilmiş."
 COLE_ARROW,"Scratched with a stone, pressed hard. A child in a hurry, pointing east.","Taşla kazınmış, sertçe bastırılmış. Acele eden bir çocuk, doğuyu gösteriyor."
-COLE_PRINTS,"Two sets. The small ones are ahead of the large ones the whole way.","İki takım. Küçükler baştan sona büyüklerin önünde."
+COLE_PRINTS,Two sets. The small ones are ahead of the large ones the whole way.,İki takım. Küçükler baştan sona büyüklerin önünde.
 COLE_CAN,"Opened with a blade, not a tool. Someone eating where they should not be.","Bir aletle değil, bıçakla açılmış. Olmaması gereken yerde yemek yiyen biri."
-COLE_SEEDLINGS,"Watered inside the last week. Sarah has not been out here in a year.","Son bir hafta içinde sulanmış. Sarah bir yıldır buraya gelmedi."
+COLE_SEEDLINGS,Watered inside the last week. Sarah has not been out here in a year.,Son bir hafta içinde sulanmış. Sarah bir yıldır buraya gelmedi.
 COLE_THREAD,"Wool, dyed the colour of her coat. Caught at a child's shoulder height.","Yün, montunun renginde boyanmış. Bir çocuğun omuz hizasında takılmış."
 COLE_FLASHLIGHT,"Bulb intact, switch worn. It was used a great deal before it was left.","Ampulü sağlam, düğmesi aşınmış. Bırakılmadan önce çok kullanılmış."
-COLE_NOTE,"The hand shakes on the last two words. She wrote it in the dark.","Son iki kelimede el titriyor. Bunu karanlıkta yazmış."
-COLE_HATCH,"Oiled hinges under all that grass. Someone kept this working on purpose.","O kadar otun altında yağlanmış menteşeler. Biri bunu bilerek çalışır tutmuş."
+COLE_NOTE,The hand shakes on the last two words. She wrote it in the dark.,Son iki kelimede el titriyor. Bunu karanlıkta yazmış.
+COLE_HATCH,Oiled hinges under all that grass. Someone kept this working on purpose.,O kadar otun altında yağlanmış menteşeler. Biri bunu bilerek çalışır tutmuş.
 COLE_STONES,"Stacked, not fallen. Three of them, at a child's arm span apart.","Düşmemiş, üst üste dizilmiş. Üç tane, bir çocuğun kol açıklığı kadar aralıklı."
 COLE_ELLIE,"Dehydrated, bruised, and furious. She walked in here on her own feet.","Susuz kalmış, çürükleri var ve öfkeli. Buraya kendi ayaklarıyla girmiş."
-COLE_DRAWING,"She drew the tower with a light on it. There was no light on it then.","Kuleyi üstünde ışıkla çizmiş. O sırada kulede ışık yoktu."
-RECLAIM_CH01,"Town reclaimed: the weeds are off the square.","Kasaba geri alındı: otlar meydandan çekildi."
-RECLAIM_CH02,"Town reclaimed: the east path is clearing.","Kasaba geri alındı: doğu patikası açılıyor."
-RECLAIM_CH03,"Town reclaimed: you can see the fence line again.","Kasaba geri alındı: çit hattı yeniden görünüyor."
-RECLAIM_CH04,"Town reclaimed: the low ground is draining.","Kasaba geri alındı: alçak arazi suyunu çekiyor."
-RECLAIM_CH05,"Town reclaimed: light reaches the greenhouse glass.","Kasaba geri alındı: ışık seranın camına ulaşıyor."
-RECLAIM_CH06,"Town reclaimed: the tower has a clear line east.","Kasaba geri alındı: kulenin doğuya bakışı açıldı."
-RECLAIM_CH07,"Town reclaimed: the mill road is walkable.","Kasaba geri alındı: değirmen yolu yürünebilir."
-RECLAIM_CH08,"Town reclaimed: the town breathes.","Kasaba geri alındı: kasaba nefes alıyor."
-HUB_TOWER_LINE,"From up there you can see the east road. Something's moving on it. Not animals.","Yukarıdan doğu yolu görünüyor. Üstünde bir şey hareket ediyor. Hayvan değil."
-RESTORE_CASE_BADGE,"SERVES THE CASE","VAKAYA HİZMET EDER"
-SCENT_OAK,"That corner by the oak. Something's off.","Meşenin oradaki köşe. Bir tuhaflık var."
-SCENT_FENCE,"Along the fence line. Take your time there.","Çit hattı boyunca. Orada acele etme."
-SCENT_BACK,"The back of the lot. I'd look twice.","Arsanın arkası. Ben olsam iki kez bakardım."
+COLE_DRAWING,She drew the tower with a light on it. There was no light on it then.,Kuleyi üstünde ışıkla çizmiş. O sırada kulede ışık yoktu.
+RECLAIM_CH01,Town reclaimed: the weeds are off the square.,Kasaba geri alındı: otlar meydandan çekildi.
+RECLAIM_CH02,Town reclaimed: the east path is clearing.,Kasaba geri alındı: doğu patikası açılıyor.
+RECLAIM_CH03,Town reclaimed: you can see the fence line again.,Kasaba geri alındı: çit hattı yeniden görünüyor.
+RECLAIM_CH04,Town reclaimed: the low ground is draining.,Kasaba geri alındı: alçak arazi suyunu çekiyor.
+RECLAIM_CH05,Town reclaimed: light reaches the greenhouse glass.,Kasaba geri alındı: ışık seranın camına ulaşıyor.
+RECLAIM_CH06,Town reclaimed: the tower has a clear line east.,Kasaba geri alındı: kulenin doğuya bakışı açıldı.
+RECLAIM_CH07,Town reclaimed: the mill road is walkable.,Kasaba geri alındı: değirmen yolu yürünebilir.
+RECLAIM_CH08,Town reclaimed: the town breathes.,Kasaba geri alındı: kasaba nefes alıyor.
+HUB_TOWER_LINE,From up there you can see the east road. Something's moving on it. Not animals.,Yukarıdan doğu yolu görünüyor. Üstünde bir şey hareket ediyor. Hayvan değil.
+RESTORE_CASE_BADGE,SERVES THE CASE,VAKAYA HİZMET EDER
+SCENT_OAK,That corner by the oak. Something's off.,Meşenin oradaki köşe. Bir tuhaflık var.
+SCENT_FENCE,Along the fence line. Take your time there.,Çit hattı boyunca. Orada acele etme.
+SCENT_BACK,The back of the lot. I'd look twice.,Arsanın arkası. Ben olsam iki kez bakardım.
 SCENT_NEAR,"You're close. Whatever it is, it's under the grass.","Yaklaştın. O şey her neyse, otların altında."
-MAP_TAB,"MAP","HARİTA"
-MAP_REGION,"Hollow Creek","Hollow Creek"
-MAP_REGION_SUB,"the only lights for forty miles","kırk kilometre boyunca tek ışık"
-MAP_WORLD_HINT,"Tap the town to look closer.","Yakından bakmak için kasabaya dokun."
-MAP_FAR_UNKNOWN,"Something out east.","Doğuda bir şey."
-MAP_BACK_WORLD,"REGION","BÖLGE"
-MAP_STATE_DONE,"Searched","Arandı"
-MAP_STATE_ACTIVE,"Next","Sıradaki"
-MAP_STATE_LOCKED,"Not yet","Henüz değil"
-MAP_STATE_MISSED,"Searched — something was left behind","Arandı — geride bir şey kaldı"
-MAP_EVIDENCE,"Evidence {found}/{total}","Kanıt {found}/{total}"
-MAP_START,"SEARCH THIS PLACE","BURAYI ARA"
-MAP_AGAIN,"SEARCH AGAIN","TEKRAR ARA"
-MAP_LOCKED_NOTE,"Finish the places before it.","Önceki yerleri bitir."
-FIRST_TITLE,"WHY YOU ARE HERE","NEDEN BURADASIN"
-FIRST_L1,"Ellie Voss did not come home last night.","Ellie Voss dün gece eve dönmedi."
+MAP_TAB,MAP,HARİTA
+MAP_REGION,Hollow Creek,Hollow Creek
+MAP_REGION_SUB,the only lights for forty miles,kırk kilometre boyunca tek ışık
+MAP_WORLD_HINT,Tap the town to look closer.,Yakından bakmak için kasabaya dokun.
+MAP_FAR_UNKNOWN,Something out east.,Doğuda bir şey.
+MAP_BACK_WORLD,REGION,BÖLGE
+MAP_STATE_DONE,Searched,Arandı
+MAP_STATE_ACTIVE,Next,Sıradaki
+MAP_STATE_LOCKED,Not yet,Henüz değil
+MAP_STATE_MISSED,Searched — something was left behind,Arandı — geride bir şey kaldı
+MAP_EVIDENCE,Evidence {found}/{total},Kanıt {found}/{total}
+MAP_START,SEARCH THIS PLACE,BURAYI ARA
+MAP_AGAIN,SEARCH AGAIN,TEKRAR ARA
+MAP_LOCKED_NOTE,Finish the places before it.,Önceki yerleri bitir.
+FIRST_TITLE,WHY YOU ARE HERE,NEDEN BURADASIN
+FIRST_L1,Ellie Voss has been missing since this morning.,Ellie Voss bu sabahtan beri kayıp.
 FIRST_L2,"Whatever she left behind is under this grass. Clear it, and the town can see again.","Geride ne bıraktıysa bu otların altında. Burayı temizle, kasaba yeniden görsün."
-FIRST_L3,"Two things are buried here. I'll mark roughly where.","Burada iki şey gömülü. Kabaca nerede olduklarını işaretleyeceğim."
-FIRST_OK,"START SEARCHING","ARAMAYA BAŞLA"
-HARVEST_HEADLINE,"THE FIELD IS READY","TARLA HAZIR"
-HARVEST_SUBLINE,"Gus says the wheat is past knee-high.","Gus buğdayın diz boyunu geçtiğini söylüyor."
-HARVEST_TAB,"HARVEST","HASAT"
-HARVEST_CALL,"Wheat's past its height, Marshal. Grab the tractor.","Buğday boyunu geçti Marshal. Traktörü kap."
-HARVEST_COMPLETE,"HARVEST COMPLETE","HASAT TAMAMLANDI"
-HARVEST_CRUMB_1,"First winter's store is in.","İlk kışın stoğu tamam."
-HARVEST_CRUMB_2,"Barn's full — the cat approves.","Ambar doldu — kedi memnun."
-HARVEST_CRUMB_3,"Nobody's gone hungry here in three years. Keep it that way.","Üç yıldır burada kimse aç kalmadı. Öyle kalsın."
-HARVEST_CRUMB_4,"Sarah wants half of it for seed. She can have it.","Sarah yarısını tohumluk istiyor. Alabilir."
-HARVEST_START,"HARVEST THE FIELD","TARLAYI BİÇ"
-HARVEST_PLACE,"The Wheat Field","Buğday Tarlası"
-HARVEST_HUD_LINE,"HARVEST — Bring the field in","HASAT — Tarlayı içeri al"
+FIRST_L3,Two things are buried here. I'll mark roughly where.,Burada iki şey gömülü. Kabaca nerede olduklarını işaretleyeceğim.
+FIRST_OK,START SEARCHING,ARAMAYA BAŞLA
+HARVEST_HEADLINE,THE FIELD IS READY,TARLA HAZIR
+HARVEST_SUBLINE,Gus says the wheat is past knee-high.,Gus buğdayın diz boyunu geçtiğini söylüyor.
+HARVEST_TAB,HARVEST,HASAT
+HARVEST_CALL,"Wheat's past its height, Marshal. Grab the tractor.",Buğday boyunu geçti Marshal. Traktörü kap.
+HARVEST_COMPLETE,HARVEST COMPLETE,HASAT TAMAMLANDI
+HARVEST_CRUMB_1,First winter's store is in.,İlk kışın stoğu tamam.
+HARVEST_CRUMB_2,Barn's full — the cat approves.,Ambar doldu — kedi memnun.
+HARVEST_CRUMB_3,Nobody's gone hungry here in three years. Keep it that way.,Üç yıldır burada kimse aç kalmadı. Öyle kalsın.
+HARVEST_CRUMB_4,Sarah wants half of it for seed. She can have it.,Sarah yarısını tohumluk istiyor. Alabilir.
+HARVEST_START,HARVEST THE FIELD,TARLAYI BİÇ
+HARVEST_PLACE,The Wheat Field,Buğday Tarlası
+HARVEST_HUD_LINE,HARVEST — Bring the field in,HASAT — Tarlayı içeri al
+DLG_BRIEF_CH01_2B,The tables are set in the square. Cake's still in Cole's oven. Find her before the candles mean something else.,Meydanda masalar kurulu. Pasta hâlâ Cole'un fırınında. Mumlar başka bir anlama gelmeden önce onu bul.
+DLG_TOWN_MARSHAL_0C,The whole town raised her. The whole town is out looking.,Bütün kasaba büyüttü onu. Bütün kasaba arıyor.
+DLG_TOWN_SARAH_0C,"I'm not her mother. But nine years ago the town handed me a baby, and I've been hers ever since.","Ben onun annesi değilim. Ama dokuz yıl önce kasaba kucağıma bir bebek verdi, o gün bugündür onunum."
+DLG_TOWN_GUS_0B,Nine little packages in my workshop. We never wrote who they're from. We never do.,Atölyemde dokuz küçük paket var. Kimden geldiğini yazmadık. Hep öyle yaparız.
+DLG_TOWN_COLE_0C,The cake's still in the oven. Nobody had the heart to turn it off.,Pasta hâlâ fırında. Kimse kapatmaya kıyamadı.
+DLG_FINALE_1B,Did I miss it? The party?,Kaçırdım mı? Partiyi?
+DLG_FINALE_1C,Kid... the party was waiting for YOU.,Evlat... parti zaten SENİ bekliyordu.
+BIRTHDAY_TITLE,"MAKE A WISH, ELLIE","BİR DİLEK TUT, ELLIE"
+BIRTHDAY_LINE,Nine candles under the square's lantern. The whole town leans in.,Meydanın feneri altında dokuz mum. Bütün kasaba öne eğiliyor.
