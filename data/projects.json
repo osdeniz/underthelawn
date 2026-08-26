@@ -1,5 +1,5 @@
 {
-  "_comment": "Town restoration. Tier 1 is small repairs; Tier 2 is buildings and stays locked until TIER2_REQUIRES_TIER1 tier-1 projects are done, so the spend curve is stepped rather than a wall. Every project lives by the same shape: cost, a hub layer, an NPC thank-you phase and a story crumb, plus at most a mild bonus. Nothing here starts a production loop or a timer. layer_rect places each trimmed overlay on the hub as screen fractions; the generator's canvas placement is arbitrary, the composition is ours.",
+  "_comment": "Town restoration. Tier 1 is small repairs; Tier 2 is buildings and stays locked until TIER2_REQUIRES_TIER1 tier-1 projects are done, so the spend curve is stepped rather than a wall. Every project lives by the same shape: cost, a hub layer, an NPC thank-you phase and a story crumb, plus at most a mild bonus. Nothing here starts a production loop or a timer. Each project also has a building in the hub diorama, which is where its progress is shown.",
   "projects": [
     {
       "id": "swing",
@@ -7,16 +7,9 @@
       "desc": "PRJ_SWING_DESC",
       "cost": 300,
       "npc_id": "sarah",
-      "layer": "restore_swing",
       "thanks": "PRJ_SWING_THANKS",
       "crumb": "PRJ_SWING_CRUMB",
-      "tier": 1,
-      "layer_rect": {
-        "x": 0.36,
-        "y": 0.06,
-        "w": 0.26,
-        "h": 0.5
-      }
+      "tier": 1
     },
     {
       "id": "lantern",
@@ -24,16 +17,9 @@
       "desc": "PRJ_LANTERN_DESC",
       "cost": 250,
       "npc_id": "cole",
-      "layer": "restore_lantern",
       "thanks": "PRJ_LANTERN_THANKS",
       "crumb": "PRJ_LANTERN_CRUMB",
-      "tier": 1,
-      "layer_rect": {
-        "x": 0.04,
-        "y": 0.22,
-        "w": 0.15,
-        "h": 0.44
-      }
+      "tier": 1
     },
     {
       "id": "greenhouse",
@@ -41,16 +27,9 @@
       "desc": "PRJ_GREENHOUSE_DESC",
       "cost": 400,
       "npc_id": "sarah",
-      "layer": "restore_greenhouse",
       "thanks": "PRJ_GREENHOUSE_THANKS",
       "crumb": "PRJ_GREENHOUSE_CRUMB",
-      "tier": 1,
-      "layer_rect": {
-        "x": 0.0,
-        "y": 0.46,
-        "w": 0.22,
-        "h": 0.16
-      }
+      "tier": 1
     },
     {
       "id": "clinic",
@@ -58,18 +37,11 @@
       "desc": "PRJ_CLINIC_DESC",
       "cost": 600,
       "npc_id": "marshal",
-      "layer": "restore_clinic",
       "bonus": "scrap_point",
       "bonus_text": "PRJ_CLINIC_BONUS",
       "thanks": "PRJ_CLINIC_THANKS",
       "crumb": "PRJ_CLINIC_CRUMB",
       "tier": 1,
-      "layer_rect": {
-        "x": 0.76,
-        "y": 0.37,
-        "w": 0.24,
-        "h": 0.18
-      },
       "serves_case": true
     },
     {
@@ -78,16 +50,9 @@
       "desc": "PRJ_MAST_DESC",
       "cost": 800,
       "npc_id": "gus",
-      "layer": "restore_mast",
       "thanks": "PRJ_MAST_THANKS",
       "crumb": "PRJ_MAST_CRUMB",
       "tier": 1,
-      "layer_rect": {
-        "x": 0.8,
-        "y": 0.1,
-        "w": 0.18,
-        "h": 0.34
-      },
       "serves_case": true
     },
     {
@@ -97,17 +62,10 @@
       "desc": "PRJ_STATION_DESC",
       "cost": 1200,
       "npc_id": "marshal",
-      "layer": "restore_station",
       "effect": "group_case_screens",
       "effect_text": "PRJ_STATION_BONUS",
       "thanks": "PRJ_STATION_THANKS",
-      "crumb": "PRJ_STATION_CRUMB",
-      "layer_rect": {
-        "x": 0.0,
-        "y": 0.36,
-        "w": 0.26,
-        "h": 0.18
-      }
+      "crumb": "PRJ_STATION_CRUMB"
     },
     {
       "id": "farm",
@@ -116,18 +74,11 @@
       "desc": "PRJ_FARM_DESC",
       "cost": 900,
       "npc_id": "gus",
-      "layer": "restore_farm",
       "bonus": "payout_percent",
       "bonus_value": 5,
       "bonus_text": "PRJ_FARM_BONUS",
       "thanks": "PRJ_FARM_THANKS",
-      "crumb": "PRJ_FARM_CRUMB",
-      "layer_rect": {
-        "x": 0.7,
-        "y": 0.56,
-        "w": 0.3,
-        "h": 0.14
-      }
+      "crumb": "PRJ_FARM_CRUMB"
     },
     {
       "id": "barn",
@@ -136,16 +87,9 @@
       "desc": "PRJ_BARN_DESC",
       "cost": 500,
       "npc_id": "gus",
-      "layer": "restore_barn",
       "requires": "farm",
       "thanks": "PRJ_BARN_THANKS",
-      "crumb": "PRJ_BARN_CRUMB",
-      "layer_rect": {
-        "x": 0.76,
-        "y": 0.45,
-        "w": 0.22,
-        "h": 0.13
-      }
+      "crumb": "PRJ_BARN_CRUMB"
     },
     {
       "id": "homes",
@@ -154,15 +98,8 @@
       "desc": "PRJ_HOMES_DESC",
       "cost": 700,
       "npc_id": "sarah",
-      "layer": "restore_homes",
       "thanks": "PRJ_HOMES_THANKS",
-      "crumb": "PRJ_HOMES_CRUMB",
-      "layer_rect": {
-        "x": 0.56,
-        "y": 0.44,
-        "w": 0.22,
-        "h": 0.11
-      }
+      "crumb": "PRJ_HOMES_CRUMB"
     },
     {
       "id": "watchtower",
@@ -171,15 +108,8 @@
       "desc": "PRJ_WATCHTOWER_DESC",
       "cost": 600,
       "npc_id": "marshal",
-      "layer": "restore_watchtower",
       "thanks": "PRJ_WATCHTOWER_THANKS",
       "crumb": "PRJ_WATCHTOWER_CRUMB",
-      "layer_rect": {
-        "x": 0.02,
-        "y": 0.14,
-        "w": 0.15,
-        "h": 0.32
-      },
       "serves_case": true
     }
   ]

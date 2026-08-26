@@ -62,12 +62,48 @@ func _ready() -> void:
 		stems[key] = true
 	ck("ayni isimde iki format yok", twins.is_empty(), ", ".join(twins))
 
+	# Orphans are REPORTED, not failed: some files are legitimately loaded by a
+	# name the code builds at runtime ("portraits/face_" + id), and a few are
+	# kept on purpose. A list is what is wanted here, not a veto (G13.8).
+	var sources := _all_source_text()
+	var orphans: Array = []
+	for path: String in files:
+		var stem := path.get_file().trim_suffix(".import").get_basename()
+		if sources.contains(stem):
+			continue
+		orphans.append(stem)
+	if orphans.is_empty():
+		print("  [orphan] referanssiz doku yok")
+	else:
+		print("  [orphan] %d doku hicbir yerde adiyla gecmiyor:" % orphans.size())
+		for name: String in orphans:
+			print("      %s" % name)
+
 	if _fails > 0:
 		push_error("%d VARLIK TESTI BASARISIZ" % _fails)
 		print("--- %d VARLIK TESTI BASARISIZ ---" % _fails)
 	else:
 		print("--- TUM VARLIK TESTLERI GECTI ---")
 	get_tree().quit()
+
+
+## Every script, scene and data file, concatenated — what a texture name would
+## have to appear in somewhere to be reachable.
+func _all_source_text() -> String:
+	var text := ""
+	for dir_path: String in ["res://scripts", "res://data", "res://scenes",
+			"res://ui", "res://tests", "res://i18n"]:
+		var dir := DirAccess.open(dir_path)
+		if dir == null:
+			continue
+		dir.list_dir_begin()
+		var name := dir.get_next()
+		while name != "":
+			if not dir.current_is_dir():
+				text += FileAccess.get_file_as_string(dir_path.path_join(name))
+			name = dir.get_next()
+		dir.list_dir_end()
+	return text
 
 
 func _import_files(dir_path: String) -> Array:

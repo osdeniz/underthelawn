@@ -9,7 +9,6 @@ var _fails := 0
 
 func _ready() -> void:
 	await _check_scene()
-	await _check_legacy()
 	await _check_diorama_hub()
 	await _check_transition()
 	await _check_purchase_screen()
@@ -68,29 +67,8 @@ func _check_scene() -> void:
 	await get_tree().process_frame
 
 
-## Legacy mode must build a hub with NO diorama in it, and must not error.
-func _check_legacy() -> void:
-	var before := GameConfig.hub_mode
-	GameConfig.hub_mode = GameConfig.HUB_MODE_LEGACY
-	var hub := HubScreen.new()
-	add_child(hub)
-	await get_tree().process_frame
-	# Search for the diorama itself, NOT for SubViewports: the hub is already
-	# full of them (every evidence card is an ItemPreview).
-	ck("legacy modda diyorama yok",
-		hub.find_children("*", "TownDiorama", true, false).is_empty(), "")
-	ck("legacy modda kolaj arkaplani var", _has_texture_rect(hub), "")
-	# set_diorama_active must be safe to call in legacy mode: root calls it on
-	# every hub entry and exit without knowing which mode is on.
-	hub.set_diorama_active(false)
-	hub.set_diorama_active(true)
-	hub.queue_free()
-	await get_tree().process_frame
-	GameConfig.hub_mode = before
-
-
+## The hub builds its live town, and stops drawing it while a chapter plays.
 func _check_diorama_hub() -> void:
-	GameConfig.hub_mode = GameConfig.HUB_MODE_DIORAMA
 	var hub := HubScreen.new()
 	add_child(hub)
 	await get_tree().process_frame
@@ -139,13 +117,12 @@ func _check_transition() -> void:
 
 ## Buying a project must hand the screen back afterwards.
 ##
-## It did not: _apply_restore_layers queue_frees the hub's Restore_* badges the
-## moment a project is bought, those nodes were still in the "pages to fade
-## back in" list, and by the time the 4-second animation ended they were gone.
-## The cast threw, the full-screen skip button was never freed, and every touch
-## after that landed on an invisible button - the hub looked frozen.
+## It did not: a node that was on screen when the transition started could be
+## freed before it ended, the cast threw, the full-screen skip button was never
+## freed, and every touch after that landed on an invisible button — the hub
+## looked frozen. The layer system that caused it is gone (G13.8); the guard it
+## forced is still worth keeping.
 func _check_purchase_screen() -> void:
-	GameConfig.hub_mode = GameConfig.HUB_MODE_DIORAMA
 	RestoreBoard.reset()
 	GameState.set_setting("economy", "scrap", 90000)
 	# station is tier 2, so tier 1 has to be open first.

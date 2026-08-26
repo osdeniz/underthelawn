@@ -3,7 +3,6 @@ extends Node
 ## the station, watch the transition, and land back on a usable hub.
 
 func _ready() -> void:
-	GameConfig.hub_mode = GameConfig.HUB_MODE_DIORAMA
 	RestoreBoard.reset()
 	GameState.set_setting("economy", "scrap", 90000)
 	for opener: String in ["swing", "lantern", "greenhouse"]:

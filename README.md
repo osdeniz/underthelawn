@@ -1567,10 +1567,8 @@ eleven suites are scene tests.
 ## Sprint G13 — 3D kasaba diyoraması (dikey dilim)
 
 A TRIAL of replacing the hub's 2D collage with a small fixed-camera 3D town.
-Three buildings only: Marshal's station, two homes, the watchtower. If the
-slice is rejected, `GameConfig.hub_mode = "legacy"` puts the collage back — the
-legacy path is still wired, and `tests/DioramaCheck.tscn` asserts it builds a
-hub with no diorama in it and that `set_diorama_active` is safe to call there.
+Three buildings only: Marshal's station, two homes, the watchtower. The slice was accepted: G13.8 removed the legacy collage and the `hub_mode`
+switch entirely, so what follows describes the only hub there is.
 
 | Piece | Where |
 | --- | --- |
@@ -2095,6 +2093,43 @@ them and they are sampled constantly. `AssetCheck` now enforces the two rules
 separately: world textures must be compressed, and NOTHING may exceed the
 screen's longest edge. The old rule ("everything above 256x256 must be
 compressed") was wrong and would have blocked this fix.
+
+### G13.8 — legacy hub removed
+
+The diorama is the hub. There is no second mode.
+
+Deleted: `GameConfig.hub_mode` and both `HUB_MODE_*` constants, the branch in
+`_build_background`, `_apply_restore_layers` and its house-badge fallback, the
+`layer` and `layer_rect` fields on all ten projects in `data/projects.json`
+(20 fields), and the legacy assertions in `DioramaCheck`. The ten
+`restore_*.png` were already gone in G14.3.
+
+**Dependency scan before deleting, as the brief asked.** Nothing outside the
+collage path referenced that art: the restore cards show name, effect and price;
+the map shows a built project as a small roofed mark; and holding a card leans
+the camera at the plot. No new asset was needed and none was made.
+
+**Orphan scan** is now part of `AssetCheck`, reported rather than enforced. It
+lists four: `face_sarah`, `face_cole`, `face_marshal`, `face_stranger`. All four
+ARE used — loaded through a name the code builds at runtime,
+`"portraits/face_" + id` — which is exactly why the rule reports instead of
+failing.
+
+**Dead config keys**: 45 of 457 are read nowhere. Three were removed because
+their death is traceable — `SCRAP_ICON` (the banknote emoji, replaced by
+`UiIcons` in G12.10) and `DESKTOP_WINDOW` / `DIORAMA_FPS` (added in G14 and G13
+and never wired up). The other 42 are older constants from the SceneKit-era
+brief; they are listed by `tools`-side scanning rather than deleted blind, since
+a few are read from scenes rather than scripts.
+
+`tests/FullFlow.tscn` walks the whole run in one process — boot, map, chapter 1
+mown to completion, a restoration bought, the case finished, board and map
+swapped — as proof that no seam still reaches for a mode or a picture that is
+gone.
+
+**Size, end to end:** textures 77 MB → 13 MB, texture VRAM 113 MB → about 60 MB
+of lossless photographic art at display size plus 6 MB of compressed world
+textures. Audio unchanged at 2.3 MB.
 
 ## Not in G1-G9
 

@@ -70,9 +70,8 @@ static func style_secondary(button: Button) -> void:
 	button.add_theme_stylebox_override("focus", base)
 
 var _background: TextureRect
-## G13: the live 3D town behind the cards, when hub_mode is "diorama". Null in
-## legacy mode, and every use is guarded — legacy has to keep working, because
-## this whole thing is a trial.
+## The live 3D town behind the cards. Uses stay guarded because the scene could
+## fail to load, not because there is another mode to fall back to.
 var _diorama: TownDiorama
 var _diorama_view: SubViewport
 var _diorama_tick := 0
@@ -123,16 +122,16 @@ func _ready() -> void:
 
 # ---------------------------------------------------------------- chrome
 
+## The hub's backdrop is the live 3D town, and only that. The 2D collage it
+## replaced, the hub_mode switch that chose between them, and the layer art the
+## collage painted onto itself are all gone (G13.8) — the diorama earned it.
 func _build_background() -> void:
-	if GameConfig.hub_mode == GameConfig.HUB_MODE_DIORAMA:
-		_build_diorama_background()
-		return
-	_build_collage_background()
+	_build_diorama_background()
 
 
-## The 2D collage: the hub's original backdrop, kept whole so hub_mode can go
-## back to it (G13).
-func _build_collage_background() -> void:
+## The warm gradient the collage used as its ground. Still built: it sits behind
+## the SubViewport and shows through if the 3D scene has not drawn yet.
+func _build_ground_gradient() -> void:
 	# Warm gradient ground, used as the fallback and as the letterbox behind an
 	# illustration that does not match the screen aspect.
 	var ground := TextureRect.new()
@@ -570,7 +569,6 @@ func _on_project(project_id: String, built: bool, source: Button) -> void:
 			Analytics.track("restore_tier2_unlocked", {})
 		_refresh_restore()
 		_refresh_progress()
-		_apply_restore_layers()
 		_refresh_tiles()
 		if _diorama != null and _diorama.has_building(project_id):
 			await _play_restore_scene(project_id)
@@ -578,6 +576,10 @@ func _on_project(project_id: String, built: bool, source: Button) -> void:
 
 ## The live model of the town, rendered into the page behind the cards.
 func _build_diorama_background() -> void:
+	# Under everything: the 3D scene does not draw on the first frame, and a
+	# hub that flashes black on entry looks broken.
+	_build_ground_gradient()
+
 	var frame := SubViewportContainer.new()
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	frame.stretch = true
@@ -764,66 +766,6 @@ func _play_restore_scene(project_id: String) -> void:
 		if not is_instance_valid(page_any):
 			continue
 		(page_any as Control).modulate.a = 1.0
-
-
-func _apply_restore_layers() -> void:
-	# These are the LEGACY collage's building layers. In diorama mode the town
-	# is built in 3D, so pasting a picture of the swing over the screen puts a
-	# giant swing in front of everything — which is exactly what it did (G13.7).
-	if GameConfig.hub_mode == GameConfig.HUB_MODE_DIORAMA:
-		return
-	# remove_child before queue_free: queue_free defers a frame, and anything
-	# still parented here can be picked up by code that runs in between.
-	for child in get_children():
-		if child is Control and (child as Control).name.begins_with("Restore_"):
-			remove_child(child)
-			child.queue_free()
-	var badges := 0
-	for project: Dictionary in RestoreBoard.projects():
-		var id := str(project.get("id", ""))
-		if not RestoreBoard.is_built(id):
-			continue
-		var art := TextureLibrary.find("hub/" + str(project.get("layer", "")))
-		if art != null:
-			var layer := TextureRect.new()
-			layer.name = "Restore_" + id
-			layer.texture = art
-			layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			# KEEP_ASPECT, not COVERED: the layer must fit inside its authored
-			# box, not fill it — covering would crop the building.
-			layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
-			layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			var rect: Variant = project.get("layer_rect", null)
-			if rect is Dictionary:
-				var r := rect as Dictionary
-				layer.set_anchors_preset(Control.PRESET_TOP_LEFT)
-				layer.anchor_left = float(r.get("x", 0.0))
-				layer.anchor_top = float(r.get("y", 0.0))
-				layer.anchor_right = float(r.get("x", 0.0)) + float(r.get("w", 1.0))
-				layer.anchor_bottom = float(r.get("y", 0.0)) + float(r.get("h", 1.0))
-				layer.offset_left = 0
-				layer.offset_top = 0
-				layer.offset_right = 0
-				layer.offset_bottom = 0
-			else:
-				layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			add_child(layer)
-			move_child(layer, 2)
-			continue
-		var badge := TextureRect.new()
-		badge.name = "Restore_" + id
-		badge.texture = UiIcons.house()
-		badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-		badge.offset_left = -120 - badges * 64
-		badge.offset_right = -60 - badges * 64
-		badge.offset_top = 262
-		badge.offset_bottom = 322
-		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(badge)
-		badges += 1
-
 
 # ---------------------------------------------------------------- echoes (G12.6)
 
@@ -1295,7 +1237,6 @@ func refresh() -> void:
 	_refresh_progress()
 	_refresh_board()
 	_show_board_tab(false)
-	_apply_restore_layers()
 	_show_page(_tiles_page)
 
 

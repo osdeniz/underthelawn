@@ -11,7 +11,6 @@ func _ready() -> void:
 			await get_tree().process_frame
 		await _shoot("yard")
 	else:
-		GameConfig.hub_mode = GameConfig.HUB_MODE_DIORAMA
 		var hub := HubScreen.new()
 		add_child(hub)
 		await get_tree().process_frame

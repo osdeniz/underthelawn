@@ -553,7 +553,6 @@ const CARRY_DECK_OFFSET := Vector3(0.0, 0.62, 0.55)
 ## Contact pickup radius, on top of the deck: driving near an object takes it.
 const PICKUP_REACH := 0.55
 ## Scrap pickup visuals.
-const SCRAP_ICON := "💵"
 const SCRAP_RISE := 1.1
 const SCRAP_FLY_TIME := 0.55
 ## Minimum cells between two pickups, so they are spread rather than clustered.
@@ -1054,17 +1053,8 @@ const HORIZON_RADIUS := 78.0
 ## across 4500 px with a hole in the middle. Interface elements are held to this
 ## width and centred instead.
 const UI_MAX_WIDTH := 1170.0
-## Windowed size the desktop build opens at.
-const DESKTOP_WINDOW := Vector2i(900, 1500)
 
 # ---------------------------------------------------------------- hub diorama (G13)
-## The hub's backdrop is either the 2D collage it has always been, or a small
-## fixed-camera 3D town. This is a TRIAL: legacy stays wired and working, and
-## flipping this one value returns the hub to it.
-const HUB_MODE_DIORAMA := "diorama"
-const HUB_MODE_LEGACY := "legacy"
-static var hub_mode := HUB_MODE_DIORAMA
-
 ## The plate the town sits on. Small on purpose — this reads as a model of a
 ## town, not a place you walk around in.
 ## Narrow and DEEP, not wide and shallow. The screen is 1170x2532: a 24x16
@@ -1079,8 +1069,6 @@ const DIORAMA_PLATE := Vector2(36.0, 46.0)
 ## How far the ground bevels in at the rim, which is what sells "model".
 const DIORAMA_BEVEL := 2.4
 const DIORAMA_BEVEL_DROP := 1.6
-## The hub does not need 60: it is a still scene behind menus.
-const DIORAMA_FPS := 30
 ## Writes draw-call, triangle and frame-rate lines to the console on hub entry.
 const PERF_LOG := true
 
