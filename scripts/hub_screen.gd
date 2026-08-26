@@ -85,6 +85,8 @@ var _workshop_page: WorkshopPage
 var _board_view: EvidenceBoard
 var _board_scroll: ScrollContainer
 var _board_tab_places: Button
+## The two-layer case map (G13.5), which replaced the PLACES list.
+var _map: TownMap
 var _board_tab_evidence: Button
 var _scrap_label: Label
 var _restore_page: Control
@@ -949,7 +951,8 @@ func _build_board() -> Control:
 	tabs.add_theme_constant_override("separation", 18)
 	page.add_child(tabs)
 	_board_tab_places = Button.new()
-	_board_tab_places.text = tr("BOARD_TAB_CHAPTERS")
+	# Was BOARD_TAB_CHAPTERS, a list of eight rows. It is a map now (G13.5).
+	_board_tab_places.text = tr("MAP_TAB")
 	_board_tab_evidence = Button.new()
 	_board_tab_evidence.text = tr("BOARD_TAB_EVIDENCE")
 	for tab: Button in [_board_tab_places, _board_tab_evidence]:
@@ -959,6 +962,20 @@ func _build_board() -> Control:
 		tabs.add_child(tab)
 	_board_tab_places.pressed.connect(func() -> void: _show_board_tab(false))
 	_board_tab_evidence.pressed.connect(func() -> void: _show_board_tab(true))
+	# The two-layer map: the case screen's default view.
+	_map = TownMap.new()
+	_map.name = "CaseMap"
+	_map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_map.offset_top = 366
+	_map.offset_bottom = -170
+	_map.place_chosen.connect(_on_map_place)
+	_map.shortcut_chosen.connect(_on_map_shortcut)
+	page.add_child(_map)
+
+	# The old chapter list is kept in the tree but never shown: it is the
+	# fallback if the map has to be pulled, and deleting it would take the
+	# chapter-row styling with it.
+	scroll.visible = false
 	page.set_meta("scroll", scroll)
 
 	page.add_child(_back_button())
@@ -966,13 +983,38 @@ func _build_board() -> Control:
 	return page
 
 
+## A pin's SEARCH button. Goes through the same signal the chapter rows used, so
+## the briefing and the chapter-start path are unchanged (G13.5).
+func _on_map_place(variant_id: String) -> void:
+	chapter_chosen.emit(variant_id)
+
+
+## A restored building on the map is a shortcut to its screen.
+func _on_map_shortcut(page_id: String) -> void:
+	if page_id == "case_board":
+		_show_board_tab(true)
+		return
+	_on_tile(page_id, false)
+
+
+## Opens the case screen on the map, focused on one place. Used by the
+## chapter-end "next" button so a finished search leads back to the journey.
+func open_map_at(variant_id: String) -> void:
+	_show_page(_board_page)
+	_show_board_tab(false)
+	if _map != null and is_instance_valid(_map):
+		_map.focus_place(variant_id)
+
+
 ## Swaps between the chapter list and the corkboard, restyling the tab pair so
 ## the active one reads pressed.
 func _show_board_tab(evidence: bool) -> void:
 	Haptics.light()
-	var scroll: Control = _board_page.get_meta("scroll")
-	scroll.visible = not evidence
 	_board_scroll.visible = evidence
+	if _map != null and is_instance_valid(_map):
+		_map.visible = not evidence
+		if not evidence:
+			_map.refresh()
 	if evidence:
 		_board_view.refresh()
 	if _board_tab_evidence != null:

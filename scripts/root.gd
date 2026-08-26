@@ -192,13 +192,24 @@ func _show_reunion() -> void:
 
 ## Called by the case-notes NEXT button: brief and start the chapter after
 ## `current_id`, exactly as if it had been picked on the board.
+## The chapter-end NEXT button. It used to drop the player straight into the
+## following search; it now returns to the case map with that place focused, so
+## the case reads as a journey across the town rather than a queue of levels
+## (G13.5). One more tap to start, and the map is what earns it.
 func start_next_chapter(current_id: String) -> void:
 	var chapters := ChapterProgress.chapters()
 	for i in chapters.size():
-		if str(chapters[i].get("variant_id", "")) == current_id:
-			if i + 1 < chapters.size():
-				_on_chapter_chosen(str(chapters[i + 1].get("variant_id", "")))
+		if str(chapters[i].get("variant_id", "")) != current_id:
+			continue
+		if i + 1 >= chapters.size():
+			_open_hub()
 			return
+		var next_id := str(chapters[i + 1].get("variant_id", ""))
+		_fade_out_then(func() -> void:
+			_open_hub()
+			if _hub != null and is_instance_valid(_hub):
+				_hub.open_map_at(next_id))
+		return
 
 
 ## Called by the game scene's RETURN TO TOWN button.

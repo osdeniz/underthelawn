@@ -1859,6 +1859,51 @@ inserts `new` between every character — it turned a 52 KB script into 90 MB.
 Slice bounds have to be ordered, or the edit made with a tool that verifies the
 match.
 
+### G13.5 — the case board's two-layer map
+
+The PLACES list is gone. A list told the player which chapters exist; a map
+tells them where Ellie went.
+
+**Layer 1, the region.** One interactive thing on it: our own town. Everything
+else is hills, a coast and two roads under fog — the world is large and closed.
+Our circle is the only COLOURED ground on the sheet. A faint pulsing light sits
+in the east with a "?" beside it and nothing to press: Concord, two cases away.
+
+**Layer 2, the town.** The square, paths radiating from it, the creek and its
+bridge, plot blocks. Eight case pins and, once built, the restored buildings as
+small roofed marks that shortcut to their screens.
+
+* **Pin states:** green + tick (searched), green + "!" (searched, evidence left
+  behind), gold + a breathing pulse (next), grey + dash (locked).
+* **The route** is drawn as a dashed line through the places already searched —
+  it grows as the case does, and it points east.
+* **Reclaimed on paper:** a finished place brightens the parchment around it,
+  the map's answer to G13.4's weed band.
+
+**Case 1 reads west to east**, and `tests/MapCheck.tscn` asserts it: the x of
+each place must exceed the one before. The Aldridge house sits at the town's
+west edge, the neighbour beside it, then the square, the creek, the greenhouse,
+and out to the water tower, the mill and the cellar in the north-east. Nobody
+says "she went east"; the pins do.
+
+**Nothing about starting a chapter changed.** A pin's SEARCH button emits the
+same `chapter_chosen` signal the rows used, so the briefing and the chapter-start
+path are untouched — only the door is new. The chapter-end NEXT button now
+returns to the map with the following place focused instead of dropping straight
+into it, which is the journey the brief asked for and costs one extra tap.
+
+Both sheets are generated (`MapArt`): parchment as an ImageTexture, roads, creek
+and pins as `draw_*` calls. `textures/map/world_map.png` and `town_map.png` are
+used when present, with the ink always drawn on top so pins stay readable over
+painted art.
+
+* `NOTIFICATION_RESIZED` arrives when the node enters the tree — BEFORE `_ready`
+  has built the layers — so refreshing on it walks into a null.
+* `PanelContainer` stretches its children, so the place sheet's close button
+  ended up in the middle of the panel until it moved into a title row.
+
+Frames: `docs/g135/`.
+
 ## Sprint G14 — desktop (Steam) input and layout
 
 Keyboard driving, and the layout work a portrait phone game needs before it can

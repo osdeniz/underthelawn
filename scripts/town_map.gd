@@ -1,0 +1,556 @@
+class_name TownMap
+extends Control
+## The case board's map: a region layer and a town layer (G13.5).
+##
+## This replaces the PLACES list. A list told the player which chapters exist; a
+## map tells them where Ellie went — Case 1 reads west to east across the town,
+## and that line is the story without a sentence of exposition.
+##
+## Both layers are drawn in code. `textures/map/world_map.png` and
+## `town_map.png` are used when present; without them the parchment, the roads
+## and the creek are generated, so the screen is never a missing-art placeholder.
+## The generated version is the one this was designed against.
+
+signal place_chosen(variant_id: String)
+signal shortcut_chosen(page_id: String)
+
+enum Layer { WORLD, TOWN }
+
+var _layer: int = Layer.WORLD
+var _world: Control
+var _town: Control
+var _sheet: TextureRect
+var _panel: PanelContainer
+var _selected := ""
+var _pulse := 0.0
+var _clouds := 0.0
+## Filled once per layout so _draw and the pin buttons agree on the map rect.
+var _map_rect := Rect2()
+
+
+func _ready() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	clip_contents = true
+	_build_world()
+	_build_town()
+	show_layer(Layer.WORLD, false)
+	set_process(true)
+
+
+## Rebuilds every pin from progress. Called whenever the screen is opened.
+func refresh() -> void:
+	if _town == null:
+		return
+	_build_pins()
+	_update_world()
+
+
+# ---------------------------------------------------------------- layers
+
+func show_layer(which: int, animate := true) -> void:
+	_layer = which
+	var showing: Control = _world if which == Layer.WORLD else _town
+	var hiding: Control = _town if which == Layer.WORLD else _world
+	_close_panel()
+	if not animate:
+		showing.visible = true
+		showing.modulate.a = 1.0
+		showing.scale = Vector2.ONE
+		hiding.visible = false
+		return
+	# Zoom-fade: the town grows out of the region rather than cutting to it, so
+	# the two layers read as the same place at two distances.
+	showing.visible = true
+	showing.pivot_offset = size * 0.5
+	hiding.pivot_offset = size * 0.5
+	showing.modulate.a = 0.0
+	showing.scale = Vector2.ONE * (0.86 if which == Layer.TOWN else 1.14)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(showing, "modulate:a", 1.0, GameConfig.MAP_ZOOM_SECONDS)
+	tween.tween_property(showing, "scale", Vector2.ONE, GameConfig.MAP_ZOOM_SECONDS) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(hiding, "modulate:a", 0.0, GameConfig.MAP_ZOOM_SECONDS * 0.7)
+	tween.tween_property(hiding, "scale",
+		Vector2.ONE * (1.14 if which == Layer.TOWN else 0.86),
+		GameConfig.MAP_ZOOM_SECONDS)
+	tween.chain().tween_callback(func() -> void: hiding.visible = false)
+	if which == Layer.TOWN:
+		Analytics.track("map_opened", {})
+	else:
+		Analytics.track("world_map_viewed", {})
+
+
+## Opens straight onto the town, focused on a place. Used by the chapter-end
+## "next" button so finishing a search leads back to the map rather than a list.
+func focus_place(variant_id: String) -> void:
+	_selected = variant_id
+	show_layer(Layer.TOWN, _layer == Layer.WORLD)
+	refresh()
+	if GameConfig.MAP_PLACES.has(variant_id):
+		_open_panel(variant_id)
+
+
+# ---------------------------------------------------------------- world layer
+
+func _build_world() -> void:
+	_world = Control.new()
+	_world.name = "WorldLayer"
+	_world.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_world.mouse_filter = Control.MOUSE_FILTER_PASS
+	add_child(_world)
+
+	var art := TextureLibrary.find("map/world_map")
+	var sheet := TextureRect.new()
+	sheet.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	sheet.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sheet.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	sheet.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sheet.texture = art if art != null else MapArt.parchment(512, 8801)
+	if art == null:
+		TextureLibrary.warn_missing("map/world_map", "prosedurel parsomen")
+	_world.add_child(sheet)
+
+	# The region's coastline and roads are drawn over the sheet.
+	var ink := Control.new()
+	ink.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ink.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ink.draw.connect(_draw_world.bind(ink))
+	_world.add_child(ink)
+
+	var title := Label.new()
+	title.name = "RegionTitle"
+	title.text = tr("MAP_REGION")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	title.offset_top = 70.0
+	title.offset_bottom = 150.0
+	title.add_theme_font_size_override("font_size", 54)
+	title.add_theme_color_override("font_color", GameConfig.MAP_INK)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_world.add_child(title)
+
+	var sub := Label.new()
+	sub.text = tr("MAP_REGION_SUB")
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	sub.offset_top = 146.0
+	sub.offset_bottom = 196.0
+	sub.add_theme_font_size_override("font_size", 30)
+	sub.add_theme_color_override("font_color", GameConfig.MAP_INK_FAINT)
+	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_world.add_child(sub)
+
+	# The one interactive thing on this layer: our own town.
+	var town_button := Button.new()
+	town_button.name = "TownButton"
+	town_button.flat = true
+	town_button.custom_minimum_size = Vector2(260, 260)
+	town_button.tooltip_text = tr("MAP_REGION")
+	town_button.pressed.connect(func() -> void:
+		Haptics.medium()
+		show_layer(Layer.TOWN))
+	_world.add_child(town_button)
+
+	var hint := Label.new()
+	hint.text = tr("MAP_WORLD_HINT")
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	hint.offset_top = -150.0
+	hint.offset_bottom = -90.0
+	hint.add_theme_font_size_override("font_size", 28)
+	hint.add_theme_color_override("font_color", GameConfig.MAP_INK_FAINT)
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_world.add_child(hint)
+
+
+## Coast, roads, the fog over everywhere that is not ours, and one far light.
+func _draw_world(canvas: Control) -> void:
+	var rect := Rect2(Vector2.ZERO, canvas.size)
+	MapArt.draw_region(canvas, rect, _clouds)
+	var town := rect.position + rect.size * GameConfig.MAP_TOWN_AT
+	# Our region: a clear ring around the town, everything else washed out.
+	# Our own circle is the only COLOURED part of the region: the fog lifts, the
+	# ground is green, and there is a hard rim. Everything else is washed grey.
+	var ring := rect.size.x * 0.155
+	canvas.draw_circle(town, ring, Color(0.86, 0.86, 0.62, 0.75))
+	canvas.draw_circle(town, ring * 0.92, Color(0.68, 0.76, 0.48, 0.55))
+	canvas.draw_arc(town, ring, 0.0, TAU, 48, GameConfig.MAP_INK, 5.0, true)
+	MapArt.draw_town_mark(canvas, town, rect.size.x * 0.075,
+		GameConfig.MAP_INK)
+	var font_name := ThemeDB.fallback_font
+	canvas.draw_string(font_name, town + Vector2(-ring * 0.62, ring * 0.72),
+		tr("MAP_REGION"), HORIZONTAL_ALIGNMENT_LEFT, ring * 1.4, 32,
+		GameConfig.MAP_INK)
+
+	# The light in the east: no name, no pin, nothing to press. Just a reason to
+	# look that way — Concord, two cases from now.
+	var far := rect.position + rect.size * GameConfig.MAP_FAR_LIGHT
+	var glow := 0.45 + 0.30 * sin(_pulse * 1.4)
+	canvas.draw_circle(far, 52.0, Color(1.0, 0.84, 0.48, 0.09 * glow))
+	canvas.draw_circle(far, 26.0, Color(1.0, 0.86, 0.52, 0.16 * glow))
+	canvas.draw_circle(far, 11.0, Color(1.0, 0.90, 0.62, glow))
+	var font := ThemeDB.fallback_font
+	canvas.draw_string(font, far + Vector2(34.0, 16.0), "?",
+		HORIZONTAL_ALIGNMENT_LEFT, -1, 52, GameConfig.MAP_INK)
+
+
+func _update_world() -> void:
+	if _world == null:
+		return
+	var button := _world.get_node_or_null("TownButton") as Control
+	if button != null:
+		var at := size * GameConfig.MAP_TOWN_AT
+		button.position = at - button.custom_minimum_size * 0.5
+		button.size = button.custom_minimum_size
+
+
+# ---------------------------------------------------------------- town layer
+
+func _build_town() -> void:
+	_town = Control.new()
+	_town.name = "TownLayer"
+	_town.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_town.mouse_filter = Control.MOUSE_FILTER_PASS
+	add_child(_town)
+
+	var art := TextureLibrary.find("map/town_map")
+	_sheet = TextureRect.new()
+	_sheet.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_sheet.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_sheet.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_sheet.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sheet.texture = art if art != null else MapArt.parchment(512, 4407)
+	if art == null:
+		TextureLibrary.warn_missing("map/town_map", "prosedurel kasaba haritasi")
+	_town.add_child(_sheet)
+
+	var ink := Control.new()
+	ink.name = "TownInk"
+	ink.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ink.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ink.draw.connect(_draw_town.bind(ink))
+	_town.add_child(ink)
+
+	var pins := Control.new()
+	pins.name = "Pins"
+	pins.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pins.mouse_filter = Control.MOUSE_FILTER_PASS
+	_town.add_child(pins)
+
+	var back := Button.new()
+	back.text = tr("MAP_BACK_WORLD")
+	back.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	back.offset_left = 44.0
+	back.offset_right = 260.0
+	back.offset_top = 60.0
+	back.offset_bottom = 132.0
+	back.add_theme_font_size_override("font_size", 30)
+	HubScreen.style_secondary(back)
+	back.pressed.connect(func() -> void:
+		Haptics.light()
+		show_layer(Layer.WORLD))
+	_town.add_child(back)
+	_town.visible = false
+
+
+## Roads, the creek and its bridge, the square — laid out to agree with the
+## diorama: the square in the middle, paths radiating from it, the creek
+## crossing the low ground where the flooded lot sits.
+func _draw_town(canvas: Control) -> void:
+	var rect := Rect2(Vector2.ZERO, canvas.size)
+	_map_rect = rect
+	MapArt.draw_town(canvas, rect, _clouds)
+	# Finished places brighten the paper around them: the reclaimed band's
+	# answer on paper (G13.4).
+	for id: String in GameConfig.MAP_PLACES:
+		if not ChapterProgress.is_done(id):
+			continue
+		var at := rect.position + rect.size * (GameConfig.MAP_PLACES[id] as Vector2)
+		canvas.draw_circle(at, rect.size.x * GameConfig.MAP_RECLAIM_RADIUS,
+			Color(0.56, 0.74, 0.42, 0.16))
+	# The route: a dotted line through the places in order, drawn only as far as
+	# the player has actually been. It is Ellie's path, and it points east.
+	var walked: Array = []
+	for id: String in GameConfig.MAP_PLACES:
+		if ChapterProgress.is_done(id):
+			walked.append(rect.position + rect.size
+				* (GameConfig.MAP_PLACES[id] as Vector2))
+	for i in range(1, walked.size()):
+		MapArt.draw_dotted(canvas, walked[i - 1], walked[i],
+			Color(0.72, 0.40, 0.30, 0.75), 4.0, 15.0)
+
+
+# ---------------------------------------------------------------- pins
+
+func _build_pins() -> void:
+	var host := _town.get_node_or_null("Pins") as Control
+	if host == null:
+		return
+	for child in host.get_children():
+		host.remove_child(child)
+		child.queue_free()
+	var rect := Rect2(Vector2.ZERO, size)
+
+	# Restored buildings first, so a case pin is always on top of them.
+	for id: String in GameConfig.MAP_BUILDINGS:
+		if not RestoreBoard.is_built(id):
+			continue
+		var spec: Dictionary = GameConfig.MAP_BUILDINGS[id]
+		var mark := _building_mark(id, str(spec["opens"]))
+		mark.position = rect.size * (spec["at"] as Vector2) - Vector2(30, 30)
+		host.add_child(mark)
+
+	var order: Array = GameConfig.MAP_PLACES.keys()
+	var next_id := _next_place(order)
+	for id_any: Variant in order:
+		var id := str(id_any)
+		var pin := _place_pin(id, id == next_id)
+		pin.position = rect.size * (GameConfig.MAP_PLACES[id] as Vector2) \
+			- Vector2(44, 62)
+		host.add_child(pin)
+
+
+## The first place that is not finished — the one the case is asking for.
+func _next_place(order: Array) -> String:
+	for id_any: Variant in order:
+		if not ChapterProgress.is_done(str(id_any)):
+			return str(id_any)
+	return ""
+
+
+func _place_pin(variant_id: String, is_next: bool) -> Button:
+	var done := ChapterProgress.is_done(variant_id)
+	var missed := done and ChapterProgress.evidence_found(variant_id) \
+		< ChapterProgress.evidence_total(variant_id)
+	var locked := not done and not is_next
+
+	var pin := Button.new()
+	pin.name = "Pin_" + variant_id
+	pin.flat = true
+	pin.custom_minimum_size = Vector2(88, 88)
+	pin.size = pin.custom_minimum_size
+	pin.tooltip_text = tr(_place_name(variant_id))
+	var colour := GameConfig.MAP_PIN_LOCKED
+	if done:
+		colour = GameConfig.MAP_PIN_DONE
+	elif is_next:
+		colour = GameConfig.MAP_PIN_ACTIVE
+	pin.set_meta("colour", colour)
+	pin.set_meta("done", done)
+	pin.set_meta("missed", missed)
+	pin.set_meta("locked", locked)
+	pin.set_meta("next", is_next)
+	pin.draw.connect(_draw_pin.bind(pin))
+	pin.pressed.connect(func() -> void:
+		Haptics.light()
+		Analytics.track("map_pin_tapped", {"id": variant_id})
+		_open_panel(variant_id))
+
+	var label := Label.new()
+	label.text = tr(_place_name(variant_id))
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size = Vector2(200, 0)
+	label.position = Vector2(-56, 86)
+	label.add_theme_font_size_override("font_size", 24)
+	label.add_theme_color_override("font_color", GameConfig.MAP_INK)
+	label.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.7))
+	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pin.add_child(label)
+	return pin
+
+
+## A map pin: teardrop body, a ring, and the state mark inside it.
+func _draw_pin(pin: Button) -> void:
+	var colour: Color = pin.get_meta("colour")
+	var centre := Vector2(44, 34)
+	var scale := 1.0
+	if bool(pin.get_meta("next", false)):
+		# The active pin breathes, so the eye finds it without a label.
+		scale = 1.0 + 0.09 * sin(_pulse * 3.0)
+	MapArt.draw_pin(pin, centre, 26.0 * scale, colour)
+	var font := ThemeDB.fallback_font
+	var mark := ""
+	if bool(pin.get_meta("missed", false)):
+		mark = "!"
+	elif bool(pin.get_meta("done", false)):
+		mark = "✓"
+	elif bool(pin.get_meta("locked", false)):
+		mark = "—"
+	if mark != "":
+		var ink := Color(0.14, 0.12, 0.10) if mark != "!" else Color(0.72, 0.22, 0.16)
+		pin.draw_string(font, centre + Vector2(-9, 10), mark,
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 30, ink)
+
+
+## A restored building on the map: a small square that opens its screen.
+func _building_mark(project_id: String, opens: String) -> Button:
+	var mark := Button.new()
+	mark.name = "Mark_" + project_id
+	mark.flat = true
+	mark.custom_minimum_size = Vector2(60, 60)
+	mark.size = mark.custom_minimum_size
+	mark.tooltip_text = project_id
+	mark.draw.connect(func() -> void:
+		MapArt.draw_building(mark, Vector2(30, 30), 14.0))
+	mark.pressed.connect(func() -> void:
+		Haptics.light()
+		shortcut_chosen.emit(opens))
+	return mark
+
+
+# ---------------------------------------------------------------- place panel
+
+## The sheet that slides up when a pin is tapped: where it is, how it went, and
+## the one button that starts the search. The chapter-start path itself is
+## untouched — this is a new door onto the same room.
+func _open_panel(variant_id: String) -> void:
+	_close_panel()
+	_selected = variant_id
+	var done := ChapterProgress.is_done(variant_id)
+	var found := ChapterProgress.evidence_found(variant_id)
+	var total := ChapterProgress.evidence_total(variant_id)
+	if total <= 0:
+		total = LevelVariant.of(variant_id).evidence_count()
+	var order: Array = GameConfig.MAP_PLACES.keys()
+	var is_next := _next_place(order) == variant_id
+	var locked := not done and not is_next
+
+	_panel = PanelContainer.new()
+	_panel.name = "PlacePanel"
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.11, 0.09, 0.96)
+	style.border_color = GameConfig.CASE_ACCENT
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(20)
+	style.set_content_margin_all(28)
+	_panel.add_theme_stylebox_override("panel", style)
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_panel.offset_left = 40.0
+	_panel.offset_right = -40.0
+	_panel.offset_top = -430.0
+	_panel.offset_bottom = -40.0
+	add_child(_panel)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 14)
+	_panel.add_child(rows)
+
+	# Title row: name on the left, close on the right. The close button used to
+	# be a second child of the PanelContainer, which stretches its children, so
+	# it landed in the middle of the sheet (G13.5).
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 12)
+	rows.add_child(head)
+
+	var name_label := Label.new()
+	name_label.text = tr(_place_name(variant_id))
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.add_theme_font_size_override("font_size", 44)
+	name_label.add_theme_color_override("font_color", Color(0.96, 0.94, 0.88))
+	head.add_child(name_label)
+
+	var close := Button.new()
+	close.text = "×"
+	close.flat = true
+	close.custom_minimum_size = Vector2(64, 64)
+	close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	close.add_theme_font_size_override("font_size", 44)
+	close.add_theme_color_override("font_color", GameConfig.CASE_MUTED)
+	close.pressed.connect(_close_panel)
+	head.add_child(close)
+
+	var state := Label.new()
+	var missed := done and found < total
+	if missed:
+		state.text = tr("MAP_STATE_MISSED")
+		state.add_theme_color_override("font_color", Color(0.94, 0.72, 0.36))
+	elif done:
+		state.text = tr("MAP_STATE_DONE")
+		state.add_theme_color_override("font_color", GameConfig.MAP_PIN_DONE)
+	elif is_next:
+		state.text = tr("MAP_STATE_ACTIVE")
+		state.add_theme_color_override("font_color", GameConfig.MAP_PIN_ACTIVE)
+	else:
+		state.text = tr("MAP_STATE_LOCKED")
+		state.add_theme_color_override("font_color", Color(0.70, 0.68, 0.64))
+	state.add_theme_font_size_override("font_size", 30)
+	rows.add_child(state)
+
+	var count := Label.new()
+	count.text = tr("MAP_EVIDENCE").format({"found": found, "total": total})
+	count.add_theme_font_size_override("font_size", 30)
+	count.add_theme_color_override("font_color", GameConfig.CASE_MUTED)
+	rows.add_child(count)
+
+	var go := Button.new()
+	go.custom_minimum_size = Vector2(0, 104)
+	go.add_theme_font_size_override("font_size", 36)
+	if locked:
+		go.text = tr("MAP_LOCKED_NOTE")
+		go.disabled = true
+		HubScreen.style_secondary(go)
+	else:
+		go.text = tr("MAP_AGAIN") if done else tr("MAP_START")
+		HubScreen.style_primary(go)
+		go.pressed.connect(func() -> void:
+			Haptics.medium()
+			place_chosen.emit(variant_id))
+	rows.add_child(go)
+
+	# Slides up rather than appearing: the map stays the subject.
+	_panel.position.y += 90.0
+	_panel.modulate.a = 0.0
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(_panel, "position:y", _panel.position.y - 90.0, 0.22)
+	tween.tween_property(_panel, "modulate:a", 1.0, 0.22)
+
+
+func _close_panel() -> void:
+	if _panel != null and is_instance_valid(_panel):
+		_panel.queue_free()
+	_panel = null
+
+
+## The chapter's display name, from story.json.
+func _place_name(variant_id: String) -> String:
+	for chapter_any: Variant in Story.list("chapters"):
+		var chapter: Dictionary = chapter_any
+		if str(chapter.get("variant_id", "")) == variant_id:
+			return str(chapter.get("name", variant_id))
+	return variant_id
+
+
+# ---------------------------------------------------------------- life
+
+func _process(delta: float) -> void:
+	if _town == null or _world == null:
+		return
+	_pulse += delta
+	_clouds += delta
+	# The active pin's breathing and the cloud shadow both need a repaint; at
+	# 30 fps behind a menu this is the cheapest possible animation.
+	var ink := _town.get_node_or_null("TownInk") as Control
+	if ink != null and _town.visible:
+		ink.queue_redraw()
+	if _world != null and _world.visible:
+		for child in _world.get_children():
+			if child is Control and not (child is TextureRect):
+				(child as Control).queue_redraw()
+	var pins := _town.get_node_or_null("Pins") as Control
+	if pins != null and _town.visible:
+		for child in pins.get_children():
+			var pin := child as Button
+			if pin != null and bool(pin.get_meta("next", false)):
+				pin.queue_redraw()
+
+
+func _notification(what: int) -> void:
+	# RESIZED arrives when the node enters the tree, which is BEFORE _ready has
+	# built the layers — refreshing then walks into a null _town.
+	if what == NOTIFICATION_RESIZED and _town != null:
+		refresh()

@@ -1217,3 +1217,53 @@ const RESTORE_SHINE := 0.5
 ## Along the camera's own view line, so this is a true distance from the
 ## building. Under about 8 the building overflows the frame.
 const RESTORE_CAM_DISTANCE := 13.0
+
+
+# ---------------------------------------------------------------- map (G13.5)
+## The case board's PLACES list is replaced by a two-layer map. Positions are
+## fractions of the map rect, so the same numbers work at any screen size.
+##
+## Case 1 reads WEST to EAST across the town: the Aldridge house at the edge,
+## then the neighbour, the square, the creek, and out past the greenhouse to the
+## mill and the cellar. That line IS Ellie's route, drawn without a word.
+const MAP_PLACES := {
+	"ch01_aldridge": Vector2(0.20, 0.70),
+	"ch02_neighbor": Vector2(0.30, 0.64),
+	"ch03_playground": Vector2(0.42, 0.56),
+	"ch04_flooded": Vector2(0.52, 0.68),
+	"ch05_greenhouse": Vector2(0.64, 0.58),
+	"ch06_watertower": Vector2(0.74, 0.40),
+	"ch07_mill": Vector2(0.85, 0.31),
+	"ch08_cellar": Vector2(0.90, 0.20),
+}
+## Restored buildings that appear on the town map as small icons, and which
+## screen each one opens.
+const MAP_BUILDINGS := {
+	"station": {"at": Vector2(0.37, 0.45), "opens": "case_board"},
+	"homes": {"at": Vector2(0.50, 0.41), "opens": "town"},
+	"watchtower": {"at": Vector2(0.60, 0.27), "opens": "town"},
+	"clinic": {"at": Vector2(0.30, 0.50), "opens": "town"},
+	"greenhouse": {"at": Vector2(0.66, 0.52), "opens": "town"},
+	"farm": {"at": Vector2(0.78, 0.52), "opens": "town"},
+	"barn": {"at": Vector2(0.84, 0.58), "opens": "town"},
+	"mast": {"at": Vector2(0.24, 0.36), "opens": "workshop"},
+	"lantern": {"at": Vector2(0.46, 0.48), "opens": "town"},
+	"swing": {"at": Vector2(0.43, 0.47), "opens": "town"},
+}
+## The town's own spot on the world map, and the far light in the east.
+const MAP_TOWN_AT := Vector2(0.36, 0.56)
+const MAP_FAR_LIGHT := Vector2(0.86, 0.44)
+
+const MAP_INK := Color(0.30, 0.22, 0.15)
+const MAP_INK_FAINT := Color(0.42, 0.34, 0.26, 0.55)
+const MAP_PARCHMENT := Color(0.83, 0.74, 0.56)
+const MAP_PARCHMENT_DARK := Color(0.62, 0.52, 0.37)
+const MAP_WATER := Color(0.44, 0.56, 0.58)
+## Pin states, in the scheme the rest of the case screens already use.
+const MAP_PIN_DONE := Color(0.42, 0.72, 0.36)
+const MAP_PIN_ACTIVE := Color(0.95, 0.82, 0.45)
+const MAP_PIN_LOCKED := Color(0.52, 0.50, 0.46)
+## How far a finished place brightens the map around it — the reclaimed band's
+## answer on paper (G13.4).
+const MAP_RECLAIM_RADIUS := 0.085
+const MAP_ZOOM_SECONDS := 0.45
