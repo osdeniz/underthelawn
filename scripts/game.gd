@@ -25,6 +25,8 @@ var character: Character
 var _mowers: Array[MowerController] = []
 var _active_index := GameConfig.MOWER_PUSH
 var _collected: Array = []
+## Which scent moments have already fired this chapter (G13.4).
+var _scent_done: Dictionary = {}
 var _complete_shown := false
 ## G7: the case has to be accepted before the search starts. While this is
 ## false the lawn ignores touches and the run clock has not begun.
@@ -193,6 +195,60 @@ func _ensure_all_mowers() -> void:
 		built.scrap_field = scrap_field
 		built.set_active(false)
 		_mowers.insert(i, built)
+
+
+## The Marshal on the radio at set points in a search, plus the faintest tint on
+## the ground near the evidence he is talking about (G13.4).
+##
+## It does NOT say where the evidence is. It names a region — "that corner by
+## the oak" — and tints two or three cells AROUND the find, so the player is
+## drawn to an area and still has to work it. That is the difference between a
+## hint and a waypoint.
+func _check_scent(ratio: float) -> void:
+	if not GameConfig.hint_moments or variant == null:
+		return
+	for i in GameConfig.SCENT_AT.size():
+		if _scent_done.has(i):
+			continue
+		if ratio < float(GameConfig.SCENT_AT[i]):
+			continue
+		_scent_done[i] = true
+		var target := _scent_target(i)
+		if target == Vector2i(-1, -1):
+			continue
+		hud.show_scent(_scent_line(target))
+		AudioDirector.play_static()
+		lawn.tint_hint(target, GameConfig.SCENT_TINT_CELLS)
+		Analytics.track("scent_shown", {"chapter": variant_id, "at": ratio})
+		return
+
+
+## The cell of an evidence item that is still buried. Evidence only becomes a
+## node once its cell is mown, so the MODEL is what knows where they are.
+func _scent_target(index: int) -> Vector2i:
+	var wanted := index
+	for cell_any: Variant in model.secret_cells:
+		var cell: Vector2i = cell_any
+		if model.is_cut(cell.x, cell.y):
+			continue
+		if wanted > 0:
+			wanted -= 1
+			continue
+		return cell
+	return Vector2i(-1, -1)
+
+
+## Which of the Marshal's four lines fits where the find is on the lawn.
+func _scent_line(cell: Vector2i) -> String:
+	var cols := GameConfig.GRID_COLS
+	var rows := GameConfig.GRID_ROWS
+	if cell.y < rows / 3:
+		return "SCENT_BACK"
+	if cell.x < cols / 4 or cell.x > cols * 3 / 4:
+		return "SCENT_FENCE"
+	if cell.y > rows * 2 / 3:
+		return "SCENT_OAK"
+	return "SCENT_NEAR"
 
 
 ## G6 quality switches (game_config): shadow atlas size, subtle bloom.
@@ -389,6 +445,7 @@ func _glance_at(at: Vector3) -> void:
 
 func _on_cells_mown(_count: int) -> void:
 	hud.set_progress(model.completion_ratio())
+	_check_scent(model.completion_ratio())
 	# The echo is revealed by cutting its cell, same as evidence — but silently,
 	# with no marker until it is actually picked up.
 	if _echo_cell.x >= 0 and model.is_cut(_echo_cell.x, _echo_cell.y):
@@ -426,6 +483,7 @@ func _restart() -> void:
 	for child in _fx_root.get_children():
 		child.queue_free()
 	_collected.clear()
+	_scent_done.clear()
 	_complete_shown = false
 
 	model.reset()

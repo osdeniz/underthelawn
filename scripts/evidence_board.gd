@@ -18,7 +18,7 @@ const NOTE_MARGIN := 28.0
 ## The board is taller than the screen and scrolls. Eight chapters of two cards
 ## plus a wrapped note plus the finale simply do not fit one portrait screen;
 ## squeezing them was what put the sentences on top of each other (G12.10).
-const BOARD_SCALE := 2.5
+const BOARD_SCALE := 2.3
 
 var _cork: Control
 var _cards_layer: Control
@@ -183,6 +183,19 @@ func _make_card(info: Dictionary, found: bool, at: Vector2) -> PanelContainer:
 	name_label.add_theme_color_override("font_color",
 		Color(0.15, 0.13, 0.10) if found else Color(0.32, 0.28, 0.24))
 	rows.add_child(name_label)
+
+	# The clinic buys Dr. Cole's attention: every found piece of evidence gains
+	# a line of his reading of it (G13.4). This is a restore project paying out
+	# in STORY rather than in money.
+	var note := str(info.get("cole_note", ""))
+	if found and note != "" and RestoreBoard.is_built("clinic"):
+		var cole := Label.new()
+		cole.text = tr(note)
+		cole.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cole.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cole.add_theme_font_size_override("font_size", 17)
+		cole.add_theme_color_override("font_color", Color(0.30, 0.36, 0.44))
+		rows.add_child(cole)
 	return card
 
 

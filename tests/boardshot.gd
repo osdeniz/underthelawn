@@ -4,6 +4,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for chapter: Dictionary in Story.list("chapters"):
 		ChapterProgress.record(str(chapter.get("variant_id", "")), 3, 3)
+	GameState.set_setting("restore", "clinic", true)
 	var scroll := ScrollContainer.new()
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED

@@ -1719,6 +1719,69 @@ count is the number to watch on a real device.
 Frames: `docs/g13/p_<project>_0ruin.jpg` and `_1built.jpg` for all ten, plus
 `docs/g13/hero.jpg`.
 
+### G13.6 — baking the static diorama
+
+752 mesh draws down to 226. `MeshBake` welds a subtree's MeshInstance3Ds into
+one mesh per material: the authoring style stays primitives-in-code, and the
+runtime cost is paid once at build time.
+
+Measured before touching anything, which is what decided the plan: edge trees
+240 draws, bushes 132, horizon 88, farm 72. Trees bake per tree and the whole
+tree now leans instead of just its crown — at this distance the same picture
+for a tenth of the draws. Bushes bake as one group, since they never move.
+
+Never baked: figures, birds, washing, the swing, the reclaimed weed band, and a
+restored building DURING its rebuild — the transition tweens each part. Ruined
+forms bake immediately (they sink as one node); restored forms when their
+animation ends. Baking is one-way.
+
+`GameConfig.PERF_LOG` prints draws, triangles and fps on hub entry. On desktop
+that reads `cizim=334` for the whole screen, UI and shadow passes included.
+
+`surface_get_primitive_type` only exists on ArrayMesh — asking a CylinderMesh
+for it throws.
+
+### G13.4 — mowing / case / town
+
+Three links between systems that already existed. Theme: *every lawn you clear,
+the town breathes a little easier.*
+
+**Mowing → town.** A band of tall weeds rings the diorama and retreats one of
+eight steps per finished chapter. It is its own MultiMesh, deliberately outside
+the G13.6 bake, and retreating rewrites the transform list rather than
+rebuilding it. Returning to the hub plays the step: the doomed clumps lie down
+over 1.5 s, staggered by depth so the fall sweeps outward. The hub bar carries
+`TOWN RECLAIMED {percent}` — tied to CHAPTERS, not to money, because this is
+the measure of work. Each chapter's case notes gain one line from
+`reclaim_line` in `data/levels.json`.
+
+**Town → case.** Building the clinic gives every found corkboard card a second
+line of Dr. Cole's reading of the object (`cole_note` per evidence def, sixteen
+of them). The watchtower gives the Marshal his line about the east road. The
+three projects that serve the case carry a `SERVES THE CASE` badge.
+
+* The taller cards broke the corkboard layout — `tests/BoardLayout.tscn` caught
+  two overlaps, and `BOARD_SCALE` went 2.0 → 2.3. Curiously 2.6 fails again:
+  more room changes which candidate the note solver settles on.
+
+**Case → mowing.** At 30 % and 60 % of a lawn the Marshal says one line over
+the radio and the cells AROUND a still-buried find take the faintest warm tint.
+It names a region, never the cell, and the find's own cell is skipped — the
+difference between a hint and a waypoint. `GameConfig.hint_moments` switches it
+off. `tests/ScentCheck.tscn` asserts both fire, that every region line is
+translated, and that off means off.
+
+* Evidence only becomes a node once its cell is mown, so the MODEL is what
+  knows where the finds are; the first version looked for spawned props and
+  would have found none.
+
+**Text pass.** `RESTORE_POOR` said "Come back richer", pointing at money where
+the theme points at work; it now says "Go clear another lawn." No other string
+contradicted the theme. New keys: `HUB_RECLAIMED`, `RECLAIM_CH01`–`CH08`,
+`HUB_TOWER_LINE`, `RESTORE_CASE_BADGE`, `SCENT_*`, `COLE_*` — en and tr.
+
+Frames: `docs/g134/`.
+
 **Not in the slice.** The other seven projects — swing, lantern, greenhouse,
 clinic, mast, farm, barn — have no building in the scene yet. Adding one is a
 `DIORAMA_BUILDINGS` entry plus a ruined/restored builder pair; nothing else.

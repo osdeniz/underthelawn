@@ -241,6 +241,12 @@ func _fade_music(target_linear: float, duration: float) -> void:
 
 
 ## The corkboard pin thunk (G10).
+## Radio static under the Marshal's hint (G13.4). Reuses the blade-hit player
+## rather than adding a bus: it is a one-shot, and it must not cut the engine.
+func play_static() -> void:
+	play_scrap()
+
+
 func play_pin() -> void:
 	if not _streams.has("pin"):
 		return

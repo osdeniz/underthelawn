@@ -56,6 +56,10 @@ var _peek_id := ""
 var _bake_targets: Array = []
 ## Which subtrees have already been welded; baking is one-way.
 var _baked: Dictionary = {}
+## The reclaimed weed band (G13.4): its own MultiMesh, never baked, because it
+## retreats a step for every chapter the player finishes.
+var _reclaim_mesh: MultiMesh
+var _reclaim_spots: Array = []
 var _life_t := 0.0
 
 
@@ -72,6 +76,7 @@ func _ready() -> void:
 	_build_horizon()
 	_build_tufts()
 	_build_figures()
+	_build_reclaim()
 	refresh_state()
 	_bake_static()
 
@@ -2011,3 +2016,126 @@ func _peek_eye(at: Vector3) -> Vector3:
 	var focus := at + Vector3(0.0, 1.5, 0.0)
 	return focus + (_cam_base - _cam_look).normalized() \
 		* GameConfig.RESTORE_CAM_DISTANCE
+
+
+# ---------------------------------------------------------------- reclaimed (G13.4)
+
+## The weed band that rings the town and retreats a step per finished chapter.
+##
+## NOT baked with the static meshes: it changes eight times over a playthrough,
+## so it stays its own MultiMesh and is rewritten rather than rebuilt.
+func _build_reclaim() -> void:
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/grass_clump.gdshader")
+	mat.set_shader_parameter("wind_amplitude", GameConfig.WIND_AMPLITUDE * 1.8)
+	mat.set_shader_parameter("wind_speed", GameConfig.WIND_SPEED * 0.8)
+	var mesh_rng := RandomNumberGenerator.new()
+	mesh_rng.seed = 5150
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	# Variant 0 is the plain tall clump; the band is one species gone rank.
+	mm.mesh = TuftField.cluster_mesh(mesh_rng, 0)
+	mm.instance_count = 0
+	var node := MultiMeshInstance3D.new()
+	node.name = "ReclaimBand"
+	node.multimesh = mm
+	node.material_override = mat
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
+	_reclaim_mesh = mm
+
+	# Every clump the band could ever hold, with the depth at which it stands.
+	# Retreating is then a matter of writing fewer of them, not re-scattering.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20260826
+	var half := GameConfig.DIORAMA_PLATE * 0.5 - Vector2.ONE * GameConfig.DIORAMA_BEVEL
+	var band := GameConfig.RECLAIM_BAND_START
+	var step := 1.0 / sqrt(GameConfig.RECLAIM_DENSITY)
+	var x := -half.x
+	while x <= half.x:
+		var z := -half.y
+		while z <= half.y:
+			var at := Vector3(x + rng.randf_range(-0.4, 0.4), 0.0,
+				z + rng.randf_range(-0.4, 0.4))
+			z += step
+			# Depth into the plate from whichever edge is nearest.
+			var depth := minf(half.x - absf(at.x), half.y - absf(at.z))
+			if depth > band or depth < 0.0:
+				continue
+			_reclaim_spots.append({"at": at, "depth": depth,
+				"scale": rng.randf_range(GameConfig.RECLAIM_CLUMP_SCALE.x,
+					GameConfig.RECLAIM_CLUMP_SCALE.y),
+				"yaw": rng.randf() * TAU, "fall": 0.0})
+		x += step
+	_write_reclaim()
+
+
+## How deep the band reaches at the current chapter count.
+func _reclaim_band() -> float:
+	var done := clampi(ChapterProgress.done_count(), 0, GameConfig.RECLAIM_STEPS)
+	var k := float(done) / float(GameConfig.RECLAIM_STEPS)
+	return lerpf(GameConfig.RECLAIM_BAND_START, GameConfig.RECLAIM_BAND_END, k)
+
+
+## Writes the clumps that are still standing. `fall` lets a clump lie flat
+## during the retreat animation instead of vanishing.
+func _write_reclaim() -> void:
+	if _reclaim_mesh == null:
+		return
+	var band := _reclaim_band()
+	var kept: Array = []
+	for spot: Dictionary in _reclaim_spots:
+		if float(spot["depth"]) <= band or float(spot["fall"]) > 0.0:
+			kept.append(spot)
+	_reclaim_mesh.instance_count = kept.size()
+	for i in kept.size():
+		var spot: Dictionary = kept[i]
+		var fall := float(spot["fall"])
+		var basis := Basis(Vector3.UP, float(spot["yaw"]))
+		if fall > 0.0:
+			# Laid over, not shrunk: cut grass falls.
+			basis = basis.rotated(Vector3.RIGHT.rotated(Vector3.UP,
+				float(spot["yaw"])), fall * PI * 0.44)
+		basis = basis.scaled(Vector3.ONE * float(spot["scale"])
+			* (1.0 - fall * 0.35))
+		_reclaim_mesh.set_instance_transform(i, Transform3D(basis, spot["at"]))
+		var shade := 0.74 + fmod(float(i) * 0.11, 0.3)
+		_reclaim_mesh.set_instance_color(i, Color(shade, shade * 0.98, shade * 0.9))
+
+
+## Plays the band stepping back: the clumps that no longer belong lie down over
+## RECLAIM_FALL_SECONDS, then stop being written at all. Awaited by the hub.
+func play_reclaim_step() -> void:
+	var band := _reclaim_band()
+	var doomed: Array = []
+	for spot: Dictionary in _reclaim_spots:
+		if float(spot["depth"]) > band and float(spot["fall"]) <= 0.0:
+			doomed.append(spot)
+	if doomed.is_empty():
+		return
+	AudioDirector.play_cut()
+	var elapsed := 0.0
+	while elapsed < GameConfig.RECLAIM_FALL_SECONDS:
+		elapsed += get_process_delta_time()
+		var k := clampf(elapsed / GameConfig.RECLAIM_FALL_SECONDS, 0.0, 1.0)
+		for spot: Dictionary in doomed:
+			# Staggered by depth, so the fall sweeps outward instead of the
+			# whole ring dropping at once.
+			var lag := clampf((float(spot["depth"]) - band) * 0.10, 0.0, 0.5)
+			spot["fall"] = clampf((k - lag) / maxf(0.01, 1.0 - lag), 0.0, 1.0)
+		_write_reclaim()
+		await get_tree().process_frame
+	for spot: Dictionary in doomed:
+		spot["fall"] = 0.0
+	_write_reclaim()
+
+
+## True when the band is standing further out than the chapter count allows —
+## the hub uses this to decide whether a retreat is owed.
+func reclaim_owed() -> bool:
+	var band := _reclaim_band()
+	for spot: Dictionary in _reclaim_spots:
+		if float(spot["depth"]) > band:
+			return true
+	return false

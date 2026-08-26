@@ -1156,6 +1156,28 @@ const DIORAMA_FIGURES := {
 ## Ellie sits on the swing once the case is closed AND the swing is built.
 const DIORAMA_ELLIE_NEEDS := "swing"
 
+# ---- reclaimed: mowing -> town (G13.4)
+## A band of tall weeds around the town that retreats one step per finished
+## chapter. This is the visible answer to "what did all that mowing do?" — and
+## it is tied to CHAPTERS, not money, so it measures work rather than spending.
+const RECLAIM_STEPS := 8
+## How deep the band is at step 0, and at the last step.
+const RECLAIM_BAND_START := 9.0
+const RECLAIM_BAND_END := 1.6
+## Clumps per square unit of band. Dense: this is meant to look like the town
+## is being strangled.
+const RECLAIM_DENSITY := 0.42
+const RECLAIM_CLUMP_SCALE := Vector2(1.15, 1.85)
+## The retreat animation played on returning to the hub.
+const RECLAIM_FALL_SECONDS := 1.5
+## Percentages of a chapter's lawn at which the Marshal says something and a
+## faint tint appears near the evidence (G13.4 §3).
+const SCENT_AT := [0.30, 0.60]
+const SCENT_TINT_CELLS := 3
+const SCENT_TOAST_SECONDS := 3.4
+## Purists can switch the hints off.
+static var hint_moments := true
+
 ## How long a restore card has to be held before the camera glances at the plot
 ## it would build, and how long the glance lasts.
 const DIORAMA_PEEK_HOLD := 0.35

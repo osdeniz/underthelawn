@@ -287,7 +287,7 @@ RESTORE_TITLE,TOWN RESTORATION,KASABA ONARIMI
 RESTORE_DONE,DONE,YAPILDI
 RESTORE_BUY,"BUILD · {cost}","YAPTIR · {cost}"
 RESTORE_CONFIRM,"Build {name} for {cost}?","{name} {cost} karşılığında yapılsın mı?"
-RESTORE_POOR,The town can wait. Come back richer.,Kasaba bekleyebilir. Daha zenginken gel.
+RESTORE_POOR,"The town can wait. Go clear another lawn.","Kasaba bekleyebilir. Git bir bahçe daha temizle."
 PRJ_SWING_NAME,Ellie's Swing,Ellie'nin Salıncağı
 PRJ_SWING_DESC,A rope and a plank under the big tree.,Büyük ağacın altına bir ip ve bir tahta.
 PRJ_SWING_THANKS,She asks to go every evening now. Every single one.,Artık her akşam gitmek istiyor. Her akşam.
@@ -343,3 +343,34 @@ ALERT_TITLE,SHE DIDN'T COME HOME,EVE DÖNMEDİ
 ALERT_LINE,"No word since last night. The town hasn't lost anyone in three years — and nobody wants to say why that might have changed.","Dün geceden beri haber yok. Kasaba üç yıldır kimseyi kaybetmedi — ve bunun neden değişmiş olabileceğini kimse söylemek istemiyor."
 ALERT_CTA,FIND HER,ONU BUL
 DIORAMA_TOWER_LINE,"Cole keeps the lamp lit. Nothing on the road tonight.","Cole feneri yanık tutuyor. Bu gece yolda bir şey yok."
+HUB_RECLAIMED,"TOWN RECLAIMED {percent}%","KASABA GERİ ALINDI %{percent}"
+COLE_RABBIT,"Torn seam, and the ears are worn smooth. She carried it by them — the way she always did. Dropped running, not walking.","Dikişi yırtılmış, kulakları aşınmış. Onu kulaklarından taşırdı — hep öyle yapardı. Yürürken değil, koşarken düşürmüş."
+COLE_RADIO,"Battery corrosion says it died years ago. Someone changed it this month.","Pil aşınması yıllar önce öldüğünü söylüyor. Biri bu ay değiştirmiş."
+COLE_BOOT,"One boot, laced. You do not lace a boot you are throwing away.","Tek çizme, bağcıkları bağlı. Attığın bir çizmenin bağcığını bağlamazsın."
+COLE_GAP,"The gap was widened from this side. Whoever made it wanted back IN.","Aralık bu taraftan genişletilmiş. Açan kişi içeri girmek istemiş."
+COLE_RIBBON,"Same weave as the one in her hair in the photograph. Cut, not torn.","Fotoğraftaki saç kurdelesiyle aynı dokuma. Yırtılmamış, kesilmiş."
+COLE_ARROW,"Scratched with a stone, pressed hard. A child in a hurry, pointing east.","Taşla kazınmış, sertçe bastırılmış. Acele eden bir çocuk, doğuyu gösteriyor."
+COLE_PRINTS,"Two sets. The small ones are ahead of the large ones the whole way.","İki takım. Küçükler baştan sona büyüklerin önünde."
+COLE_CAN,"Opened with a blade, not a tool. Someone eating where they should not be.","Bir aletle değil, bıçakla açılmış. Olmaması gereken yerde yemek yiyen biri."
+COLE_SEEDLINGS,"Watered inside the last week. Sarah has not been out here in a year.","Son bir hafta içinde sulanmış. Sarah bir yıldır buraya gelmedi."
+COLE_THREAD,"Wool, dyed the colour of her coat. Caught at a child's shoulder height.","Yün, montunun renginde boyanmış. Bir çocuğun omuz hizasında takılmış."
+COLE_FLASHLIGHT,"Bulb intact, switch worn. It was used a great deal before it was left.","Ampulü sağlam, düğmesi aşınmış. Bırakılmadan önce çok kullanılmış."
+COLE_NOTE,"The hand shakes on the last two words. She wrote it in the dark.","Son iki kelimede el titriyor. Bunu karanlıkta yazmış."
+COLE_HATCH,"Oiled hinges under all that grass. Someone kept this working on purpose.","O kadar otun altında yağlanmış menteşeler. Biri bunu bilerek çalışır tutmuş."
+COLE_STONES,"Stacked, not fallen. Three of them, at a child's arm span apart.","Düşmemiş, üst üste dizilmiş. Üç tane, bir çocuğun kol açıklığı kadar aralıklı."
+COLE_ELLIE,"Dehydrated, bruised, and furious. She walked in here on her own feet.","Susuz kalmış, çürükleri var ve öfkeli. Buraya kendi ayaklarıyla girmiş."
+COLE_DRAWING,"She drew the tower with a light on it. There was no light on it then.","Kuleyi üstünde ışıkla çizmiş. O sırada kulede ışık yoktu."
+RECLAIM_CH01,"Town reclaimed: the weeds are off the square.","Kasaba geri alındı: otlar meydandan çekildi."
+RECLAIM_CH02,"Town reclaimed: the east path is clearing.","Kasaba geri alındı: doğu patikası açılıyor."
+RECLAIM_CH03,"Town reclaimed: you can see the fence line again.","Kasaba geri alındı: çit hattı yeniden görünüyor."
+RECLAIM_CH04,"Town reclaimed: the low ground is draining.","Kasaba geri alındı: alçak arazi suyunu çekiyor."
+RECLAIM_CH05,"Town reclaimed: light reaches the greenhouse glass.","Kasaba geri alındı: ışık seranın camına ulaşıyor."
+RECLAIM_CH06,"Town reclaimed: the tower has a clear line east.","Kasaba geri alındı: kulenin doğuya bakışı açıldı."
+RECLAIM_CH07,"Town reclaimed: the mill road is walkable.","Kasaba geri alındı: değirmen yolu yürünebilir."
+RECLAIM_CH08,"Town reclaimed: the town breathes.","Kasaba geri alındı: kasaba nefes alıyor."
+HUB_TOWER_LINE,"From up there you can see the east road. Something's moving on it. Not animals.","Yukarıdan doğu yolu görünüyor. Üstünde bir şey hareket ediyor. Hayvan değil."
+RESTORE_CASE_BADGE,"SERVES THE CASE","VAKAYA HİZMET EDER"
+SCENT_OAK,"That corner by the oak. Something's off.","Meşenin oradaki köşe. Bir tuhaflık var."
+SCENT_FENCE,"Along the fence line. Take your time there.","Çit hattı boyunca. Orada acele etme."
+SCENT_BACK,"The back of the lot. I'd look twice.","Arsanın arkası. Ben olsam iki kez bakardım."
+SCENT_NEAR,"You're close. Whatever it is, it's under the grass.","Yaklaştın. O şey her neyse, otların altında."

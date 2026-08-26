@@ -11,6 +11,9 @@ var _fails := 0
 func _ready() -> void:
 	for chapter: Dictionary in Story.list("chapters"):
 		ChapterProgress.record(str(chapter.get("variant_id", "")), 3, 3)
+	# With the clinic built every found card grows a second line of Cole's
+	# analysis, which is the layout's worst case (G13.4).
+	GameState.set_setting("restore", "clinic", true)
 	var board := EvidenceBoard.new()
 	board.size = Vector2(1170, 2532 * EvidenceBoard.BOARD_SCALE)
 	add_child(board)

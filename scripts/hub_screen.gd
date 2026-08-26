@@ -94,6 +94,8 @@ var _echo_list: VBoxContainer
 var _restore_note: Label
 var _tier2_announced := false
 var _progress_label: Label
+## "TOWN RECLAIMED %N" — chapters finished, not projects bought (G13.4).
+var _reclaim_label: Label
 var _dialogue: DialogueBox
 
 
@@ -224,11 +226,17 @@ func _build_top_bar() -> void:
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	identity.add_child(title)
 
+	_reclaim_label = Label.new()
+	_reclaim_label.add_theme_font_size_override("font_size", 26)
+	_reclaim_label.add_theme_color_override("font_color", Color(0.62, 0.86, 0.54))
+	_reclaim_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	_progress_label = Label.new()
 	_progress_label.add_theme_font_size_override("font_size", 30)
 	_progress_label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_progress_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	identity.add_child(_progress_label)
+	identity.add_child(_reclaim_label)
 
 	# The wallet reads as a thing you own, so it gets its own chip.
 	var wallet := PanelContainer.new()
@@ -276,6 +284,12 @@ func _refresh_progress() -> void:
 		"done": ChapterProgress.done_count(),
 		"total": ChapterProgress.count()})
 	_scrap_label.text = "%d" % GameState.scrap_total()
+	if _reclaim_label != null and is_instance_valid(_reclaim_label):
+		# Deliberately NOT tied to money: this is the measure of work done, and
+		# the whole point of G13.4 is that mowing shows up in the town.
+		var percent := int(round(100.0 * float(ChapterProgress.done_count())
+			/ maxf(1.0, float(GameConfig.RECLAIM_STEPS))))
+		_reclaim_label.text = tr("HUB_RECLAIMED").format({"percent": percent})
 
 
 # ---------------------------------------------------------------- pages
@@ -496,6 +510,20 @@ func _make_project_row(project: Dictionary) -> Button:
 		# Locked doors stay priced and visible: that is what makes them a goal.
 		tail = "%s   ·   %s" % [RestoreBoard.lock_reason(id),
 			tr("RESTORE_BUY").format({"cost": cost})]
+	# Projects that pay out in the CASE rather than in money say so on the card.
+	if bool(project.get("serves_case", false)):
+		var badge := Label.new()
+		badge.text = tr("RESTORE_CASE_BADGE")
+		badge.add_theme_font_size_override("font_size", 22)
+		badge.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+		badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		badge.offset_left = -260.0
+		badge.offset_right = -22.0
+		badge.offset_top = 16.0
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		button.add_child(badge)
+
 	var bonus := str(project.get("bonus_text", ""))
 	if bonus == "":
 		bonus = str(project.get("effect_text", ""))
@@ -619,6 +647,8 @@ func set_diorama_active(active: bool) -> void:
 	set_process(active and _diorama_view != null)
 	if active and GameConfig.PERF_LOG:
 		_log_perf()
+	if active and _diorama != null and is_instance_valid(_diorama):
+		_settle_reclaim()
 	if _diorama_view == null:
 		return
 	_diorama_view.render_target_update_mode = (SubViewport.UPDATE_ONCE if active
@@ -628,6 +658,17 @@ func set_diorama_active(active: bool) -> void:
 			else Node.PROCESS_MODE_DISABLED)
 		if active:
 			_diorama.refresh_state()
+
+
+## Plays the weed band stepping back, if finishing a chapter earned one. The
+## band is what a cleared lawn LOOKS like from the hub (G13.4).
+func _settle_reclaim() -> void:
+	if not _diorama.reclaim_owed():
+		return
+	for _i in 8:
+		await get_tree().process_frame
+	await _diorama.play_reclaim_step()
+	_refresh_progress()
 
 
 ## Draw calls, triangles and frame rate on hub entry, so the diorama's cost is
@@ -657,7 +698,9 @@ func _on_diorama_building(project_id: String) -> void:
 		"homes":
 			_on_tile("town", false)
 		"watchtower":
-			_restore_note.text = tr("DIORAMA_TOWER_LINE")
+			# What the Marshal sees from up there — the first thread of the
+			# next case (G13.4).
+			_restore_note.text = tr("HUB_TOWER_LINE")
 
 
 ## Completed projects add a layer to the hub art; without the art file they add

@@ -75,6 +75,8 @@ var _poster: Control
 @onready var _board_button: Button = %BoardButton
 
 var _shown_percent := 0.0
+## The Marshal's radio line, if one is on screen (G13.4).
+var _scent_toast: PanelContainer
 var _target_percent := 0.0
 var _card_home := Vector2.ZERO
 var _card_tween: Tween
@@ -321,6 +323,52 @@ func _on_mute_pressed() -> void:
 	_refresh_mute_label()
 
 
+## A short line from the Marshal over the radio (G13.4). One at a time: a
+## second one replaces the first rather than stacking.
+func show_scent(key: String) -> void:
+	if _scent_toast != null and is_instance_valid(_scent_toast):
+		_scent_toast.queue_free()
+	var toast := PanelContainer.new()
+	toast.name = "ScentToast"
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.09, 0.11, 0.10, 0.92)
+	style.border_color = GameConfig.CASE_ACCENT
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	style.set_content_margin_all(18)
+	toast.add_theme_stylebox_override("panel", style)
+	toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	# Below the MISSING poster, which lives in the top right: at 340 the two
+	# overlapped (G13.4).
+	toast.offset_left = -420.0
+	toast.offset_right = 420.0
+	toast.offset_top = 530.0
+	toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	toast.add_child(row)
+	var mark := Label.new()
+	mark.text = "//"
+	mark.add_theme_font_size_override("font_size", 30)
+	mark.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+	row.add_child(mark)
+	var line := Label.new()
+	line.text = tr(key)
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line.add_theme_font_size_override("font_size", 30)
+	line.add_theme_color_override("font_color", Color(0.92, 0.90, 0.84))
+	row.add_child(line)
+	add_child(toast)
+	_scent_toast = toast
+	toast.modulate.a = 0.0
+	var fade := create_tween()
+	fade.tween_property(toast, "modulate:a", 1.0, 0.25)
+	fade.tween_interval(GameConfig.SCENT_TOAST_SECONDS)
+	fade.tween_property(toast, "modulate:a", 0.0, 0.45)
+	fade.tween_callback(toast.queue_free)
+
+
 func _refresh_mute_label() -> void:
 	# Drawn speaker, not an emoji glyph (G12.10).
 	_mute_button.text = ""
@@ -483,6 +531,16 @@ func _build_case_notes(collected: Array, total: int) -> void:
 		_notes_list.add_child(none)
 	_notes_progress.text = Story.text("complete.notes_full") if collected.size() >= total \
 		else Story.text("complete.notes_partial")
+	# What this search did to the TOWN, not to the case. The theme of G13.4 in
+	# one line: every lawn you clear, the town breathes a little easier.
+	var variant := LevelVariant.current
+	if variant != null and variant.reclaim_line != "":
+		var reclaimed := Label.new()
+		reclaimed.text = "+ " + tr(variant.reclaim_line)
+		reclaimed.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		reclaimed.add_theme_font_size_override("font_size", 32)
+		reclaimed.add_theme_color_override("font_color", Color(0.62, 0.86, 0.54))
+		_notes_list.add_child(reclaimed)
 
 
 func _on_teaser_pressed() -> void:

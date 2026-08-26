@@ -35,6 +35,9 @@ var opening_subline := ""
 ## One optional world-history find per chapter, separate from the case evidence
 ## (G12.6). It never advances the case; it only says what the dead years left.
 var echo_def: Dictionary = {}
+## The one-line "town reclaimed" note this chapter adds to the case notes when
+## it is finished (G13.4).
+var reclaim_line := ""
 
 
 static func data() -> Dictionary:
@@ -71,6 +74,7 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.scrap_budget = int(spec.get("scrap_budget", variant.scrap_budget))
 	variant.vignette = bool(spec.get("vignette", false))
 	variant.evidence_defs = spec.get("evidence_defs", [])
+	variant.reclaim_line = str(spec.get("reclaim_line", ""))
 	var echo: Variant = spec.get("echo_def", {})
 	if echo is Dictionary:
 		variant.echo_def = echo
@@ -110,6 +114,10 @@ func evidence_info(index: int) -> Dictionary:
 		"line": TranslationServer.translate(str(entry.get("flavor_text", ""))),
 		"id": str(entry.get("id", "")),
 		"where": TranslationServer.translate(str(entry.get("location_tag", ""))),
+		# Dr. Cole's reading of the object, which the corkboard only shows once
+		# the clinic is built (G13.4). Left as the KEY, not translated here, so
+		# the board can test it for emptiness before deciding to show a line.
+		"cole_note": str(entry.get("cole_note", "")),
 	}
 
 
