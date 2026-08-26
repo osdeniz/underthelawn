@@ -1441,7 +1441,8 @@ func _dust_quad() -> QuadMesh:
 ## Hills and rooftops past the rim, sunk in haze. Without them the plate ends
 ## at a blank wall of fog and the town reads as an island (G13.1).
 func _build_horizon() -> void:
-	Horizon.build(self, GameConfig.DIORAMA_PLATE.length() * 0.86, 20260826)
+	Horizon.build(self, GameConfig.DIORAMA_PLATE.length() * 0.86, 20260826,
+		true, GameConfig.DIORAMA_COUNTRY)
 	# The hub is where the sky is actually ON SCREEN — a third of the frame,
 	# against five degrees in a yard. Clouds and birds earn their place here
 	# first (G14.2).

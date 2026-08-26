@@ -45,7 +45,10 @@ func _ready() -> void:
 	_build_clouds()
 	# G13.1: distant hills and rooftops in EVERY yard, not just the hub's
 	# diorama. Every chapter used to end at a fog wall with nothing behind it.
-	Horizon.build(self, GameConfig.HORIZON_RADIUS, _rng.randi())
+	# The country between the fence and the hills is the horizon's job now, and
+	# it takes the palette's colour so a wheat yard is not ringed in green.
+	Horizon.build(self, GameConfig.HORIZON_RADIUS, _rng.randi(), true,
+		_country_tint())
 	# A harvest stands inside the town's crop; a search does not (G13.6).
 	if _variant != null and _variant.is_harvest():
 		_build_crop_field()
@@ -234,27 +237,9 @@ func _ao_blob(parent: Node3D, size: Vector2, pos: Vector3, alpha := 1.0) -> Mesh
 ## Dirt apron under everything that is not lawn — without it the house, road
 ## and porch float over the sky.
 func _build_yard() -> void:
-	_build_meadow()
 	var dirt := _tex_mat("dirt", "dirt_albedo", Color(0.38, 0.28, 0.18), 1.0,
 		Vector3(14.0, 12.0, 1.0))
 	_ground_quad(self, Vector2(90.0, 76.0), dirt, Vector3(0.0, -0.04, 6.0))
-
-
-## Open country out to the horizon ring. The dirt apron ends at 45 units and
-## used to be the last thing in the world; past it the ground simply stopped and
-## the yard sat on a brown island. This is one quad, unlit by choice — at that
-## distance a lit plane only shows the sun's angle as a flat wash.
-func _build_meadow() -> void:
-	var pal := GameConfig.grass_palette()
-	var far: Color = (pal["ground_mowed"] as Array)[0]
-	# Duller and greyer than the lawn: the country is not a second garden.
-	var tint := far.lerp(GameConfig.MEADOW_GREY, GameConfig.MEADOW_FADE)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = tint
-	mat.roughness = 1.0
-	mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
-	_ground_quad(self, Vector2(GameConfig.MEADOW_SIZE, GameConfig.MEADOW_SIZE),
-		mat, Vector3(0.0, -0.09, 0.0))
 
 
 # ---------------------------------------------------------------- house (§12)
@@ -926,6 +911,13 @@ func _build_clouds() -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		_clouds.append({ "node": mi, "base_x": base_x, "phase": _rng.randf() * TAU })
+
+
+## Duller and greyer than the lawn: the country is not a second garden.
+func _country_tint() -> Color:
+	var pal := GameConfig.grass_palette()
+	var far: Color = (pal["ground_mowed"] as Array)[0]
+	return far.lerp(GameConfig.MEADOW_GREY, GameConfig.MEADOW_FADE)
 
 
 # ---------------------------------------------------------------- G9 variants

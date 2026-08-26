@@ -1462,6 +1462,8 @@ const BIRD_COLOUR := Color(0.26, 0.28, 0.30, 0.70)
 ## `SPREAD` is the half-angle either side of the view direction, `DIST` how far
 ## out along it, and `DROP` how far below the camera's own height they sit —
 ## which is what decides where on the screen they land.
+## The grass the town's own country is made of, matched to the plate's turf.
+const DIORAMA_COUNTRY := Color(0.34, 0.44, 0.27)
 const DIORAMA_CLOUD_COUNT := 11
 ## The camera's horizontal half-angle is 24 degrees (fov 48, keep-width), so a
 ## 38 degree spread threw most of the clouds off the sides before height was
