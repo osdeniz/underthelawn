@@ -319,22 +319,31 @@ func _show_page(page: Control) -> void:
 ## a visible locked door tells the player the game is bigger than this screen.
 func _build_tiles() -> Control:
 	var page := _new_page()
-	var column := VBoxContainer.new()
-	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	column.offset_left = 60
-	column.offset_right = -60
+	# The column scrolls. It used to be a bare VBox, and the moment a tile was
+	# added to it — the harvest door — the last card fell off the bottom of the
+	# screen with no way to reach it.
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 60
+	scroll.offset_right = -60
 	# Low on the screen: the art's subject is mid-frame, and cards parked over it
 	# hid the whole square.
-	column.anchor_top = 0.52
-	column.offset_top = 0
-	column.offset_bottom = -110
+	scroll.anchor_top = 0.52
+	scroll.offset_top = 0
+	scroll.offset_bottom = -110
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	page.add_child(scroll)
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.alignment = BoxContainer.ALIGNMENT_END
 	column.add_theme_constant_override("separation", 28)
-	page.add_child(column)
+	scroll.add_child(column)
 
 	for tile: Dictionary in Story.list("hub.tiles"):
 		column.add_child(_make_tile(tile))
 	page.set_meta("column", column)
+	_add_harvest_tile(column)
 
 	var story := Button.new()
 	story.text = tr("UI_STORY")
@@ -347,6 +356,36 @@ func _build_tiles() -> Control:
 		replay_intro_requested.emit())
 	column.add_child(story)
 	return page
+
+
+## The harvest's door on the hub itself. Gus's radio card says it once and
+## fades; the map badge is two screens in. An open invitation needs somewhere
+## it can always be found, so it sits with the other tiles in its own gold
+## (G13.6). Removed again the moment the field has been brought in.
+func _add_harvest_tile(column: VBoxContainer) -> void:
+	if not HarvestLog.is_offered():
+		return
+	var tile := Button.new()
+	tile.name = "HarvestTile"
+	tile.custom_minimum_size = Vector2(0, 190)
+	tile.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tile.add_theme_font_size_override("font_size", 46)
+	tile.add_theme_color_override("font_color", Color(0.16, 0.12, 0.05))
+	tile.text = "%s\n%s" % [tr("HARVEST_TAB"), tr("HARVEST_PLACE")]
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = GameConfig.HARVEST_GOLD
+	skin.set_corner_radius_all(20)
+	skin.set_content_margin_all(22)
+	skin.border_color = Color(0.42, 0.30, 0.08)
+	skin.set_border_width_all(3)
+	for state: String in ["normal", "hover", "pressed", "focus"]:
+		tile.add_theme_stylebox_override(state, skin)
+	tile.pressed.connect(func() -> void:
+		Haptics.light()
+		open_map_at(GameConfig.HARVEST_VARIANT))
+	column.add_child(tile)
+	column.move_child(tile, 0)
 
 
 ## Buttons over an illustration need an explicit ground: the default theme's
@@ -1297,6 +1336,7 @@ func _refresh_tiles() -> void:
 		child.queue_free()
 	for tile: Dictionary in Story.list("hub.tiles"):
 		column.add_child(_make_tile(tile))
+	_add_harvest_tile(column)
 	var story := Button.new()
 	story.text = tr("UI_STORY")
 	story.custom_minimum_size = Vector2(0, 110)

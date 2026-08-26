@@ -2198,6 +2198,21 @@ harness that cannot fail is worse than no harness — the limiter is now a small
 `kill`-based script, and a suite with no verdict line prints `??` rather than
 passing by default.
 
+### G13.6b — two lists that could not be reached
+
+The completion panel's card was a fixed 980x870 box with a VBox in it: the
+moment the case notes ran to two lines, RESTART fell off the bottom of the
+phone with no way to scroll to it. The hub's tile column had the same shape and
+broke the same way as soon as the harvest tile was added to it. Both are
+ScrollContainers now, with the content still centred (completion) and still
+bottom-aligned (hub) when it is short enough to fit.
+
+**The harvest also needed a door.** Gus's radio card says it once and fades,
+and the gold map badge is two screens in — neither is somewhere a player can go
+looking. While the invitation is open there is now a gold HARVEST tile at the
+top of the hub, and `focus_place` knows the harvest is not a case place: it
+pans to the farm and opens the field's own sheet.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

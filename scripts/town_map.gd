@@ -185,7 +185,12 @@ func show_layer(which: int, animate := true) -> void:
 func focus_place(variant_id: String) -> void:
 	_selected = variant_id
 	show_layer(Layer.TOWN, _layer == Layer.WORLD)
-	if GameConfig.MAP_PLACES.has(variant_id):
+	if variant_id == GameConfig.HARVEST_VARIANT:
+		# The harvest is not a case place, so it has no route slot to focus:
+		# pan to the farm and open its own sheet (G13.6).
+		_pan_to(GameConfig.MAP_BUILDINGS["farm"]["at"] as Vector2)
+		_open_harvest_panel()
+	elif GameConfig.MAP_PLACES.has(variant_id):
 		# Bring the place into view before opening its sheet, or the panel talks
 		# about a pin that is off the side of the screen.
 		_pan_to(GameConfig.MAP_PLACES[variant_id] as Vector2)
