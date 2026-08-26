@@ -1904,6 +1904,40 @@ painted art.
 
 Frames: `docs/g135/`.
 
+#### The painted sheets
+
+`textures/map/world_map.png` and `town_map.png` arrived hand-painted and are now
+what the screen uses; `MapArt`'s generated versions stay as the fallback and are
+skipped entirely when a sheet is found, so the art is never drawn over.
+
+**They are 3:2, and the game is portrait.** The two layers want opposite things
+about that, which is why they no longer share a rule:
+
+* The REGION is FITTED and centred. That layer's whole job is "the world is
+  large and you are one dot in it", so it has to be seen whole. Filling the
+  screen with it put the town half off the left edge and the light in the east
+  out of frame entirely.
+* The TOWN is FILLED and DRAGGED. Letterboxed, it was 40 % of a portrait screen
+  and unreadable. It now covers the screen and pans under the finger, clamped so
+  no edge ever shows paper — which is what a map screen on a phone does anyway.
+  Opening it centres the sheet; `focus_place` pans to the pin before opening its
+  panel, so the sheet never talks about something off-screen.
+
+Around both, a dim parchment "desk" fills whatever the sheet does not, so the
+letterbox reads as the table the map is lying on. Pin labels sit on small paper
+plates: over painted trees a drop shadow was not enough to keep a name legible.
+
+**Case 1's route bends, and the test now says so.** The first rule demanded a
+strictly increasing x — every place further east than the last. The painted map
+does not allow it: the greenhouse is drawn on the WEST side of town, and moving
+that pin off the building it is named after would be a worse lie than a detour.
+`MapCheck` asserts what actually matters instead — the case ends far east of
+where it started, and the last three places are all past x 0.7. A real trail
+doubles back; what matters is where it arrives.
+
+Both sheets import at `compress/mode=2`. At the lossless default the pair cost
+12 MB of VRAM; compressed they cost about 1.5 MB.
+
 ## Sprint G14 — desktop (Steam) input and layout
 
 Keyboard driving, and the layout work a portrait phone game needs before it can

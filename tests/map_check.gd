@@ -22,15 +22,25 @@ func _ready() -> void:
 		var id := str((chapter_any as Dictionary).get("variant_id", ""))
 		ck("yeri var: %s" % id, GameConfig.MAP_PLACES.has(id), "")
 
-	# Case 1 must read west to east: that line is Ellie's route.
-	var previous := -1.0
-	var eastward := true
-	for id_any: Variant in GameConfig.MAP_PLACES.keys():
-		var at: Vector2 = GameConfig.MAP_PLACES[id_any]
-		if at.x <= previous:
-			eastward = false
-		previous = at.x
-	ck("rota batidan doguya okunur", eastward, "x sirasi bozuk")
+	# Case 1 must END east of where it STARTED, and finish in the far east.
+	#
+	# The first version demanded a strictly increasing x — every place further
+	# east than the last. The painted map does not allow it: the greenhouse is
+	# drawn on the west side of the town, and moving that pin off the building
+	# it is named after would be worse than a detour in the route. A real trail
+	# doubles back; what matters is that it ARRIVES in the east.
+	var route: Array = GameConfig.MAP_PLACES.keys()
+	var first: Vector2 = GameConfig.MAP_PLACES[route[0]]
+	var last: Vector2 = GameConfig.MAP_PLACES[route[route.size() - 1]]
+	ck("rota doguda bitiyor", last.x > first.x + 0.35,
+		"basla=%.2f bitis=%.2f" % [first.x, last.x])
+	# The last three places are the eastern edge of the map: the case leaves
+	# town, and that is the shape the player should feel.
+	var eastern := 0
+	for i in range(route.size() - 3, route.size()):
+		if (GameConfig.MAP_PLACES[route[i]] as Vector2).x > 0.7:
+			eastern += 1
+	ck("son uc mekan doguda", eastern == 3, "%d/3" % eastern)
 
 	# Exactly one pin is the active one, and it is the first unfinished place.
 	map.refresh()

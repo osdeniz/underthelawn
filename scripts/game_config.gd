@@ -1227,32 +1227,32 @@ const RESTORE_CAM_DISTANCE := 13.0
 ## then the neighbour, the square, the creek, and out past the greenhouse to the
 ## mill and the cellar. That line IS Ellie's route, drawn without a word.
 const MAP_PLACES := {
-	"ch01_aldridge": Vector2(0.20, 0.70),
-	"ch02_neighbor": Vector2(0.30, 0.64),
-	"ch03_playground": Vector2(0.42, 0.56),
-	"ch04_flooded": Vector2(0.52, 0.68),
-	"ch05_greenhouse": Vector2(0.64, 0.58),
-	"ch06_watertower": Vector2(0.74, 0.40),
-	"ch07_mill": Vector2(0.85, 0.31),
-	"ch08_cellar": Vector2(0.90, 0.20),
+	"ch01_aldridge": Vector2(0.25, 0.73),
+	"ch02_neighbor": Vector2(0.37, 0.84),
+	"ch03_playground": Vector2(0.47, 0.54),
+	"ch04_flooded": Vector2(0.41, 0.69),
+	"ch05_greenhouse": Vector2(0.17, 0.31),
+	"ch06_watertower": Vector2(0.85, 0.38),
+	"ch07_mill": Vector2(0.83, 0.14),
+	"ch08_cellar": Vector2(0.92, 0.26),
 }
 ## Restored buildings that appear on the town map as small icons, and which
 ## screen each one opens.
 const MAP_BUILDINGS := {
-	"station": {"at": Vector2(0.37, 0.45), "opens": "case_board"},
-	"homes": {"at": Vector2(0.50, 0.41), "opens": "town"},
-	"watchtower": {"at": Vector2(0.60, 0.27), "opens": "town"},
-	"clinic": {"at": Vector2(0.30, 0.50), "opens": "town"},
-	"greenhouse": {"at": Vector2(0.66, 0.52), "opens": "town"},
-	"farm": {"at": Vector2(0.78, 0.52), "opens": "town"},
-	"barn": {"at": Vector2(0.84, 0.58), "opens": "town"},
-	"mast": {"at": Vector2(0.24, 0.36), "opens": "workshop"},
-	"lantern": {"at": Vector2(0.46, 0.48), "opens": "town"},
-	"swing": {"at": Vector2(0.43, 0.47), "opens": "town"},
+	"station": {"at": Vector2(0.56, 0.30), "opens": "case_board"},
+	"homes": {"at": Vector2(0.63, 0.55), "opens": "town"},
+	"watchtower": {"at": Vector2(0.85, 0.38), "opens": "town"},
+	"clinic": {"at": Vector2(0.28, 0.24), "opens": "town"},
+	"greenhouse": {"at": Vector2(0.17, 0.31), "opens": "town"},
+	"farm": {"at": Vector2(0.13, 0.45), "opens": "town"},
+	"barn": {"at": Vector2(0.84, 0.78), "opens": "town"},
+	"mast": {"at": Vector2(0.72, 0.22), "opens": "workshop"},
+	"lantern": {"at": Vector2(0.50, 0.46), "opens": "town"},
+	"swing": {"at": Vector2(0.45, 0.44), "opens": "town"},
 }
 ## The town's own spot on the world map, and the far light in the east.
-const MAP_TOWN_AT := Vector2(0.36, 0.56)
-const MAP_FAR_LIGHT := Vector2(0.86, 0.44)
+const MAP_TOWN_AT := Vector2(0.27, 0.50)
+const MAP_FAR_LIGHT := Vector2(0.90, 0.32)
 
 const MAP_INK := Color(0.30, 0.22, 0.15)
 const MAP_INK_FAINT := Color(0.42, 0.34, 0.26, 0.55)
@@ -1267,3 +1267,8 @@ const MAP_PIN_LOCKED := Color(0.52, 0.50, 0.46)
 ## answer on paper (G13.4).
 const MAP_RECLAIM_RADIUS := 0.085
 const MAP_ZOOM_SECONDS := 0.45
+## The painted sheets are 3:2. On a portrait screen the map keeps that shape and
+## is centred, rather than being cropped to a narrow strip — the greenhouse and
+## the water tower live at the left and right edges and would be the first
+## things lost (G13.5).
+const MAP_SHEET_ASPECT := 1.5

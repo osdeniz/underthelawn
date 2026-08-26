@@ -26,13 +26,38 @@ var _pulse := 0.0
 var _clouds := 0.0
 ## Filled once per layout so _draw and the pin buttons agree on the map rect.
 var _map_rect := Rect2()
+## True when hand-painted sheets were found. The generated roads, creek, hills
+## and fog are then NOT drawn: the art already has them, and drawing over it
+## would be two maps at once (G13.5).
+var _painted := false
+## How far the sheet has been dragged. Zero is the top-left corner on screen.
+var _pan := Vector2.ZERO
+var _drag_finger := -1
+var _drag_from := Vector2.ZERO
+var _drag_pan := Vector2.ZERO
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	clip_contents = true
+	_painted = TextureLibrary.find("map/town_map") != null
+	if _painted:
+		var desk := TextureRect.new()
+		desk.name = "Desk"
+		desk.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		desk.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		desk.stretch_mode = TextureRect.STRETCH_SCALE
+		desk.texture = MapArt.parchment(256, 2211)
+		desk.modulate = Color(0.62, 0.56, 0.44)
+		desk.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(desk)
 	_build_world()
 	_build_town()
+	# Lay the sheets out before the first frame: _ready never called this, so
+	# until something triggered a refresh both layers used their unpositioned
+	# full-rect size and the region came out cropped.
+	_layout_sheets()
+	_update_world()
 	show_layer(Layer.WORLD, false)
 	set_process(true)
 
@@ -41,8 +66,80 @@ func _ready() -> void:
 func refresh() -> void:
 	if _town == null:
 		return
+	_layout_sheets()
 	_build_pins()
 	_update_world()
+
+
+## The painted sheets are 3:2; a portrait screen keeps that shape and centres it.
+## Both layers and every pin are placed inside THIS rect, so the art and the
+## marks on it can never drift apart.
+## The region sheet is FITTED, the town sheet is FILLED.
+##
+## They want opposite things: the region has to be seen whole — that layer's
+## entire job is "the world is large and you are one dot in it" — while the town
+## is a working surface and has to be big enough to read. Sharing one rule left
+## the region cropped with the light in the east off the screen (G13.5).
+func _world_rect() -> Rect2:
+	if not _painted:
+		return Rect2(Vector2.ZERO, size)
+	var width := size.x
+	var height := width / GameConfig.MAP_SHEET_ASPECT
+	if height > size.y:
+		height = size.y
+		width = height * GameConfig.MAP_SHEET_ASPECT
+	return Rect2(Vector2((size.x - width) * 0.5, (size.y - height) * 0.5),
+		Vector2(width, height))
+
+
+func _sheet_rect() -> Rect2:
+	if not _painted:
+		return Rect2(Vector2.ZERO, size)
+	# FILLS the screen rather than fitting inside it: a 3:2 sheet letterboxed
+	# into a portrait screen was only 40% of it, with the town too small to read
+	# and two bands of empty desk. It is scaled to cover and dragged instead —
+	# which is what every map screen on a phone does (G13.5).
+	var width := size.x
+	var height := width / GameConfig.MAP_SHEET_ASPECT
+	if height < size.y:
+		height = size.y
+		width = height * GameConfig.MAP_SHEET_ASPECT
+	return Rect2(_pan, Vector2(width, height))
+
+
+## Keeps the dragged sheet from leaving a gap at any edge.
+func _clamp_pan() -> void:
+	var sheet := _sheet_rect().size
+	_pan.x = clampf(_pan.x, minf(0.0, size.x - sheet.x), 0.0)
+	_pan.y = clampf(_pan.y, minf(0.0, size.y - sheet.y), 0.0)
+
+
+## Centres the sheet on a point given in sheet fractions.
+func _pan_to(at: Vector2) -> void:
+	var sheet := _sheet_rect().size
+	_pan = size * 0.5 - sheet * at
+	_clamp_pan()
+	refresh()
+
+
+## Puts both sheets in the centred rect. Stretch mode becomes KEEP_ASPECT so the
+## art is never cropped: COVERED cut the greenhouse and the water tower off the
+## sides, which are the two edge landmarks the case needs.
+func _layout_sheets() -> void:
+	_map_rect = _sheet_rect()
+	for entry: Array in [[_world, _world_rect()], [_town, _sheet_rect()]]:
+		var host := entry[0] as Control
+		if host == null:
+			continue
+		var box := entry[1] as Rect2
+		for child in host.get_children():
+			var sheet := child as TextureRect
+			if sheet == null:
+				continue
+			sheet.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			sheet.position = box.position
+			sheet.size = box.size
+			sheet.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 
 
 # ---------------------------------------------------------------- layers
@@ -76,6 +173,8 @@ func show_layer(which: int, animate := true) -> void:
 		GameConfig.MAP_ZOOM_SECONDS)
 	tween.chain().tween_callback(func() -> void: hiding.visible = false)
 	if which == Layer.TOWN:
+		if _painted and _pan == Vector2.ZERO:
+			_pan_to(Vector2(0.5, 0.5))
 		Analytics.track("map_opened", {})
 	else:
 		Analytics.track("world_map_viewed", {})
@@ -86,9 +185,13 @@ func show_layer(which: int, animate := true) -> void:
 func focus_place(variant_id: String) -> void:
 	_selected = variant_id
 	show_layer(Layer.TOWN, _layer == Layer.WORLD)
-	refresh()
 	if GameConfig.MAP_PLACES.has(variant_id):
+		# Bring the place into view before opening its sheet, or the panel talks
+		# about a pin that is off the side of the screen.
+		_pan_to(GameConfig.MAP_PLACES[variant_id] as Vector2)
 		_open_panel(variant_id)
+	else:
+		refresh()
 
 
 # ---------------------------------------------------------------- world layer
@@ -166,7 +269,11 @@ func _build_world() -> void:
 
 ## Coast, roads, the fog over everywhere that is not ours, and one far light.
 func _draw_world(canvas: Control) -> void:
-	var rect := Rect2(Vector2.ZERO, canvas.size)
+	var rect := _world_rect()
+	if _painted:
+		# The painted region sheet already has its coast, hills, fog and the
+		# light in the east. Nothing is drawn over it.
+		return
 	MapArt.draw_region(canvas, rect, _clouds)
 	var town := rect.position + rect.size * GameConfig.MAP_TOWN_AT
 	# Our region: a clear ring around the town, everything else washed out.
@@ -200,7 +307,8 @@ func _update_world() -> void:
 		return
 	var button := _world.get_node_or_null("TownButton") as Control
 	if button != null:
-		var at := size * GameConfig.MAP_TOWN_AT
+		var box := _world_rect()
+		var at := box.position + box.size * GameConfig.MAP_TOWN_AT
 		button.position = at - button.custom_minimum_size * 0.5
 		button.size = button.custom_minimum_size
 
@@ -258,9 +366,10 @@ func _build_town() -> void:
 ## diorama: the square in the middle, paths radiating from it, the creek
 ## crossing the low ground where the flooded lot sits.
 func _draw_town(canvas: Control) -> void:
-	var rect := Rect2(Vector2.ZERO, canvas.size)
+	var rect := _sheet_rect()
 	_map_rect = rect
-	MapArt.draw_town(canvas, rect, _clouds)
+	if not _painted:
+		MapArt.draw_town(canvas, rect, _clouds)
 	# Finished places brighten the paper around them: the reclaimed band's
 	# answer on paper (G13.4).
 	for id: String in GameConfig.MAP_PLACES:
@@ -290,7 +399,7 @@ func _build_pins() -> void:
 	for child in host.get_children():
 		host.remove_child(child)
 		child.queue_free()
-	var rect := Rect2(Vector2.ZERO, size)
+	var rect := _sheet_rect()
 
 	# Restored buildings first, so a case pin is always on top of them.
 	for id: String in GameConfig.MAP_BUILDINGS:
@@ -298,7 +407,8 @@ func _build_pins() -> void:
 			continue
 		var spec: Dictionary = GameConfig.MAP_BUILDINGS[id]
 		var mark := _building_mark(id, str(spec["opens"]))
-		mark.position = rect.size * (spec["at"] as Vector2) - Vector2(30, 30)
+		mark.position = rect.position + rect.size * (spec["at"] as Vector2) \
+			- Vector2(30, 30)
 		host.add_child(mark)
 
 	var order: Array = GameConfig.MAP_PLACES.keys()
@@ -306,8 +416,8 @@ func _build_pins() -> void:
 	for id_any: Variant in order:
 		var id := str(id_any)
 		var pin := _place_pin(id, id == next_id)
-		pin.position = rect.size * (GameConfig.MAP_PLACES[id] as Vector2) \
-			- Vector2(44, 62)
+		pin.position = rect.position \
+			+ rect.size * (GameConfig.MAP_PLACES[id] as Vector2) - Vector2(44, 62)
 		host.add_child(pin)
 
 
@@ -353,10 +463,18 @@ func _place_pin(variant_id: String, is_next: bool) -> Button:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.custom_minimum_size = Vector2(200, 0)
 	label.position = Vector2(-56, 86)
-	label.add_theme_font_size_override("font_size", 24)
-	label.add_theme_color_override("font_color", GameConfig.MAP_INK)
-	label.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.7))
-	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.add_theme_font_size_override("font_size", 26)
+	label.add_theme_color_override("font_color", Color(0.13, 0.11, 0.09))
+	# On painted ground a drop shadow is not enough — the name needs its own
+	# patch of paper under it or it disappears into the trees.
+	var plate := StyleBoxFlat.new()
+	plate.bg_color = Color(0.90, 0.84, 0.68, 0.86)
+	plate.set_corner_radius_all(8)
+	plate.content_margin_left = 10.0
+	plate.content_margin_right = 10.0
+	plate.content_margin_top = 3.0
+	plate.content_margin_bottom = 3.0
+	label.add_theme_stylebox_override("normal", plate)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pin.add_child(label)
 	return pin
@@ -523,6 +641,27 @@ func _place_name(variant_id: String) -> String:
 		if str(chapter.get("variant_id", "")) == variant_id:
 			return str(chapter.get("name", variant_id))
 	return variant_id
+
+
+## Dragging the sheet. Pins are buttons and take their own presses, so this only
+## ever sees a touch that started on open paper.
+func _gui_input(event: InputEvent) -> void:
+	if not _painted or _layer != Layer.TOWN:
+		return
+	var touch := event as InputEventScreenTouch
+	if touch != null:
+		if touch.pressed and _drag_finger < 0:
+			_drag_finger = touch.index
+			_drag_from = touch.position
+			_drag_pan = _pan
+		elif not touch.pressed and touch.index == _drag_finger:
+			_drag_finger = -1
+		return
+	var drag := event as InputEventScreenDrag
+	if drag != null and drag.index == _drag_finger:
+		_pan = _drag_pan + (drag.position - _drag_from)
+		_clamp_pan()
+		refresh()
 
 
 # ---------------------------------------------------------------- life
