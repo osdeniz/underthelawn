@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bn7gk8vq8p1bt"
-path.s3tc="res://.godot/imported/stranger.jpg-57e62aa3d4378f9ef5ecb134c0fba0d1.s3tc.ctex"
-path.etc2="res://.godot/imported/stranger.jpg-57e62aa3d4378f9ef5ecb134c0fba0d1.etc2.ctex"
+path="res://.godot/imported/stranger.jpg-57e62aa3d4378f9ef5ecb134c0fba0d1.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://textures/portraits/stranger.jpg"
-dest_files=["res://.godot/imported/stranger.jpg-57e62aa3d4378f9ef5ecb134c0fba0d1.s3tc.ctex", "res://.godot/imported/stranger.jpg-57e62aa3d4378f9ef5ecb134c0fba0d1.etc2.ctex"]
+dest_files=["res://.godot/imported/stranger.jpg-57e62aa3d4378f9ef5ecb134c0fba0d1.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dbc30pw7pt7oa"
-path.s3tc="res://.godot/imported/town_map.png-ef4facf69a627e2eb6ae8cf5f3ddc554.s3tc.ctex"
-path.etc2="res://.godot/imported/town_map.png-ef4facf69a627e2eb6ae8cf5f3ddc554.etc2.ctex"
+path="res://.godot/imported/town_map.png-ef4facf69a627e2eb6ae8cf5f3ddc554.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://textures/map/town_map.png"
-dest_files=["res://.godot/imported/town_map.png-ef4facf69a627e2eb6ae8cf5f3ddc554.s3tc.ctex", "res://.godot/imported/town_map.png-ef4facf69a627e2eb6ae8cf5f3ddc554.etc2.ctex"]
+dest_files=["res://.godot/imported/town_map.png-ef4facf69a627e2eb6ae8cf5f3ddc554.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

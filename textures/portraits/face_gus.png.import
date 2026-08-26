@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vpmg5h6i58fu"
-path.s3tc="res://.godot/imported/face_gus.png-4e76189d44fa98e0480193da44920a4e.s3tc.ctex"
-path.etc2="res://.godot/imported/face_gus.png-4e76189d44fa98e0480193da44920a4e.etc2.ctex"
+path="res://.godot/imported/face_gus.png-4e76189d44fa98e0480193da44920a4e.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://textures/portraits/face_gus.png"
-dest_files=["res://.godot/imported/face_gus.png-4e76189d44fa98e0480193da44920a4e.s3tc.ctex", "res://.godot/imported/face_gus.png-4e76189d44fa98e0480193da44920a4e.etc2.ctex"]
+dest_files=["res://.godot/imported/face_gus.png-4e76189d44fa98e0480193da44920a4e.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

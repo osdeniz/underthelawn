@@ -3,21 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bntd2l50bxw13"
-path.s3tc="res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.s3tc.ctex"
-path.etc2="res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.etc2.ctex"
+path="res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://textures/portraits/ellie.jpg"
-dest_files=["res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.s3tc.ctex", "res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.etc2.ctex"]
+dest_files=["res://.godot/imported/ellie.jpg-9d4bd4a6dff893838001f63fab2328d1.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -9,9 +9,14 @@ var _fails := 0
 const WORLD_TEXTURES := ["grass_albedo", "grass_normal", "dirt_albedo",
 	"asphalt_albedo", "siding_albedo", "roof_shingles_albedo", "wood_albedo",
 	"bark_albedo"]
-## Above this many pixels a texture must be VRAM compressed. Lossless costs
-## w*h*4 bytes of VRAM; the restore layers alone were ~100 MB.
-const COMPRESS_ABOVE := 256 * 256
+## Photographic art — faces, story cards, the maps — stays LOSSLESS: VRAM
+## compression shows on skin and on smooth gradients before anywhere else, and
+## that is most of what these pictures are. They pay for it by being no larger
+## than they are drawn, which is the cheaper half of the same trade.
+const SCREEN_LONGEST := 2100
+## Tiling world textures are a different case: compression is invisible on them
+## and they are sampled constantly, so they must be compressed.
+const WORLD_MUST_COMPRESS := true
 
 
 func _ready() -> void:
@@ -19,6 +24,7 @@ func _ready() -> void:
 	ck("doku bulundu", files.size() > 20, "%d dosya" % files.size())
 
 	var uncompressed: Array = []
+	var oversize: Array = []
 	var no_mipmap: Array = []
 	for path: String in files:
 		var text := FileAccess.get_file_as_string(path)
@@ -27,15 +33,21 @@ func _ready() -> void:
 		var image := Image.new()
 		if image.load(source) != OK:
 			continue
-		if image.get_width() * image.get_height() > COMPRESS_ABOVE \
-				and not text.contains("compress/mode=2"):
-			uncompressed.append("%s (%dx%d)" % [stem, image.get_width(),
+		var longest := maxi(image.get_width(), image.get_height())
+		# A picture larger than it is ever drawn is VRAM spent on pixels nobody
+		# sees — the story cards were 1536x2752 on a 1170-wide screen.
+		if longest > SCREEN_LONGEST:
+			oversize.append("%s (%dx%d)" % [stem, image.get_width(),
 				image.get_height()])
+		if WORLD_TEXTURES.has(stem) and not text.contains("compress/mode=2"):
+			uncompressed.append(stem)
 		if WORLD_TEXTURES.has(stem) and not text.contains("mipmaps/generate=true"):
 			no_mipmap.append(stem)
 
-	ck("buyuk dokular VRAM sikistirmali", uncompressed.is_empty(),
+	ck("3B dokular VRAM sikistirmali", uncompressed.is_empty(),
 		", ".join(uncompressed))
+	ck("hicbir gorsel ekrandan buyuk degil", oversize.is_empty(),
+		", ".join(oversize))
 	ck("3B dokularda mipmap var", no_mipmap.is_empty(), ", ".join(no_mipmap))
 
 	# The same picture in two formats ships both and only the first is ever

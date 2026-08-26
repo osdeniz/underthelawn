@@ -2062,6 +2062,40 @@ one texture and watching it fail. Audio was already QOA-compressed at 2.3 MB.
 tile-based GPUs phones use, and dropping it is a visual-quality call rather than
 a correctness one — worth revisiting only if a real device says so.
 
+### G14.3 — the restore layers are gone, and quality came back
+
+Two corrections to the audit above.
+
+**The collage layers were deleted, not shrunk.** Ten `restore_*.png` existed to
+paint a finished building onto the 2D hub — a job the 3D diorama does now, and
+`_apply_restore_layers` returns before drawing them in diorama mode anyway.
+Legacy mode is NOT broken by their absence: it already fell back to a small
+house badge per project when the art was missing. 7 MB of package for a picture
+of a barn that nothing was going to draw.
+
+**The compression pass went too far, and it showed.** Portraits, story cards and
+the maps were all switched to VRAM compression in G14.2, which is exactly the
+wrong trade for photographic art: compression artefacts appear on skin and on
+smooth gradients before anywhere else, and that is most of what those pictures
+are. They are LOSSLESS again.
+
+The VRAM is paid for the other way instead — by size. Nothing is now larger than
+it is drawn: the story cards were 1536x2752 on a 1170-wide screen, the dialogue
+portraits 860x1528 for a half-screen frame, the round faces 320px for a 96px
+circle. Downscaling to display size keeps every pixel perfect AND costs less
+than squashing an oversized image ever did.
+
+| | G14.2 | now |
+| --- | --- | --- |
+| Textures on disk | 32 MB | 13 MB |
+| Photographic art | VRAM compressed | lossless, display-sized |
+
+Tiling world textures stay compressed with mipmaps — compression is invisible on
+them and they are sampled constantly. `AssetCheck` now enforces the two rules
+separately: world textures must be compressed, and NOTHING may exceed the
+screen's longest edge. The old rule ("everything above 256x256 must be
+compressed") was wrong and would have blocked this fix.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
