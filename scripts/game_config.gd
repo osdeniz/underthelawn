@@ -1071,6 +1071,8 @@ const DIORAMA_BEVEL := 2.4
 const DIORAMA_BEVEL_DROP := 1.6
 ## The hub does not need 60: it is a still scene behind menus.
 const DIORAMA_FPS := 30
+## Writes draw-call, triangle and frame-rate lines to the console on hub entry.
+const PERF_LOG := true
 
 ## Framed for a PORTRAIT screen. Godot measures fov vertically by default, and
 ## at 1170x2532 that leaves a ~20 degree horizontal window — the two side

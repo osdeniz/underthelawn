@@ -11,6 +11,8 @@ func _ready() -> void:
 	var hub := HubScreen.new()
 	add_child(hub)
 	await get_tree().process_frame
+	# root.gd does this on every hub entry; the test stands in for it.
+	hub.set_diorama_active(true)
 	hub._on_tile("restore", false)
 	for _i in 10:
 		await get_tree().process_frame

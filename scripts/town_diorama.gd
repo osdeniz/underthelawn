@@ -52,6 +52,10 @@ var _ellie_swing: Node3D
 ## A restore card is being held down, and the camera is showing its plot.
 var _peek := false
 var _peek_id := ""
+## Static subtrees waiting to be welded into one mesh per material (G13.6).
+var _bake_targets: Array = []
+## Which subtrees have already been welded; baking is one-way.
+var _baked: Dictionary = {}
 var _life_t := 0.0
 
 
@@ -69,6 +73,35 @@ func _ready() -> void:
 	_build_tufts()
 	_build_figures()
 	refresh_state()
+	_bake_static()
+
+
+## Welds every static subtree, then says what it cost. Runs after the scene is
+## built and after each rebuild finishes (G13.6).
+func _bake_static() -> void:
+	var saved := 0
+	for target_any: Variant in _bake_targets:
+		var node := target_any as Node3D
+		if node != null and is_instance_valid(node):
+			saved += MeshBake.bake(node)
+	_bake_targets.clear()
+	# The ruined forms never animate part by part — they sink as one node — so
+	# they can be welded immediately.
+	for id: String in _buildings:
+		var ruined := _buildings[id]["ruined"] as Node3D
+		if ruined != null and is_instance_valid(ruined) \
+				and not _baked.has("ruin_" + id):
+			saved += MeshBake.bake(ruined)
+			_baked["ruin_" + id] = true
+		# A restored form that is already standing has no animation left to
+		# play, so it can be welded too.
+		var restored := _buildings[id]["restored"] as Node3D
+		if restored != null and is_instance_valid(restored) \
+				and restored.visible and not _baked.has("built_" + id):
+			saved += MeshBake.bake(restored)
+			_baked["built_" + id] = true
+	if GameConfig.PERF_LOG and saved > 0:
+		print("[diorama] bake: %d cizim kazanildi" % saved)
 
 
 ## Shows each building in the form its project data says it should be in. Called
@@ -418,17 +451,29 @@ func _build_edge_planting() -> void:
 				Vector3(rng.randf_range(0.85, 1.35), rng.randf_range(0.65, 1.05),
 					rng.randf_range(0.85, 1.35)))
 		_ao_blob(tree, Vector2(3.4, 2.8), Vector3(0.7, 0.03, 0.45), 0.55)
+		# The crown was its own node so it could sway; welded, the whole tree
+		# leans instead, which at this distance is the same picture for a
+		# tenth of the draws.
+		_canopies.pop_back()
+		_canopies.append({"node": tree, "phase": rng.randf() * TAU})
+		_bake_targets.append(tree)
 
+	# All the bushes under ONE node so they weld into a single draw: they do not
+	# move, so nothing is lost by making them one mesh (G13.6).
+	var hedges := Node3D.new()
+	hedges.name = "Hedges"
+	add_child(hedges)
 	for i in GameConfig.DIORAMA_EDGE_BUSHES:
 		var at := _rim_point(rng, half, 0.3, 2.2)
 		var bush := Node3D.new()
 		bush.position = at
-		add_child(bush)
+		hedges.add_child(bush)
 		for b in 3:
 			_ball(bush, rng.randf_range(0.45, 0.8), hedge,
 				Vector3(rng.randf_range(-0.4, 0.4), rng.randf_range(0.2, 0.45),
 					rng.randf_range(-0.4, 0.4)),
 				Vector3(1.2, rng.randf_range(0.6, 0.9), 1.2))
+	_bake_targets.append(hedges)
 
 
 ## A point in the band just inside the plate's rim.
@@ -1316,6 +1361,9 @@ func _dust_quad() -> QuadMesh:
 ## at a blank wall of fog and the town reads as an island (G13.1).
 func _build_horizon() -> void:
 	Horizon.build(self, GameConfig.DIORAMA_PLATE.length() * 0.86, 20260826)
+	var ring := get_node_or_null("Horizon") as Node3D
+	if ring != null:
+		_bake_targets.append(ring)
 
 
 # ---------------------------------------------------------------- the field

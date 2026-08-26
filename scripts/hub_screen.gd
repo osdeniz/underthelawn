@@ -617,6 +617,8 @@ func _process(_delta: float) -> void:
 ## this the diorama would keep drawing behind the yard (G13 §4).
 func set_diorama_active(active: bool) -> void:
 	set_process(active and _diorama_view != null)
+	if active and GameConfig.PERF_LOG:
+		_log_perf()
 	if _diorama_view == null:
 		return
 	_diorama_view.render_target_update_mode = (SubViewport.UPDATE_ONCE if active
@@ -626,6 +628,22 @@ func set_diorama_active(active: bool) -> void:
 			else Node.PROCESS_MODE_DISABLED)
 		if active:
 			_diorama.refresh_state()
+
+
+## Draw calls, triangles and frame rate on hub entry, so the diorama's cost is
+## visible on a real device instead of inferred (GameConfig.PERF_LOG, G13.6).
+## Waits a few frames: the numbers on the first frame after a scene change are
+## the change, not the steady state.
+func _log_perf() -> void:
+	for _i in 6:
+		await get_tree().process_frame
+	var draws := RenderingServer.get_rendering_info(
+		RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
+	var tris := RenderingServer.get_rendering_info(
+		RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
+	print("[hub] cizim=%d ucgen=%d fps=%d bina=%d/%d" % [draws, tris,
+		Engine.get_frames_per_second(), RestoreBoard.built_count(),
+		RestoreBoard.projects().size()])
 
 
 ## A restored building is a shortcut to the screen it stands for (G13 §4).
