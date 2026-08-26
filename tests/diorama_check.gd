@@ -150,11 +150,11 @@ func _check_purchase_screen() -> void:
 	var hub := HubScreen.new()
 	add_child(hub)
 	await get_tree().process_frame
-	hub._on_tile("restore", false, Button.new())
+	hub._on_tile("restore", false)
 	await get_tree().process_frame
 
 	# Buy a building that IS in the diorama, so the transition runs.
-	hub._on_project("station", false, Button.new())
+	hub._on_project("station", false, null)
 	await get_tree().process_frame
 	# THE FAILURE: a node that was on screen when the transition started is gone
 	# before it ends. _apply_restore_layers queue_frees the Restore_* badges the

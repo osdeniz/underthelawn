@@ -1680,6 +1680,30 @@ clinic, mast, farm, barn — have no building in the scene yet. Adding one is a
 `DIORAMA_BUILDINGS` entry plus a ruined/restored builder pair; nothing else.
 The dead oak in the square is where the swing will hang.
 
+### G13.3 — device console
+
+From a session on an A16 device. Most of that log is Godot's own Metal shader
+chatter (`unused variable`, `uninitialized`) and is not ours.
+
+* **Empty Info.plist usage strings.** Xcode flagged
+  `NSPhotoLibraryUsageDescription`, `NSMicrophoneUsageDescription` and
+  `NSCameraUsageDescription` as empty. The game asks for none of them, but Godot
+  writes the keys into Info.plist whether or not they have a value, and an empty
+  string is invalid — App Store Connect rejects it. They now carry a truthful
+  sentence in `export_presets.cfg`.
+* **The blade note on every launch.** `_ensure_all_mowers` printed a line for
+  the blade every time. The blade has no `.tscn` — it is built in code — so it
+  is ALWAYS spawned there and that is expected. The other three do have scenes,
+  so those are still reported, now as `push_warning`.
+* **`Could not vibrate using haptic engine`.** Godot's own iOS message, from
+  `Input.vibrate_handheld`. Our pulses were 10 ms and 25 ms, which came from the
+  desktop-era brief; CoreHaptics does nothing useful with a pulse that short, so
+  they are 20/40 ms now. NOT confirmed as the cause — the same message also
+  appears when the device has System Haptics turned off or Low Power Mode on.
+* `mouse_get_position(): Mouse is not supported` is Godot's own UI code, not a
+  call of ours; `fopen failed for data file` and the CoreMotion plist warning
+  are engine/system noise.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

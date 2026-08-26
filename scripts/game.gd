@@ -175,7 +175,13 @@ func _ensure_all_mowers() -> void:
 				built = (load("res://scenes/Robot.tscn") as PackedScene).instantiate()
 		if built == null:
 			continue
-		print("[Game] sahnede eksik mower koddan eklendi: %s" % GameConfig.MOWER_TYPES[i]["id"])
+		# The blade has no .tscn — it is built entirely in code — so it is ALWAYS
+		# spawned here and that is not worth a line in the console every launch.
+		# The other three do have scenes, so one of those missing is a real
+		# problem (the editor has silently eaten a node before).
+		if i != GameConfig.MOWER_BLADE:
+			push_warning("[Game] sahnede eksik mower koddan eklendi: %s"
+				% GameConfig.MOWER_TYPES[i]["id"])
 		_mower_root.add_child(built)
 		built.model = model
 		built.tuft_field = lawn.tuft_field

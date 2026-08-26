@@ -389,10 +389,15 @@ func _make_tile(tile: Dictionary) -> Button:
 	return button
 
 
-func _on_tile(id: String, locked: bool, button: Button) -> void:
+## `button` is only used to shake a locked tile, so callers that are not a tile
+## press pass nothing. It used to be required, and the diorama shortcut handed
+## it a throwaway `Button.new()` that was never added to the tree and never
+## freed — one leaked CanvasItem per tap (G13.4).
+func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 	if locked:
 		Haptics.light()
-		_shake(button)
+		if button != null:
+			_shake(button)
 		return
 	Haptics.light()
 	match id:
@@ -627,7 +632,7 @@ func _on_diorama_building(project_id: String) -> void:
 		"station":
 			open_evidence_board()
 		"homes":
-			_on_tile("town", false, Button.new())
+			_on_tile("town", false)
 		"watchtower":
 			_restore_note.text = tr("DIORAMA_TOWER_LINE")
 

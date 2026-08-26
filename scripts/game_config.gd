@@ -663,8 +663,11 @@ const AMBIENT_GAIN := 0.18
 
 # ---------------------------------------------------------------- haptics (§15)
 const HAPTIC_ENABLED := true
-const HAPTIC_LIGHT_MS := 10        # cell mown, mower commands
-const HAPTIC_MEDIUM_MS := 25       # secret uncovered
+## iOS drives these through CoreHaptics, which does not do anything useful with
+## a pulse this short; 10/25 ms came from the desktop-era brief. Raised to
+## durations the phone can actually render (G13.3).
+const HAPTIC_LIGHT_MS := 20        # cell mown, mower commands
+const HAPTIC_MEDIUM_MS := 40       # secret uncovered
 ## Secret collected and 100% complete: two medium pulses.
 const HAPTIC_SUCCESS_GAP := 0.08
 

@@ -11,10 +11,10 @@ func _ready() -> void:
 	var hub := HubScreen.new()
 	add_child(hub)
 	await get_tree().process_frame
-	hub._on_tile("restore", false, Button.new())
+	hub._on_tile("restore", false)
 	for _i in 10:
 		await get_tree().process_frame
-	hub._on_project("station", false, Button.new())
+	hub._on_project("station", false, null)
 	await get_tree().create_timer(2.2).timeout
 	await _shoot("g132_mid")
 	await get_tree().create_timer(4.0).timeout
