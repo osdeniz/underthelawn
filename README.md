@@ -2263,6 +2263,19 @@ same convention as `reunion.jpg`, with identical import settings. The card's
 scrim drops from 0.55 to 0.22 on that page — the art is lit by nine candles and
 the readable-text scrim was putting them out.
 
+### G13.6c — the panel nobody had looked at
+
+The harvest's completion panel was never rendered during G13.6; only the parts
+of it that were explicitly written. Everything that was NOT written still said
+"search": the headline read AREA SEARCHED, the stats line counted cells
+"searched", the pay row listed a "Search bonus", and an empty evidence strip
+printed "nothing recovered" — on a level that deliberately buries nothing.
+All four now have harvest wording, and HarvestCheck asserts the headline and
+the stats line, verified by breaking them on purpose first.
+
+The lesson repeats one already in this file: writing a special case is not the
+same as looking at it.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

@@ -53,6 +53,22 @@ func _ready() -> void:
 	ck("hasatta kanit gomulmedi", game.model.secret_cells.is_empty(),
 		"%d gizli" % game.model.secret_cells.size())
 
+	# The completion panel must stop talking about a search: it used to headline
+	# "AREA SEARCHED", count cells "searched", and list a "Search bonus".
+	game.hud.show_complete(1240, "3:18", [], 0,
+		{"base": 210, "bonus": 484, "total": 694}, "")
+	await get_tree().process_frame
+	ck("hasat panosu arama demiyor",
+		game.hud._complete_title.text == tr("HARVEST_DONE_TITLE"),
+		game.hud._complete_title.text)
+	ck("hasat panosu bicilen hucreyi sayiyor",
+		game.hud._complete_stats.text
+			== tr("HARVEST_STATS").format({"cells": 1240, "time": "3:18"})
+		and tr("HARVEST_STATS") != tr("UI_STATS"),
+		game.hud._complete_stats.text)
+	get_tree().paused = false
+	game.hud._close_pause()
+
 	# Finishing it must not move the case on.
 	var before := ChapterProgress.done_count()
 	HarvestLog.record()

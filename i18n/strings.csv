@@ -415,3 +415,6 @@ DLG_FINALE_1C,Kid... the party was waiting for YOU.,Evlat... parti zaten SENİ b
 BIRTHDAY_TITLE,"MAKE A WISH, ELLIE","BİR DİLEK TUT, ELLIE"
 BIRTHDAY_LINE,Nine candles under the square's lantern. The whole town leans in.,Meydanın feneri altında dokuz mum. Bütün kasaba öne eğiliyor.
 POSTER_TAKEN,"Taken this morning, before the party.",Bu sabah çekildi — partiden önce.
+HARVEST_DONE_TITLE,FIELD BROUGHT IN,TARLA KALDIRILDI
+HARVEST_STATS,{cells} cells cut · {time},{cells} hücre biçildi · {time}
+HARVEST_PAYOUT_BONUS,Harvest ({pct}% cut),Hasat (%{pct} biçildi)

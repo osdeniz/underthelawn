@@ -235,8 +235,14 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 		total_secrets: int, payout := {}, next_name := "") -> void:
 	_shown_percent = 100.0
 	_apply_percent()
-	_complete_stats.text = tr("UI_STATS").format(
-		{"cells": cells, "time": elapsed})
+	# A harvest was cut, not searched, and the panel has to stop saying
+	# otherwise: title, stats line and the pay row all have their own wording
+	# (G13.6). The panel is built once, so this runs before any of them.
+	var is_harvest := LevelVariant.current != null and LevelVariant.current.is_harvest()
+	_complete_title.text = tr("HARVEST_DONE_TITLE") if is_harvest \
+		else Story.text("complete.title", "AREA SEARCHED")
+	_complete_stats.text = (tr("HARVEST_STATS") if is_harvest else tr("UI_STATS")) \
+		.format({"cells": cells, "time": elapsed})
 
 	for child in _collection.get_children():
 		child.queue_free()
@@ -643,7 +649,8 @@ func _build_case_notes(collected: Array, total: int) -> void:
 		row.add_theme_color_override("font_color", Color(1.0, 0.91, 0.62))
 		line.add_child(row)
 		_notes_list.add_child(line)
-	if collected.is_empty():
+	if collected.is_empty() and not (LevelVariant.current != null \
+			and LevelVariant.current.is_harvest()):
 		var none := Label.new()
 		none.text = "· " + tr("UI_NOTHING_RECOVERED")
 		none.add_theme_font_size_override("font_size", 36)
@@ -753,9 +760,11 @@ func _build_payout(payout: Dictionary) -> void:
 		child.queue_free()
 	if payout.is_empty():
 		return
+	var bonus_key := "HARVEST_PAYOUT_BONUS" if LevelVariant.current != null \
+		and LevelVariant.current.is_harvest() else "PAYOUT_BONUS"
 	var rows := [
 		[tr("PAYOUT_GROUND"), int(payout.get("ground", 0)), false],
-		[tr("PAYOUT_BONUS").format(
+		[tr(bonus_key).format(
 			{"pct": int(round(float(payout.get("ratio", 0.0)) * 100.0))}),
 			int(payout.get("bonus", 0)), false],
 	]
