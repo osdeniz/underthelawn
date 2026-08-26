@@ -305,6 +305,21 @@
         "flavor_text": "ECHO_CH08_LINE"
       },
       "reclaim_line": "RECLAIM_CH08"
+    },
+    "harvest_field": {
+      "level_type": "harvest",
+      "palette_id": "WHEAT",
+      "grid_size": "large",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "barn",
+      "decor_seed": 9090,
+      "scrap_budget": 22,
+      "opening": {
+        "headline": "HARVEST_HEADLINE",
+        "subline": "HARVEST_SUBLINE"
+      },
+      "evidence_defs": []
     }
   }
 }

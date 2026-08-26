@@ -593,4 +593,13 @@ func _build_clippings() -> void:
 	clippings.local_coords = false
 	clippings.emitting = false
 	clippings.position.y = 0.1
+	# A harvest throws chaff, not grass: shorter, fatter, slower-falling flecks
+	# in the palette's grain colour, and more of them (G13.6).
+	if LevelVariant.current != null and LevelVariant.current.is_harvest():
+		quad.size = Vector2(0.08, 0.08)
+		pm.gravity = Vector3(0, GameConfig.CLIP_GRAVITY * 0.55, 0)
+		pm.initial_velocity_max = 5.4
+		pm.scale_max = 1.7
+		clippings.amount = 160
+		clippings.lifetime = 0.95
 	add_child(clippings)

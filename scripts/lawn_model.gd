@@ -240,6 +240,9 @@ func _recount_mowable() -> void:
 ## every reset (§3, §18 trap 4).
 func _place_secrets() -> void:
 	secret_cells.clear()
+	# A harvest buries nothing: the field is work, not a search (G13.6).
+	if LevelVariant.current != null and LevelVariant.current.is_harvest():
+		return
 	var margin := GameConfig.SECRET_EDGE_MARGIN
 	var tries := 0
 	while secret_cells.size() < GameConfig.SECRET_COUNT \

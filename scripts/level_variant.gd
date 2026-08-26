@@ -38,6 +38,9 @@ var echo_def: Dictionary = {}
 ## The one-line "town reclaimed" note this chapter adds to the case notes when
 ## it is finished (G13.4).
 var reclaim_line := ""
+## "search" (the default) or "harvest" (G13.6). A harvest carries no evidence
+## and no echo, pays more scrap, and stands in a field of crop.
+var level_type := "search"
 
 
 static func data() -> Dictionary:
@@ -75,6 +78,7 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.vignette = bool(spec.get("vignette", false))
 	variant.evidence_defs = spec.get("evidence_defs", [])
 	variant.reclaim_line = str(spec.get("reclaim_line", ""))
+	variant.level_type = str(spec.get("level_type", "search"))
 	var echo: Variant = spec.get("echo_def", {})
 	if echo is Dictionary:
 		variant.echo_def = echo
@@ -82,6 +86,10 @@ static func of(variant_id: String) -> LevelVariant:
 	if opening is Dictionary:
 		variant.opening_headline = str((opening as Dictionary).get("headline", ""))
 		variant.opening_subline = str((opening as Dictionary).get("subline", ""))
+	# A harvest is replayed, so its seed moves with the run counter: scrap,
+	# stones and the crop rows land somewhere new each time (G13.6).
+	if variant.is_harvest():
+		variant.decor_seed += HarvestLog.count() * 1013
 	return variant
 
 
@@ -96,6 +104,12 @@ func apply() -> void:
 	GameConfig.set_grid_named(grid_size)
 	GameConfig.active_grass_palette = palette_id
 	LawnModel.layout_id = obstacle_layout_id
+
+
+## True for the repeatable crop level. Kept as a question rather than a string
+## comparison at every call site.
+func is_harvest() -> bool:
+	return level_type == "harvest"
 
 
 func evidence_count() -> int:

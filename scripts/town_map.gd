@@ -411,6 +411,15 @@ func _build_pins() -> void:
 			- Vector2(30, 30)
 		host.add_child(mark)
 
+	# The harvest, when the town is asking for it: a gold badge on the farm,
+	# outside the case's own sequence entirely (G13.6).
+	if HarvestLog.is_offered():
+		var farm: Dictionary = GameConfig.MAP_BUILDINGS["farm"]
+		var call_pin := _harvest_pin()
+		call_pin.position = rect.position + rect.size * (farm["at"] as Vector2) \
+			- Vector2(44, 62)
+		host.add_child(call_pin)
+
 	var order: Array = GameConfig.MAP_PLACES.keys()
 	var next_id := _next_place(order)
 	for id_any: Variant in order:
@@ -632,6 +641,90 @@ func _close_panel() -> void:
 	if _panel != null and is_instance_valid(_panel):
 		_panel.queue_free()
 	_panel = null
+
+
+## The harvest badge. It is not a case place, so it gets its own pin rather than
+## a slot in the route.
+func _harvest_pin() -> Button:
+	var pin := Button.new()
+	pin.name = "Pin_harvest"
+	pin.flat = true
+	pin.custom_minimum_size = Vector2(88, 88)
+	pin.size = pin.custom_minimum_size
+	pin.tooltip_text = tr("HARVEST_PLACE")
+	pin.set_meta("colour", GameConfig.HARVEST_GOLD)
+	pin.set_meta("harvest", true)
+	pin.draw.connect(func() -> void:
+		var beat := 1.0 + 0.10 * sin(_pulse * 3.0)
+		MapArt.draw_pin(pin, Vector2(44, 34), 26.0 * beat,
+			GameConfig.HARVEST_GOLD)
+		pin.draw_string(ThemeDB.fallback_font, Vector2(35, 44), "\u2605",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color(0.30, 0.22, 0.06)))
+	pin.pressed.connect(func() -> void:
+		Haptics.light()
+		Analytics.track("harvest_offered", {})
+		_open_harvest_panel())
+
+	var label := Label.new()
+	label.text = tr("HARVEST_PLACE")
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.custom_minimum_size = Vector2(200, 0)
+	label.position = Vector2(-56, 86)
+	label.add_theme_font_size_override("font_size", 26)
+	label.add_theme_color_override("font_color", Color(0.13, 0.11, 0.09))
+	var plate := StyleBoxFlat.new()
+	plate.bg_color = Color(0.95, 0.86, 0.56, 0.90)
+	plate.set_corner_radius_all(8)
+	plate.content_margin_left = 10.0
+	plate.content_margin_right = 10.0
+	plate.content_margin_top = 3.0
+	plate.content_margin_bottom = 3.0
+	label.add_theme_stylebox_override("normal", plate)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pin.add_child(label)
+	return pin
+
+
+## Gus's invitation, in the same sheet shape a place uses.
+func _open_harvest_panel() -> void:
+	_close_panel()
+	_panel = PanelContainer.new()
+	_panel.name = "PlacePanel"
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.14, 0.12, 0.08, 0.96)
+	style.border_color = GameConfig.MAP_PIN_ACTIVE
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(20)
+	style.set_content_margin_all(28)
+	_panel.add_theme_stylebox_override("panel", style)
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_panel.offset_left = 40.0
+	_panel.offset_right = -40.0
+	_panel.offset_top = -390.0
+	_panel.offset_bottom = -40.0
+	add_child(_panel)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 16)
+	_panel.add_child(rows)
+	for spec: Array in [["HARVEST_PLACE", 44, Color(0.96, 0.94, 0.88)],
+			["HARVEST_CALL", 30, GameConfig.CASE_MUTED]]:
+		var line := Label.new()
+		line.text = tr(str(spec[0]))
+		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		line.add_theme_font_size_override("font_size", int(spec[1]))
+		line.add_theme_color_override("font_color", spec[2])
+		rows.add_child(line)
+	var go := Button.new()
+	go.text = tr("HARVEST_START")
+	go.custom_minimum_size = Vector2(0, 104)
+	go.add_theme_font_size_override("font_size", 36)
+	HubScreen.style_primary(go)
+	go.pressed.connect(func() -> void:
+		Haptics.medium()
+		Analytics.track("harvest_started", {})
+		place_chosen.emit(GameConfig.HARVEST_VARIANT))
+	rows.add_child(go)
 
 
 ## The chapter's display name, from story.json.

@@ -18,7 +18,12 @@ func _ready() -> void:
 
 
 func _check_variants() -> void:
-	var ids := LevelVariant.ids()
+	# The harvest is a bonus level, not a chapter: it carries no evidence and no
+	# echo, so every case rule below is checked against the chapters only.
+	var ids: Array = []
+	for any_id: Variant in LevelVariant.ids():
+		if not LevelVariant.of(str(any_id)).is_harvest():
+			ids.append(str(any_id))
 	ck("8 varyant", ids.size() == 8, str(ids.size()))
 	var palettes := {}
 	var landmarks := {}
@@ -85,8 +90,10 @@ func _check_grid_follows_data() -> void:
 			if not LawnModel.in_bounds(cell.x, cell.y):
 				ck("%s rota grid disina cikti" % id, false, str(cell))
 				break
-		# Both evidence slots must land on real cells.
-		ck("%s iki kanit yerlesti" % id, model.secret_cells.size() == 2,
+		# Both evidence slots must land on real cells — except on a harvest,
+		# which buries nothing at all (G13.6).
+		var want := 0 if v.is_harvest() else 2
+		ck("%s kanit yerlesti" % id, model.secret_cells.size() == want,
 			str(model.secret_cells.size()))
 	# Leave the engine on the default yard for anything that runs after.
 	GameConfig.set_grid_named("medium")

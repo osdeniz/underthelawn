@@ -46,6 +46,9 @@ func _ready() -> void:
 	# G13.1: distant hills and rooftops in EVERY yard, not just the hub's
 	# diorama. Every chapter used to end at a fog wall with nothing behind it.
 	Horizon.build(self, GameConfig.HORIZON_RADIUS, _rng.randi())
+	# A harvest stands inside the town's crop; a search does not (G13.6).
+	if _variant != null and _variant.is_harvest():
+		_build_crop_field()
 	if GameConfig.SKY_HIGH_CLOUDS_ENABLED:
 		_build_high_clouds()
 	_build_driveways()
@@ -923,9 +926,55 @@ func _build_landmark(landmark_id: String) -> void:
 		"greenhouse": _landmark_greenhouse(root)
 		"water_tower": _landmark_water_tower(root)
 		"mill": _landmark_mill(root)
+		"barn": _landmark_barn(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
+
+
+## The farm's barn: the harvest level's anchor. Red boards, a gambrel roof, a
+## white-framed door, and one hay bale per harvest already brought in, up to the
+## cap — so the field visibly repays the work (G13.6).
+func _landmark_barn(root: Node3D) -> void:
+	var board := _flat("barn_board", Color(0.52, 0.17, 0.14), 0.95)
+	var trim := _flat("barn_trim", Color(0.88, 0.86, 0.80), 0.9)
+	var roof := _flat("barn_roof", Color(0.30, 0.28, 0.27), 0.9)
+	var hay := _flat("barn_hay", Color(0.82, 0.70, 0.34), 1.0)
+	var stone := _flat("barn_stone", Color(0.52, 0.50, 0.46), 0.95)
+
+	var w := 9.0
+	var d := 6.0
+	var h := 4.2
+	_box(root, Vector3(w + 0.5, 0.3, d + 0.5), stone, Vector3(0.0, 0.15, 0.0))
+	_box(root, Vector3(w, h, d), board, Vector3(0.0, h * 0.5 + 0.3, 0.0))
+	# Gambrel: a shallow upper pitch over a steep lower one, both sides.
+	for sx: float in [-1.0, 1.0]:
+		_box(root, Vector3(w * 0.30, 0.22, d + 0.5), roof,
+			Vector3(sx * w * 0.22, h + 1.35, 0.0), Vector3(0.0, 0.0, sx * 0.52))
+		_box(root, Vector3(w * 0.34, 0.22, d + 0.5), roof,
+			Vector3(sx * w * 0.42, h + 0.62, 0.0), Vector3(0.0, 0.0, sx * 1.02))
+	_box(root, Vector3(0.3, 0.3, d + 0.7), roof, Vector3(0.0, h + 1.72, 0.0))
+	# The big south door, framed in white, with its cross-brace boards.
+	_box(root, Vector3(3.4, 3.1, 0.12), trim, Vector3(0.0, 1.85, -d * 0.5 - 0.06))
+	_box(root, Vector3(3.0, 2.8, 0.10), board, Vector3(0.0, 1.80, -d * 0.5 - 0.13))
+	for sx2: float in [-1.0, 1.0]:
+		_box(root, Vector3(3.2, 0.16, 0.06), trim,
+			Vector3(0.0, 1.80, -d * 0.5 - 0.19), Vector3(0.0, 0.0, sx2 * 0.72))
+	# Hay loft opening up in the gable, with straw spilling from it.
+	_box(root, Vector3(1.3, 1.2, 0.12), trim,
+		Vector3(0.0, h - 0.3, -d * 0.5 - 0.06))
+	_box(root, Vector3(1.0, 0.9, 0.10), hay, Vector3(0.0, h - 0.35, -d * 0.5 - 0.13))
+
+	var bales := HarvestLog.bales()
+	for i in bales:
+		var col := i % 2
+		var row := i / 2
+		_cyl(root, 0.62, 0.62, 1.1, hay,
+			Vector3(w * 0.5 + 1.6 + float(col) * 1.5, 0.62 + float(row) * 1.2,
+				d * 0.20),
+			Vector3(0.0, 0.0, PI * 0.5))
+	_ao_blob(root, Vector2(w + 2.4, d + 2.4),
+		Vector3(0.0, 0.02, 0.0), 0.6)
 
 
 ## Rusted swing set, slide and sandpit. The rust colour is what dates it.
@@ -1215,3 +1264,130 @@ func _build_traces() -> void:
 			Vector3(sign_x, 0.85, sign_z), Vector3(0.0, 0.0, 0.14))
 		_box(self, Vector3(0.9, 0.6, 0.04), rust,
 			Vector3(sign_x + 0.22, 1.55, sign_z), Vector3(0.0, 0.1, 0.14))
+
+
+# ---------------------------------------------------------------- crop (G13.6)
+
+## The standing crop around a harvest plot: sunflowers and corn, authored to be
+## looked UP at. Rows run outward from the fence on all four sides, so whichever
+## way the player faces there is a wall of stalks behind the lawn.
+##
+## Decor only — nothing here is mowable or collidable. The mowing happens on the
+## lawn inside; this is what the lawn is standing IN.
+func _build_crop_field() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = (_variant.decor_seed if _variant != null else 4242) + 8080
+	var field := Node3D.new()
+	field.name = "CropField"
+	add_child(field)
+
+	var half_x := GameConfig.HALF_X + 0.7
+	var half_z := GameConfig.HALF_Z + 0.7
+	for row in GameConfig.CROP_ROWS:
+		var out := float(row) * GameConfig.CROP_ROW_GAP
+		# Corn behind, sunflowers in front: the flowers read at a glance and the
+		# corn gives the mass behind them.
+		var corn := row >= 2
+		_crop_line(field, rng, Vector3(0.0, 0.0, -half_z - out),
+			Vector3(1.0, 0.0, 0.0), half_x + out, corn)
+		# NO south row. The camera sits behind the mower, which starts at the
+		# south fence, so a six-metre sunflower on that edge stands between the
+		# player and their own lawn. Three sides is also the better picture:
+		# looking forward, the field is always ahead of you (G13.6).
+		_crop_line(field, rng, Vector3(-half_x - out, 0.0, 0.0),
+			Vector3(0.0, 0.0, 1.0), half_z + out, corn)
+		_crop_line(field, rng, Vector3(half_x + out, 0.0, 0.0),
+			Vector3(0.0, 0.0, 1.0), half_z + out, corn)
+
+
+## One row of plants along `axis`, centred on `at` and reaching `reach` either
+## way. Spacing is jittered so the rows read as planted, not stamped.
+func _crop_line(parent: Node3D, rng: RandomNumberGenerator, at: Vector3,
+		axis: Vector3, reach: float, corn: bool) -> void:
+	var count := int(reach * 2.0 / GameConfig.CROP_SPACING)
+	for i in count:
+		var along := -reach + float(i) * GameConfig.CROP_SPACING \
+			+ rng.randf_range(-0.22, 0.22)
+		var spot := at + axis * along
+		spot.x += rng.randf_range(-0.18, 0.18)
+		spot.z += rng.randf_range(-0.18, 0.18)
+		if corn:
+			_build_corn(parent, rng, spot)
+		else:
+			_build_sunflower(parent, rng, spot)
+
+
+## A sunflower: one tall stalk, two leaves, and a head that turns to face the
+## plot. Built from the same primitives as everything else in the yard.
+func _build_sunflower(parent: Node3D, rng: RandomNumberGenerator,
+		at: Vector3) -> void:
+	var stalk_mat := _flat("crop_stalk", GameConfig.SUNFLOWER_STALK, 1.0)
+	var petal_mat := _flat("crop_petal", GameConfig.SUNFLOWER_PETAL, 0.9)
+	var centre_mat := _flat("crop_centre", GameConfig.SUNFLOWER_CENTRE, 1.0)
+	var leaf_mat := _flat("crop_leaf", GameConfig.CORN_LEAF, 1.0)
+
+	var plant := Node3D.new()
+	plant.position = at
+	plant.rotation.y = rng.randf() * TAU
+	parent.add_child(plant)
+
+	var height := rng.randf_range(GameConfig.SUNFLOWER_HEIGHT.x,
+		GameConfig.SUNFLOWER_HEIGHT.y)
+	var lean := rng.randf_range(-0.09, 0.09)
+	_cyl(plant, 0.07, 0.11, height, stalk_mat,
+		Vector3(0.0, height * 0.5, 0.0), Vector3(0.0, 0.0, lean))
+	for side: float in [-1.0, 1.0]:
+		_box(plant, Vector3(0.9, 0.05, 0.42), leaf_mat,
+			Vector3(side * 0.45, height * rng.randf_range(0.35, 0.6), 0.0),
+			Vector3(0.0, rng.randf_range(-0.5, 0.5), side * 0.5))
+
+	# The head, tipped forward so it is seen face-on from the lawn.
+	var head := Node3D.new()
+	head.position = Vector3(lean * -height, height, 0.0)
+	head.rotation = Vector3(deg_to_rad(rng.randf_range(-38.0, -18.0)), 0.0, 0.0)
+	plant.add_child(head)
+	var scale := rng.randf_range(0.85, 1.2)
+	_cyl(head, GameConfig.SUNFLOWER_HEAD * scale,
+		GameConfig.SUNFLOWER_HEAD * scale, 0.16, centre_mat, Vector3.ZERO,
+		Vector3(deg_to_rad(90.0), 0.0, 0.0))
+	for i in GameConfig.SUNFLOWER_PETALS:
+		var a := TAU * float(i) / float(GameConfig.SUNFLOWER_PETALS)
+		var reach := GameConfig.SUNFLOWER_HEAD * scale * 1.62
+		_box(head, Vector3(0.30, 0.05, reach * 0.9), petal_mat,
+			Vector3(sin(a) * reach * 0.62, 0.0, cos(a) * reach * 0.62),
+			Vector3(0.0, a, 0.0))
+
+
+## Corn: a jointed stalk, leaves fanning off it, a cob and a tassel on top.
+func _build_corn(parent: Node3D, rng: RandomNumberGenerator, at: Vector3) -> void:
+	var stalk_mat := _flat("corn_stalk", GameConfig.CORN_STALK, 1.0)
+	var leaf_mat := _flat("corn_leaf", GameConfig.CORN_LEAF, 1.0)
+	var cob_mat := _flat("corn_cob", GameConfig.CORN_COB, 0.95)
+	var tassel_mat := _flat("corn_tassel", GameConfig.CORN_TASSEL, 1.0)
+
+	var plant := Node3D.new()
+	plant.position = at
+	plant.rotation.y = rng.randf() * TAU
+	parent.add_child(plant)
+
+	var height := rng.randf_range(GameConfig.CORN_HEIGHT.x,
+		GameConfig.CORN_HEIGHT.y)
+	_cyl(plant, 0.06, 0.10, height, stalk_mat, Vector3(0.0, height * 0.5, 0.0),
+		Vector3(0.0, 0.0, rng.randf_range(-0.06, 0.06)))
+	# Leaves alternate up the stalk, drooping further the higher they are.
+	for i in GameConfig.CORN_LEAVES:
+		var t := 0.28 + float(i) / float(GameConfig.CORN_LEAVES) * 0.62
+		var side := 1.0 if i % 2 == 0 else -1.0
+		var droop := 0.5 + t * 0.5
+		_box(plant, Vector3(1.5, 0.05, 0.34), leaf_mat,
+			Vector3(side * 0.62, height * t, 0.0),
+			Vector3(0.0, float(i) * 1.3, side * droop))
+	# One cob, tucked against the stalk.
+	_cyl(plant, 0.15, 0.19, 0.72, cob_mat,
+		Vector3(0.20, height * 0.52, 0.0), Vector3(0.0, 0.0, 0.28))
+	# The tassel: a few thin spikes at the very top.
+	for i in 5:
+		var a := TAU * float(i) / 5.0
+		_box(plant, Vector3(0.04, 0.52, 0.04), tassel_mat,
+			Vector3(sin(a) * 0.10, height + 0.24, cos(a) * 0.10),
+			Vector3(sin(a) * 0.3, 0.0, cos(a) * 0.3))

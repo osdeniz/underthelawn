@@ -559,7 +559,10 @@ func _style_button(button: Button) -> void:
 ## Pulls every fixed string out of data/story.json. Called once at _ready, so a
 ## story-file edit needs no scene edit.
 func _apply_story_text() -> void:
-	_case_line.text = Story.text("case.hud_line")
+	# A harvest is not a case: the bar says what this level actually is (G13.6).
+	var variant := LevelVariant.current
+	_case_line.text = tr("HARVEST_HUD_LINE") if variant != null \
+		and variant.is_harvest() else Story.text("case.hud_line")
 	_complete_title.text = Story.text("complete.title", "AREA SEARCHED")
 	_missed_label.text = Story.text("complete.incomplete",
 		"The search feels incomplete...")
@@ -646,6 +649,13 @@ func _build_case_notes(collected: Array, total: int) -> void:
 		none.add_theme_font_size_override("font_size", 36)
 		none.add_theme_color_override("font_color", Color(0.6, 0.62, 0.58))
 		_notes_list.add_child(none)
+	var harvest := LevelVariant.current != null and LevelVariant.current.is_harvest()
+	if harvest:
+		# No evidence, no case progress: the panel says what was actually
+		# achieved and gets out of the way.
+		_notes_progress.text = tr(HarvestLog.crumb_key())
+		_notes_header.text = tr("HARVEST_COMPLETE")
+		return
 	_notes_progress.text = Story.text("complete.notes_full") if collected.size() >= total \
 		else Story.text("complete.notes_partial")
 	# What this search did to the TOWN, not to the case. The theme of G13.4 in
@@ -1112,6 +1122,15 @@ func _build_poster() -> void:
 	since.add_theme_font_size_override("font_size", 20)
 	since.add_theme_color_override("font_color", Color(0.34, 0.30, 0.26))
 	rows.add_child(since)
+
+
+## A harvest is a job, not a search: no evidence counter, no missing poster, and
+## the bar names the errand. Called from Game._ready, because the HUD's own
+## _ready runs before the variant is applied (G13.6).
+func apply_harvest_mode() -> void:
+	_case_line.text = tr("HARVEST_HUD_LINE")
+	_evidence_chip.visible = false
+	set_poster_visible(false)
 
 
 ## Hidden once the search is over, so it never sits behind the results panel.

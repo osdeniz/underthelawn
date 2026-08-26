@@ -1238,6 +1238,53 @@ func refresh() -> void:
 	_refresh_board()
 	_show_board_tab(false)
 	_show_page(_tiles_page)
+	_harvest_call()
+
+
+## Gus on the radio, once per open invitation: the field is ready. Tapping it
+## goes to the map, where the gold pin is already waiting (G13.6). Keyed by the
+## chapter count so a NEW invitation calls again and the same one does not.
+func _harvest_call() -> void:
+	if not HarvestLog.is_offered():
+		return
+	var stamp := ChapterProgress.done_count()
+	if int(GameState.get_setting("harvest", "called_at", -1)) == stamp:
+		return
+	GameState.set_setting("harvest", "called_at", stamp)
+
+	var card := Button.new()
+	card.name = "HarvestCall"
+	card.text = tr("HARVEST_CALL")
+	card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	card.custom_minimum_size = Vector2(0, 132)
+	card.add_theme_font_size_override("font_size", 30)
+	card.add_theme_color_override("font_color", Color(0.16, 0.12, 0.05))
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = GameConfig.HARVEST_GOLD
+	skin.set_corner_radius_all(18)
+	skin.set_content_margin_all(20)
+	skin.border_color = Color(0.42, 0.30, 0.08)
+	skin.set_border_width_all(3)
+	for state: String in ["normal", "hover", "pressed", "focus"]:
+		card.add_theme_stylebox_override(state, skin)
+	card.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	card.offset_top = 300.0
+	card.offset_left = 40.0
+	card.offset_right = -40.0
+	card.offset_bottom = 432.0
+	card.modulate.a = 0.0
+	add_child(card)
+	card.pressed.connect(func() -> void:
+		Haptics.light()
+		card.queue_free()
+		open_map_at(GameConfig.HARVEST_VARIANT))
+	var tween := create_tween()
+	tween.tween_property(card, "modulate:a", 1.0, 0.35)
+	tween.tween_interval(6.0)
+	tween.tween_property(card, "modulate:a", 0.0, 0.6)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(card):
+			card.queue_free())
 
 
 ## Rebuilt when a project lands, so the STATION card renames itself the moment

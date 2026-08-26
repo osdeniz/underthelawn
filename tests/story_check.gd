@@ -149,6 +149,9 @@ func _ready() -> void:
 	# G12.6: every chapter's echo, and every restoration project, must resolve.
 	for vid: String in LevelVariant.ids():
 		var v := LevelVariant.of(vid)
+		# A harvest has no history to find in it (G13.6).
+		if v.is_harvest():
+			continue
 		ck("%s echo tanimli" % vid, not v.echo_def.is_empty(), "")
 		for field in ["name", "flavor_text"]:
 			var key := str(v.echo_def.get(field, ""))

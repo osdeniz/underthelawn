@@ -1859,6 +1859,13 @@ func _barn_restored(root: Node3D) -> void:
 			[Vector3(2.05, 0.30, 1.35), -0.3], [Vector3(1.62, 0.86, 1.68), 0.5]]:
 		_box(root, Vector3(0.78, 0.56, 0.56), hay, spec[0],
 			Vector3(0.0, float(spec[1]), 0.0))
+	# One extra bale per harvest brought in, up to the cap: the barn visibly
+	# fills as the player works the field (G13.6).
+	for i in HarvestLog.bales():
+		_box(root, Vector3(0.74, 0.52, 0.52), hay,
+			Vector3(2.55 + float(i % 2) * 0.86, 0.28 + float(i / 2) * 0.54,
+				1.95 - float(i / 2) * 0.30),
+			Vector3(0.0, 0.2 + float(i) * 0.4, 0.0))
 	_ball(root, 0.20, cat_fur, Vector3(1.62, 1.26, 1.68),
 		Vector3(1.5, 0.85, 1.0))
 	_ball(root, 0.12, cat_fur, Vector3(1.36, 1.30, 1.60))

@@ -125,6 +125,8 @@ func _ready() -> void:
 
 	hud.set_progress(0.0)
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
+	if variant != null and variant.is_harvest():
+		hud.apply_harvest_mode()
 
 	hud.return_requested.connect(_return_to_hub)
 	hud.exit_confirmed.connect(_confirm_exit)
@@ -538,6 +540,10 @@ func _on_completed() -> void:
 		GameState.add_scrap(int(payout["total"]))
 		hud.set_scrap(GameState.scrap_total())
 		search_finished.emit(_collected.size(), _evidence_total())
+		if variant != null and variant.is_harvest():
+			HarvestLog.record()
+			Analytics.track("harvest_completed",
+				{"scrap": int(payout["total"]), "run": HarvestLog.count()})
 		hud.show_complete(model.mowed_count, GameState.format_elapsed(),
 			_collected, _evidence_total(), payout, _next_chapter_name()))
 
@@ -590,7 +596,13 @@ func _begin_search() -> void:
 	if _first_run:
 		hud.pulse_poster(GameConfig.FIRST_RUN_POSTER_PULSE)
 		_orientation_due = GameConfig.FIRST_RUN_MODAL_AFTER
-	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index], 2.4)
+	# A harvest opens from higher and slower: the crop rings the plot, and from
+	# the play camera's usual height a six-metre sunflower on the far fence is
+	# simply off screen. The descent is what introduces the field (G13.6).
+	var harvest := variant != null and variant.is_harvest()
+	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index],
+		4.2 if harvest else 2.4, 62.0 if harvest else 26.0,
+		14.0 if harvest else 3.0)
 	hud.show_opening_title(variant.opening_headline, variant.opening_subline)
 	hud.show_drive_hint()
 	GameState.start_run()
@@ -620,7 +632,14 @@ func _on_scrap_found(col: int, row: int, value: int) -> void:
 ## The end-of-chapter scrap breakdown.
 func _payout() -> Dictionary:
 	var budget := variant.scrap_budget if variant != null else 9
-	return ScrapField.payout(_scrap_banked, model.completion_ratio(), budget)
+	var payout := ScrapField.payout(_scrap_banked, model.completion_ratio(), budget)
+	# A harvest is the paying job, and the multiplier is applied HERE rather
+	# than in ScrapField so a search's economy is untouched (G13.6).
+	if variant != null and variant.is_harvest():
+		for key: String in payout:
+			payout[key] = int(round(float(payout[key])
+				* GameConfig.HARVEST_SCRAP_MULTIPLIER))
+	return payout
 
 
 # ---------------------------------------------------------------- G9 early exit

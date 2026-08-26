@@ -2161,6 +2161,43 @@ with every other suite. Both now state their own precondition, and the first-run
 suite leaves the flag SET rather than cleared. A test that depends on what
 another test left behind is a test that will lie eventually.
 
+## Sprint G13.6 — the harvest
+
+A second reason to mow. `level_type: "harvest"` in `data/levels.json` picks a
+level apart from the eight searches: the WHEAT palette, a large grid, sparse
+stones, no evidence, no echo, and scrap paid at 2.2x. Everything under it is
+the systems that were already there — one flag, one variant entry.
+
+* **The invitation** opens once the farm is rebuilt AND the tractor is owned
+  AND three cases have been closed since the last harvest. It then waits
+  indefinitely: a gold pin on the town map, and Gus on the radio once per
+  invitation when the hub opens. The offer is measured from the chapter count
+  at the last harvest (`harvest/since_chapter`), not from the harvest count —
+  the first formula needed nine chapters for a third harvest in an eight
+  chapter game, which no player could ever reach.
+* **The field is the point.** 577 plants ring the plot: sunflowers on the inner
+  rows, corn outside them, four to seven metres tall, so the camera looks UP at
+  the crop. There is no south row — six-metre sunflowers stood between the
+  camera and the lawn. The opening camera descends for fourteen seconds from
+  high above, which is also why the shot suite now waits 950 frames: shooting
+  early only photographs the fog it starts in.
+* **A harvest buries nothing.** `LawnModel._place_secrets` returns early on a
+  harvest, and the HUD drops the evidence chip, the missing poster and the case
+  line for "HARVEST — Bring the field in". The HUD is told from `Game._ready`,
+  not from its own, because the variant is applied after the HUD builds.
+* **It is replayable, so it is re-seeded.** `LevelVariant.of` offsets
+  `decor_seed` by the run count, which moves the scrap, the stones and the crop
+  rows together. The tractor throws chaff rather than clippings: fatter, slower
+  flecks in the palette's grain colour.
+* **It pays back visibly.** One hay bale stacks outside the new barn landmark
+  per harvest, up to four.
+
+**The tooling lied for one round.** `timeout` does not exist on macOS, so a
+suite loop written around it ran nothing and printed `ok` for all 39 scenes. A
+harness that cannot fail is worse than no harness — the limiter is now a small
+`kill`-based script, and a suite with no verdict line prints `??` rather than
+passing by default.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

@@ -1,0 +1,98 @@
+extends Node
+## G13.6: the harvest level pays, repeats, and touches the case not at all.
+
+var _fails := 0
+
+
+func _ready() -> void:
+	GameState.set_setting("meta", "orientation_done", true)
+	GameState.set_setting("harvest", "runs", 0)
+	GameState.set_setting("harvest", "since_chapter", 0)
+	ChapterProgress.reset()
+	RestoreBoard.reset()
+
+	# --- the variant itself
+	var harvest := LevelVariant.of(GameConfig.HARVEST_VARIANT)
+	ck("hasat varyanti tanimli", harvest.id == GameConfig.HARVEST_VARIANT, harvest.id)
+	ck("hasat tipi", harvest.is_harvest(), harvest.level_type)
+	ck("kanit yok", harvest.evidence_count() == 0,
+		"%d kanit" % harvest.evidence_count())
+	ck("echo yok", harvest.echo_def.is_empty(), "")
+	ck("bugday paleti", harvest.palette_id == "WHEAT", harvest.palette_id)
+	ck("buyuk grid", harvest.grid_size == "large", harvest.grid_size)
+	# A search must not accidentally become one.
+	ck("normal bolum hasat degil", not LevelVariant.of("ch01_aldridge").is_harvest(), "")
+
+	# --- the invitation
+	ck("basta davet yok", not HarvestLog.is_offered(), "")
+	GameState.set_setting("restore", "farm", true)
+	# DEV_UNLOCK_ALL makes every machine owned, so the "no tractor" half of the
+	# condition can only be checked when it is off.
+	if not GameConfig.DEV_UNLOCK_ALL:
+		ck("sadece ciftlik yetmez", not HarvestLog.is_offered(), "traktor yok")
+	GameState.set_setting("garage", "tractor_unlocked", true)
+	ck("traktor + ciftlik ama bolum yok",
+		not HarvestLog.is_offered(), "%d bolum" % ChapterProgress.done_count())
+	var chapters: Array = Story.list("chapters")
+	for i in GameConfig.HARVEST_EVERY:
+		ChapterProgress.record(str((chapters[i] as Dictionary).get("variant_id", "")), 2, 2)
+	ck("kosullar tamaminca davet var", HarvestLog.is_offered(),
+		"%d bolum" % ChapterProgress.done_count())
+
+	# --- playing it
+	var game: Node = load("res://scenes/Main.tscn").instantiate()
+	game.variant_id = GameConfig.HARVEST_VARIANT
+	add_child(game)
+	for _i in 10:
+		await get_tree().process_frame
+	ck("ekin tarlasi kuruldu",
+		game.find_children("CropField", "", true, false).size() == 1, "")
+	var plants: Array = game.find_children("CropField", "", true, false)
+	var count := (plants[0] as Node).get_child_count() if plants.size() > 0 else 0
+	ck("tarla devasa", count > 300, "%d bitki" % count)
+	ck("hasatta kanit gomulmedi", game.model.secret_cells.is_empty(),
+		"%d gizli" % game.model.secret_cells.size())
+
+	# Finishing it must not move the case on.
+	var before := ChapterProgress.done_count()
+	HarvestLog.record()
+	ck("hasat vakayi ilerletmez", ChapterProgress.done_count() == before,
+		"%d -> %d" % [before, ChapterProgress.done_count()])
+	ck("hasat sayaci arttı", HarvestLog.count() == 1, "%d" % HarvestLog.count())
+	ck("balya birikti", HarvestLog.bales() == 1, "%d" % HarvestLog.bales())
+
+	# --- repeatable: the invitation comes back, and the crumb rotates.
+	ck("bir hasattan sonra davet kapandi", not HarvestLog.is_offered(), "")
+	var first_crumb := HarvestLog.crumb_key()
+	HarvestLog.record()
+	ck("kirinti donuyor", HarvestLog.crumb_key() != first_crumb,
+		"%s" % first_crumb)
+	for i in range(GameConfig.HARVEST_EVERY, GameConfig.HARVEST_EVERY * 3):
+		if i < chapters.size():
+			ChapterProgress.record(str((chapters[i] as Dictionary).get("variant_id", "")), 2, 2)
+	ck("yeterince bolum sonra davet doner", HarvestLog.is_offered(),
+		"%d bolum / %d hasat" % [ChapterProgress.done_count(), HarvestLog.count()])
+	# Bales stop piling at the cap.
+	for _i in 10:
+		HarvestLog.record()
+	ck("balya tavani var", HarvestLog.bales() == GameConfig.HARVEST_BALES_MAX,
+		"%d" % HarvestLog.bales())
+
+	game.queue_free()
+	GameState.set_setting("harvest", "runs", 0)
+	GameState.set_setting("harvest", "since_chapter", 0)
+	ChapterProgress.reset()
+	RestoreBoard.reset()
+	if _fails > 0:
+		push_error("%d HASAT TESTI BASARISIZ" % _fails)
+		print("--- %d HASAT TESTI BASARISIZ ---" % _fails)
+	else:
+		print("--- TUM HASAT TESTLERI GECTI ---")
+	get_tree().quit()
+
+
+func ck(label: String, passed: bool, detail: String) -> void:
+	if passed:
+		return
+	_fails += 1
+	print("  FAIL %s  %s" % [label, detail])

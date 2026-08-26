@@ -200,6 +200,25 @@ const GRASS_PALETTES := {
 		"clipping": Color(0.82, 0.60, 0.22),
 	},
 
+	# Harvest levels (G13.6). AMBER pushed all the way into grain: the tips are
+	# nearly white-gold, the base is dry straw, and nothing flowers — this is a
+	# crop standing too long, not a lawn.
+	"WHEAT": {
+		"cluster_base": Color(0.34, 0.24, 0.08),
+		"cluster_tip": Color(0.96, 0.82, 0.40),
+		"accents": [
+			{ "base": Color(0.38, 0.27, 0.09), "tip": Color(1.0, 0.90, 0.52),
+				"weight": 0.22, "flowers": false },
+			{ "base": Color(0.30, 0.22, 0.08), "tip": Color(0.84, 0.70, 0.30),
+				"weight": 0.10, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.78, 0.64, 0.30), Color(0.70, 0.56, 0.25),
+			Color(0.54, 0.42, 0.18), Color(0.62, 0.49, 0.21),
+		],
+		"clipping": Color(0.94, 0.80, 0.38),
+	},
+
 	# B7: last light. Desaturated violet-grey; the one palette where the stripe
 	# ladder carries almost all of the "this is cut" reading.
 	"DUSK_VIOLET": {
@@ -787,7 +806,7 @@ const HOUSE_VARIANTS := {
 ## composition each, built from the same primitives and textures as the house,
 ## and each one casts shadow so it anchors to the ground.
 const LANDMARK_IDS: Array[String] = [
-	"playground", "greenhouse", "water_tower", "mill",
+	"playground", "greenhouse", "water_tower", "mill", "barn",
 ]
 
 const HOUSE_MARGIN_Z := 4.8
@@ -1279,3 +1298,51 @@ const FIRST_RUN_POSTER_PULSE := 12.0
 ## How wide the one-off evidence hint reaches, in cells. Wider than a scent
 ## moment: this one is allowed to point, once.
 const FIRST_RUN_HINT_CELLS := 4
+
+
+# ---------------------------------------------------------------- harvest (G13.6)
+## A repeatable bonus level: mow the town's crop. It advances no case and holds
+## no evidence — it pays in scrap and in the barn filling up.
+##
+## Everything here rides on systems that already exist: a LevelVariant, a grass
+## palette, the scrap field and Gus's dialogue. The only new thing on screen is
+## the crop standing around the plot, and that is decor.
+## The harvest's own colour: the map badge and the radio card, so the bonus
+## level reads as a different errand from a case pin.
+const HARVEST_GOLD := Color(0.92, 0.76, 0.24)
+const HARVEST_VARIANT := "harvest_field"
+## Offered after this many finished searches, once the farm is rebuilt and the
+## tractor is owned. It then waits indefinitely: an invitation, not a timer.
+const HARVEST_EVERY := 3
+## Scrap is denser here than in a search — this is the paying job.
+const HARVEST_SCRAP_MULTIPLIER := 2.2
+## Hay bales that pile up outside the barn in the diorama, one per harvest.
+const HARVEST_BALES_MAX := 4
+
+## The crop standing around the plot. Deliberately enormous: the brief asked for
+## sunflowers and corn you look UP at, so these are authored at two to three
+## times a person's height and planted right up to the fence.
+const CROP_ROWS := 7
+## The first row stands right against the fence — on a 20-wide plot the side
+## rows are already near the edge of a portrait frame, and any further out they
+## are simply not on screen.
+const CROP_ROW_GAP := 1.15
+const CROP_SPACING := 1.25
+## Extra distance for the rows behind the mower's starting fence, so a six-metre
+## sunflower does not sit in front of the camera.
+const CROP_SOUTH_SETBACK := 0.0
+## Sunflower: stalk height, head radius. A head this size is roughly a dinner
+## plate at the game's scale.
+const SUNFLOWER_HEIGHT := Vector2(4.2, 6.4)
+const SUNFLOWER_HEAD := 0.95
+const SUNFLOWER_PETALS := 18
+const SUNFLOWER_PETAL := Color(0.98, 0.78, 0.16)
+const SUNFLOWER_CENTRE := Color(0.32, 0.20, 0.10)
+const SUNFLOWER_STALK := Color(0.32, 0.46, 0.18)
+## Corn: stalk height, and the leaves that fan off it.
+const CORN_HEIGHT := Vector2(4.6, 6.8)
+const CORN_LEAVES := 7
+const CORN_STALK := Color(0.44, 0.56, 0.22)
+const CORN_LEAF := Color(0.38, 0.54, 0.20)
+const CORN_COB := Color(0.92, 0.82, 0.34)
+const CORN_TASSEL := Color(0.74, 0.66, 0.34)
