@@ -1260,3 +1260,22 @@ const MAP_ZOOM_SECONDS := 0.45
 ## the water tower live at the left and right edges and would be the first
 ## things lost (G13.5).
 const MAP_SHEET_ASPECT := 1.5
+
+
+# ---------------------------------------------------------------- first run (G15)
+## The one-time orientation pass. A player who has finished a search never sees
+## any of this again — it exists to stop somebody leaving in the first minute
+## because they do not yet know what the mowing is FOR.
+##
+## Six layers already say it (five intro cards, the opening title, the case line
+## in the top bar, the poster, the Marshal's radio, the first evidence card).
+## These add a seventh and an eighth deliberately, for the first run only.
+const FIRST_RUN_MODAL_AFTER := 4.0
+## Percentages at which the Marshal speaks on a FIRST run: much earlier than the
+## usual 30/60, so the player hears where to look inside the first few seconds.
+const FIRST_RUN_SCENT_AT := [0.08, 0.45]
+## How long Ellie's poster pulses at the start of a first run.
+const FIRST_RUN_POSTER_PULSE := 12.0
+## How wide the one-off evidence hint reaches, in cells. Wider than a scent
+## moment: this one is allowed to point, once.
+const FIRST_RUN_HINT_CELLS := 4

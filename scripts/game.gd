@@ -27,6 +27,10 @@ var _active_index := GameConfig.MOWER_PUSH
 var _collected: Array = []
 ## Which scent moments have already fired this chapter (G13.4).
 var _scent_done: Dictionary = {}
+## First-run orientation (G15): whether this search is the player's first, and
+## the countdown to the sheet. Zero means "not pending".
+var _first_run := false
+var _orientation_due := 0.0
 var _complete_shown := false
 ## G7: the case has to be accepted before the search starts. While this is
 ## false the lawn ignores touches and the run clock has not begun.
@@ -143,7 +147,8 @@ func _ready() -> void:
 		_begin_search()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_tick_orientation(delta)
 	_check_pickups()
 	if mower != null and hud != null:
 		hud.set_pad_state(mower.pad_engaged(), mower._pad_origin, mower._pad_now)
@@ -197,6 +202,32 @@ func _ensure_all_mowers() -> void:
 		_mowers.insert(i, built)
 
 
+## Counts down to the orientation sheet on a first run, then stops. Driven from
+## _process rather than a timer so pausing the game pauses the countdown too.
+func _tick_orientation(delta: float) -> void:
+	if _orientation_due <= 0.0:
+		return
+	_orientation_due -= delta
+	if _orientation_due > 0.0:
+		return
+	_orientation_due = 0.0
+	GameState.mark_orientation_done()
+	Analytics.track("orientation_shown", {"chapter": variant_id})
+	hud.show_orientation(_on_orientation_closed)
+
+
+## Closing the sheet marks BOTH buried finds, once. This is the only place in
+## the game that points at evidence rather than at a region — it is the price of
+## a first-run player knowing what "search" means, and it never happens again.
+func _on_orientation_closed() -> void:
+	for cell_any: Variant in model.secret_cells:
+		var cell: Vector2i = cell_any
+		if model.is_cut(cell.x, cell.y):
+			continue
+		lawn.tint_hint(cell, GameConfig.FIRST_RUN_HINT_CELLS)
+	Analytics.track("orientation_hint_marked", {"chapter": variant_id})
+
+
 ## The Marshal on the radio at set points in a search, plus the faintest tint on
 ## the ground near the evidence he is talking about (G13.4).
 ##
@@ -207,10 +238,13 @@ func _ensure_all_mowers() -> void:
 func _check_scent(ratio: float) -> void:
 	if not GameConfig.hint_moments or variant == null:
 		return
-	for i in GameConfig.SCENT_AT.size():
+	# A first run hears him almost immediately; after that, at the usual points.
+	var marks: Array = GameConfig.FIRST_RUN_SCENT_AT if _first_run \
+		else GameConfig.SCENT_AT
+	for i in marks.size():
 		if _scent_done.has(i):
 			continue
-		if ratio < float(GameConfig.SCENT_AT[i]):
+		if ratio < float(marks[i]):
 			continue
 		_scent_done[i] = true
 		var target := _scent_target(i)
@@ -551,6 +585,11 @@ func _begin_search() -> void:
 	if _search_started:
 		return
 	_search_started = true
+	# The one-time orientation, on a first run only (G15).
+	_first_run = GameState.is_first_run()
+	if _first_run:
+		hud.pulse_poster(GameConfig.FIRST_RUN_POSTER_PULSE)
+		_orientation_due = GameConfig.FIRST_RUN_MODAL_AFTER
 	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index], 2.4)
 	hud.show_opening_title(variant.opening_headline, variant.opening_subline)
 	hud.show_drive_hint()

@@ -327,6 +327,91 @@ func _on_mute_pressed() -> void:
 	_refresh_mute_label()
 
 
+## The one-time orientation sheet (G15). Shown a few seconds into the FIRST
+## search, never again. It repeats what the intro said, on purpose: by now the
+## player has their hands on the mower and the sentence lands differently.
+##
+## Pauses the tree while it is up, so nothing is being mown behind it.
+func show_orientation(on_closed: Callable) -> void:
+	var dim := ColorRect.new()
+	dim.name = "OrientationDim"
+	dim.color = Color(0.03, 0.04, 0.03, 0.82)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(dim)
+
+	var sheet := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.11, 0.10, 0.09, 0.98)
+	style.border_color = GameConfig.CASE_ACCENT
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(22)
+	style.set_content_margin_all(34)
+	sheet.add_theme_stylebox_override("panel", style)
+	sheet.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	sheet.offset_left = -470.0
+	sheet.offset_right = 470.0
+	sheet.offset_top = -520.0
+	sheet.offset_bottom = 520.0
+	dim.add_child(sheet)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 22)
+	sheet.add_child(rows)
+
+	var face := TextureLibrary.find("portraits/face_ellie")
+	if face != null:
+		var picture := TextureRect.new()
+		picture.texture = face
+		picture.custom_minimum_size = Vector2(0, 300)
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		rows.add_child(picture)
+
+	for spec: Array in [["FIRST_TITLE", 46, GameConfig.CASE_ACCENT],
+			["FIRST_L1", 34, Color(0.95, 0.93, 0.88)],
+			["FIRST_L2", 30, GameConfig.CASE_MUTED],
+			["FIRST_L3", 30, GameConfig.CASE_MUTED]]:
+		var line := Label.new()
+		line.text = tr(str(spec[0]))
+		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		line.add_theme_font_size_override("font_size", int(spec[1]))
+		line.add_theme_color_override("font_color", spec[2])
+		rows.add_child(line)
+
+	var go := Button.new()
+	go.text = tr("FIRST_OK")
+	go.custom_minimum_size = Vector2(0, 112)
+	go.add_theme_font_size_override("font_size", 38)
+	_style_primary(go)
+	rows.add_child(go)
+	go.pressed.connect(func() -> void:
+		Haptics.medium()
+		get_tree().paused = false
+		dim.queue_free()
+		on_closed.call())
+
+	get_tree().paused = true
+	dim.process_mode = Node.PROCESS_MODE_ALWAYS
+	dim.modulate.a = 0.0
+	var fade := create_tween()
+	fade.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	fade.tween_property(dim, "modulate:a", 1.0, 0.3)
+
+
+## Draws attention to Ellie's poster for a few seconds at the start of a first
+## run: a slow pulse, no interruption (G15).
+func pulse_poster(seconds: float) -> void:
+	if _poster == null or not is_instance_valid(_poster):
+		return
+	var beat := create_tween()
+	beat.set_loops(int(seconds / 1.4))
+	beat.tween_property(_poster, "modulate",
+		Color(1.35, 1.28, 1.12), 0.7).set_trans(Tween.TRANS_SINE)
+	beat.tween_property(_poster, "modulate", Color.WHITE, 0.7) \
+		.set_trans(Tween.TRANS_SINE)
+
+
 ## A short line from the Marshal over the radio (G13.4). One at a time: a
 ## second one replaces the first rather than stacking.
 func show_scent(key: String) -> void:

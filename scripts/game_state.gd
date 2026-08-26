@@ -21,6 +21,10 @@ const SETTINGS_PATH := "user://settings.cfg"
 ## `_migrate`. Adding a brand-new key needs no bump: readers already default.
 const SAVE_VERSION := 1
 const META := "meta"
+## Whether the one-time orientation has been shown (G15). Stored, not a runtime
+## flag: it has to survive the app being closed mid-search, or a player who
+## quits during their first lawn gets the whole thing again.
+const FIRST_RUN_KEY := "orientation_done"
 ## G9 currency section. Nowhere to spend it until G10's Workshop, so the total is
 ## the only thing stored.
 const ECONOMY := "economy"
@@ -107,6 +111,15 @@ func _migrate() -> void:
 	var err := _config.save(SETTINGS_PATH)
 	if err != OK:
 		push_warning("GameState: could not stamp save version (error %d)" % err)
+
+
+## True until the player has been shown the first-run orientation once.
+func is_first_run() -> bool:
+	return not bool(get_setting(META, FIRST_RUN_KEY, false))
+
+
+func mark_orientation_done() -> void:
+	set_setting(META, FIRST_RUN_KEY, true)
 
 
 ## Which format the file on disk is in. Zero means unversioned or absent.

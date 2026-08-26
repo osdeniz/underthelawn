@@ -12,6 +12,9 @@ const START := Vector3(0.0, 0.0, -6.0)
 
 
 func _ready() -> void:
+	# Not a first run: the orientation sheet pauses the tree, and a paused tree
+	# cannot be driven (G15).
+	GameState.set_setting("meta", "orientation_done", true)
 	var game: Node = load("res://scenes/Main.tscn").instantiate()
 	add_child(game)
 	await get_tree().process_frame

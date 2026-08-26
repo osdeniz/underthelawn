@@ -2131,6 +2131,36 @@ gone.
 of lossless photographic art at display size plus 6 MB of compressed world
 textures. Audio unchanged at 2.3 MB.
 
+## Sprint G15 — the first-run orientation
+
+A one-time pass at the start of the very first search, to stop a new player
+leaving before they know what the mowing is FOR.
+
+Six layers already said it — five intro cards, the opening title, the case line
+in the top bar, Ellie's poster, the Marshal's radio, the first evidence card —
+so this is a seventh and an eighth, added deliberately and shown ONCE.
+
+* **The sheet** appears four seconds in, with Ellie's face and three lines. It
+  pauses the tree, so nothing is being mown behind it. It repeats what the intro
+  said on purpose: by now the player has their hands on the mower, and the
+  sentence lands differently.
+* **Closing it marks both buried finds**, widely. This is the ONLY place in the
+  game that points at evidence rather than at a region — it contradicts G13.4's
+  rule on purpose, once, and never again.
+* **The Marshal speaks at 8 %** on a first run instead of 30 %, so a player who
+  skips the sheet still hears where to look inside the first few seconds.
+* **The poster pulses** for twelve seconds at the start. No interruption.
+
+The flag lives in the SAVE (`meta/orientation_done`), not in memory: a player
+who quits during their first lawn must not get the whole thing again.
+
+**It broke two suites, and that was the useful part.** `DragPad` and
+`KeyboardCheck` drive a mower — and a paused tree cannot be driven. They were
+inheriting a cleared flag from `FirstRunCheck`, which shares one `settings.cfg`
+with every other suite. Both now state their own precondition, and the first-run
+suite leaves the flag SET rather than cleared. A test that depends on what
+another test left behind is a test that will lie eventually.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
