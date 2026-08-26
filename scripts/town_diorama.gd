@@ -1217,6 +1217,11 @@ func _flash(restored: Node3D) -> void:
 
 ## A short-lived puff of pale dust. Deliberately tiny: this is punctuation for
 ## a part landing, not weather.
+##
+## The process material and the draw mesh are built ONCE and shared. A restore
+## calls this a dozen times, and building four fresh resources per call meant a
+## fresh particle shader variant each time (G13.4). Per-puff size lives on the
+## NODE's scale instead, so no clone is needed.
 func _dust(parent: Node3D, at: Vector3, scale := 1.0) -> void:
 	if parent == null:
 		return
@@ -1226,28 +1231,45 @@ func _dust(parent: Node3D, at: Vector3, scale := 1.0) -> void:
 	puff.lifetime = 0.5
 	puff.one_shot = true
 	puff.explosiveness = 0.95
+	puff.process_material = _dust_process()
+	puff.draw_pass_1 = _dust_quad()
+	puff.scale = Vector3.ONE * scale
+	parent.add_child(puff)
+	puff.emitting = true
+	puff.finished.connect(puff.queue_free)
+
+
+func _dust_process() -> ParticleProcessMaterial:
+	if _mats.has("dust_process"):
+		return _mats["dust_process"]
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, 1.0, 0.0)
 	mat.spread = 55.0
-	mat.initial_velocity_min = 0.4 * scale
-	mat.initial_velocity_max = 1.1 * scale
+	mat.initial_velocity_min = 0.4
+	mat.initial_velocity_max = 1.1
 	mat.gravity = Vector3(0.0, -1.2, 0.0)
-	mat.scale_min = 0.12 * scale
-	mat.scale_max = 0.3 * scale
+	mat.scale_min = 0.12
+	mat.scale_max = 0.3
 	mat.color = Color(0.82, 0.76, 0.66, 0.75)
-	puff.process_material = mat
+	_mats["dust_process"] = mat
+	return mat
+
+
+func _dust_quad() -> QuadMesh:
+	if _mats.has("dust_quad"):
+		return _mats["dust_quad"]
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE
 	var draw := StandardMaterial3D.new()
+	# A soft radial texture, so a puff is a cloud rather than a hard square.
+	draw.albedo_texture = TextureLibrary.ao_radial()
 	draw.albedo_color = Color(0.86, 0.80, 0.70, 0.8)
 	draw.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	draw.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	draw.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	quad.material = draw
-	puff.draw_pass_1 = quad
-	parent.add_child(puff)
-	puff.emitting = true
-	puff.finished.connect(puff.queue_free)
+	_mats["dust_quad"] = quad
+	return quad
 
 
 ## Hills and rooftops past the rim, sunk in haze. Without them the plate ends

@@ -1704,6 +1704,31 @@ chatter (`unused variable`, `uninitialized`) and is not ours.
   call of ours; `fopen failed for data file` and the CoreMotion plist warning
   are engine/system noise.
 
+### G13.4 — the leaks at exit
+
+Two orphans, both mine, both from G13:
+
+* `_build_diorama_background` created a `shade` ColorRect, configured it, and
+  never added it to the tree — the wash beside it became a TextureRect and the
+  ColorRect was left behind. That is one leaked CanvasItem plus its objects,
+  every time a hub is built.
+* `_on_diorama_building` called `_on_tile(id, false, Button.new())` for a
+  throwaway button that `_on_tile` only uses to shake a LOCKED tile. The
+  parameter now defaults to null.
+* `_dust` built a ParticleProcessMaterial, a QuadMesh and a StandardMaterial3D
+  on every call — a dozen per restore, and a fresh particle shader variant each
+  time. Both are built once and shared now; per-puff size is the NODE's scale.
+
+Verified with `--verbose`, which names the leaked instances. After the fix both
+`tests/DioramaCheck.tscn` and a full purchase run report nothing leaked.
+
+**A tooling lesson, not a game one:** the first attempt at the `_dust` change
+used `s[s.index(A):s.index(B)]` to slice out the old function, with B occurring
+BEFORE A in the file. That yields an empty string, and `str.replace(, new)`
+inserts `new` between every character — it turned a 52 KB script into 90 MB.
+Slice bounds have to be ordered, or the edit made with a tool that verifies the
+match.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

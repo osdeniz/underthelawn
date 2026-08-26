@@ -576,10 +576,9 @@ func _build_diorama_background() -> void:
 	grade.material = grade_mat
 	add_child(grade)
 
-	# The same darkening the collage gets, so cards stay readable over it.
-	var shade := ColorRect.new()
-	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# The same darkening the collage gets, so cards stay readable over it. This
+	# is a gradient, so it is a TextureRect — an earlier ColorRect was left here
+	# unparented when it changed, and leaked on every hub (G13.4).
 	var grad := Gradient.new()
 	grad.set_color(0, Color(0.05, 0.06, 0.05, 0.55))
 	grad.set_color(1, Color(0.05, 0.06, 0.05, 0.05))
