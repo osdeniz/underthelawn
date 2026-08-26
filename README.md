@@ -1675,6 +1675,50 @@ full-screen invisible Button stayed over the hub swallowing every touch.
   and asserts no blocking button survives and no page is left faded. Without the
   fix it reports 1 blocking button and 6 faded pages.
 
+### G13.5 — all ten restore projects are physical
+
+(Named G13.5, not G13.3: that number is already taken above by the device
+console pass.)
+
+The slice's other seven projects now exist on the plate, each with a ruined and
+a restored form, each rebuilt through the same Tween transition. A locked
+project shows its RUIN rather than an empty lot, so the player can see what the
+money buys before Tier 2 opens.
+
+| Project | Ruined | Restored |
+| --- | --- | --- |
+| swing | bare limb, one frayed rope | ropes, seat, the case's yellow ribbon; Ellie rides it once the case is closed |
+| lantern | snapped post in the grass | iron post, warm lamp, an additive light pool on the paving |
+| greenhouse | leaning frame, three panes left | new and salvaged glass mixed, seedling beds read through it |
+| clinic | boarded door, collapsed veranda | red cross sign, level veranda, supply crates |
+| mast | lattice on its side | standing lattice, slow red beacon, hut, sagging cable |
+| farm | weeded beds, fence half down | worked rows, stone well, scarecrow |
+| barn | half the roof in the loft | patched panel, X-braced door, hay bales, cat asleep on top |
+
+* **Figures.** The brief referred to "the existing cat figure" and Sarah's
+  "second stop" — there were no figures at all, so Sarah, Gus, a farmer and the
+  cat are new. Each appears only when the project that brings them back is
+  built. They walk a two-point line with scissoring legs; there is no navmesh.
+* **Peek.** Holding a restore card for `DIORAMA_PEEK_HOLD` leans the camera at
+  that plot and back, before any money moves. It refuses while a rebuild plays.
+* **Plate 26x34 -> 36x46.** Ten buildings on the old plate stood shoulder to
+  shoulder, with the greenhouse inside the barn.
+* **The swing needed its own scale.** Every plot is scaled by
+  `DIORAMA_BUILDING_SCALE`, but the oak is not — at 1.55 the ropes hung in open
+  air beside the tree. Its config entry carries `"scale": 1.0`.
+* The clinic cross was authored BEHIND its own sign board (smaller z is further
+  back), and `_life` re-places the camera every frame, so the shot script has to
+  call `set_process(false)` or every frame comes out at the hub framing.
+
+**Performance, reported as the brief asks — and it is over budget.** 666 draws /
+28.7k triangles ruined, **752 draws / 31.3k restored**, against the yard's
+580 / 30k. G13 kept the diorama under the yard; ten buildings does not. It still
+draws only every other frame and stops entirely during a chapter, but the draw
+count is the number to watch on a real device.
+
+Frames: `docs/g13/p_<project>_0ruin.jpg` and `_1built.jpg` for all ten, plus
+`docs/g13/hero.jpg`.
+
 **Not in the slice.** The other seven projects — swing, lantern, greenhouse,
 clinic, mast, farm, barn — have no building in the scene yet. Adding one is a
 `DIORAMA_BUILDINGS` entry plus a ruined/restored builder pair; nothing else.
