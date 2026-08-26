@@ -1063,7 +1063,9 @@ static var hub_mode := HUB_MODE_DIORAMA
 ## model fill the frame.
 ## Big enough that the frame is FULL: the edges are trees, hedges and fog, not
 ## bare ground running out (G13.1). Still narrow-and-deep for a portrait screen.
-const DIORAMA_PLATE := Vector2(26.0, 34.0)
+## Grown again for G13.5: ten buildings on the 26x34 plate stood shoulder to
+## shoulder and the greenhouse sat inside the barn. Roughly double the area.
+const DIORAMA_PLATE := Vector2(36.0, 46.0)
 ## How far the ground bevels in at the rim, which is what sells "model".
 const DIORAMA_BEVEL := 2.4
 const DIORAMA_BEVEL_DROP := 1.6
@@ -1074,13 +1076,13 @@ const DIORAMA_FPS := 30
 ## at 1170x2532 that leaves a ~20 degree horizontal window — the two side
 ## buildings sat completely outside it. keep_aspect KEEP_WIDTH makes this a
 ## HORIZONTAL angle instead, and the tall screen then has depth to spare.
-const DIORAMA_CAM_POS := Vector3(0.0, 20.5, 21.0)
-const DIORAMA_CAM_LOOK := Vector3(0.0, 1.6, -2.6)
+const DIORAMA_CAM_POS := Vector3(0.0, 28.0, 28.5)
+const DIORAMA_CAM_LOOK := Vector3(0.0, 1.8, -3.4)
 const DIORAMA_CAM_FOV := 48.0
 ## The hub's cards cover the bottom half of the screen, so the model is pushed
 ## up into the half that stays visible. This is a frustum shift, not a rotation:
 ## turning the camera up would have tilted the whole model off its plate.
-const DIORAMA_V_OFFSET := -7.2
+const DIORAMA_V_OFFSET := -9.6
 ## The plate's grass. grass_albedo is a greyscale pattern, so this is what makes
 ## it green (the yard tints it in a shader instead).
 const DIORAMA_GRASS_TINT := Color(0.40, 0.58, 0.28)
@@ -1097,8 +1099,8 @@ const DIORAMA_OVERGROWTH_COUNT := 40
 ## Kept clear of the paving so the square does not sprout grass.
 const DIORAMA_SQUARE_RADIUS := 4.2
 ## Trees and hedges that close the frame. Radius from centre, count.
-const DIORAMA_EDGE_TREES := 16
-const DIORAMA_EDGE_BUSHES := 30
+const DIORAMA_EDGE_TREES := 24
+const DIORAMA_EDGE_BUSHES := 44
 ## A breath of movement so the scene is not a photograph. Degrees and Hz.
 const DIORAMA_SWAY_DEG := 0.55
 const DIORAMA_SWAY_HZ := 0.06
@@ -1115,13 +1117,49 @@ const DIORAMA_PAN_RETURN := 1.6
 ## rewritten.
 const DIORAMA_BUILDING_SCALE := 1.55
 
+## All ten restore projects, each with a place on the plate. Every one has a
+## ruined form as well as a restored one: a locked project shows its RUIN, not
+## an empty lot, so the player can see what the money is for (G13.5).
 const DIORAMA_BUILDINGS := {
-	"station": {"pos": Vector3(-5.6, 0.0, 3.4), "yaw": 0.34},
-	"homes": {"pos": Vector3(5.5, 0.0, 4.2), "yaw": -0.34},
-	"watchtower": {"pos": Vector3(1.4, 0.0, -9.4), "yaw": 0.10},
+	"station": {"pos": Vector3(-7.4, 0.0, 5.2), "yaw": 0.34},
+	"homes": {"pos": Vector3(7.6, 0.0, 5.8), "yaw": -0.34},
+	"watchtower": {"pos": Vector3(2.0, 0.0, -13.2), "yaw": 0.10},
+	# The swing hangs from the oak, so its plot IS the oak's spot; its parts are
+	# positioned against the limb rather than the ground.
+	# scale 1.0, NOT the shared building scale: the swing has to line up with
+	# the oak's limb, and the oak is not scaled. At 1.55 the ropes hung in open
+	# air beside the tree (G13.5).
+	"swing": {"pos": Vector3(-1.2, 0.0, -4.6), "yaw": 0.40, "scale": 1.0},
+	"lantern": {"pos": Vector3(4.8, 0.0, -1.0), "yaw": 0.0},
+	"greenhouse": {"pos": Vector3(12.4, 0.0, 0.6), "yaw": -0.55},
+	"clinic": {"pos": Vector3(-12.6, 0.0, -1.8), "yaw": 0.62},
+	"mast": {"pos": Vector3(-10.8, 0.0, -12.4), "yaw": 0.18},
+	"farm": {"pos": Vector3(11.2, 0.0, -9.6), "yaw": -0.22},
+	"barn": {"pos": Vector3(13.4, 0.0, -15.8), "yaw": -0.40},
 }
+
+## Who walks the town, and between which two points. A figure only appears once
+## the thing that brings them here is built (G13.5). Positions are plate-space;
+## the pair is walked back and forth, not a path-finding route.
+const DIORAMA_FIGURES := {
+	"sarah": {"needs": "greenhouse", "colour": Color(0.72, 0.42, 0.48),
+		"from": Vector3(8.6, 0.0, 3.6), "to": Vector3(11.6, 0.0, 1.4), "speed": 0.55},
+	"gus": {"needs": "mast", "colour": Color(0.42, 0.46, 0.56),
+		"from": Vector3(-8.4, 0.0, -9.0), "to": Vector3(-10.2, 0.0, -11.4), "speed": 0.45},
+	"farmer": {"needs": "farm", "colour": Color(0.56, 0.50, 0.34),
+		"from": Vector3(9.6, 0.0, -8.4), "to": Vector3(12.4, 0.0, -10.6), "speed": 0.40},
+	"cat": {"needs": "barn", "colour": Color(0.38, 0.34, 0.32),
+		"from": Vector3(12.2, 0.0, -14.4), "to": Vector3(14.2, 0.0, -16.4), "speed": 0.65},
+}
+## Ellie sits on the swing once the case is closed AND the swing is built.
+const DIORAMA_ELLIE_NEEDS := "swing"
+
+## How long a restore card has to be held before the camera glances at the plot
+## it would build, and how long the glance lasts.
+const DIORAMA_PEEK_HOLD := 0.35
+const DIORAMA_PEEK_SECONDS := 1.6
 ## The dead oak in the square. The swing project will hang from it later.
-const DIORAMA_TREE_POS := Vector3(-0.9, 0.0, -3.2)
+const DIORAMA_TREE_POS := Vector3(-1.2, 0.0, -4.6)
 
 # ---- the restore transition (G13 §3)
 ## Camera push-in, the collapse, then parts landing one after another.

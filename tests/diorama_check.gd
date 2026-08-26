@@ -27,8 +27,12 @@ func _check_scene() -> void:
 	add_child(town)
 	await get_tree().process_frame
 
-	ck("uc bina da sahnede", GameConfig.DIORAMA_BUILDINGS.size() == 3,
-		str(GameConfig.DIORAMA_BUILDINGS.size()))
+	# Every restore project must be physically present, not just the first three
+	# (G13.5). A project with no building is money the player cannot see.
+	ck("her proje sahnede",
+		GameConfig.DIORAMA_BUILDINGS.size() == RestoreBoard.projects().size(),
+		"%d bina / %d proje" % [GameConfig.DIORAMA_BUILDINGS.size(),
+			RestoreBoard.projects().size()])
 	for id: String in GameConfig.DIORAMA_BUILDINGS:
 		ck("bina var: %s" % id, town.has_building(id), "")
 		# Every restorable project in the slice must exist in projects.json, or

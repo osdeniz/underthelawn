@@ -46,6 +46,12 @@ var _cloths: Array = []
 var _lamps: Array = []
 var _birds: Array = []
 var _bird_timer := 3.0
+## The townsfolk, and Ellie on her swing (G13.5).
+var _figures: Array = []
+var _ellie_swing: Node3D
+## A restore card is being held down, and the camera is showing its plot.
+var _peek := false
+var _peek_id := ""
 var _life_t := 0.0
 
 
@@ -61,6 +67,7 @@ func _ready() -> void:
 	_build_edge_planting()
 	_build_horizon()
 	_build_tufts()
+	_build_figures()
 	refresh_state()
 
 
@@ -86,6 +93,8 @@ func set_built(project_id: String, built: bool, animated: bool) -> void:
 		_cleared.erase(project_id)
 	if not _tuft_meshes.is_empty():
 		_write_tufts()
+	if not _figures.is_empty():
+		refresh_figures()
 	if built and not animated:
 		# Straight to standing: no half-fallen parts left over from a skipped
 		# transition.
@@ -451,7 +460,7 @@ func _ball(parent: Node3D, radius: float, mat: Material, pos: Vector3,
 
 func _process(delta: float) -> void:
 	_life(delta)
-	if camera == null or _busy:
+	if camera == null or _busy or _peek:
 		return
 	_sway_t += delta
 	if GameConfig.DIORAMA_PAN_ENABLED and _pan_finger < 0:
@@ -490,10 +499,19 @@ func _life(delta: float) -> void:
 		if not is_instance_valid(light_any):
 			continue
 		var lamp := light_any as OmniLight3D
-		var f := sin(_life_t * 6.1) * 0.5 + sin(_life_t * 11.3) * 0.3 \
-			+ sin(_life_t * 2.7) * 0.2
-		lamp.light_energy = lamp.get_meta("base") * (1.0 + f * 0.14)
+		var base: float = lamp.get_meta("base")
+		if lamp.get_meta("blink", false):
+			# The mast beacon pulses instead of flickering: a slow on/off is
+			# what an aircraft warning light does, and it reads from across the
+			# plate where a flame's wobble would not.
+			var pulse := 0.5 + 0.5 * sin(_life_t * 1.6)
+			lamp.light_energy = base * (0.12 + pow(pulse, 3.0) * 1.5)
+		else:
+			var f := sin(_life_t * 6.1) * 0.5 + sin(_life_t * 11.3) * 0.3 \
+				+ sin(_life_t * 2.7) * 0.2
+			lamp.light_energy = base * (1.0 + f * 0.14)
 	_fly_birds(delta)
+	_walk_figures(delta)
 
 
 ## Two or three birds crossing now and then. Billboards on a straight line, not
@@ -675,7 +693,8 @@ func _build_building(project_id: String) -> void:
 	plot.rotation.y = float(spec["yaw"])
 	# The buildings are authored around 3 m; on a 26x34 plate that read as
 	# models on a lawn, so the whole plot is scaled up as one.
-	plot.scale = Vector3.ONE * GameConfig.DIORAMA_BUILDING_SCALE
+	plot.scale = Vector3.ONE * float(spec.get("scale",
+		GameConfig.DIORAMA_BUILDING_SCALE))
 	add_child(plot)
 
 	var ruined := Node3D.new()
@@ -695,6 +714,27 @@ func _build_building(project_id: String) -> void:
 		"watchtower":
 			_tower_ruined(ruined)
 			_tower_restored(restored)
+		"swing":
+			_swing_ruined(ruined)
+			_swing_restored(restored)
+		"lantern":
+			_lantern_ruined(ruined)
+			_lantern_restored(restored)
+		"greenhouse":
+			_greenhouse_ruined(ruined)
+			_greenhouse_restored(restored)
+		"clinic":
+			_clinic_ruined(ruined)
+			_clinic_restored(restored)
+		"mast":
+			_mast_ruined(ruined)
+			_mast_restored(restored)
+		"farm":
+			_farm_ruined(ruined)
+			_farm_restored(restored)
+		"barn":
+			_barn_ruined(ruined)
+			_barn_restored(restored)
 
 	# Each part remembers where it belongs, so the transition can start it in
 	# the air and tween it home.
@@ -1404,3 +1444,522 @@ func _write_tufts() -> void:
 			mm.set_instance_transform(i, Transform3D(basis, spot["at"]))
 			var shade := 0.82 + fmod(float(i) * 0.137, 0.34)
 			mm.set_instance_color(i, Color(shade, shade, shade))
+
+
+# ---------------------------------------------------------------- swing (G13.5)
+
+## Ellie's swing hangs from the oak's thick limb, so "ruined" is the limb with
+## nothing on it — a bare branch reads as absence better than a broken swing.
+func _swing_ruined(root: Node3D) -> void:
+	var rope := _flat("old_rope", Color(0.44, 0.40, 0.32), 1.0)
+	# One frayed end still knotted round the limb: someone took it down.
+	_cyl(root, 0.035, 0.035, 0.62, rope, Vector3(1.60, 4.30, 0.30),
+		Vector3(0.14, 0.0, 0.05))
+
+
+func _swing_restored(root: Node3D) -> void:
+	var rope := _flat("rope", Color(0.76, 0.68, 0.50), 1.0)
+	var plank := _wood_mat("swing_seat", Color(0.62, 0.45, 0.29))
+	var ribbon := _flat("ribbon", Color(0.94, 0.82, 0.34), 0.9)
+	# Two ropes down from the limb, a seat across them, and the yellow ribbon
+	# from the case tied to one rope — the swing is Ellie's, and it says so.
+	for side: float in [-0.36, 0.36]:
+		_cyl(root, 0.035, 0.035, 2.60, rope,
+			Vector3(1.60 + side, 3.20, 0.30))
+	_box(root, Vector3(0.94, 0.09, 0.34), plank, Vector3(1.60, 1.92, 0.30))
+	# The yellow ribbon from the case, knotted on the near rope.
+	_box(root, Vector3(0.08, 0.30, 0.06), ribbon, Vector3(1.24, 3.50, 0.31),
+		Vector3(0.0, 0.0, 0.30))
+	_box(root, Vector3(0.24, 0.08, 0.06), ribbon, Vector3(1.30, 3.38, 0.31),
+		Vector3(0.0, 0.0, -0.5))
+
+
+# ---------------------------------------------------------------- lantern
+
+func _lantern_ruined(root: Node3D) -> void:
+	var iron := _flat("old_iron", Color(0.30, 0.29, 0.27), 0.9, 0.2)
+	var glass := _flat("broken_glass", Color(0.34, 0.38, 0.36), 0.4, 0.2)
+	# Snapped off at the base and lying where it fell.
+	_cyl(root, 0.07, 0.10, 2.6, iron, Vector3(0.9, 0.16, 0.5),
+		Vector3(0.0, 0.4, deg_to_rad(84.0)))
+	_box(root, Vector3(0.32, 0.36, 0.32), glass, Vector3(2.1, 0.20, 0.7),
+		Vector3(0.3, 0.4, 0.2))
+	_cyl(root, 0.16, 0.20, 0.22, iron, Vector3(0.0, 0.11, 0.0))
+	_ao_blob(root, Vector2(2.6, 2.0), Vector3(0.9, 0.03, 0.4), 0.45)
+
+
+func _lantern_restored(root: Node3D) -> void:
+	var iron := _flat("iron_post", Color(0.20, 0.20, 0.22), 0.8, 0.35)
+	var glow := _glow("lamp_warm", Color(1.0, 0.86, 0.52), 2.2)
+	_cyl(root, 0.16, 0.24, 0.26, iron, Vector3(0.0, 0.13, 0.0))
+	_cyl(root, 0.06, 0.09, 3.0, iron, Vector3(0.0, 1.60, 0.0))
+	# A little cross-arm and the lamp box under it.
+	_box(root, Vector3(0.44, 0.06, 0.06), iron, Vector3(0.0, 3.06, 0.0))
+	_box(root, Vector3(0.30, 0.38, 0.30), glow, Vector3(0.0, 2.82, 0.0))
+	_box(root, Vector3(0.38, 0.08, 0.38), iron, Vector3(0.0, 3.04, 0.0))
+	_lantern(root, Vector3(0.0, 2.82, 0.0), 3.4, 6.5)
+	# The pool of light on the paving: a flat unshaded disc, because a real
+	# light cannot show its own falloff on the ground at this camera distance.
+	var pool := CylinderMesh.new()
+	pool.top_radius = 2.4
+	pool.bottom_radius = 2.4
+	pool.height = 0.02
+	pool.radial_segments = 18
+	var pool_mat := StandardMaterial3D.new()
+	pool_mat.albedo_texture = TextureLibrary.ao_radial()
+	pool_mat.albedo_color = Color(1.0, 0.84, 0.50, 0.30)
+	pool_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	pool_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	pool_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_mesh(root, pool, pool_mat, Vector3(0.0, 0.06, 0.0))
+
+
+# ---------------------------------------------------------------- greenhouse
+
+func _greenhouse_ruined(root: Node3D) -> void:
+	var frame := _wood_mat("gh_frame_old", Color(0.42, 0.38, 0.32))
+	var shard := _flat("gh_shard", Color(0.40, 0.46, 0.44), 0.35, 0.15)
+	# A leaning frame with most of its glass gone: four uprights out of true,
+	# two ribs, and three panes still in place.
+	for corner: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1),
+			Vector2(1, 1)]:
+		_box(root, Vector3(0.10, 1.9, 0.10), frame,
+			Vector3(corner.x * 0.95, 0.95, corner.y * 1.35),
+			Vector3(corner.y * 0.10, 0.0, corner.x * 0.12))
+	_box(root, Vector3(2.1, 0.09, 0.09), frame, Vector3(0.0, 1.86, -1.35),
+		Vector3(0.0, 0.0, 0.10))
+	_box(root, Vector3(2.1, 0.09, 0.09), frame, Vector3(0.0, 1.80, 1.35),
+		Vector3(0.0, 0.0, -0.06))
+	_box(root, Vector3(0.05, 1.1, 0.9), shard, Vector3(-0.95, 1.0, -0.7))
+	_box(root, Vector3(0.05, 0.7, 0.8), shard, Vector3(0.95, 0.7, 0.6))
+	_box(root, Vector3(1.2, 0.05, 0.7), shard, Vector3(-0.2, 0.04, 0.4),
+		Vector3(0.0, 0.4, 0.0))
+	_ivy(root, Vector3(0.0, 0.0, 1.40), 1.3, 4, 7717)
+	_ao_blob(root, Vector2(4.2, 3.6), Vector3(0.2, 0.03, 0.3), 0.5)
+
+
+func _greenhouse_restored(root: Node3D) -> void:
+	var frame := _wood_mat("gh_frame", Color(0.60, 0.44, 0.30))
+	var glass := _flat("gh_glass", Color(0.62, 0.78, 0.74, 0.42), 0.15, 0.1)
+	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var old_glass := _flat("gh_glass_old", Color(0.50, 0.60, 0.56, 0.48), 0.3, 0.1)
+	old_glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var soil := _flat("gh_soil", Color(0.32, 0.24, 0.17), 1.0)
+	var sprout := _flat("gh_sprout", Color(0.36, 0.62, 0.26), 1.0)
+
+	for corner: Vector2 in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1),
+			Vector2(1, 1)]:
+		_box(root, Vector3(0.10, 2.0, 0.10), frame,
+			Vector3(corner.x * 0.95, 1.0, corner.y * 1.35))
+	# Walls: new panes and salvaged ones side by side, which is the story of
+	# this town rebuilding out of what it still has.
+	for i in 3:
+		var z := -0.9 + float(i) * 0.9
+		_box(root, Vector3(0.04, 1.9, 0.82), glass if i != 1 else old_glass,
+			Vector3(-0.95, 0.98, z))
+		_box(root, Vector3(0.04, 1.9, 0.82), old_glass if i != 1 else glass,
+			Vector3(0.95, 0.98, z))
+	_box(root, Vector3(1.86, 1.9, 0.04), glass, Vector3(0.0, 0.98, -1.35))
+	_box(root, Vector3(1.86, 1.9, 0.04), old_glass, Vector3(0.0, 0.98, 1.35))
+	_roof_prism(root, Vector3(0.0, 2.02, 0.0), 2.1, 0.55, glass)
+	# Seedling beds, read through the glass: two soil rows with small green
+	# blocks in them. This is what makes it a WORKING greenhouse and not a box.
+	for row: float in [-0.45, 0.45]:
+		_box(root, Vector3(0.66, 0.22, 2.2), soil, Vector3(row, 0.11, 0.0))
+		for i in 7:
+			_box(root, Vector3(0.14, 0.26, 0.14), sprout,
+				Vector3(row + (0.12 if i % 2 == 0 else -0.12), 0.34,
+					-0.95 + float(i) * 0.32))
+	_ao_blob(root, Vector2(4.2, 3.6), Vector3(0.2, 0.03, 0.3), 0.5)
+
+
+# ---------------------------------------------------------------- clinic
+
+func _clinic_ruined(root: Node3D) -> void:
+	var wall := _wall_mat("ruin_wall", Color(0.50, 0.47, 0.42))
+	var board := _wood_mat("ruin_board", Color(0.38, 0.34, 0.29))
+	_box(root, Vector3(2.8, 2.0, 2.4), wall, Vector3(0.0, 1.0, 0.0))
+	_roof_prism(root, Vector3(0.0, 2.02, 0.0), 2.6, 0.5, board)
+	# Boarded door, no sign, no supplies: a house nobody practises in.
+	_box(root, Vector3(0.9, 1.5, 0.06), board, Vector3(0.2, 0.75, 1.22))
+	_box(root, Vector3(1.2, 0.14, 0.08), board, Vector3(0.2, 1.05, 1.26),
+		Vector3(0.0, 0.0, deg_to_rad(8.0)))
+	# The veranda that has collapsed at one end.
+	_box(root, Vector3(3.0, 0.10, 1.0), board, Vector3(0.0, 0.34, 1.85),
+		Vector3(0.0, 0.0, deg_to_rad(-7.0)))
+	_box(root, Vector3(0.10, 0.62, 0.10), board, Vector3(-1.35, 0.31, 2.25))
+	_ivy(root, Vector3(-0.9, 0.0, 1.22), 1.5, 4, 4242)
+	_ao_blob(root, Vector2(4.6, 4.0), Vector3(0.2, 0.03, 0.6), 0.5)
+
+
+func _clinic_restored(root: Node3D) -> void:
+	var wall := _wall_mat("clinic_wall", Color(0.90, 0.88, 0.82))
+	var roof := _roof_mat("clinic_roof", Color(0.48, 0.50, 0.54))
+	var trim := _wood_mat("clinic_trim", Color(0.54, 0.38, 0.27))
+	var cross := _flat("clinic_cross", Color(0.74, 0.20, 0.18), 0.9)
+	var sign := _flat("clinic_sign", Color(0.92, 0.90, 0.84), 0.9)
+	var crate := _wood_mat("clinic_crate", Color(0.64, 0.52, 0.36))
+	_box(root, Vector3(2.8, 2.1, 2.4), wall, Vector3(0.0, 1.05, 0.0))
+	_roof_prism(root, Vector3(0.0, 2.12, 0.0), 2.6, 0.62, roof)
+	_box(root, Vector3(0.86, 1.6, 0.10), trim, Vector3(0.2, 0.80, 1.22))
+	_window(root, Vector2(0.9, 0.8), Vector3(-0.85, 1.35, 1.22), true)
+	# The veranda, level this time, on four posts.
+	_box(root, Vector3(3.0, 0.12, 1.1), trim, Vector3(0.0, 0.36, 1.92))
+	for post_x: float in [-1.35, 1.35]:
+		_box(root, Vector3(0.10, 0.36, 0.10), trim, Vector3(post_x, 0.18, 2.38))
+	# The hand-painted sign: a white board with a red cross on it.
+	_box(root, Vector3(1.1, 0.9, 0.07), sign, Vector3(-0.05, 2.35, 1.05))
+	_box(root, Vector3(0.62, 0.18, 0.04), cross, Vector3(-0.05, 2.35, 1.10))
+	_box(root, Vector3(0.18, 0.62, 0.04), cross, Vector3(-0.05, 2.35, 1.10))
+	# Supply crates on the veranda: the clinic is stocked.
+	_box(root, Vector3(0.5, 0.42, 0.5), crate, Vector3(1.05, 0.63, 1.95),
+		Vector3(0.0, 0.3, 0.0))
+	_box(root, Vector3(0.42, 0.36, 0.42), crate, Vector3(1.15, 1.02, 1.90),
+		Vector3(0.0, -0.2, 0.0))
+	_ao_blob(root, Vector2(4.6, 4.0), Vector3(0.2, 0.03, 0.6), 0.5)
+
+
+# ---------------------------------------------------------------- radio mast
+
+func _mast_ruined(root: Node3D) -> void:
+	var steel := _flat("mast_old", Color(0.36, 0.35, 0.33), 0.85, 0.3)
+	# The lattice went over and lies in the grass, still bolted at the foot.
+	var fallen := Node3D.new()
+	fallen.position = Vector3(0.0, 0.30, 0.0)
+	fallen.rotation = Vector3(0.0, deg_to_rad(28.0), deg_to_rad(-82.0))
+	root.add_child(fallen)
+	for side: float in [-1.0, 1.0]:
+		_box(fallen, Vector3(0.10, 5.4, 0.10), steel,
+			Vector3(side * 0.32, 2.7, 0.0))
+	for i in 6:
+		# Cross bracing: alternating diagonals, which is what makes a lattice
+		# read as a lattice rather than a ladder.
+		_box(fallen, Vector3(0.78, 0.07, 0.07), steel,
+			Vector3(0.0, 0.6 + float(i) * 0.9, 0.0),
+			Vector3(0.0, 0.0, deg_to_rad(38.0 if i % 2 == 0 else -38.0)))
+	_box(root, Vector3(0.7, 0.24, 0.7), steel, Vector3(0.0, 0.12, 0.0))
+	_ao_blob(root, Vector2(5.0, 3.4), Vector3(1.2, 0.03, 0.2), 0.45)
+
+
+func _mast_restored(root: Node3D) -> void:
+	var steel := _flat("mast_steel", Color(0.58, 0.58, 0.60), 0.6, 0.5)
+	var hut_wall := _wall_mat("mast_hut", Color(0.74, 0.72, 0.64))
+	var hut_roof := _roof_mat("mast_hut_roof", Color(0.44, 0.46, 0.50))
+	var cable := _flat("cable", Color(0.16, 0.16, 0.18), 0.9)
+	_box(root, Vector3(0.8, 0.26, 0.8), steel, Vector3(0.0, 0.13, 0.0))
+	for side: float in [-1.0, 1.0]:
+		_box(root, Vector3(0.10, 5.6, 0.10), steel,
+			Vector3(side * 0.30, 2.9, 0.0), Vector3(0.0, 0.0, side * 0.012))
+		_box(root, Vector3(0.10, 5.6, 0.10), steel,
+			Vector3(0.0, 2.9, side * 0.30), Vector3(side * 0.012, 0.0, 0.0))
+	for i in 7:
+		_box(root, Vector3(0.74, 0.06, 0.06), steel,
+			Vector3(0.0, 0.7 + float(i) * 0.78, 0.30),
+			Vector3(0.0, 0.0, deg_to_rad(36.0 if i % 2 == 0 else -36.0)))
+		_box(root, Vector3(0.06, 0.06, 0.74), steel,
+			Vector3(0.30, 0.7 + float(i) * 0.78, 0.0),
+			Vector3(deg_to_rad(36.0 if i % 2 == 0 else -36.0), 0.0, 0.0))
+	# The beacon, which blinks slowly in _life rather than glowing steadily.
+	var beacon := _glow("mast_beacon", Color(1.0, 0.24, 0.20), 3.0)
+	_cyl(root, 0.13, 0.13, 0.22, beacon, Vector3(0.0, 5.85, 0.0))
+	var light := OmniLight3D.new()
+	light.position = Vector3(0.0, 5.85, 0.0)
+	light.light_color = Color(1.0, 0.30, 0.24)
+	light.light_energy = 2.4
+	light.omni_range = 5.0
+	light.shadow_enabled = false
+	light.set_meta("base", 2.4)
+	light.set_meta("blink", true)
+	root.add_child(light)
+	_lamps.append(light)
+	# The hut at its foot, and the cable running down into it.
+	_box(root, Vector3(1.5, 1.2, 1.3), hut_wall, Vector3(1.55, 0.60, 0.55))
+	_roof_prism(root, Vector3(1.55, 1.22, 0.55), 1.6, 0.36, hut_roof)
+	_box(root, Vector3(0.42, 0.8, 0.06), _wood_mat("mast_door",
+		Color(0.46, 0.33, 0.24)), Vector3(1.55, 0.40, 1.22))
+	for i in 5:
+		# The cable sags from the mast to the hut roof in five short segments.
+		var k := float(i) / 4.0
+		var sag := sin(k * PI) * 0.28
+		_box(root, Vector3(0.05, 0.05, 0.42), cable,
+			Vector3(lerpf(0.16, 1.55, k), lerpf(4.4, 1.5, k) - sag,
+				lerpf(0.0, 0.40, k)),
+			Vector3(deg_to_rad(-58.0 + k * 20.0), 0.0, 0.0))
+	_ao_blob(root, Vector2(5.0, 3.8), Vector3(0.9, 0.03, 0.3), 0.5)
+
+
+# ---------------------------------------------------------------- farm
+
+func _farm_ruined(root: Node3D) -> void:
+	var post := _wood_mat("farm_post_old", Color(0.40, 0.36, 0.30))
+	var weed := _flat("farm_weed", Color(0.42, 0.46, 0.26), 1.0)
+	var soil := _flat("farm_soil_old", Color(0.36, 0.31, 0.24), 1.0)
+	# Three beds gone back to weed, and a fence with half its posts down.
+	for bed in 3:
+		var z := -1.6 + float(bed) * 1.6
+		_box(root, Vector3(3.2, 0.14, 1.0), soil, Vector3(0.0, 0.07, z))
+		for i in 5:
+			_box(root, Vector3(0.22, 0.42, 0.20), weed,
+				Vector3(-1.3 + float(i) * 0.65, 0.30,
+					z + (0.22 if i % 2 == 0 else -0.18)),
+				Vector3(0.12, float(i), 0.10))
+	for i in 6:
+		var x := -2.1 + float(i) * 0.84
+		var down := i % 3 == 1
+		_box(root, Vector3(0.09, 0.9, 0.09), post,
+			Vector3(x, 0.14 if down else 0.45, 2.6),
+			Vector3(deg_to_rad(78.0) if down else 0.0, 0.0, 0.0))
+	_ao_blob(root, Vector2(6.0, 5.0), Vector3(0.0, 0.03, 0.2), 0.4)
+
+
+func _farm_restored(root: Node3D) -> void:
+	var post := _wood_mat("farm_post", Color(0.62, 0.46, 0.30))
+	var soil := _flat("farm_soil", Color(0.30, 0.22, 0.15), 1.0)
+	var crop := _flat("farm_crop", Color(0.40, 0.66, 0.28), 1.0)
+	var stone := _flat("well_stone", Color(0.56, 0.54, 0.50), 0.95)
+	var cloth := _flat("scare_cloth", Color(0.70, 0.36, 0.30), 1.0)
+	var straw := _flat("scare_straw", Color(0.72, 0.62, 0.32), 1.0)
+	# Three worked beds in neat rows.
+	for bed in 3:
+		var z := -1.6 + float(bed) * 1.6
+		_box(root, Vector3(3.2, 0.18, 1.0), soil, Vector3(0.0, 0.09, z))
+		for i in 8:
+			_box(root, Vector3(0.18, 0.40, 0.18), crop,
+				Vector3(-1.4 + float(i) * 0.40, 0.36, z - 0.22))
+			_box(root, Vector3(0.18, 0.34, 0.18), crop,
+				Vector3(-1.4 + float(i) * 0.40, 0.33, z + 0.22))
+	# A fence that stands, all the way along.
+	for i in 6:
+		var x := -2.1 + float(i) * 0.84
+		_box(root, Vector3(0.09, 0.95, 0.09), post, Vector3(x, 0.47, 2.6))
+	for rail: float in [0.34, 0.72]:
+		_box(root, Vector3(4.4, 0.07, 0.07), post, Vector3(0.0, rail, 2.6))
+	# The stone well.
+	_cyl(root, 0.52, 0.58, 0.66, stone, Vector3(-2.4, 0.33, -0.4))
+	_cyl(root, 0.46, 0.46, 0.06, _flat("well_water",
+		Color(0.20, 0.32, 0.38), 0.2, 0.4), Vector3(-2.4, 0.64, -0.4))
+	for side: float in [-1.0, 1.0]:
+		_box(root, Vector3(0.08, 0.9, 0.08), post,
+			Vector3(-2.4 + side * 0.46, 1.05, -0.4))
+	_roof_prism(root, Vector3(-2.4, 1.52, -0.4), 1.3, 0.32,
+		_roof_mat("well_roof", Color(0.52, 0.34, 0.26)))
+	# The scarecrow: cross, shirt, straw head, hat. Built like the yard's props.
+	_box(root, Vector3(0.09, 1.7, 0.09), post, Vector3(1.9, 0.85, 0.2))
+	_box(root, Vector3(1.1, 0.08, 0.08), post, Vector3(1.9, 1.35, 0.2))
+	_box(root, Vector3(0.62, 0.60, 0.30), cloth, Vector3(1.9, 1.20, 0.2))
+	_ball(root, 0.22, straw, Vector3(1.9, 1.68, 0.2))
+	_cyl(root, 0.30, 0.34, 0.06, cloth, Vector3(1.9, 1.86, 0.2))
+	_cyl(root, 0.17, 0.19, 0.20, cloth, Vector3(1.9, 1.94, 0.2))
+	_ao_blob(root, Vector2(6.0, 5.0), Vector3(0.0, 0.03, 0.2), 0.4)
+
+
+# ---------------------------------------------------------------- barn
+
+func _barn_ruined(root: Node3D) -> void:
+	var wall := _wall_mat("barn_old", Color(0.52, 0.30, 0.26))
+	var board := _wood_mat("ruin_board", Color(0.38, 0.34, 0.29))
+	# Standing, but half the roof is in the hayloft.
+	_box(root, Vector3(3.4, 2.4, 2.8), wall, Vector3(0.0, 1.2, 0.0))
+	_box(root, Vector3(1.9, 0.14, 3.0), board, Vector3(-0.85, 2.72, 0.0),
+		Vector3(0.0, 0.0, deg_to_rad(34.0)))
+	# The other slope has come down inside.
+	_box(root, Vector3(1.7, 0.14, 2.6), board, Vector3(0.7, 1.05, 0.2),
+		Vector3(0.10, 0.2, deg_to_rad(-58.0)))
+	_box(root, Vector3(1.3, 1.7, 0.08), board, Vector3(0.0, 0.85, 1.44),
+		Vector3(0.0, 0.0, deg_to_rad(6.0)))
+	_ivy(root, Vector3(-1.2, 0.0, 1.44), 1.9, 5, 8181)
+	_ao_blob(root, Vector2(5.4, 4.6), Vector3(0.2, 0.03, 0.3), 0.5)
+
+
+func _barn_restored(root: Node3D) -> void:
+	var wall := _wall_mat("barn_wall", Color(0.66, 0.30, 0.25))
+	var roof := _roof_mat("barn_roof", Color(0.42, 0.40, 0.42))
+	var patch := _roof_mat("barn_patch", Color(0.52, 0.48, 0.44))
+	var trim := _wood_mat("barn_trim", Color(0.86, 0.82, 0.74))
+	var hay := _flat("hay", Color(0.78, 0.68, 0.34), 1.0)
+	var cat_fur := _flat("cat_fur", Color(0.36, 0.33, 0.31), 1.0)
+	_box(root, Vector3(3.4, 2.5, 2.8), wall, Vector3(0.0, 1.25, 0.0))
+	_roof_prism(root, Vector3(0.0, 2.52, 0.0), 3.1, 0.95, roof)
+	# One patched panel, a different grey: repaired, not replaced.
+	_box(root, Vector3(1.0, 0.10, 0.9), patch, Vector3(-0.75, 2.86, -0.55),
+		Vector3(0.0, 0.0, deg_to_rad(31.0)))
+	# The big door with its X brace, in pale trim against the red.
+	_box(root, Vector3(1.4, 1.8, 0.08), trim, Vector3(0.0, 0.90, 1.44))
+	for tilt: float in [0.9, -0.9]:
+		_box(root, Vector3(2.2, 0.10, 0.05), wall, Vector3(0.0, 0.90, 1.49),
+			Vector3(0.0, 0.0, tilt))
+	_window(root, Vector2(0.7, 0.6), Vector3(0.0, 2.35, 1.44), true)
+	# Hay bales by the door, and the cat asleep on the top one.
+	for spec: Array in [[Vector3(1.5, 0.30, 1.75), 0.2],
+			[Vector3(2.05, 0.30, 1.35), -0.3], [Vector3(1.62, 0.86, 1.68), 0.5]]:
+		_box(root, Vector3(0.78, 0.56, 0.56), hay, spec[0],
+			Vector3(0.0, float(spec[1]), 0.0))
+	_ball(root, 0.20, cat_fur, Vector3(1.62, 1.26, 1.68),
+		Vector3(1.5, 0.85, 1.0))
+	_ball(root, 0.12, cat_fur, Vector3(1.36, 1.30, 1.60))
+	for ear: float in [-1.0, 1.0]:
+		_box(root, Vector3(0.06, 0.09, 0.05), cat_fur,
+			Vector3(1.34, 1.40, 1.60 + ear * 0.07))
+	_ao_blob(root, Vector2(5.4, 4.6), Vector3(0.2, 0.03, 0.3), 0.5)
+
+
+# ---------------------------------------------------------------- figures
+
+## The people who come back. A figure only exists once the project that brings
+## them here is built, so the town filling up is the same act as the town being
+## rebuilt — you do not buy villagers, you buy the reason they return (G13.5).
+func _build_figures() -> void:
+	for id: String in GameConfig.DIORAMA_FIGURES:
+		var spec: Dictionary = GameConfig.DIORAMA_FIGURES[id]
+		var body := Node3D.new()
+		body.name = "Figure_" + id
+		add_child(body)
+		if id == "cat":
+			_cat_body(body, spec["colour"])
+		else:
+			_person_body(body, spec["colour"])
+		body.visible = false
+		_figures.append({"id": id, "node": body, "needs": str(spec["needs"]),
+			"from": spec["from"], "to": spec["to"],
+			"speed": float(spec["speed"]), "t": _rng.randf()})
+	_build_ellie()
+	refresh_figures()
+
+
+## A person at diorama scale is a coat, a head and two legs — at this camera
+## distance anything more is invisible, and anything less reads as a post.
+func _person_body(root: Node3D, colour: Color) -> void:
+	var coat := _flat("figure_%s" % colour.to_html(false), colour, 1.0)
+	var skin := _flat("figure_skin", Color(0.78, 0.62, 0.50), 1.0)
+	var dark := _flat("figure_dark", Color(0.22, 0.20, 0.22), 1.0)
+	_box(root, Vector3(0.34, 0.46, 0.24), coat, Vector3(0.0, 0.60, 0.0))
+	_ball(root, 0.13, skin, Vector3(0.0, 0.92, 0.0))
+	# Legs are separate so they can scissor as the figure walks.
+	for side: float in [-1.0, 1.0]:
+		var leg := Node3D.new()
+		leg.name = "Leg%s" % ("L" if side < 0.0 else "R")
+		leg.position = Vector3(side * 0.09, 0.37, 0.0)
+		root.add_child(leg)
+		_box(leg, Vector3(0.11, 0.38, 0.11), dark, Vector3(0.0, -0.19, 0.0))
+
+
+## The barn cat: a low body, a head and a tail that stands up.
+func _cat_body(root: Node3D, colour: Color) -> void:
+	var fur := _flat("cat_walk", colour, 1.0)
+	_ball(root, 0.11, fur, Vector3(0.0, 0.13, 0.0), Vector3(1.7, 0.9, 1.0))
+	_ball(root, 0.075, fur, Vector3(0.15, 0.19, 0.0))
+	_box(root, Vector3(0.04, 0.18, 0.04), fur, Vector3(-0.17, 0.20, 0.0),
+		Vector3(0.0, 0.0, 0.35))
+	for ear: float in [-1.0, 1.0]:
+		_box(root, Vector3(0.04, 0.06, 0.03), fur,
+			Vector3(0.17, 0.25, ear * 0.045))
+
+
+## Ellie on the swing, once the case is closed and the swing is built. She does
+## not walk: she sits, and the seat swings under her.
+func _build_ellie() -> void:
+	var pivot := Node3D.new()
+	pivot.name = "EllieSwing"
+	var plot: Dictionary = GameConfig.DIORAMA_BUILDINGS[GameConfig.DIORAMA_ELLIE_NEEDS]
+	pivot.position = (plot["pos"] as Vector3) + Vector3(0.0, 4.50, 0.0)
+	pivot.rotation.y = float(plot["yaw"])
+	add_child(pivot)
+	# A pivot at the limb, with the seat hanging below it, so one rotation
+	# swings rope, seat and child together.
+	var rider := Node3D.new()
+	rider.position = Vector3(1.60, -2.58, 0.30)
+	pivot.add_child(rider)
+	var coat := _flat("ellie_coat", Color(0.86, 0.44, 0.42), 1.0)
+	var skin := _flat("figure_skin", Color(0.78, 0.62, 0.50), 1.0)
+	var dark := _flat("figure_dark", Color(0.22, 0.20, 0.22), 1.0)
+	_box(rider, Vector3(0.26, 0.34, 0.20), coat, Vector3(0.0, 0.22, 0.0))
+	_ball(rider, 0.11, skin, Vector3(0.0, 0.48, 0.0))
+	for side: float in [-1.0, 1.0]:
+		_box(rider, Vector3(0.09, 0.30, 0.09), dark,
+			Vector3(side * 0.07, 0.02, 0.14), Vector3(-0.55, 0.0, 0.0))
+	pivot.visible = false
+	_ellie_swing = pivot
+
+
+## Shows or hides each figure according to what has been built. Called on entry
+## and after every purchase.
+func refresh_figures() -> void:
+	for entry: Dictionary in _figures:
+		var node := entry["node"] as Node3D
+		if node == null or not is_instance_valid(node):
+			continue
+		node.visible = RestoreBoard.is_built(str(entry["needs"]))
+	if _ellie_swing != null and is_instance_valid(_ellie_swing):
+		# She is only here once the case that was looking for her is closed.
+		_ellie_swing.visible = RestoreBoard.is_built(GameConfig.DIORAMA_ELLIE_NEEDS) \
+			and ChapterProgress.done_count() >= ChapterProgress.count()
+
+
+## Walks every visible figure back and forth along its pair of points, and
+## swings Ellie. Called from _life.
+func _walk_figures(delta: float) -> void:
+	for entry: Dictionary in _figures:
+		var node := entry["node"] as Node3D
+		if node == null or not is_instance_valid(node) or not node.visible:
+			continue
+		# A triangle wave: out, back, out. No path-finding, no navmesh — these
+		# are two points and a line between them.
+		entry["t"] = fmod(float(entry["t"]) + delta * float(entry["speed"]) * 0.25, 1.0)
+		var k := float(entry["t"]) * 2.0
+		var forward := k <= 1.0
+		if not forward:
+			k = 2.0 - k
+		var from: Vector3 = entry["from"]
+		var to: Vector3 = entry["to"]
+		node.position = from.lerp(to, k)
+		var heading := (to - from) if forward else (from - to)
+		if heading.length() > 0.01:
+			node.rotation.y = atan2(heading.x, heading.z)
+		# Legs scissor, and the body bobs, at a rate tied to the walk.
+		var stride := sin(_life_t * 6.0 * float(entry["speed"]) * 3.0)
+		node.position.y = absf(stride) * 0.035
+		var left := node.get_node_or_null("LegL") as Node3D
+		var right := node.get_node_or_null("LegR") as Node3D
+		if left != null:
+			left.rotation.x = stride * 0.55
+		if right != null:
+			right.rotation.x = -stride * 0.55
+	if _ellie_swing != null and is_instance_valid(_ellie_swing) \
+			and _ellie_swing.visible:
+		_ellie_swing.rotation.x = sin(_life_t * 1.35) * 0.30
+
+
+# ---------------------------------------------------------------- peek (G13.5)
+
+## A short glance at a plot, for a restore card held down: the camera leans in,
+## holds, and comes back. Unlike play_restore this does NOT take the screen —
+## it can be cancelled the moment the finger lifts, and it refuses to run while
+## a rebuild is playing.
+func peek_at(project_id: String) -> void:
+	if _busy or not _buildings.has(project_id):
+		return
+	_peek_id = project_id
+	_peek = true
+	var plot: Node3D = _buildings[project_id]["plot"]
+	await _fly(_peek_eye(plot.position), plot.position + Vector3(0.0, 1.5, 0.0),
+		0.45, 0.0)
+	var held := 0.0
+	while _peek and held < GameConfig.DIORAMA_PEEK_SECONDS:
+		held += get_process_delta_time()
+		await get_tree().process_frame
+	await _fly(_cam_base, _cam_look, 0.45, GameConfig.DIORAMA_V_OFFSET)
+	_peek = false
+	_peek_id = ""
+
+
+## Ends a glance early — the finger came off the card.
+func end_peek() -> void:
+	_peek = false
+
+
+## Same standoff rule as the restore close-up: in along the camera's own view
+## line, so the plot is seen from the angle the player already has.
+func _peek_eye(at: Vector3) -> Vector3:
+	var focus := at + Vector3(0.0, 1.5, 0.0)
+	return focus + (_cam_base - _cam_look).normalized() \
+		* GameConfig.RESTORE_CAM_DISTANCE

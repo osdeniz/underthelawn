@@ -76,6 +76,8 @@ var _background: TextureRect
 var _diorama: TownDiorama
 var _diorama_view: SubViewport
 var _diorama_tick := 0
+## Which restore card is being held down, if any (G13.5).
+var _peek_wanted := ""
 var _tiles_page: Control
 var _board_page: Control
 var _town_page: Control
@@ -509,6 +511,10 @@ func _make_project_row(project: Dictionary) -> Button:
 	else:
 		_style_card(button)
 	button.pressed.connect(_on_project.bind(id, built or locked, button))
+	# Hold a card and the town shows you where that project would go, BEFORE
+	# any money changes hands (G13.5).
+	button.button_down.connect(_start_peek.bind(id))
+	button.button_up.connect(_stop_peek)
 	return button
 
 
@@ -638,6 +644,25 @@ func _on_diorama_building(project_id: String) -> void:
 
 ## Completed projects add a layer to the hub art; without the art file they add
 ## a small badge instead, so progress is always visible.
+## A held restore card asks the diorama to glance at that plot. The hold has to
+## outlast a tap, or every purchase would fire a glance on its way through.
+func _start_peek(project_id: String) -> void:
+	if _diorama == null or not _diorama.has_building(project_id):
+		return
+	_peek_wanted = project_id
+	var timer := get_tree().create_timer(GameConfig.DIORAMA_PEEK_HOLD)
+	await timer.timeout
+	if _peek_wanted == project_id and _diorama != null \
+			and is_instance_valid(_diorama):
+		_diorama.peek_at(project_id)
+
+
+func _stop_peek() -> void:
+	_peek_wanted = ""
+	if _diorama != null and is_instance_valid(_diorama):
+		_diorama.end_peek()
+
+
 ## Hands the screen to the diorama while it rebuilds, then gives it back. The
 ## cards fade out so the model is unobstructed, and a tap anywhere skips.
 func _play_restore_scene(project_id: String) -> void:

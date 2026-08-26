@@ -9,6 +9,15 @@ func _ready() -> void:
 	var restored := str(OS.get_environment("UTL_RESTORED")) == "1"
 	for id: String in GameConfig.DIORAMA_BUILDINGS:
 		town.set_built(id, restored, false)
+	if restored:
+		# Figures only appear once their project is built; the shot wants them.
+		for chapter: Dictionary in Story.list("chapters"):
+			ChapterProgress.record(str(chapter.get("variant_id", "")), 3, 3)
+		for id2: String in GameConfig.DIORAMA_BUILDINGS:
+			GameState.set_setting("restore", id2, true)
+		town.refresh_figures()
+	for _i in 40:
+		await get_tree().process_frame
 	await get_tree().process_frame
 	for node in town.get_children():
 		var n3 := node as Node3D
