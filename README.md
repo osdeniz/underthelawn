@@ -2346,6 +2346,20 @@ Two things that only showed up by running it:
 Reward values (600 / 400 / 250 scrap) are PLACEHOLDERS awaiting economy
 calibration and are marked as such in the data file.
 
+### G14.2c — the objectives chip
+
+The icon was blank and the chip showed a bare number. Two causes, one of them
+worth remembering: `_draw_objectives` was written and never reached, because
+the edit meant to add it to `UiIcons._make`'s match had the wrong indentation
+and the replace silently did nothing. **A string replace that matches nothing
+is a no-op, not an error** — the same trap that once turned a 52 KB file into
+90 MB. Edits like that need an assert or a grep afterwards, which is how this
+one was found: by rendering the icon on its own and getting an empty square.
+
+The chip was also too narrow at 104 px for an icon and a count together, so
+even a working icon would have been squeezed out. It is 150x86 now, icon left,
+count right.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

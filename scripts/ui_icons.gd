@@ -74,6 +74,7 @@ static func _make(id: String) -> Texture2D:
 		"sound_off": _draw_sound(img, false)
 		"lock": _draw_lock(img)
 		"house": _draw_house(img)
+		"objectives": _draw_objectives(img)
 	var tex := ImageTexture.create_from_image(img)
 	_cache[id] = tex
 	return tex
@@ -206,7 +207,9 @@ static func _draw_objectives(img: Image) -> void:
 	_rect(img, 8, 8, 48, 48, ink)
 	_rect(img, 11, 11, 42, 42, paper)
 	for row in 3:
-		var y := 17 + row * 14
+		# 17 + row * 14 put the third row's box at y 45..55, past the paper's
+		# own bottom edge at 53.
+		var y := 15 + row * 13
 		if row < 2:
 			# A tick: a short down-stroke and a long up-stroke.
 			for i in 4:

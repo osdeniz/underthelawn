@@ -286,7 +286,9 @@ func _build_top_bar() -> void:
 	# number of open objectives on it (G14.2).
 	_objectives_button = Button.new()
 	_objectives_button.name = "ObjectivesButton"
-	_objectives_button.custom_minimum_size = Vector2(104, 76)
+	# Wide enough for the icon AND the count: at 104 the two fought for room and
+	# the icon lost, leaving a bare number in a dark chip.
+	_objectives_button.custom_minimum_size = Vector2(150, 86)
 	_objectives_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_objectives_button.icon = UiIcons.objectives()
 	_objectives_button.expand_icon = false
@@ -299,7 +301,11 @@ func _build_top_bar() -> void:
 	obj_chip.set_border_width_all(2)
 	for state: String in ["normal", "hover", "pressed", "focus"]:
 		_objectives_button.add_theme_stylebox_override(state, obj_chip)
-	_objectives_button.add_theme_font_size_override("font_size", 30)
+	_objectives_button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_objectives_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	_objectives_button.alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_objectives_button.add_theme_constant_override("h_separation", 10)
+	_objectives_button.add_theme_font_size_override("font_size", 34)
 	_objectives_button.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_objectives_button.pressed.connect(func() -> void:
 		Haptics.light()
