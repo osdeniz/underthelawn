@@ -355,6 +355,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	# The intro cards and the briefing are modal: the lawn hears nothing.
 	if not _search_started:
 		return
+	# Desktop keyboard shortcuts (G14). A touch build never fires these.
+	if not event.is_echo():
+		if event.is_action_pressed("ui_pause"):
+			hud.toggle_pause()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("mower_next"):
+			_cycle_mower()
+			get_viewport().set_input_as_handled()
+			return
 	if mower == null:
 		return
 	var touch := event as InputEventScreenTouch
@@ -441,6 +451,16 @@ func _glance_at(at: Vector3) -> void:
 		return
 	Analytics.track("evidence_location_panned", {"chapter": variant_id})
 	cam.glance_at(at, GameConfig.FIND_PAN_TIME)
+
+
+## Tab / Space: the next machine the player actually owns.
+func _cycle_mower() -> void:
+	var count := GameConfig.MOWER_TYPES.size()
+	for step in range(1, count + 1):
+		var next := (_active_index + step) % count
+		if Garage.is_unlocked(next):
+			select_mower(next)
+			return
 
 
 func _on_cells_mown(_count: int) -> void:

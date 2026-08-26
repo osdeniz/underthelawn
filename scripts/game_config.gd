@@ -1047,6 +1047,16 @@ static func linear_to_db_safe(gain: float) -> float:
 ## beyond the fence and the road, so nothing there is ever approached (G13.1).
 const HORIZON_RADIUS := 78.0
 
+# ---------------------------------------------------------------- desktop (G14)
+## The game is authored for a 1170-wide portrait screen. On a desktop window the
+## viewport stretches sideways (keep_height), which is GOOD for the 3D — the
+## neighbouring yards come into view — but the HUD would spread its top bar
+## across 4500 px with a hole in the middle. Interface elements are held to this
+## width and centred instead.
+const UI_MAX_WIDTH := 1170.0
+## Windowed size the desktop build opens at.
+const DESKTOP_WINDOW := Vector2i(900, 1500)
+
 # ---------------------------------------------------------------- hub diorama (G13)
 ## The hub's backdrop is either the 2D collage it has always been, or a small
 ## fixed-camera 3D town. This is a TRIAL: legacy stays wired and working, and

@@ -1859,6 +1859,51 @@ inserts `new` between every character — it turned a 52 KB script into 90 MB.
 Slice bounds have to be ordered, or the edit made with a tool that verifies the
 match.
 
+## Sprint G14 — desktop (Steam) input and layout
+
+Keyboard driving, and the layout work a portrait phone game needs before it can
+sit in a desktop window.
+
+**WASD / arrows feed the SAME `_pad_stick` the touch pad fills.** Camera-relative
+steering, the reverse-instead-of-pirouette rule and every per-mower turn limit
+then apply unchanged. A separate desktop path driving `throttle` directly would
+have re-implemented all of it and drifted from the phone build the first time
+either was tuned.
+
+* `pad_engaged()` counts held keys as well as a finger — that one line is what
+  makes WASD work for every mower at once, since they all gate driving on it.
+* A finger on the pad outranks the keyboard; the mower never fights a thumb.
+* `physical_keycode`, so the WASD block stays in the same PLACE on AZERTY and
+  QWERTZ rather than becoming ZQSD letters.
+* The blade replaces `_physics_process` entirely, so it calls `_read_keyboard()`
+  itself — the base loop never runs for it. Held keys freeze its camera exactly
+  as a held finger does.
+* The robot plans its own route and declines the keyboard (`keyboard_enabled`).
+* Escape toggles pause, Tab/Space cycles to the next OWNED machine.
+* Mouse already worked: `emulate_touch_from_mouse` was on from the start.
+
+**Wide screens.** `stretch/aspect` is `keep_height`, so a 16:9 window makes the
+viewport 4501x2532. That is GOOD for the 3D — the neighbouring yards come into
+view — but the HUD spread its top bar across the whole monitor with a hole in
+the middle. `Hud._centre_for_wide_screens` holds the full-width strips to
+`UI_MAX_WIDTH` and pulls the right-edge controls (pause, home, the MISSING
+poster) in by the same margin. On a phone the margin is zero and nothing moves.
+
+* It runs `call_deferred`: the pause button, home button and poster are built
+  further down `_ready`, so running inline found none of them.
+* It re-runs on `size_changed`, so resizing the window keeps it together.
+
+`tests/KeyboardCheck.tscn` drives each hand-driven mower with a held key and
+asserts it travels that way ON SCREEN. Writing it turned up that
+`snap_to_target()` copies the MOWER's yaw onto the camera — a test that zeroes
+the camera without first zeroing the mower is measuring the leftover heading,
+which is why the blade appeared to steer 90 degrees off.
+
+**Still phone-shaped, and worth knowing before Steam:** the game is authored at
+1170x2532. Wide windows now frame correctly, but the interface is still a tall
+column down the middle — it does not USE the extra width. Controller support,
+key rebinding, and a settings screen do not exist.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

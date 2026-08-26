@@ -98,6 +98,10 @@ func _ready() -> void:
 	# present, so a non-Latin language does not render as boxes.
 	LocaleSupport.apply()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Deferred: the pause button, the home button and the poster are all built
+	# further down _ready, so running now would find none of them (G14).
+	_centre_for_wide_screens.call_deferred()
+	get_viewport().size_changed.connect(_centre_for_wide_screens)
 	# Drawn, not emoji: iOS renders an emoji glyph as a blank box (G12.10).
 	_wallet_icon.texture = UiIcons.money()
 	_evidence_icon.texture = UiIcons.evidence()
@@ -367,6 +371,34 @@ func show_scent(key: String) -> void:
 	fade.tween_interval(GameConfig.SCENT_TOAST_SECONDS)
 	fade.tween_property(toast, "modulate:a", 0.0, 0.45)
 	fade.tween_callback(toast.queue_free)
+
+
+## Holds the full-width interface strips to UI_MAX_WIDTH and centres them, so a
+## desktop window does not stretch the top bar across the whole monitor with a
+## hole in the middle (G14). On a phone the margin is zero and nothing moves.
+func _centre_for_wide_screens() -> void:
+	var wide := get_viewport_rect().size.x
+	var margin := maxf(0.0, (wide - GameConfig.UI_MAX_WIDTH) * 0.5)
+	for entry: Array in [["TopBarPanel", 30.0], ["TopBar", 56.0],
+			["CompletePanel", 0.0], ["OpeningTitle", 0.0]]:
+		var node := get_node_or_null(NodePath(entry[0])) as Control
+		if node == null:
+			continue
+		node.offset_left = margin + float(entry[1])
+		node.offset_right = -margin - float(entry[1])
+	# Controls pinned to the right edge — pause, home, the MISSING poster — are
+	# pulled in by the same margin, so they stay beside the bar instead of
+	# drifting to the far corner of a wide monitor.
+	for child in get_children():
+		var control := child as Control
+		if control == null or not control.get_meta("hug_right", false):
+			continue
+		if not control.has_meta("edge_offsets"):
+			control.set_meta("edge_offsets",
+				Vector2(control.offset_left, control.offset_right))
+		var kept: Vector2 = control.get_meta("edge_offsets")
+		control.offset_left = kept.x - margin
+		control.offset_right = kept.y - margin
 
 
 func _refresh_mute_label() -> void:
@@ -745,6 +777,7 @@ func _build_pause() -> void:
 	_pause_button.add_theme_font_size_override("font_size", 44)
 	# Right end of the new top bar, aligned with the percentage row.
 	_pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_pause_button.set_meta("hug_right", true)
 	_pause_button.offset_left = -152
 	_pause_button.offset_right = -48
 	_pause_button.offset_top = 94
@@ -759,6 +792,7 @@ func _build_pause() -> void:
 	home.text = "⌂"
 	home.add_theme_font_size_override("font_size", 46)
 	home.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	home.set_meta("hug_right", true)
 	home.offset_left = -278
 	home.offset_right = -174
 	home.offset_top = 94
@@ -851,6 +885,15 @@ func _build_pause() -> void:
 	rows.add_child(restart)
 
 
+## Escape on the desktop build: opens the sheet, or closes it if it is already
+## open, which is what a keyboard player expects from that key (G14).
+func toggle_pause() -> void:
+	if _pause_layer != null and _pause_layer.visible:
+		_close_pause()
+	else:
+		_open_pause()
+
+
 func _open_pause() -> void:
 	Haptics.light()
 	_pause_layer.visible = true
@@ -925,6 +968,7 @@ func _build_poster() -> void:
 	_poster = PanelContainer.new()
 	_poster.name = "MissingPoster"
 	_poster.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_poster.set_meta("hug_right", true)
 	_poster.offset_left = -250
 	_poster.offset_right = -40
 	_poster.offset_top = 306

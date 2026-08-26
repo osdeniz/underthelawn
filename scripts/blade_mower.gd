@@ -77,8 +77,13 @@ func on_touch_released(index: int, _screen_pos: Vector2) -> void:
 
 ## Fully replaces the core throttle/steering loop: direct chase, no yaw.
 func _physics_process(delta: float) -> void:
+	# This class replaces the base loop entirely, so the desktop keyboard read
+	# has to be invoked here too — the base _physics_process never runs (G14).
+	_read_keyboard()
 	var stick := pad_stick()
-	if _has_finger and stick != Vector2.ZERO:
+	# A held key steers exactly as a held finger does.
+	var steering := _has_finger or keyboard_active()
+	if steering and stick != Vector2.ZERO:
 		# The stick IS the direction, read against the LIVE camera — which is
 		# frozen for the duration of this gesture (see _physics_process), so the
 		# frame cannot drift out from under the finger the way a latched copy
@@ -88,7 +93,7 @@ func _physics_process(delta: float) -> void:
 		var desired := minf(stick.length(), 1.0) * GameConfig.BLADE_MAX_SPEED
 		_velocity = dir * desired
 		position += _velocity * delta
-	elif _has_finger:
+	elif steering:
 		_velocity = Vector3.ZERO
 	elif _glide > 0.0:
 		# Short coast after release.
@@ -108,7 +113,9 @@ func _physics_process(delta: float) -> void:
 	# drift mid-drag (G12.10).
 	var rig := camera as CameraRig
 	if rig != null:
-		rig.freeze_yaw = _has_finger
+		# Held keys freeze the camera exactly as a held finger does: WASD has to
+		# mean the same direction for as long as it is down (G14).
+		rig.freeze_yaw = _has_finger or keyboard_active()
 
 	_resolve_walls()
 	_resolve_obstacles()
