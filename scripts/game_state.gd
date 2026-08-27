@@ -118,6 +118,21 @@ func is_first_run() -> bool:
 	return not bool(get_setting(META, FIRST_RUN_KEY, false))
 
 
+## A random anonymous id, generated once and persisted, so analytics can tell
+## two sessions from the same install apart from two different installs
+## without carrying anything that identifies the player.
+func install_id() -> String:
+	var existing := str(get_setting(META, "install_id", ""))
+	if existing != "":
+		return existing
+	var bytes := PackedByteArray()
+	for i in 16:
+		bytes.append(randi() % 256)
+	var id := bytes.hex_encode()
+	set_setting(META, "install_id", id)
+	return id
+
+
 func mark_orientation_done() -> void:
 	set_setting(META, FIRST_RUN_KEY, true)
 

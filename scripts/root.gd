@@ -155,10 +155,16 @@ func _start_chapter() -> void:
 func _on_search_finished(evidence: int, total: int) -> void:
 	ChapterProgress.record(_pending_variant, evidence, total)
 	var chapter := ChapterProgress.entry(_pending_variant)
+	# Harvest has its own completion event (game.gd's "harvest_completed",
+	# with the scrap payout); this is the case-chapter funnel's bottom.
+	if not LevelVariant.of(_pending_variant).is_harvest():
+		Analytics.track("chapter_completed", {"chapter": _pending_variant,
+			"evidence": evidence, "total": total, "full": evidence >= total})
 	# G11: the last chapter ends the CASE, not just a search — Ellie speaks, then
 	# the reunion card. A partial finish still gets the ordinary nudge.
 	var is_finale := _is_last_chapter(_pending_variant) and evidence >= total
 	if is_finale:
+		Analytics.track("case_completed", {"chapter": _pending_variant})
 		_play_dialogue(Dialogue.conversation("finale_case01"), "",
 			func() -> void: _show_reunion())
 		return

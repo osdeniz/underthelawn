@@ -475,6 +475,9 @@ func _collect_evidence(prop: Node3D) -> void:
 	# rather than an emoji (G12.10).
 	_collected.append({ "emoji": info["emoji"], "name": info["name"],
 		"where": info.get("where", ""), "id": str(info.get("id", "")) })
+	Analytics.track("evidence_found", {"chapter": variant_id,
+		"id": str(info.get("id", "")), "count": _collected.size(),
+		"total": _evidence_total()})
 	hud.show_secret_card(info["emoji"], info["name"], info["line"],
 		func() -> void:
 			hud.set_secret_count(_collected.size(), _evidence_total())
@@ -609,6 +612,10 @@ func _begin_search() -> void:
 	hud.show_opening_title(variant.opening_headline, variant.opening_subline)
 	hud.show_drive_hint()
 	GameState.start_run()
+	# Harvest has its own start event (town_map.gd, fired when the invitation is
+	# accepted); this is the case-chapter funnel's top of the mouth.
+	if not harvest:
+		Analytics.track("chapter_started", {"chapter": variant_id})
 
 
 # ---------------------------------------------------------------- G9 economy
@@ -637,11 +644,19 @@ func _payout() -> Dictionary:
 	var budget := variant.scrap_budget if variant != null else 9
 	var payout := ScrapField.payout(_scrap_banked, model.completion_ratio(), budget)
 	# A harvest is the paying job, and the multiplier is applied HERE rather
-	# than in ScrapField so a search's economy is untouched (G13.6).
+	# than in ScrapField so ScrapField's own math stays a pure, unit-tested
+	# function (G13.6). The search multiplier below follows the same pattern
+	# (G14.3): it closes the gate where the harvest loop paid less than it
+	# cost to reach.
+	var multiplier := GameConfig.SEARCH_SCRAP_MULTIPLIER
 	if variant != null and variant.is_harvest():
-		for key: String in payout:
-			payout[key] = int(round(float(payout[key])
-				* GameConfig.HARVEST_SCRAP_MULTIPLIER))
+		multiplier = GameConfig.HARVEST_SCRAP_MULTIPLIER
+	for key: String in payout:
+		# "ratio" is completion (0-1), not a scrap amount - multiplying it
+		# made a full harvest report "200% mowed" on the completion panel.
+		if key == "ratio":
+			continue
+		payout[key] = int(round(float(payout[key]) * multiplier))
 	return payout
 
 

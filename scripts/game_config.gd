@@ -500,10 +500,10 @@ const RESTORE_SCRAP_BONUS := 1
 ## the spend curve steps instead of presenting a wall of four-figure prices.
 const TIER2_REQUIRES_TIER1 := 2
 ## Debug only: grants money from the pause menu for balance testing. Ships false.
-const DEV_GRANT_SCRAP := true
+const DEV_GRANT_SCRAP := false
 ## Debug only: the wallet a fresh save starts with, so systems downstream of the
 ## economy can be exercised without grinding to them. Ships 0.
-const DEV_STARTING_SCRAP := 50000
+const DEV_STARTING_SCRAP := 0
 const DEV_GRANT_AMOUNT := 2000
 
 ## Payout multiplier from completed restoration projects. Routed through here so
@@ -552,6 +552,15 @@ const SCRAP_BONUS_SHARE := 0.70
 const SCRAP_BONUS_FLOOR := 0.55
 ## Extra on top for a full mow, shown as its own line so the reward is legible.
 const SCRAP_THOROUGH_BONUS := 0.15
+## G14.3 recalibration. The measured problem: reaching the harvest (2 tier-1
+## restore projects + the tractor, the cheapest path = 550 + 800 = 1350, plus
+## the farm's 900 = 2250) is gated behind `chapters:3`, but the first three
+## chapters at 100% paid only 1 519 — the harvest loop was unreachable exactly
+## when the game asks the player to reach it. Applied the same way as
+## HARVEST_SCRAP_MULTIPLIER (post-hoc in Game._payout, so ScrapField's unit
+## math stays untouched): 1 519 * 1.7 = 2 582, clearing the gate with the same
+## ~15% headroom the harvest gate's own design implies elsewhere.
+const SEARCH_SCRAP_MULTIPLIER := 1.7
 ## Money bundle prop: the genre-classic green cash stack, VISIBLE above the
 ## grass before it is collected — hidden pickups read as luck, visible ones as
 ## goals to steer toward.
