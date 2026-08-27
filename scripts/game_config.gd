@@ -499,6 +499,19 @@ const RESTORE_SCRAP_BONUS := 1
 ## Tier 2 (buildings) stays locked until this many tier-1 repairs are done, so
 ## the spend curve steps instead of presenting a wall of four-figure prices.
 const TIER2_REQUIRES_TIER1 := 2
+## How many restoration projects make the town "ready".
+##
+## This is Ellie's closing line turned into a number: the stranger said he would
+## come back when the town was ready, so the player makes it ready and he comes.
+## Case 02 shows on the board from the moment Case 01 closes, with this counter
+## on its face — visible, never a wall.
+##
+## Calibrated against the measured economy: one chapter at 100% pays 1 567 and
+## the three cheapest projects cost 950 together, so anyone who spends anything
+## at all on the town clears this after a single lawn. It bites only for a
+## player who put every last piece of scrap into the garage — which is the
+## choice the gate exists to notice.
+const TOWN_READY_PROJECTS := 3
 ## Debug only: grants money from the pause menu for balance testing. Ships false.
 const DEV_GRANT_SCRAP := false
 ## Debug only: the wallet a fresh save starts with, so systems downstream of the
@@ -1101,7 +1114,9 @@ const DIORAMA_PLATE := Vector2(36.0, 46.0)
 const DIORAMA_BEVEL := 2.4
 const DIORAMA_BEVEL_DROP := 1.6
 ## Writes draw-call, triangle and frame-rate lines to the console on hub entry.
-const PERF_LOG := true
+## OS.is_debug_build(), not a hand-edited true: this shipped switched on, and a
+## release build has no console to read it in (G16).
+static var PERF_LOG := OS.is_debug_build()
 
 ## Framed for a PORTRAIT screen. Godot measures fov vertically by default, and
 ## at 1170x2532 that leaves a ~20 degree horizontal window — the two side

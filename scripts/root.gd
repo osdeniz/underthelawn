@@ -23,6 +23,11 @@ var _game: Node
 var _intro: IntroSequence
 var _dialogue: DialogueBox
 var _pending_variant := ""
+## Set once the yard's shaders have been compiled, so a replayed intro does not
+## pay for it a second time.
+var _shaders_warmed := false
+## Save key holding the build the yard's shaders were last compiled for.
+const WARMED_FOR := "shaders_warmed_for"
 
 
 func _ready() -> void:
@@ -42,6 +47,14 @@ func _ready() -> void:
 		AudioDirector.play_theme()
 		_play_intro()
 	else:
+		# A returning player has no intro to hide the shader bill behind, and
+		# the hub -> yard transition is only a 0.35 s fade — far too short to
+		# cover a cold compile, which is where the wait would otherwise land.
+		# So it is paid here instead, at launch, on the black the fade is
+		# already holding, with one line saying what is happening. On a warm
+		# cache (every launch after the first) this returns immediately and
+		# nothing is drawn.
+		await _warm_chapter_shaders(true)
 		_open_hub()
 
 
@@ -59,6 +72,9 @@ func _play_intro() -> void:
 	_intro.name = "Intro"
 	layer.add_child(_intro)
 	_fade.color.a = 0.0
+	# The cards are opaque and the player is reading them: the best moment in
+	# the whole game to pay the shader bill. See _warm_chapter_shaders.
+	_warm_chapter_shaders(false)
 	_intro.finished.connect(func() -> void:
 		_intro = null
 		layer.queue_free()
@@ -72,6 +88,90 @@ func _play_intro() -> void:
 			_on_chapter_chosen(ChapterProgress.current_variant_id())
 		else:
 			_open_hub())
+
+
+## Builds a throwaway yard behind the intro cards so the first real chapter does
+## not have to.
+##
+## THE PROBLEM. A yard's shaders are compiled the first time the yard is drawn,
+## and only then. Measured cold on a desktop: 1.4 s inside _ready and another
+## 0.8 s on the first drawn frame. On a phone that was five to six seconds of
+## black before the player's first lawn — and only ever the first, because the
+## pipeline cache is kept from then on, which is exactly why every later garden
+## opened instantly and this looked like a mystery.
+##
+## THE FIX. The cost cannot be removed, so it is moved to where it is free. The
+## intro's ground is a full-rect opaque ColorRect, so nothing built behind it is
+## ever seen; the player is reading a card while this runs. Afterwards the real
+## chapter builds from a warm cache — measured 670 ms -> 93 ms within one
+## process, a seven-fold drop.
+##
+## The copy is built with autostart_search off, so it fires no analytics event,
+## starts no run clock and arms no orientation countdown. It is freed as soon as
+## it has been drawn; what survives is the compiled pipelines, which is the
+## whole point.
+## `announce` puts a line on the black while it works. The intro path passes
+## false — it has a full screen of art to hide behind, and a loading notice over
+## a story card would be worse than the wait it describes. The hub path passes
+## true, because there the only cover is the fade itself, and an unexplained
+## still frame is what "broken" looks like.
+func _warm_chapter_shaders(announce: bool) -> void:
+	if _shaders_warmed:
+		return
+	_shaders_warmed = true
+	# The notice is for a WAIT, not for the warm-up. On every launch after the
+	# first the cache is already full, the whole thing takes about eighty
+	# milliseconds, and a line that flashes for five frames reads as a glitch.
+	var notice: Label = null
+	if announce and _shader_cache_cold():
+		notice = _build_warm_notice()
+	var warm: Node = load(GAME_SCENE).instantiate()
+	warm.set("variant_id", ChapterProgress.current_variant_id())
+	warm.set("autostart_search", false)
+	add_child(warm)
+	# DRAWN, not merely built: compilation happens when the frame is rendered,
+	# so building it and freeing it in the same breath would warm nothing.
+	for _i in 4:
+		await RenderingServer.frame_post_draw
+	if is_instance_valid(warm):
+		warm.queue_free()
+	if notice != null and is_instance_valid(notice):
+		notice.queue_free()
+	GameState.set_setting("meta", WARMED_FOR, _build_stamp())
+
+
+## True when this build has never compiled the yard's shaders on this install —
+## the only case slow enough to be worth explaining.
+##
+## Inspecting user://shader_cache does not answer this: Godot creates that
+## folder and starts filling it with the engine's own shaders before _ready
+## runs, so it is never empty by the time anyone can look. So the answer is
+## recorded instead, and recorded AGAINST THE BUILD VERSION — a new binary
+## invalidates the compiled pipelines, and the first launch after an update
+## deserves the same line the first launch after an install gets.
+func _shader_cache_cold() -> bool:
+	return str(GameState.get_setting("meta", WARMED_FOR, "")) != _build_stamp()
+
+
+func _build_stamp() -> String:
+	var version := str(ProjectSettings.get_setting("application/config/version", ""))
+	return version if version != "" else "0"
+
+
+## One quiet line on the black, for the one path with nothing to hide behind.
+## It lives on the fade layer, above everything, and is gone within the frame
+## the warm-up ends. On a warm cache it is never built at all.
+func _build_warm_notice() -> Label:
+	var label := Label.new()
+	label.text = tr("UI_PREPARING")
+	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 34)
+	label.add_theme_color_override("font_color", Color(0.62, 0.60, 0.55))
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_layer.add_child(label)
+	return label
 
 
 # ---------------------------------------------------------------- hub

@@ -73,7 +73,16 @@ var _background: TextureRect
 ## The live 3D town behind the cards. Uses stay guarded because the scene could
 ## fail to load, not because there is another mode to fall back to.
 var _diorama: TownDiorama
+## How far the parked diorama viewport shrinks while a chapter is on screen.
+## Anything past ~32 costs nothing; this leaves a 36x79 target rather than 0,
+## because a zero-sized viewport is an error rather than a saving.
+const DIORAMA_PARKED_SHRINK := 32
+
 var _diorama_view: SubViewport
+## The container owning that viewport. stretch = true means IT decides the
+## render size, so releasing the town's framebuffer goes through stretch_shrink
+## here rather than through _diorama_view.size (G16).
+var _diorama_frame: SubViewportContainer
 var _diorama_tick := 0
 ## Which restore card is being held down, if any (G13.5).
 var _peek_wanted := ""
@@ -681,6 +690,7 @@ func _build_diorama_background() -> void:
 	frame.stretch = true
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(frame)
+	_diorama_frame = frame
 
 	_diorama_view = SubViewport.new()
 	_diorama_view.size = Vector2i(get_viewport_rect().size)
@@ -745,6 +755,12 @@ func _process(_delta: float) -> void:
 ## this the diorama would keep drawing behind the yard (G13 §4).
 func set_diorama_active(active: bool) -> void:
 	set_process(active and _diorama_view != null)
+	# The case map is the hub's other animated surface — a hand-drawn Control
+	# that repaints the whole town every frame for the breathing pin and the
+	# cloud shadow. root only HIDES the hub layer, so without this it kept
+	# painting for the entire chapter, behind a black screen (G16).
+	if _map != null and is_instance_valid(_map):
+		_map.set_process(active)
 	if active and GameConfig.PERF_LOG:
 		_log_perf()
 	if active and _diorama != null and is_instance_valid(_diorama):
@@ -753,6 +769,12 @@ func set_diorama_active(active: bool) -> void:
 		return
 	_diorama_view.render_target_update_mode = (SubViewport.UPDATE_ONCE if active
 		else SubViewport.UPDATE_DISABLED)
+	# UPDATE_DISABLED stops the DRAWING but keeps the framebuffer: a full
+	# 1170x2532 colour+depth target, ~70 MB, held for the whole chapter next to
+	# the yard's own. Shrinking the container frees it, and the town is rebuilt
+	# from UPDATE_ONCE above on the way back — which the hub's fade-in covers.
+	if _diorama_frame != null and is_instance_valid(_diorama_frame):
+		_diorama_frame.stretch_shrink = 1 if active else DIORAMA_PARKED_SHRINK
 	if _diorama != null:
 		_diorama.process_mode = (Node.PROCESS_MODE_INHERIT if active
 			else Node.PROCESS_MODE_DISABLED)
@@ -1068,7 +1090,10 @@ func _refresh_echoes() -> void:
 		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		row.add_theme_font_size_override("font_size", 34)
 		if found:
-			row.text = "%s  %s\n%s" % [info["emoji"], info["name"], info["line"]]
+			# GlyphGuard, not the raw icon: an emoji here pulled in the OS
+			# colour-emoji font, 184 MB, for a blank box on iOS (G16).
+			row.text = GlyphGuard.safe("%s  %s\n%s" % [info["emoji"],
+				info["name"], info["line"]])
 			row.add_theme_color_override("font_color", Color(0.92, 0.90, 0.84))
 		else:
 			row.text = "·  ———"

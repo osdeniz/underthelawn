@@ -771,6 +771,11 @@ func _process(delta: float) -> void:
 	_clouds += delta
 	# The active pin's breathing and the cloud shadow both need a repaint; at
 	# 30 fps behind a menu this is the cheapest possible animation.
+	# is_visible_in_tree(), not visible: `visible` is this node's OWN flag, so
+	# it stayed true while the hub layer above it was hidden for a chapter and
+	# the map repainted into nothing for the whole run (G16).
+	if not is_visible_in_tree():
+		return
 	var ink := _town.get_node_or_null("TownInk") as Control
 	if ink != null and _town.visible:
 		ink.queue_redraw()

@@ -241,7 +241,7 @@ offset_left = 0.0
 offset_top = 0.0
 offset_right = 1.0
 offset_bottom = 1.0
-text = "🔊"
+text = ""
 visible = false
 [node name="SecretCard" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -265,7 +265,7 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 260)
-text = "🧸"
+text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 210
@@ -380,7 +380,7 @@ theme_override_constants/separation = 6
 [node name="Teaser" type="Button" parent="CompletePanel/Card/Scroll/Rows"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "NEXT: The Neighbor's Yard 🔒
+text = "NEXT: The Neighbor's Yard
 Something moved behind that fence."
 theme_override_colors/font_color = Color(0.72, 0.74, 0.7, 1)
 theme_override_font_sizes/font_size = 34

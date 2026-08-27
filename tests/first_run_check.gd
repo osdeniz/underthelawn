@@ -25,9 +25,27 @@ func _ready() -> void:
 		float(GameConfig.FIRST_RUN_SCENT_AT[0]) < float(GameConfig.SCENT_AT[0]),
 		"%.2f vs %.2f" % [GameConfig.FIRST_RUN_SCENT_AT[0], GameConfig.SCENT_AT[0]])
 
-	# Let the countdown run out.
-	await get_tree().create_timer(GameConfig.FIRST_RUN_MODAL_AFTER + 0.6).timeout
-	var sheet: Array = game.hud.find_children("OrientationDim", "", true, false)
+	# Let the countdown run out — while keeping the tree running.
+	#
+	# The countdown lives in Game._process, and the game pauses the WHOLE tree
+	# whenever the window loses focus, on purpose (Game._notification: a phone
+	# call must not leave the mower driving). A test run does not own the
+	# window, so that pause used to land mid-countdown and stop the very thing
+	# under test — the sheet never opened and the four assertions after it fell
+	# with it. Unpausing each tick keeps the countdown alive; the moment the
+	# sheet appears we stop, because the sheet pauses the tree itself and that
+	# is the next assertion (G16).
+	var sheet: Array = []
+	var waited := 0.0
+	while waited < GameConfig.FIRST_RUN_MODAL_AFTER + 6.0:
+		sheet = game.hud.find_children("OrientationDim", "", true, false)
+		if not sheet.is_empty():
+			break
+		get_tree().paused = false
+		await get_tree().create_timer(0.1).timeout
+		waited += 0.1
+	# One frame for show_orientation's own pause to land before it is asserted.
+	await get_tree().process_frame
 	ck("yonlendirme acildi", sheet.size() == 1, "%d" % sheet.size())
 	ck("oyun duraklatildi", get_tree().paused, "")
 	ck("kayitta isaretlendi", not GameState.is_first_run(), "")
@@ -44,12 +62,19 @@ func _ready() -> void:
 	var again: Node = load("res://scenes/Main.tscn").instantiate()
 	add_child(again)
 	for _i in 6:
+		get_tree().paused = false
 		await get_tree().process_frame
 	again._begin_search()
 	ck("ikinci oyunda ilk-oyun degil", not again._first_run, "")
 	ck("ikinci oyunda geri sayim yok", again._orientation_due <= 0.0,
 		"%.1f" % again._orientation_due)
-	await get_tree().create_timer(GameConfig.FIRST_RUN_MODAL_AFTER + 0.4).timeout
+	# Same guard: the sheet must stay away because this is not a first run, not
+	# because a stray pause stopped the clock that would have shown it.
+	var second := 0.0
+	while second < GameConfig.FIRST_RUN_MODAL_AFTER + 0.4:
+		get_tree().paused = false
+		await get_tree().create_timer(0.1).timeout
+		second += 0.1
 	ck("ikinci oyunda modal yok",
 		again.hud.find_children("OrientationDim", "", true, false).is_empty(), "")
 	again.queue_free()

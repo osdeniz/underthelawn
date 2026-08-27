@@ -1071,7 +1071,9 @@ func _show_card_art(emoji: String, evidence_id: String) -> void:
 		_card_preview.show_item(evidence_id)
 		return
 	_card_preview.visible = false
-	_card_art.text = emoji
+	# Stripped, not shown: one emoji on screen loads the OS colour-emoji font
+	# and 184 MB with it, for a glyph iOS draws as a blank box anyway (G16).
+	_card_art.text = GlyphGuard.safe(emoji)
 
 
 ## A small MISSING poster under the top bar. It is the only piece of HUD that

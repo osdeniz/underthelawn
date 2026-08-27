@@ -81,10 +81,18 @@ func _check_chapter_round_trip() -> void:
 		for col in GameConfig.GRID_COLS:
 			model.mow(col, row, 0)
 	# _on_completed waits 1.5 s before reporting, so the reward shot can land.
-	await get_tree().create_timer(2.0).timeout
+	await _until(func() -> bool: return reported.size() == 1)
 	ck("bitince search_finished yayinlandi", reported.size() == 1, str(reported))
 	game.queue_free()
 	await get_tree().process_frame
+	# The game scene pauses the whole tree when the window loses focus, on
+	# purpose — a phone call must not leave the mower driving (Game._notification)
+	# — and resuming deliberately does NOT unpause. A test run does not own the
+	# window, so that pause lands whenever the machine feels like it and OUTLIVES
+	# the scene that set it: every await after this point then waits forever, and
+	# the dialogue check below failed for it. Nothing here tests pausing, so the
+	# tree goes back to running (G16).
+	get_tree().paused = false
 
 	# What the hub does with that report.
 	ChapterProgress.record("ch01_aldridge", 1, 2)
@@ -160,8 +168,27 @@ func _check_dialogue() -> void:
 	var closed := []
 	box.finished.connect(func() -> void: closed.append(true))
 	box.play([])
-	await get_tree().create_timer(0.6).timeout
+	await _until(func() -> bool: return closed.size() == 1)
 	ck("bos konusma kutuyu kapatiyor", closed.size() == 1, str(closed))
+
+
+## Waits for `condition` to hold, giving up after `limit` seconds — at which
+## point the assertion that follows reports the real failure.
+##
+## Both waits above sit on a timer inside the code under test: the completion
+## report fires 1.5 s after the last cell, and an empty dialogue box closes over
+## a 0.25 s fade. They used to be a fixed sleep with a fraction of a second of
+## margin, which held on an idle machine and dropped on a loaded one — the test
+## then failed for a reason that had nothing to do with the game. Waiting on the
+## condition passes as fast as the code allows and only spends the ceiling when
+## something is genuinely broken (G16).
+func _until(condition: Callable, limit := 8.0) -> void:
+	var waited := 0.0
+	while waited < limit:
+		if bool(condition.call()):
+			return
+		await get_tree().create_timer(0.1).timeout
+		waited += 0.1
 
 
 ## How much of the case must be closed before this person is in town at all.
