@@ -312,6 +312,269 @@
           "text": "DLG_FINALE_5"
         }
       ]
+    },
+    "brief_ch09": {
+      "lines": [
+        {
+          "speaker": "ellie",
+          "text": "DLG_BRIEF_CH09_1"
+        },
+        {
+          "speaker": "ellie",
+          "text": "DLG_BRIEF_CH09_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH09_3"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH09_4"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_BRIEF_CH09_A1",
+                "reply": {
+                  "speaker": "marshal",
+                  "text": "DLG_BRIEF_CH09_R1"
+                }
+              },
+              {
+                "text": "DLG_BRIEF_CH09_A2",
+                "reply": {
+                  "speaker": "marshal",
+                  "text": "DLG_BRIEF_CH09_R2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH09_5"
+        }
+      ],
+      "accept": "BRIEF_09_ACCEPT"
+    },
+    "debrief_ch09_full": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH09_F1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH09_F2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH09_F3"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH09_F4"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH09_F5"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH09_F6"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_DEB_CH09_A1",
+                "reply": {
+                  "speaker": "marshal",
+                  "text": "DLG_DEB_CH09_R1"
+                }
+              },
+              {
+                "text": "DLG_DEB_CH09_A2",
+                "reply": {
+                  "speaker": "marshal",
+                  "text": "DLG_DEB_CH09_R2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH09_F7"
+        }
+      ]
+    },
+    "debrief_ch09_partial": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH09_P1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH09_P2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH09_P3"
+        }
+      ]
+    },
+    "brief_ch10": {
+      "lines": [
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH10_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH10_2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH10_3"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_BRIEF_CH10_A1",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH10_R1"
+                }
+              },
+              {
+                "text": "DLG_BRIEF_CH10_A2",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH10_R2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH10_4"
+        }
+      ],
+      "accept": "BRIEF_10_ACCEPT"
+    },
+    "debrief_ch10_full": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH10_F1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH10_F2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH10_F3"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH10_F4"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH10_F5"
+        }
+      ]
+    },
+    "debrief_ch10_partial": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH10_P1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH10_P2"
+        }
+      ]
+    },
+    "brief_ch11": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH11_1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH11_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH11_3"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_BRIEF_CH11_A1",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH11_R1"
+                }
+              },
+              {
+                "text": "DLG_BRIEF_CH11_A2",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH11_R2"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "accept": "BRIEF_11_ACCEPT"
+    },
+    "debrief_ch11_full": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH11_F1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH11_F2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH11_F3"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH11_F4"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH11_F5"
+        }
+      ]
+    },
+    "debrief_ch11_partial": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH11_P1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH11_P2"
+        }
+      ]
     }
   },
   "town": {

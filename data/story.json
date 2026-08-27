@@ -304,8 +304,34 @@
     "objective": "CASE_02_OBJECTIVE",
     "teaser_image": "hub/case2_teaser",
     "locked_note": "CASE_02_LOCKED",
-    "chapters": [],
-    "_comment": "Skeleton only (G11). Case 2 content lands in a later sprint; the keys exist so the shape of what follows is visible in the data, not just in a plan."
+    "chapters": [
+      {
+        "variant_id": "ch09_radio_room",
+        "name": "CH_09_NAME",
+        "brief": "brief_ch09",
+        "debrief_full": "debrief_ch09_full",
+        "debrief_partial": "debrief_ch09_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch10_relay_hill",
+        "name": "CH_10_NAME",
+        "brief": "brief_ch10",
+        "debrief_full": "debrief_ch10_full",
+        "debrief_partial": "debrief_ch10_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch11_orchard",
+        "name": "CH_11_NAME",
+        "brief": "brief_ch11",
+        "debrief_full": "debrief_ch11_full",
+        "debrief_partial": "debrief_ch11_partial",
+        "playable": true
+      }
+    ],
+    "_comment": "Case 02, THREE ACTS. Act 1 (ch09-ch11) is the break from town and plays on the town map's own pins; Act 2 (ch12-ch15) is the road east and plays on the world map; Act 3 (ch16-ch18) is the confrontation. The list grows one act per commit.",
+    "hud_line": "CASE_02_HUD_LINE"
   },
   "echoes": {
     "title": "ECHOES_TITLE",

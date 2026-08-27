@@ -827,8 +827,13 @@ const HOUSE_VARIANTS := {
 ## Landmark structures that stand where the house would. One low-detail
 ## composition each, built from the same primitives and textures as the house,
 ## and each one casts shadow so it anchors to the ground.
+## Every landmark EnvironmentBuilder._build_landmark can draw. A variant naming
+## anything else logs a warning and stands in an empty yard, so this list and
+## that match statement have to move together.
 const LANDMARK_IDS: Array[String] = [
 	"playground", "greenhouse", "water_tower", "mill", "barn",
+	# Case 02, Act 1 (G13).
+	"antenna_mast", "orchard",
 ]
 
 const HOUSE_MARGIN_Z := 4.8

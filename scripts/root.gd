@@ -275,8 +275,12 @@ func _on_search_finished(evidence: int, total: int) -> void:
 	_play_dialogue(lines, "", func() -> void: pass)
 
 
+## Last of ITS OWN case, not of the game. Once Case 02's chapters joined the
+## board this asked the wrong question and Case 01's ending stopped firing: the
+## cellar is no longer the final entry in the list, only the final entry in the
+## case it belongs to (G13).
 func _is_last_chapter(variant_id: String) -> bool:
-	var chapters := ChapterProgress.chapters()
+	var chapters := ChapterProgress.case_of(variant_id)
 	if chapters.is_empty():
 		return false
 	return str((chapters.back() as Dictionary).get("variant_id", "")) == variant_id

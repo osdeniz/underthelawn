@@ -116,7 +116,9 @@ func _item_height(evidence_id: String) -> float:
 	match evidence_id:
 		"ellie": return 0.55
 		"rabbit", "toy": return 0.45
-		"radio", "can", "candle", "flashlight": return 0.28
+		"radio", "receiver", "can", "candle", "flashlight": return 0.28
+		"battery", "apple": return 0.24
+		"crate_lid": return 0.12
 		"boot", "seedlings", "gap": return 0.30
 		"ribbon", "thread", "arrow", "prints", "stones", "hatch": return 0.12
 	return 0.14
@@ -132,6 +134,9 @@ func _fit_scale(evidence_id: String) -> float:
 		"ribbon", "thread", "patch", "candle": return 1.55
 		"boot", "can", "flashlight", "drawing", "map", "notebook": return 1.15
 		"note", "leaflet", "letter", "log", "headline": return 1.05
+		"number_log": return 1.05
+		"battery", "apple": return 1.30
+		"crate_lid": return 1.15
 	return 1.10
 
 

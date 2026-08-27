@@ -335,16 +335,24 @@ func _refresh_objectives_badge() -> void:
 
 
 func _refresh_progress() -> void:
+	# Per CASE, not per game: done_count() counts every chapter the player has
+	# ever finished, which is the right number for the town but the wrong one
+	# for a line that names one case (G13).
+	var case_list := ChapterProgress.active_case_chapters()
+	var case_id := "case_02.id" if ChapterProgress.active_case_is_two() \
+		else "case.id"
 	_progress_label.text = Story.text("hub.progress").format({
-		"case": Story.text("case.id"),
-		"done": ChapterProgress.done_count(),
-		"total": ChapterProgress.count()})
+		"case": Story.text(case_id),
+		"done": ChapterProgress.done_in(case_list),
+		"total": case_list.size()})
 	_scrap_label.text = "%d" % GameState.scrap_total()
 	if _reclaim_label != null and is_instance_valid(_reclaim_label):
 		# Deliberately NOT tied to money: this is the measure of work done, and
 		# the whole point of G13.4 is that mowing shows up in the town.
-		var percent := int(round(100.0 * float(ChapterProgress.done_count())
-			/ maxf(1.0, float(GameConfig.RECLAIM_STEPS))))
+		# Clamped: the reclaim runs out at RECLAIM_STEPS, and with Case 02 on
+		# the board done_count() goes past it (G13).
+		var percent := clampi(int(round(100.0 * float(ChapterProgress.done_count())
+			/ maxf(1.0, float(GameConfig.RECLAIM_STEPS)))), 0, 100)
 		_reclaim_label.text = tr("HUB_RECLAIMED").format({"percent": percent})
 
 

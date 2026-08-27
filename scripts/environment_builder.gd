@@ -942,6 +942,8 @@ func _build_landmark(landmark_id: String) -> void:
 		"water_tower": _landmark_water_tower(root)
 		"mill": _landmark_mill(root)
 		"barn": _landmark_barn(root)
+		"antenna_mast": _landmark_antenna_mast(root)
+		"orchard": _landmark_orchard(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
@@ -990,6 +992,134 @@ func _landmark_barn(root: Node3D) -> void:
 			Vector3(0.0, 0.0, PI * 0.5))
 	_ao_blob(root, Vector2(w + 2.4, d + 2.4),
 		Vector3(0.0, 0.02, 0.0), 0.6)
+
+
+## Case 02 opens under this: a lattice mast with a shed at its foot, guy wires
+## running out to their anchors, and one dish still pointed east.
+##
+## The dish is the whole landmark. Everything else has weathered into the same
+## grey, but somebody has kept that one thing aimed — and it aims the way the
+## chapter is about to send the player (G13).
+func _landmark_antenna_mast(root: Node3D) -> void:
+	var steel := _flat("mast_steel", Color(0.46, 0.47, 0.49), 0.65, 0.35)
+	var rust := _flat("mast_rust", Color(0.44, 0.26, 0.18), 0.9, 0.1)
+	var board := _flat("mast_board", Color(0.40, 0.38, 0.34), 0.95)
+	var roof := _flat("mast_roof", Color(0.26, 0.26, 0.27), 0.9)
+	var dish := _flat("mast_dish", Color(0.74, 0.73, 0.68), 0.55, 0.2)
+	var wire := _flat("mast_wire", Color(0.32, 0.32, 0.33), 0.8, 0.5)
+
+	var height := 9.4
+	# Four legs drawing in towards the top, cross-braced: a lattice reads as a
+	# lattice from the diagonals, not from the uprights.
+	for sx: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
+			_cyl(root, 0.055, 0.085, height, steel,
+				Vector3(sx * 0.52, height * 0.5, sz * 0.52),
+				Vector3(sz * 0.035, 0.0, -sx * 0.035))
+	# Rungs all the way round plus one diagonal per face per level. A lattice
+	# reads as a lattice from the diagonals; with only the uprights and a rung
+	# on one face it reads as a ladder, which is what the first pass drew.
+	for level in 7:
+		var y := 0.8 + float(level) * 1.28
+		var span := lerpf(1.10, 0.70, float(level) / 6.0)
+		var lean := 1.0 if level % 2 == 0 else -1.0
+		for face in 4:
+			var a := TAU * float(face) / 4.0
+			var mid := Vector3(cos(a), 0.0, sin(a)) * span * 0.5
+			_cyl(root, 0.026, 0.026, span, steel, mid + Vector3(0.0, y, 0.0),
+				Vector3(0.0, -a, PI * 0.5))
+			var diag := sqrt(span * span + 1.28 * 1.28)
+			_cyl(root, 0.021, 0.021, diag, steel,
+				mid + Vector3(0.0, y + 0.64, 0.0),
+				Vector3(0.0, -a, lean * atan2(span, 1.28)))
+
+	# Guy wires out to three ground anchors. Thick enough to read at the
+	# camera's distance: a hairline cylinder came out looking like a scratch on
+	# the lens rather than a cable.
+	for i in 3:
+		var angle := TAU * float(i) / 3.0 + 0.4
+		var reach := 4.2
+		var top := Vector3(0.0, height * 0.74, 0.0)
+		var anchor := Vector3(cos(angle) * reach, 0.25, sin(angle) * reach)
+		var mid := (anchor + top) * 0.5
+		var line := _cyl(root, 0.032, 0.032, anchor.distance_to(top), wire, mid,
+			Vector3.ZERO, 6)
+		line.look_at_from_position(mid, anchor, Vector3.UP)
+		line.rotate_object_local(Vector3.RIGHT, PI * 0.5)
+		_box(root, Vector3(0.30, 0.42, 0.30), rust,
+			anchor + Vector3(0.0, -0.04, 0.0))
+
+	# The dish, still aimed east, and its little counterweight arm.
+	var arm := Vector3(0.0, height * 0.86, 0.0)
+	_cyl(root, 0.05, 0.05, 1.5, steel, arm + Vector3(0.62, 0.0, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5))
+	_cyl(root, 0.92, 0.92, 0.10, dish, arm + Vector3(1.34, 0.0, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5))
+	_cyl(root, 0.06, 0.06, 0.46, rust, arm + Vector3(1.62, 0.0, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5))
+
+	# The shed at its foot: where the receiver and the log were found.
+	var shed := Node3D.new()
+	shed.position = Vector3(2.9, 0.0, 1.1)
+	shed.rotation.y = -0.24
+	root.add_child(shed)
+	_box(shed, Vector3(2.6, 2.1, 2.2), board, Vector3(0.0, 1.05, 0.0))
+	_box(shed, Vector3(2.9, 0.14, 2.5), roof, Vector3(0.0, 2.16, 0.0),
+		Vector3(0.10, 0.0, 0.0))
+	_box(shed, Vector3(0.9, 1.7, 0.08), rust, Vector3(-0.5, 0.85, -1.12))
+	_box(shed, Vector3(0.5, 0.5, 0.06), steel, Vector3(0.7, 1.45, -1.12))
+	_ao_blob(shed, Vector2(3.4, 3.0), Vector3(0.0, 0.02, 0.0), 0.55)
+	_ao_blob(root, Vector2(3.2, 3.2), Vector3(0.0, 0.02, 0.0), 0.5)
+
+
+## Four rows of old apple trees, and a low dry-stone wall along the back.
+##
+## The rows are the evidence: they are EVEN. Trees planted by a person who
+## expected to come back and pick them, standing in the country that stopped
+## coming back for anything (G13).
+func _landmark_orchard(root: Node3D) -> void:
+	var bark := _flat("orch_bark", Color(0.32, 0.26, 0.20), 0.95)
+	var leaf := _flat("orch_leaf", Color(0.24, 0.42, 0.20), 0.9)
+	var fruit := _flat("orch_fruit", Color(0.58, 0.15, 0.14), 0.5)
+	var stone := _flat("orch_stone", Color(0.55, 0.53, 0.48), 0.95)
+	var crate := _flat("orch_crate", Color(0.68, 0.58, 0.42), 0.9)
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 111101
+	for row in 4:
+		for col in 5:
+			var tree := Node3D.new()
+			tree.position = Vector3((float(col) - 2.0) * 2.9 + rng.randf_range(-0.12, 0.12),
+				0.0, (float(row) - 1.5) * 2.5 + rng.randf_range(-0.10, 0.10))
+			root.add_child(tree)
+			var h := rng.randf_range(2.1, 2.7)
+			_cyl(tree, 0.13, 0.20, h, bark, Vector3(0.0, h * 0.5, 0.0))
+			# Three crowns rather than one ball: an apple tree is wide and open.
+			for i in 3:
+				var a := TAU * float(i) / 3.0 + rng.randf_range(0.0, 1.0)
+				var r := rng.randf_range(0.62, 0.86)
+				_ball(tree, r, leaf,
+					Vector3(cos(a) * 0.46, h + rng.randf_range(-0.10, 0.22),
+						sin(a) * 0.46), Vector3(1.0, 0.78, 1.0))
+			# A few apples still up, because nobody stripped these trees bare.
+			for i in 3:
+				var a2 := rng.randf_range(0.0, TAU)
+				_ball(tree, 0.075, fruit,
+					Vector3(cos(a2) * rng.randf_range(0.45, 0.85),
+						h + rng.randf_range(-0.25, 0.25),
+						sin(a2) * rng.randf_range(0.45, 0.85)))
+			_ao_blob(tree, Vector2(1.9, 1.9), Vector3(0.0, 0.02, 0.0), 0.5)
+
+	# The dry-stone wall the crate lid was leaning against.
+	for i in 16:
+		var x := (float(i) - 7.5) * 0.86
+		var y := 0.22 + (0.0 if i % 3 else 0.14)
+		_box(root, Vector3(0.84, 0.44 + (0.18 if i % 3 == 0 else 0.0), 0.46),
+			stone, Vector3(x, y, 5.4), Vector3(0.0, rng.randf_range(-0.1, 0.1), 0.0))
+	_box(root, Vector3(0.62, 0.42, 0.46), crate, Vector3(2.1, 0.21, 4.85),
+		Vector3(0.0, 0.34, 0.0))
+	_box(root, Vector3(0.66, 0.03, 0.50), crate, Vector3(1.4, 0.02, 4.9),
+		Vector3(0.0, 0.12, 0.0))
 
 
 ## Rusted swing set, slide and sandpit. The rust colour is what dates it.

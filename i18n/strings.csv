@@ -448,3 +448,107 @@ OBJ_TOWN_DESC,Three buildings standing again is where a town starts.,"Üç binan
 OBJ_TOWN_DONE,Three roofs. People are leaving their doors open again.,Üç çatı. İnsanlar kapılarını yine açık bırakıyor.
 OBJ_TOWN_C1,Finish three restorations,Üç onarım projesi bitir
 UI_PREPARING,Preparing the yard...,Bahçe hazırlanıyor...
+CH_09_NAME,The Radio Room,Telsiz Odası
+CH_10_NAME,The Relay Hill,Röle Tepesi
+CH_11_NAME,The Orchard,Elma Bahçesi
+OPENING_09_HEADLINE,THE RADIO ROOM,TELSİZ ODASI
+OPENING_09_SUBLINE,Someone is feeding a dead machine.,Biri ölü bir makineyi besliyor.
+OPENING_10_HEADLINE,THE RELAY HILL,RÖLE TEPESİ
+OPENING_10_SUBLINE,The signal climbs. So do we.,Sinyal yokuş çıkıyor. Biz de.
+OPENING_11_HEADLINE,THE ORCHARD,ELMA BAHÇESİ
+OPENING_11_SUBLINE,Someone eats here. Carefully.,Biri burada yiyor. Dikkatlice.
+EV_CH09_A_NAME,Tuned Receiver,Ayarlı Alıcı
+EV_CH09_A_LINE,Batteries dated this year. Somebody carries life to this dead box every week.,Piller bu yılın. Biri bu ölü kutuya her hafta hayat taşıyor.
+EV_CH09_B_NAME,Number Log,Sayı Defteri
+EV_CH09_B_LINE,Columns of numbers. The last column is underlined: nine.,Sütun sütun sayı. Son sütunun altı çizili: dokuz.
+LOC_MAST,by the mast,direğin dibinde
+LOC_SHED,in the shed,kulübede
+COLE_RECEIVER,"The dial is worn smooth in one spot. The same frequency, hundreds of times.","Kadran tek bir noktada aşınmış. Aynı frekans, yüzlerce kez."
+COLE_NUMBER_LOG,The hand shakes on the early pages and steadies later. Whoever wrote this did not get more afraid. They got used to it.,"İlk sayfalarda el titriyor, sonra sabitleniyor. Bunu yazan korkmamış — alışmış."
+MN_CH09_A,"Batteries, weekly, in the dark, uphill. That is not scavenging. That is a shift.","Pil, haftalık, karanlıkta, yokuş yukarı. Bu yağma değil. Bu vardiya."
+MN_CH09_B,Nine. I keep writing it down and I keep not liking it.,Dokuz. Yazıp duruyorum ve hoşuma gitmiyor.
+ECHO_CH09_NAME,Candle Stub in a Jar,Kavanozdaki Mum Dibi
+ECHO_CH09_LINE,"Burned down to the glass, in a room with a window. Whoever sat here did not want the light seen from outside.","Cama kadar yanmış, üstelik pencereli bir odada. Burada oturan, ışığının dışarıdan görülmesini istememiş."
+RECLAIM_CH09,"The ground under the mast is clear again. Whatever is out there, we can hear it too now.","Direğin dibi yeniden açık. Dışarıda ne varsa, artık biz de duyabiliriz."
+EV_CH10_A_NAME,Fresh Battery Cache,Taze Pil Zulası
+EV_CH10_A_LINE,"Nine cells in a tin, wrapped in oilcloth. Counted out, not dumped.","Tenekede dokuz pil, muşambaya sarılı. Dökülmemiş — sayılarak konmuş."
+EV_CH10_B_NAME,Boot Print,Bot İzi
+EV_CH10_B_LINE,Not ours. Not Ellie's. Even diamonds on the sole - a traveller's boot.,Bizim değil. Ellie'nin değil. Tabanında düzenli baklava izi: yolcu botu.
+LOC_CREST,at the crest,tepe sırtında
+LOC_TRACK,on the track,patikada
+COLE_BATTERY,Nine again. I would like to stop noticing that number.,Yine dokuz. Bu sayıyı fark etmeyi bırakmak isterdim.
+COLE_BOOT_PRINT,The depth says a heavy pack. The stride says he was not tired. That is a bad combination.,Derinlik ağır bir sırt çantası diyor. Adım aralığı yorgun değil diyor. Kötü bir birleşim.
+MN_CH10_A,"Counted, wrapped, hidden. Somebody is being supplied.","Sayılmış, sarılmış, saklanmış. Birine ikmal yapılıyor."
+MN_CH10_B,He read the sole pattern from memory. Who memorises boot soles?,Taban desenini ezbere okudu. Kim bot tabanı ezberler?
+ECHO_CH10_NAME,Evacuation Leaflet,Tahliye Bildirisi
+ECHO_CH10_LINE,"Assembly points, times, a telephone number. Somebody folded it into a paper boat.","Toplanma noktaları, saatler, bir telefon numarası. Biri katlayıp kâğıt gemi yapmış."
+RECLAIM_CH10,The hill track is walkable again. From up here you can watch the town breathe.,Tepe patikası yeniden yürünür. Buradan kasabanın nefes alışı görünüyor.
+EV_CH11_A_NAME,Picked Rows,Toplanmış Sıralar
+EV_CH11_A_LINE,Picked row by row. A hungry man breaks branches - these have not bruised one.,Sıra sıra toplanmış. Aç insan dal kırar; bunlar dal bile incitmemiş.
+EV_CH11_B_NAME,Crate Lid,Kasa Kapağı
+EV_CH11_B_LINE,Stamped: a ring of seven stars. I look at the stranger. He looks at a rock.,Damga: yedi yıldızlı çember. Yabancıya bakıyorum; o taşa bakıyor.
+LOC_ROWS,between the rows,sıraların arasında
+LOC_WALL,against the wall,duvar dibinde
+COLE_PICKED_ROWS,Whoever picks like this expects to come back next season.,Böyle toplayan biri gelecek sezon döneceğini biliyordur.
+COLE_CRATE_LID,Machine-cut pine. Nobody has machines.,Makineyle kesilmiş çam. Kimsenin makinesi yok.
+MN_CH11_A,Discipline is the opposite of hunger. Whoever eats here is not desperate.,"Disiplin, açlığın zıddıdır. Burada yiyen çaresiz değil."
+MN_CH11_B,The stamp is on the INSIDE of the lid. Not to be seen. To be counted.,Damga kapağın İÇİNE basılmış. Görülmek için değil. Sayılmak için.
+ECHO_CH11_NAME,Orchard Ledger,Bahçe Defteri
+ECHO_CH11_LINE,"Yields year by year in the same hand, until a year with no number beside it.","Yıl yıl verim, hep aynı elden; ta ki yanında sayı olmayan bir yıla kadar."
+RECLAIM_CH11,"The rows are clear. If anyone comes back to pick, they will find it kept.","Sıralar açıldı. Toplamaya dönen olursa, bakılmış bulacak."
+DLG_BRIEF_CH09_1,I heard a voice counting at night.,Gece sayı sayan bir ses duydum.
+DLG_BRIEF_CH09_2,Nobody counts anymore. We do not even have a calendar.,Kimse saymaz artık. Takvim bile yok.
+DLG_BRIEF_CH09_3,Sarah says she dreamt it. Sarah also has not slept since Tuesday.,Sarah rüya gördüğünü söylüyor. Sarah salıdan beri uyumadı da.
+DLG_BRIEF_CH09_4,The old mast is behind the Perrin place. Grass up to your chest.,Eski direk Perrin'lerin arkasında. Ot göğüs hizasında.
+DLG_BRIEF_CH09_A1,A nine-year-old does not invent numbers.,Dokuz yaşındaki bir çocuk sayı uydurmaz.
+DLG_BRIEF_CH09_R1,No. She invents dragons. Numbers she repeats.,Uydurmaz. Ejderha uydurur. Sayıyı tekrar eder.
+DLG_BRIEF_CH09_A2,Could be wind in the wires.,Tellerdeki rüzgâr olabilir.
+DLG_BRIEF_CH09_R2,"Could be. The wind does not stop at nine, though.",Olabilir. Ama rüzgâr dokuzda susmaz.
+DLG_BRIEF_CH09_5,Clear the ground and let us see what is under it.,Zemini aç da altında ne varmış görelim.
+BRIEF_09_ACCEPT,GO TO THE MAST,DİREĞE GİT
+DLG_DEB_CH09_F1,Batteries from this year. Somebody walks up here in the dark.,Bu yılın pilleri. Biri karanlıkta buraya kadar yürüyor.
+DLG_DEB_CH09_F2,And the last number in the log is nine. Ellie is nine.,Ve defterdeki son sayı dokuz. Ellie dokuz yaşında.
+DLG_DEB_CH09_F3,It is not her age.,O onun yaşı değil.
+DLG_DEB_CH09_F4,...how long have you been standing behind me?,...ne zamandır arkamda duruyorsun?
+DLG_DEB_CH09_F5,"You are going to follow that signal. It runs east, through country with no names left on it.","O sinyali kovalayacaksın. Doğuya gidiyor, adı kalmamış topraklardan."
+DLG_DEB_CH09_F6,You need somebody who knows the dead zones. Take me with you.,Ölü bölgeleri bilen biri lazım. Beni götür.
+DLG_DEB_CH09_A1,You walk in front. Where I can see you.,Önden yürürsün. Görebileceğim yerde.
+DLG_DEB_CH09_R1,"That is the deal. You lead, I watch.","Anlaşma bu. Sen yol gösterirsin, ben bakarım."
+DLG_DEB_CH09_A2,You brought her back. That buys one road.,Onu geri getirdin. Bu bir yolluk eder.
+DLG_DEB_CH09_R2,One road. We will see about the second.,Bir yolluk. İkincisini sonra konuşuruz.
+DLG_DEB_CH09_F7,Pack for two weeks. Not because it is far. Because of what is at the end of it.,İki haftalık hazırlan. Uzak olduğundan değil. Sonunda ne olduğundan.
+DLG_DEB_CH09_P1,Half the ground and half the answer. The mast is still humming.,"Zeminin yarısı, cevabın yarısı. Direk hâlâ uğulduyor."
+DLG_DEB_CH09_P2,Then go back. It will not hum forever.,O zaman geri dön. Sonsuza kadar uğuldamayacak.
+DLG_DEB_CH09_P3,...and who exactly are you?,...sen tam olarak kimsin?
+DLG_BRIEF_CH10_1,The relay is on the bald crest. Anything that talks to the mast talks through here.,Röle çıplak sırtta. Direkle konuşan her şey buradan konuşur.
+DLG_BRIEF_CH10_2,You know the hill.,Tepeyi biliyorsun.
+DLG_BRIEF_CH10_3,I know the hills.,Tepeleri bilirim.
+DLG_BRIEF_CH10_A1,All of them?,Hepsini mi?
+DLG_BRIEF_CH10_R1,The ones with something on top.,Tepesinde bir şey olanları.
+DLG_BRIEF_CH10_A2,"Lead, then.",Yürü öyleyse.
+DLG_BRIEF_CH10_R2,Mind the slope. It is steeper than it looks from town.,Yokuşa dikkat. Kasabadan göründüğünden dik.
+DLG_BRIEF_CH10_4,Cut me a path to the top. I will take the questions from there.,Tepeye kadar yol aç. Soruları oradan ben devralırım.
+BRIEF_10_ACCEPT,CLIMB,TIRMAN
+DLG_DEB_CH10_F1,Nine cells. Wrapped. The man up here has a routine.,Dokuz pil. Sarılmış. Buradaki adamın bir düzeni var.
+DLG_DEB_CH10_F2,"Diamond tread, four millimetres deep, worn on the outer edge.","Baklava desen, dört milim derin, dış kenarı aşınmış."
+DLG_DEB_CH10_F3,He carries his weight on the outside of his feet. He has been walking a long time.,Ağırlığını ayağının dışına verip yürüyor. Uzun zamandır yürüyor.
+DLG_DEB_CH10_F4,Right.,Peki.
+DLG_DEB_CH10_F5,I will write that down. Not the tread. The fact that you read it like a page.,Bunu not edeceğim. Deseni değil. Onu bir sayfa gibi okumanı.
+DLG_DEB_CH10_P1,Half a hill. The cache can wait; the weather cannot.,"Tepenin yarısı. Zula bekler, hava beklemez."
+DLG_DEB_CH10_P2,It will still be counted when you come back.,Döndüğünde yine sayılmış olacak.
+DLG_BRIEF_CH11_1,"Apples. Two miles out, and the crows have not had them.",Elma. Üç kilometre ötede ve kargalar yememiş.
+DLG_BRIEF_CH11_2,Crows go where food is easy. Nothing here is easy.,Karga kolay yemin peşine gider. Burada kolay hiçbir şey yok.
+DLG_BRIEF_CH11_3,Then somebody is making it hard on purpose.,Demek biri bilerek zorlaştırıyor.
+DLG_BRIEF_CH11_A1,Is that a good sign?,Bu iyiye mi işaret?
+DLG_BRIEF_CH11_R1,It is an organised sign. Good is a different word.,"Düzenliye işaret. İyi, başka bir kelime."
+DLG_BRIEF_CH11_A2,You have seen this before.,Bunu daha önce gördün.
+DLG_BRIEF_CH11_R2,I have seen orchards before.,Elma bahçesi gördüm.
+BRIEF_11_ACCEPT,WALK THE ROWS,SIRALARI YÜRÜ
+DLG_DEB_CH11_F1,Not one broken branch in forty trees.,Kırk ağaçta tek bir kırık dal yok.
+DLG_DEB_CH11_F2,"And a crate lid stamped on the inside. Seven stars, in a ring.",Ve içine damga vurulmuş bir kasa kapağı. Çember hâlinde yedi yıldız.
+DLG_DEB_CH11_F3,We should move before the light goes.,Işık gitmeden yürüyelim.
+DLG_DEB_CH11_F4,That is the second question you have walked away from.,"Bu, geçiştirdiğin ikinci soru."
+DLG_DEB_CH11_F5,"East, then. Sarah will want to say goodbye properly.",Doğuya öyleyse. Sarah düzgün bir veda isteyecektir.
+DLG_DEB_CH11_P1,Half the rows. The other half will still be standing.,Sıraların yarısı. Diğer yarısı yerinde duracak.
+DLG_DEB_CH11_P2,Everything here waits. That is what worries me.,Burada her şey bekliyor. Beni endişelendiren de bu.
+CASE_02_HUD_LINE,CASE 02 — WHAT ELLIE SAW · Follow the signal,VAKA 02 — ELLIE NE GÖRDÜ · Sinyali takip et

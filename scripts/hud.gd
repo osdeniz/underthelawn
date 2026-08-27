@@ -562,13 +562,31 @@ func _style_button(button: Button) -> void:
 	button.add_theme_stylebox_override("focus", base)
 
 
+## True if this chapter id is one of Case 02's. Asked of the story data rather
+## than of ChapterProgress, because the HUD must name the right case even while
+## the case is still locked on the board (a replay, or a dev run).
+func _belongs_to_case_two(variant_id: String) -> bool:
+	for chapter: Dictionary in Story.list("case_02.chapters"):
+		if str(chapter.get("variant_id", "")) == variant_id:
+			return true
+	return false
+
+
 ## Pulls every fixed string out of data/story.json. Called once at _ready, so a
 ## story-file edit needs no scene edit.
 func _apply_story_text() -> void:
 	# A harvest is not a case: the bar says what this level actually is (G13.6).
+	# And a Case 02 chapter is not Case 01: the bar names the case the chapter
+	# belongs to, or it spent the whole eastern road claiming to be looking for
+	# a girl who was found in the first act (G13).
 	var variant := LevelVariant.current
-	_case_line.text = tr("HARVEST_HUD_LINE") if variant != null \
-		and variant.is_harvest() else Story.text("case.hud_line")
+	if variant != null and variant.is_harvest():
+		_case_line.text = tr("HARVEST_HUD_LINE")
+	else:
+		var case_path := "case.hud_line"
+		if variant != null and _belongs_to_case_two(variant.id):
+			case_path = "case_02.hud_line"
+		_case_line.text = Story.text(case_path)
 	_complete_title.text = Story.text("complete.title", "AREA SEARCHED")
 	_missed_label.text = Story.text("complete.incomplete",
 		"The search feels incomplete...")

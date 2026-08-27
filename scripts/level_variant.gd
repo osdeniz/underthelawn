@@ -137,6 +137,9 @@ func evidence_info(index: int) -> Dictionary:
 		# the clinic is built (G13.4). Left as the KEY, not translated here, so
 		# the board can test it for emptiness before deciding to show a line.
 		"cole_note": str(entry.get("cole_note", "")),
+		# The Marshal's own margin note — what the detective wrote down rather
+		# than what the doctor measured. Same rule: the KEY, not the sentence.
+		"marshal_note": str(entry.get("marshal_note", "")),
 	}
 
 

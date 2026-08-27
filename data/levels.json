@@ -1,5 +1,5 @@
 {
-  "_comment": "One LevelVariant per chapter. ONE game scene builds all of them: nothing here is a scene path. Text fields are translation keys; palette_id indexes GameConfig.GRASS_PALETTES; obstacle_layout_id indexes LawnModel.OBSTACLE_LAYOUTS; grid_size indexes GameConfig.GRID_SIZES. decor_seed makes tree/fence/car/mailbox placement repeatable per chapter, so a yard looks the same every visit.",
+  "_comment": "One LevelVariant per chapter. ONE game scene builds all of them: nothing here is a scene path. Text fields are translation keys; palette_id indexes GameConfig.GRASS_PALETTES; obstacle_layout_id indexes LawnModel.OBSTACLE_LAYOUTS; grid_size indexes GameConfig.GRID_SIZES. decor_seed makes tree/fence/car/mailbox placement repeatable per chapter, so a yard looks the same every visit. SCRAP BUDGETS for ch09-ch18 are PLACEHOLDERS on the V1 curve, awaiting the same calibration pass G14.3 gave Case 01.",
   "variants": {
     "ch01_aldridge": {
       "palette_id": "GREEN",
@@ -329,6 +329,129 @@
       },
       "evidence_defs": [],
       "time_of_day": "golden"
+    },
+    "ch09_radio_room": {
+      "palette_id": "GREEN_COOL",
+      "grid_size": "medium",
+      "obstacle_layout_id": "beds",
+      "house_variant": "house_none",
+      "landmark_id": "antenna_mast",
+      "decor_seed": 9909,
+      "scrap_budget": 13,
+      "evidence_defs": [
+        {
+          "id": "receiver",
+          "icon": "📻",
+          "name": "EV_CH09_A_NAME",
+          "flavor_text": "EV_CH09_A_LINE",
+          "location_tag": "LOC_MAST",
+          "cole_note": "COLE_RECEIVER",
+          "marshal_note": "MN_CH09_A"
+        },
+        {
+          "id": "number_log",
+          "icon": "📓",
+          "name": "EV_CH09_B_NAME",
+          "flavor_text": "EV_CH09_B_LINE",
+          "location_tag": "LOC_SHED",
+          "cole_note": "COLE_NUMBER_LOG",
+          "marshal_note": "MN_CH09_B"
+        }
+      ],
+      "opening": {
+        "headline": "OPENING_09_HEADLINE",
+        "subline": "OPENING_09_SUBLINE"
+      },
+      "echo_def": {
+        "id": "candle",
+        "icon": "🕯",
+        "name": "ECHO_CH09_NAME",
+        "flavor_text": "ECHO_CH09_LINE"
+      },
+      "reclaim_line": "RECLAIM_CH09",
+      "time_of_day": "morning"
+    },
+    "ch10_relay_hill": {
+      "palette_id": "AMBER",
+      "grid_size": "medium",
+      "obstacle_layout_id": "open",
+      "house_variant": "house_none",
+      "landmark_id": "",
+      "decor_seed": 1010,
+      "scrap_budget": 12,
+      "evidence_defs": [
+        {
+          "id": "battery",
+          "icon": "🔋",
+          "name": "EV_CH10_A_NAME",
+          "flavor_text": "EV_CH10_A_LINE",
+          "location_tag": "LOC_CREST",
+          "cole_note": "COLE_BATTERY",
+          "marshal_note": "MN_CH10_A"
+        },
+        {
+          "id": "prints",
+          "icon": "🥾",
+          "name": "EV_CH10_B_NAME",
+          "flavor_text": "EV_CH10_B_LINE",
+          "location_tag": "LOC_TRACK",
+          "cole_note": "COLE_BOOT_PRINT",
+          "marshal_note": "MN_CH10_B"
+        }
+      ],
+      "opening": {
+        "headline": "OPENING_10_HEADLINE",
+        "subline": "OPENING_10_SUBLINE"
+      },
+      "echo_def": {
+        "id": "leaflet",
+        "icon": "📄",
+        "name": "ECHO_CH10_NAME",
+        "flavor_text": "ECHO_CH10_LINE"
+      },
+      "reclaim_line": "RECLAIM_CH10",
+      "time_of_day": "midday"
+    },
+    "ch11_orchard": {
+      "palette_id": "LUSH",
+      "grid_size": "large",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "orchard",
+      "decor_seed": 1111,
+      "scrap_budget": 16,
+      "evidence_defs": [
+        {
+          "id": "apple",
+          "icon": "🍎",
+          "name": "EV_CH11_A_NAME",
+          "flavor_text": "EV_CH11_A_LINE",
+          "location_tag": "LOC_ROWS",
+          "cole_note": "COLE_PICKED_ROWS",
+          "marshal_note": "MN_CH11_A"
+        },
+        {
+          "id": "crate_lid",
+          "icon": "📦",
+          "name": "EV_CH11_B_NAME",
+          "flavor_text": "EV_CH11_B_LINE",
+          "location_tag": "LOC_WALL",
+          "cole_note": "COLE_CRATE_LID",
+          "marshal_note": "MN_CH11_B"
+        }
+      ],
+      "opening": {
+        "headline": "OPENING_11_HEADLINE",
+        "subline": "OPENING_11_SUBLINE"
+      },
+      "echo_def": {
+        "id": "ledger",
+        "icon": "📕",
+        "name": "ECHO_CH11_NAME",
+        "flavor_text": "ECHO_CH11_LINE"
+      },
+      "reclaim_line": "RECLAIM_CH11",
+      "time_of_day": "afternoon"
     }
   }
 }

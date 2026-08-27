@@ -10,9 +10,63 @@ extends RefCounted
 const SECTION := "progress"
 
 
-## All chapter entries from story.json, in board order.
+## Case 02 opens on Ellie's closing line, not on a counter: the stranger said he
+## would come back when the town was ready, so the case waits for Case 01 to be
+## closed AND for the town to be rebuilt (G13).
+static func case_two_open() -> bool:
+	return bool(GameState.get_setting("story", "case01_closed", false)) \
+		and RestoreBoard.town_ready()
+
+
+## All chapter entries the game currently knows, in board order — Case 01, plus
+## Case 02 once it has opened.
+##
+## Deliberately ONE list rather than two. Everything that asks "how far along is
+## this player" — the harvest cadence, the objectives, the town's dialogue
+## phases, the diorama's reclaim — means it across the whole game, and every one
+## of those readers keeps working unchanged as the list grows. The only question
+## that is per-case is the hub's own "CASE 01 · 3/8" line, and that asks
+## active_case_chapters() instead.
 static func chapters() -> Array:
+	var list: Array = Story.list("chapters")
+	if case_two_open():
+		return list + Story.list("case_02.chapters")
+	return list
+
+
+## The chapters of the case `variant_id` belongs to. A chapter is the last one
+## of ITS case, not of the game, which is what decides whether finishing it ends
+## a case or simply moves to the next chapter.
+static func case_of(variant_id: String) -> Array:
+	for chapter: Dictionary in Story.list("case_02.chapters"):
+		if str(chapter.get("variant_id", "")) == variant_id:
+			return Story.list("case_02.chapters")
 	return Story.list("chapters")
+
+
+## The case the hub should be showing: Case 02 once it is open and Case 01 has
+## nothing left in it, otherwise Case 01.
+static func active_case_chapters() -> Array:
+	if not case_two_open():
+		return Story.list("chapters")
+	for chapter: Dictionary in Story.list("chapters"):
+		if not is_done(str(chapter.get("variant_id", ""))):
+			return Story.list("chapters")
+	return Story.list("case_02.chapters")
+
+
+## Whether the active case is the second one, for the title the hub prints.
+static func active_case_is_two() -> bool:
+	return active_case_chapters() == Story.list("case_02.chapters")
+
+
+## Finished chapters within one case list, for that case's own progress line.
+static func done_in(list: Array) -> int:
+	var total := 0
+	for chapter: Dictionary in list:
+		if is_done(str(chapter.get("variant_id", ""))):
+			total += 1
+	return total
 
 
 static func count() -> int:

@@ -81,10 +81,24 @@ func setup_by_id(evidence_id: String, ground: Vector3) -> void:
 	set_process(true)
 
 
+## Every id `_build_by_id` draws something specific for. An id outside this set
+## still renders — as a radio — which is exactly the silent failure the Case 02
+## data test is there to catch.
+const MESH_IDS: Array[String] = ["rabbit", "toy", "radio", "boot", "gap",
+	"ribbon", "arrow", "prints", "can", "seedlings", "thread", "flashlight",
+	"note", "leaflet", "letter", "log", "headline", "hatch", "stones", "ellie",
+	"drawing", "map", "notebook", "patch", "candle", "battery", "apple",
+	"crate_lid", "receiver", "number_log"]
+
+
+static func has_mesh_for(evidence_id: String) -> bool:
+	return MESH_IDS.has(evidence_id)
+
+
 func _build_by_id(evidence_id: String) -> void:
 	match evidence_id:
 		"rabbit", "toy": _build_toy()
-		"radio": _build_radio()
+		"radio", "receiver": _build_radio()
 		"boot": _build_boot()
 		"gap": _build_gap()
 		"ribbon": _build_ribbon()
@@ -99,9 +113,12 @@ func _build_by_id(evidence_id: String) -> void:
 		"stones": _build_stones()
 		"ellie": _build_child()
 		"drawing", "map": _build_drawing(evidence_id)
-		"notebook": _build_notebook()
+		"notebook", "number_log": _build_notebook()
 		"patch": _build_patch()
 		"candle": _build_candle()
+		"battery": _build_battery()
+		"apple": _build_apple()
+		"crate_lid": _build_crate_lid()
 		_: _build_radio()
 
 
@@ -438,6 +455,100 @@ func _build_patch() -> void:
 
 
 ## A memorial candle tin, burned to the base.
+## Case 02's supply trail: three cells stood upright on their tin, the way
+## somebody counting them would leave them. The cap ring is the only bright
+## thing on the object, so the eye lands on the end that gets checked.
+func _build_battery() -> void:
+	var shell := _metal(Color(0.20, 0.22, 0.26), 0.35, 0.55)
+	var cap := _metal(Color(0.76, 0.72, 0.44), 0.80, 0.30)
+	var tin := _metal(Color(0.66, 0.64, 0.60), 0.70, 0.45)
+	var tray := CylinderMesh.new()
+	tray.top_radius = 0.15
+	tray.bottom_radius = 0.15
+	tray.height = 0.035
+	tray.radial_segments = 16
+	_piece(tray, tin, Vector3(0.0, 0.018, 0.0))
+	var spots: Array[Vector3] = [Vector3(-0.055, 0.0, -0.03),
+		Vector3(0.055, 0.0, -0.03), Vector3(0.0, 0.0, 0.055)]
+	for spot in spots:
+		var cell := CylinderMesh.new()
+		cell.top_radius = 0.033
+		cell.bottom_radius = 0.033
+		cell.height = 0.17
+		cell.radial_segments = 12
+		_piece(cell, shell, spot + Vector3(0.0, 0.12, 0.0))
+		var nub := CylinderMesh.new()
+		nub.top_radius = 0.014
+		nub.bottom_radius = 0.014
+		nub.height = 0.018
+		nub.radial_segments = 8
+		_piece(nub, cap, spot + Vector3(0.0, 0.214, 0.0))
+
+
+## An apple with its stalk still on and one leaf: picked, not shaken down.
+## The whole chapter turns on that difference, so the object has to show it.
+func _build_apple() -> void:
+	var skin := _metal(Color(0.62, 0.14, 0.13), 0.0, 0.42)
+	var stalk := _metal(Color(0.32, 0.24, 0.16), 0.0, 0.9)
+	var leaf := _metal(Color(0.25, 0.44, 0.19), 0.0, 0.8)
+	var body := SphereMesh.new()
+	body.radius = 0.115
+	body.height = 0.20
+	body.radial_segments = 18
+	body.rings = 10
+	_piece(body, skin, Vector3(0.0, 0.10, 0.0))
+	var stem := CylinderMesh.new()
+	stem.top_radius = 0.010
+	stem.bottom_radius = 0.013
+	stem.height = 0.075
+	stem.radial_segments = 6
+	_piece(stem, stalk, Vector3(0.0, 0.215, 0.0), Vector3(0.0, 0.0, 0.22))
+	var blade := BoxMesh.new()
+	blade.size = Vector3(0.075, 0.006, 0.038)
+	_piece(blade, leaf, Vector3(0.055, 0.232, 0.006),
+		Vector3(0.0, 0.5, -0.28))
+
+
+## The lid of a supply crate, stamped on the INSIDE with a ring of seven stars.
+## Face up, so the stamp is what the player is looking at — the mark is the
+## evidence, and the surface it is hidden on is the second half of the point.
+func _build_crate_lid() -> void:
+	var pine := _metal(Color(0.72, 0.62, 0.44), 0.0, 0.85)
+	var ink := _metal(Color(0.18, 0.20, 0.26), 0.0, 0.7)
+	var nail := _metal(Color(0.55, 0.54, 0.52), 0.75, 0.4)
+	for i in 3:
+		var plank := BoxMesh.new()
+		plank.size = Vector3(0.44, 0.022, 0.125)
+		_piece(plank, pine, Vector3(0.0, 0.012, (float(i) - 1.0) * 0.132))
+	# Two battens across the underside, which is what makes it read as a LID.
+	for sx: float in [-1.0, 1.0]:
+		var batten := BoxMesh.new()
+		batten.size = Vector3(0.05, 0.018, 0.40)
+		_piece(batten, pine, Vector3(sx * 0.16, -0.006, 0.0))
+	# The stamp: seven points on a ring, and the ring itself.
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.105
+	ring.outer_radius = 0.118
+	ring.rings = 20
+	ring.ring_segments = 8
+	_piece(ring, ink, Vector3(0.0, 0.025, 0.0))
+	for i in 7:
+		var angle := TAU * float(i) / 7.0
+		var star := BoxMesh.new()
+		star.size = Vector3(0.026, 0.005, 0.026)
+		_piece(star, ink,
+			Vector3(cos(angle) * 0.075, 0.026, sin(angle) * 0.075),
+			Vector3(0.0, angle, 0.0))
+	for sx2: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
+			var head := CylinderMesh.new()
+			head.top_radius = 0.011
+			head.bottom_radius = 0.011
+			head.height = 0.006
+			head.radial_segments = 8
+			_piece(head, nail, Vector3(sx2 * 0.19, 0.025, sz * 0.16))
+
+
 func _build_candle() -> void:
 	var tin := _metal(Color(0.68, 0.66, 0.62), 0.7, 0.4)
 	var wax := _metal(Color(0.86, 0.82, 0.70), 0.0, 0.7)
