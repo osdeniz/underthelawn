@@ -135,10 +135,10 @@ static func buy(project_id: String) -> bool:
 		return false
 	GameState.set_setting("economy", "scrap", GameState.scrap_total() - cost)
 	GameState.set_setting(SECTION, project_id, true)
-	Analytics.track("restore_bought",
+	Analytics.track(AnalyticsEvents.RESTORE_BOUGHT,
 		{"id": project_id, "cost": cost, "tier": int(project.get("tier", 1))})
 	if project_id == "station":
-		Analytics.track("station_completed", {})
+		Analytics.track(AnalyticsEvents.STATION_COMPLETED, {})
 	return true
 
 

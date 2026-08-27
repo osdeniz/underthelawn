@@ -309,7 +309,7 @@ func _build_top_bar() -> void:
 	_objectives_button.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_objectives_button.pressed.connect(func() -> void:
 		Haptics.light()
-		Analytics.track("objective_viewed", {})
+		Analytics.track(AnalyticsEvents.OBJECTIVE_VIEWED, {})
 		_show_page(_objectives_page))
 	columns.add_child(_objectives_button)
 
@@ -662,7 +662,7 @@ func _on_project(project_id: String, built: bool, source: Button) -> void:
 		_restore_note.text = tr(str(project.get("crumb", "")))
 		if RestoreBoard.tier2_open() and not _tier2_announced:
 			_tier2_announced = true
-			Analytics.track("restore_tier2_unlocked", {})
+			Analytics.track(AnalyticsEvents.RESTORE_TIER2_UNLOCKED, {})
 		_refresh_restore()
 		_refresh_progress()
 		_refresh_tiles()

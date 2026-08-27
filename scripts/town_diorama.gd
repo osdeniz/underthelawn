@@ -1238,7 +1238,8 @@ func play_restore(project_id: String) -> void:
 	# The parts have finished moving, so this building can be welded now.
 	_bake_static()
 	_busy = false
-	Analytics.track("restore_animation_%s" % ("skipped" if _skipped else "watched"),
+	Analytics.track(
+		AnalyticsEvents.RESTORE_ANIMATION_SKIPPED if _skipped else AnalyticsEvents.RESTORE_ANIMATION_WATCHED,
 		{"id": project_id})
 
 

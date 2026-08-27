@@ -33,10 +33,27 @@ var elapsed: float = 0.0
 var is_running: bool = false
 
 var _config := ConfigFile.new()
+var _session_id := ""
+var _session_ended_sent := false
 
 
 func _ready() -> void:
 	_load_settings()
+	Analytics.track(AnalyticsEvents.SESSION_STARTED, {})
+
+
+## Fires once, best-effort, on whatever signal the platform actually gives us
+## for "the player is gone" — a clean quit on desktop, backgrounding on
+## mobile (where a true quit notification usually never arrives at all).
+## Firing on background rather than waiting for a quit that may not come is
+## the same call every mobile analytics SDK makes, for the same reason.
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_WINDOW_FOCUS_OUT, \
+		NOTIFICATION_WM_CLOSE_REQUEST:
+			if not _session_ended_sent:
+				_session_ended_sent = true
+				Analytics.track(AnalyticsEvents.SESSION_ENDED, {})
 
 
 func _process(delta: float) -> void:
@@ -74,12 +91,14 @@ func set_setting(section: String, key: String, value: Variant) -> void:
 	var err := _config.save(SETTINGS_PATH)
 	if err != OK:
 		push_warning("GameState: could not save %s (error %d)" % [SETTINGS_PATH, err])
+		Analytics.log_error("save_write_failed", "error %d" % err, "game_state")
 
 
 func _load_settings() -> void:
 	var err := _config.load(SETTINGS_PATH)
 	if err != OK and err != ERR_FILE_NOT_FOUND:
 		push_warning("GameState: could not read %s (error %d)" % [SETTINGS_PATH, err])
+		Analytics.log_error("save_read_failed", "error %d" % err, "game_state")
 		return
 	_migrate()
 
@@ -97,6 +116,8 @@ func _migrate() -> void:
 		# keys this build does not understand.
 		push_warning("GameState: save is version %d, this build knows %d"
 			% [found, SAVE_VERSION])
+		Analytics.log_error("save_version_too_new",
+			"file=%d build=%d" % [found, SAVE_VERSION], "game_state")
 		return
 	# while-loop rather than a match, so several versions can be crossed in one
 	# launch by a player who skipped updates.
@@ -111,6 +132,7 @@ func _migrate() -> void:
 	var err := _config.save(SETTINGS_PATH)
 	if err != OK:
 		push_warning("GameState: could not stamp save version (error %d)" % err)
+		Analytics.log_error("save_write_failed", "error %d" % err, "game_state")
 
 
 ## True until the player has been shown the first-run orientation once.
@@ -131,6 +153,19 @@ func install_id() -> String:
 	var id := bytes.hex_encode()
 	set_setting(META, "install_id", id)
 	return id
+
+
+## A fresh random id every launch (unlike install_id, never persisted) — one
+## Godot process run is one session. Good enough for "how long did this
+## session last" via first/last event timestamp even on platforms that never
+## give a clean session_ended.
+func session_id() -> String:
+	if _session_id == "":
+		var bytes := PackedByteArray()
+		for i in 16:
+			bytes.append(randi() % 256)
+		_session_id = bytes.hex_encode()
+	return _session_id
 
 
 func mark_orientation_done() -> void:

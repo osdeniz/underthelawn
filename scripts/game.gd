@@ -217,7 +217,7 @@ func _tick_orientation(delta: float) -> void:
 		return
 	_orientation_due = 0.0
 	GameState.mark_orientation_done()
-	Analytics.track("orientation_shown", {"chapter": variant_id})
+	Analytics.track(AnalyticsEvents.ORIENTATION_SHOWN, {"chapter": variant_id})
 	hud.show_orientation(_on_orientation_closed)
 
 
@@ -230,7 +230,7 @@ func _on_orientation_closed() -> void:
 		if model.is_cut(cell.x, cell.y):
 			continue
 		lawn.tint_hint(cell, GameConfig.FIRST_RUN_HINT_CELLS)
-	Analytics.track("orientation_hint_marked", {"chapter": variant_id})
+	Analytics.track(AnalyticsEvents.ORIENTATION_HINT_MARKED, {"chapter": variant_id})
 
 
 ## The Marshal on the radio at set points in a search, plus the faintest tint on
@@ -258,7 +258,7 @@ func _check_scent(ratio: float) -> void:
 		hud.show_scent(_scent_line(target))
 		AudioDirector.play_static()
 		lawn.tint_hint(target, GameConfig.SCENT_TINT_CELLS)
-		Analytics.track("scent_shown", {"chapter": variant_id, "at": ratio})
+		Analytics.track(AnalyticsEvents.SCENT_SHOWN, {"chapter": variant_id, "at": ratio})
 		return
 
 
@@ -475,7 +475,7 @@ func _collect_evidence(prop: Node3D) -> void:
 	# rather than an emoji (G12.10).
 	_collected.append({ "emoji": info["emoji"], "name": info["name"],
 		"where": info.get("where", ""), "id": str(info.get("id", "")) })
-	Analytics.track("evidence_found", {"chapter": variant_id,
+	Analytics.track(AnalyticsEvents.EVIDENCE_FOUND, {"chapter": variant_id,
 		"id": str(info.get("id", "")), "count": _collected.size(),
 		"total": _evidence_total()})
 	hud.show_secret_card(info["emoji"], info["name"], info["line"],
@@ -491,7 +491,7 @@ func _collect_evidence(prop: Node3D) -> void:
 func _glance_at(at: Vector3) -> void:
 	if not GameConfig.FIND_PAN_ENABLED or cam == null:
 		return
-	Analytics.track("evidence_location_panned", {"chapter": variant_id})
+	Analytics.track(AnalyticsEvents.EVIDENCE_LOCATION_PANNED, {"chapter": variant_id})
 	cam.glance_at(at, GameConfig.FIND_PAN_TIME)
 
 
@@ -548,7 +548,7 @@ func _on_completed() -> void:
 		search_finished.emit(_collected.size(), _evidence_total())
 		if variant != null and variant.is_harvest():
 			HarvestLog.record()
-			Analytics.track("harvest_completed",
+			Analytics.track(AnalyticsEvents.HARVEST_COMPLETED,
 				{"scrap": int(payout["total"]), "run": HarvestLog.count()})
 		hud.show_complete(model.mowed_count, GameState.format_elapsed(),
 			_collected, _evidence_total(), payout, _next_chapter_name()))
@@ -615,7 +615,7 @@ func _begin_search() -> void:
 	# Harvest has its own start event (town_map.gd, fired when the invitation is
 	# accepted); this is the case-chapter funnel's top of the mouth.
 	if not harvest:
-		Analytics.track("chapter_started", {"chapter": variant_id})
+		Analytics.track(AnalyticsEvents.CHAPTER_STARTED, {"chapter": variant_id})
 
 
 # ---------------------------------------------------------------- G9 economy
@@ -736,7 +736,7 @@ func _check_echo(col: int, row: int) -> void:
 	FindMarker.spawn(_fx_root, at, str(info.get("id", "")))
 	AudioDirector.play_discovery()
 	Haptics.light()
-	Analytics.track("echo_found",
+	Analytics.track(AnalyticsEvents.ECHO_FOUND,
 		{"chapter": variant_id, "echo": info.get("id", "")})
 	hud.show_echo_card(str(info["emoji"]), str(info["name"]), str(info["line"]),
 		str(info.get("id", "")))

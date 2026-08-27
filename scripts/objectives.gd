@@ -121,7 +121,7 @@ static func collect() -> Array:
 		var reward := int(spec.get("reward_scrap", 0))
 		if reward > 0:
 			GameState.add_scrap(reward)
-		Analytics.track("objective_completed", {"id": id, "scrap": reward})
+		Analytics.track(AnalyticsEvents.OBJECTIVE_COMPLETED, {"id": id, "scrap": reward})
 		earned.append(spec)
 	return earned
 

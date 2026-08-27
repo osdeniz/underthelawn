@@ -1,15 +1,19 @@
 class_name Analytics
 extends RefCounted
 ## Event sink (G12.6, backend wired in G14.4, moved off Statsig onto our own
-## Postgres in G14.5). Events are buffered in memory and printed locally for
-## debugging, and fired at the ingestion endpoint
-## (under-the-lawn-analytics.vercel.app -> Neon Postgres) so they're visible
-## outside the device too, via that project's own dashboard.
+## Postgres in G14.5, session/version fields in G14.6). Events are buffered in
+## memory and printed locally for debugging, and fired at the ingestion
+## endpoint (under-the-lawn-analytics.vercel.app -> Neon Postgres) so they're
+## visible outside the device too, via that project's own dashboard.
 ##
 ## Keeping this static and dependency-free is the point — an analytics call must
 ## never be able to break gameplay. The network send is fire-and-forget: no
 ## await, no retry, no error surfaced to the caller. Offline or a dead endpoint
 ## degrades to exactly the old print-only behaviour.
+##
+## Event names are never string literals at the call site — every one lives in
+## AnalyticsEvents, so a typo is a missing constant (caught at parse time), not
+## a silently orphaned event series nobody notices in the dashboard.
 
 ## The shared key is embedded in the client, which makes it readable by anyone
 ## who decompiles the game. That is fine — it exists to keep casual noise off
@@ -58,7 +62,9 @@ static func _send(event: String, data: Dictionary) -> void:
 	var body := JSON.stringify({
 		"event": event,
 		"user_id": GameState.install_id(),
+		"session_id": GameState.session_id(),
 		"platform": OS.get_name(),
+		"app_version": ProjectSettings.get_setting("application/config/version", "0.0.0"),
 		"props": data,
 	})
 	# track() commonly fires from inside a scene's own _ready() chain (e.g.
@@ -79,6 +85,21 @@ static func _send(event: String, data: Dictionary) -> void:
 		if err != OK:
 			req.queue_free()
 	).call_deferred()
+
+
+## Standard shape for a technical failure, so "did a bug cost me players" is
+## one query (WHERE event = ERROR_OCCURRED) instead of guessing from whatever
+## shape each call site felt like using. `error_message`/`stack` are for
+## developer debugging, not player-identifying, so this stays safe to call
+## from anywhere push_warning/push_error already fires today.
+static func log_error(error_type: String, message: String, screen: String,
+		stack: String = "") -> void:
+	track(AnalyticsEvents.ERROR_OCCURRED, {
+		"error_type": error_type,
+		"error_message": message,
+		"screen": screen,
+		"stack": stack,
+	})
 
 
 ## Everything recorded this session, for tests and for a future upload.

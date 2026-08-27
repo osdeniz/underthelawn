@@ -175,9 +175,9 @@ func show_layer(which: int, animate := true) -> void:
 	if which == Layer.TOWN:
 		if _painted and _pan == Vector2.ZERO:
 			_pan_to(Vector2(0.5, 0.5))
-		Analytics.track("map_opened", {})
+		Analytics.track(AnalyticsEvents.MAP_OPENED, {})
 	else:
-		Analytics.track("world_map_viewed", {})
+		Analytics.track(AnalyticsEvents.WORLD_MAP_VIEWED, {})
 
 
 ## Opens straight onto the town, focused on a place. Used by the chapter-end
@@ -468,7 +468,7 @@ func _place_pin(variant_id: String, is_next: bool) -> Button:
 	pin.draw.connect(_draw_pin.bind(pin))
 	pin.pressed.connect(func() -> void:
 		Haptics.light()
-		Analytics.track("map_pin_tapped", {"id": variant_id})
+		Analytics.track(AnalyticsEvents.MAP_PIN_TAPPED, {"id": variant_id})
 		_open_panel(variant_id))
 
 	var label := Label.new()
@@ -667,7 +667,7 @@ func _harvest_pin() -> Button:
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color(0.30, 0.22, 0.06)))
 	pin.pressed.connect(func() -> void:
 		Haptics.light()
-		Analytics.track("harvest_offered", {})
+		Analytics.track(AnalyticsEvents.HARVEST_OFFERED, {})
 		_open_harvest_panel())
 
 	var label := Label.new()
@@ -727,7 +727,7 @@ func _open_harvest_panel() -> void:
 	HubScreen.style_primary(go)
 	go.pressed.connect(func() -> void:
 		Haptics.medium()
-		Analytics.track("harvest_started", {})
+		Analytics.track(AnalyticsEvents.HARVEST_STARTED, {})
 		place_chosen.emit(GameConfig.HARVEST_VARIANT))
 	rows.add_child(go)
 
