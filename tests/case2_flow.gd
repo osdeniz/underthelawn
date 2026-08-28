@@ -38,6 +38,8 @@ func _ready() -> void:
 	await _check_warm_up_survives_a_road_chapter()
 	await _check_board_is_built_late()
 	await _check_every_way_home_unparks_the_town()
+	await _check_ending_cards_dismiss("_show_convoy")
+	await _check_ending_cards_dismiss("_show_reunion")
 
 	if _fails > 0:
 		push_error("%d VAKA 02 AKIS TESTI BASARISIZ" % _fails)
@@ -417,6 +419,88 @@ func _check_every_way_home_unparks_the_town() -> void:
 			"%s != %s" % [str(back), str(full)])
 	root.queue_free()
 	await settle(0.5)
+
+
+## An ending card has to close when it is tapped, THROUGH THE REAL INPUT PATH.
+##
+## That last part is the whole test. The convoy card listened on
+## _unhandled_input while setting MOUSE_FILTER_STOP, and a Control that stops
+## input consumes it at the GUI stage — the stage before _unhandled_input runs.
+## So the card listened on a channel its own mouse filter guaranteed would stay
+## silent, the ending drew, and "tap to continue" did nothing. Calling
+## _unhandled_input directly from a test passes happily; pushing a touch through
+## the viewport is what catches it (G13).
+func _check_ending_cards_dismiss(method: String) -> void:
+	GameState.set_setting("story", "intro_seen", true)
+	var root: Node = load("res://scenes/Root.tscn").instantiate()
+	add_child(root)
+	await settle(2.5)
+	# With a chapter on screen, as it is when a case actually ends.
+	root.set("_pending_variant", "ch01_aldridge")
+	root.call("_start_chapter")
+	await settle(2.5)
+	root.call(method)
+	await settle(1.0)
+
+	var card := _find_card(root)
+	ck("%s bir kart acti" % method, card != null, "")
+	if card == null:
+		root.queue_free()
+		return
+	# The chapter's own HUD must be gone: it is a full-screen Control and it
+	# would take the tap before the card ever saw it.
+	ck("%s bolum sahnesini kapatti" % method,
+		root.get_node_or_null("Main") == null, "")
+
+	# Tap when the card is READY, not on a stopwatch. Both cards ignore input
+	# while a page transition is running — the reunion card fades for 0.4 s and
+	# then locks for another 0.5 — so a fixed interval silently drops taps and
+	# the test blames the card. Tap on the lock, wait on the result: the same
+	# fixed-sleep mistake this suite has now made three times.
+	var waited := 0.0
+	while waited < 12.0:
+		var live := _find_card(root)
+		if live == null:
+			break
+		if float(live.get("_lock")) <= 0.0:
+			_push_tap()
+		await settle(0.15)
+		waited += 0.15
+	ck("%s dokununca kapandi" % method, _find_card(root) == null, "")
+
+	var hub := root.get_node_or_null("HubLayer") as CanvasLayer
+	waited = 0.0
+	while waited < 10.0 and (hub == null or not hub.visible):
+		await settle(0.2)
+		waited += 0.2
+		hub = root.get_node_or_null("HubLayer") as CanvasLayer
+	ck("%s sonrasi hub geri geldi" % method,
+		hub != null and hub.visible, "")
+	root.queue_free()
+	await settle(0.5)
+
+
+func _push_tap() -> void:
+	var down := InputEventScreenTouch.new()
+	down.index = 0
+	down.position = get_viewport().get_visible_rect().size * 0.5
+	down.pressed = true
+	get_viewport().push_input(down)
+	var up := InputEventScreenTouch.new()
+	up.index = 0
+	up.position = down.position
+	up.pressed = false
+	get_viewport().push_input(up)
+
+
+func _find_card(root: Node) -> Node:
+	for layer in root.get_children():
+		if not (layer is CanvasLayer):
+			continue
+		for child in layer.get_children():
+			if child is ConvoyCard or child is ReunionCard:
+				return child
+	return null
 
 
 func _sub_viewports(n: Node) -> int:

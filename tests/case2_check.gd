@@ -123,18 +123,35 @@ func _check_conversation(label: String, key: String) -> void:
 ## Case 02 must stay shut until the town is ready — that is Ellie's closing line
 ## turned into a rule, and the whole reason the restore board earns anything.
 func _check_gate() -> void:
-	var was_closed: Variant = GameState.get_setting("story", "case01_closed", false)
-	GameState.set_setting("story", "case01_closed", false)
-	ck("vaka 01 kapanmadan vaka 02 kapali",
-		not ChapterProgress.case_two_open(), "")
+	# TWO conditions, and the test drives both rather than a flag that used to
+	# stand in for one of them: Case 01's chapters have to be FINISHED, and the
+	# town has to be rebuilt. The flag is now only the record of having seen the
+	# ending, so setting it proves nothing (G13).
+	var done_before: Array[bool] = []
+	for chapter: Dictionary in Story.list("chapters"):
+		done_before.append(ChapterProgress.is_done(str(chapter.get("variant_id", ""))))
+		GameState.set_setting("progress",
+			str(chapter.get("variant_id", "")) + "_done", false)
 	GameState.set_setting("story", "case01_closed", true)
+	ck("bolumler bitmeden vaka 02 kapali",
+		not ChapterProgress.case_two_open(), "bayrak acik ama bolumler bitmemis")
+
+	for chapter: Dictionary in Story.list("chapters"):
+		ChapterProgress.record(str(chapter.get("variant_id", "")), 2, 2)
+	ck("bolumler bitince vaka 01 bitmis sayiliyor",
+		ChapterProgress.case_one_finished(), "")
 	var ready := RestoreBoard.town_ready()
 	ck("kilit onarim sayisina bagli",
 		ChapterProgress.case_two_open() == ready,
 		"kasaba hazir=%s" % str(ready))
-	GameState.set_setting("story", "case01_closed", was_closed)
 	ck("esik uc proje", GameConfig.TOWN_READY_PROJECTS == 3,
 		str(GameConfig.TOWN_READY_PROJECTS))
+
+	var chapters := Story.list("chapters")
+	for i in chapters.size():
+		GameState.set_setting("progress",
+			str((chapters[i] as Dictionary).get("variant_id", "")) + "_done",
+			done_before[i])
 
 
 func _check_case_shell() -> void:

@@ -104,14 +104,23 @@ func _process(delta: float) -> void:
 	_lock = maxf(_lock - delta, 0.0)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+## _gui_input, NOT _unhandled_input.
+##
+## This card sets MOUSE_FILTER_STOP so nothing underneath it can be touched —
+## and a Control that STOPs input consumes the event at the GUI stage, which is
+## exactly the stage BEFORE _unhandled_input runs. So the first version listened
+## on a channel its own mouse filter guaranteed would stay silent: the ending
+## drew, and every tap on it did nothing. IntroSequence and ReunionCard are the
+## same kind of screen and both use _gui_input; this one is now consistent with
+## them (G13).
+func _gui_input(event: InputEvent) -> void:
 	if _lock > 0.0:
 		return
 	var tapped := event is InputEventScreenTouch and (event as InputEventScreenTouch).pressed
 	var clicked := event is InputEventMouseButton and (event as InputEventMouseButton).pressed
 	if not tapped and not clicked:
 		return
-	get_viewport().set_input_as_handled()
+	accept_event()
 	_page += 1
 	if _page >= PAGES:
 		_close()

@@ -340,6 +340,12 @@ func _in_case_two(variant_id: String) -> bool:
 
 ## Case 02's close: two weeks of road behind, and headlights on it.
 func _show_convoy() -> void:
+	# The chapter goes FIRST. Its HUD is still on screen otherwise, and the
+	# results panel underneath is a full-screen Control that takes the tap at
+	# the GUI stage — before _unhandled_input, which is how these cards listen.
+	# So the card drew, and every tap on it went to a panel nobody could see:
+	# the ending sat there and "continue" did nothing (G13).
+	_clear_game()
 	var layer := CanvasLayer.new()
 	layer.layer = 70
 	add_child(layer)
@@ -353,6 +359,12 @@ func _show_convoy() -> void:
 
 ## The warm close: Ellie home, the board complete, and the door to Case 02.
 func _show_reunion() -> void:
+	# The chapter goes FIRST. Its HUD is still on screen otherwise, and the
+	# results panel underneath is a full-screen Control that takes the tap at
+	# the GUI stage — before _unhandled_input, which is how these cards listen.
+	# So the card drew, and every tap on it went to a panel nobody could see:
+	# the ending sat there and "continue" did nothing (G13).
+	_clear_game()
 	var layer := CanvasLayer.new()
 	layer.layer = 70
 	add_child(layer)
