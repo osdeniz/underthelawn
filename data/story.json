@@ -361,6 +361,30 @@
         "debrief_partial": "debrief_ch15_partial",
         "playable": true,
         "quiet_scene": "toll"
+      },
+      {
+        "variant_id": "ch16_meeting_stone",
+        "name": "CH_16_NAME",
+        "brief": "brief_ch16",
+        "debrief_full": "debrief_ch16_full",
+        "debrief_partial": "debrief_ch16_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch17_signal_garden",
+        "name": "CH_17_NAME",
+        "brief": "brief_ch17",
+        "debrief_full": "debrief_ch17_full",
+        "debrief_partial": "debrief_ch17_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch18_long_road_home",
+        "name": "CH_18_NAME",
+        "brief": "brief_ch18",
+        "debrief_full": "debrief_ch18_full",
+        "debrief_partial": "debrief_ch18_partial",
+        "playable": true
       }
     ],
     "_comment": "Case 02, THREE ACTS. Act 1 (ch09-ch11) is the break from town and plays on the town map's own pins; Act 2 (ch12-ch15) is the road east and plays on the world map; Act 3 (ch16-ch18) is the confrontation. The list grows one act per commit.",
@@ -388,7 +412,7 @@
     }
   },
   "east_road": {
-    "_comment": "Case 02 Act 2 onward: the chapters are stops on a road east, not pins on the town sheet. x/y are fractions of the world sheet. Act 3 adds the last two stops.",
+    "_comment": "Case 02 Act 2 onward: the chapters are stops on a road east, not pins on the town sheet. x/y are fractions of the world sheet.",
     "title": "EAST_ROAD_TITLE",
     "sub": "EAST_ROAD_SUB",
     "pins": [
@@ -411,7 +435,25 @@
         "chapter": "ch15_old_clinic",
         "x": 0.838,
         "y": 0.436
+      },
+      {
+        "chapter": "ch16_meeting_stone",
+        "x": 0.888,
+        "y": 0.5
+      },
+      {
+        "chapter": "ch17_signal_garden",
+        "x": 0.936,
+        "y": 0.446
       }
     ]
+  },
+  "case_03": {
+    "id": "CASE_03_ID",
+    "title": "CASE_03_TITLE",
+    "objective": "CASE_03_OBJECTIVE",
+    "locked_note": "CASE_03_LOCKED",
+    "chapters": [],
+    "_comment": "Skeleton only (G13), the same shape Case 02 was left in by G11: the keys exist so the shape of what follows is visible in the data."
   }
 }

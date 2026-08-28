@@ -696,3 +696,154 @@ DLG_TOLL_AFTER_1,"They are hungry, not bad. The difference is how many tins are 
 DLG_TOLL_AFTER_2,That is the kindest thing anybody has said on this road.,Bu yolda söylenmiş en merhametli laf buydu.
 EAST_ROAD_TITLE,THE EAST ROAD,DOĞU YOLU
 EAST_ROAD_SUB,"Six stops, and nobody has named any of them since.","Altı durak, ve o günden beri kimse birine ad vermedi."
+CH_16_NAME,The Meeting Stone,Buluşma Taşı
+CH_17_NAME,The Signal Garden,Sinyal Bahçesi
+CH_18_NAME,The Long Road Home,Uzun Dönüş Yolu
+OPENING_16_HEADLINE,THE MEETING STONE,BULUŞMA TAŞI
+OPENING_16_SUBLINE,He was here. Standing next to whom?,O buradaydı. Kimin yanında?
+OPENING_17_HEADLINE,THE SIGNAL GARDEN,SİNYAL BAHÇESİ
+OPENING_17_SUBLINE,"Somebody grew things here, and transmitted from here.","Biri burada bir şeyler yetiştirmiş, ve buradan yayın yapmış."
+OPENING_18_HEADLINE,THE LONG ROAD HOME,UZUN DÖNÜŞ YOLU
+OPENING_18_SUBLINE,Things get said on the way back.,Dönüş yolunda konuşulur.
+EV_CH16_A_NAME,Chalk Circle of Seven Stars,Yedi Yıldızlı Tebeşir Çemberi
+EV_CH16_A_LINE,The chalk is fresh. The rain was two days ago.,Tebeşir taze. Yağmur iki gün önceydi.
+EV_CH16_B_NAME,Stranger's Button,Yabancının Düğmesi
+EV_CH16_B_LINE,Torn off. It matches the gap in his coat. Was he here before us - or WITH them?,"Kopmuş. Paltosundaki eksikle aynı. Bizden önce mi buradaydı, yoksa ONLARLA mı?"
+LOC_STONE,at the stone,taşın dibinde
+COLE_CHALK,"Drawn at the height of a man standing, not kneeling. Not a child's.","Ayakta duran bir adamın hizasında çizilmiş, diz çökmüş birinin değil. Çocuk işi değil."
+COLE_BUTTON,"The thread is snapped, not cut. It came off in a hurry or in a hand.","İplik kesilmemiş, kopmuş. Aceleyle ya da bir elde kopmuş."
+MN_CH16_A,Two days. He has been walking beside me for two weeks.,İki gün. İki haftadır yanımda yürüyor.
+MN_CH16_B,I am not going to ask him. I want to see what he says when he sees it.,Ona sormayacağım. Görünce ne diyeceğini görmek istiyorum.
+ECHO_CH16_NAME,Traveller's Notebook,Yolcu Defteri
+ECHO_CH16_LINE,"Distances between towns, in hours, on foot. The last entry has no destination.","Kasabalar arası mesafeler, saat cinsinden, yürüyerek. Son satırın varış yeri yok."
+RECLAIM_CH16,The crossroads is open. Whoever meets here next will be seen doing it.,Kavşak açıldı. Burada bir dahaki buluşan görülecek.
+EV_CH17_A_NAME,The Beacon,Fener
+EV_CH17_A_LINE,"Still transmitting. One word, over and over: FOUND.","Hâlâ yayında. Tek kelime, tekrar tekrar: BULUNDU."
+EV_CH17_B_NAME,Watered Beds,Sulanmış Tarhlar
+EV_CH17_B_LINE,"Seedlings in rows, and the soil is damp. Somebody was here this morning.","Sıra sıra fide, toprak nemli. Biri bu sabah buradaydı."
+LOC_GLASS,under the glass,camın altında
+COLE_BEACON,One word repeated is not a message. It is a receipt.,Tekrarlanan tek kelime mesaj değildir. Makbuzdur.
+COLE_GARDEN_BEDS,"Tomatoes, and they are staked. Somebody expects to be here in August.","Domates, üstelik herekli. Biri ağustosta burada olmayı umuyor."
+MN_CH17_A,FOUND. Not FIND. It is answering something that was already asked.,BULUNDU. BUL değil. Zaten sorulmuş bir şeye cevap veriyor.
+MN_CH17_B,He waters a garden he does not intend to leave. That is the first honest thing here.,Terk etmeye niyeti olmadığı bir bahçeyi suluyor. Buradaki ilk dürüst şey bu.
+ECHO_CH17_NAME,Duty Log,Nöbet Defteri
+ECHO_CH17_LINE,"Weekly entries in the same hand, then eighteen months of blank ruled lines.","Aynı elden haftalık kayıtlar, sonra on sekiz aylık boş çizgili satır."
+RECLAIM_CH17,"The glasshouse has light again. Whatever the beacon says, it says it in the open now.","Serada yeniden ışık var. Fener ne diyorsa, artık açıkta diyor."
+EV_CH18_A_NAME,Our Own Tracks,Kendi İzlerimiz
+EV_CH18_A_LINE,"Two weeks old, going the other way. We were a different pair of men then.","İki haftalık, ters yöne gidiyor. O zaman başka iki adamdık."
+EV_CH18_B_NAME,Ribbon on a Marker,Direğe Bağlı Kurdele
+EV_CH18_B_LINE,Tied at a child's height. Somebody small marked this road for somebody else.,Çocuk hizasında bağlanmış. Küçük biri bu yolu bir başkası için işaretlemiş.
+LOC_VERGE,on the verge,yol kenarında
+LOC_MARKER,on the marker,işaret direğinde
+COLE_OUR_TRACKS,Your stride is longer coming back. That is what news does.,Dönerken adımın daha uzun. Haber böyle yapar.
+COLE_ROAD_RIBBON,"Cotton, and it has been out one season, not six.","Pamuk, ve bir mevsimdir dışarıda, altı değil."
+MN_CH18_A,I have walked past my own footprints and not known them.,Kendi ayak izlerimin yanından geçmişim ve tanımamışım.
+MN_CH18_B,Somebody is marking the way home for a child who is not ours.,"Biri, bizim olmayan bir çocuk için eve giden yolu işaretliyor."
+ECHO_CH18_NAME,Last Newspaper,Son Gazete
+ECHO_CH18_LINE,The front page is about a bus timetable. Nothing on it knows what is coming.,Manşet bir otobüs tarifesi hakkında. Üstündeki hiçbir şey ne geldiğini bilmiyor.
+RECLAIM_CH18,The verge is cut the whole way. The road home is a road again.,Yol kenarı baştan sona biçildi. Eve giden yol yeniden bir yol.
+DLG_BRIEF_CH16_1,There is a boundary stone at the crossroads with something drawn on it.,Kavşakta üstüne bir şey çizilmiş bir sınır taşı var.
+DLG_BRIEF_CH16_2,Then we should look at it before the light turns.,Işık dönmeden bakmalıyız.
+DLG_BRIEF_CH16_3,Sunflowers follow the sun. These look like they are following the ROAD.,Ayçiçekleri güneşi izler. Bunlar yolu izliyor sanki.
+DLG_BRIEF_CH16_A1,Who plants a field this size alone?,Bu büyüklükte tarlayı kim tek başına eker?
+DLG_BRIEF_CH16_R1,Nobody. That is the answer to most of your questions today.,Kimse. Bugünkü sorularının çoğunun cevabı bu.
+DLG_BRIEF_CH16_A2,Take the tractor. It is a big field.,Traktörü al. Büyük tarla.
+DLG_BRIEF_CH16_R2,It is. Somebody wanted it big enough to be seen from the air.,Öyle. Biri havadan görülecek kadar büyük olmasını istemiş.
+BRIEF_16_ACCEPT,CUT TO THE STONE,TAŞA KADAR BİÇ
+DLG_CHAT_CH16_1,Every one of these heads is pointing the same way.,Bu başların hepsi aynı yöne bakıyor.
+DLG_CHAT_CH16_2,They were planted facing it. Flowers do not agree on anything by themselves.,Ona bakacak şekilde ekilmişler. Çiçekler kendiliğinden anlaşmaz.
+DLG_DEB_CH16_F1,"Chalk. Seven stars, in a ring, on the south face.","Tebeşir. Yedi yıldız, çember hâlinde, güney yüzünde."
+DLG_DEB_CH16_F2,Two days old. It rained three days ago.,İki günlük. Üç gün önce yağmur yağdı.
+DLG_DEB_CH16_F3,"And this. A button, in the grass, with the thread snapped.","Ve bu. Otların arasında bir düğme, ipliği kopmuş."
+DLG_DEB_CH16_F4,...,...
+DLG_DEB_CH16_F5,It matches your coat. I am not asking yet. Tomorrow you will tell me.,Paltonla aynı. Şimdilik sormuyorum. Yarın anlatacaksın.
+DLG_DEB_CH16_P1,"Half a field, and I still found the chalk.","Tarlanın yarısı, ve tebeşiri yine de buldum."
+DLG_DEB_CH16_P2,You would have. It was drawn to be found.,Bulurdun. Bulunmak için çizilmişti.
+DLG_BRIEF_CH17_1,"It is just over that rise. A glasshouse, and a mast through the roof of it.","Şu yükseltinin hemen arkasında. Bir sera, ve çatısından geçen bir direk."
+DLG_BRIEF_CH17_2,You knew exactly where it was.,Yerini tam olarak biliyordun.
+DLG_BRIEF_CH17_3,"Yes. Cut the ground, and then sit down. I will tell you all of it.","Evet. Zemini aç, sonra otur. Hepsini anlatacağım."
+BRIEF_17_ACCEPT,GO OVER THE RISE,YÜKSELTİYİ AŞ
+DLG_DEB_CH17_P1,Half of it. And you still have not said a word.,Yarısı. Ve hâlâ tek kelime etmedin.
+DLG_DEB_CH17_P2,Finish the ground. I am not going anywhere.,Zemini bitir. Bir yere gitmiyorum.
+DLG_CONF_1,It is still transmitting. One word. FOUND.,Hâlâ yayında. Tek kelime. BULUNDU.
+DLG_CONF_2,"I sent that. Eleven days ago, from this bench.","Onu ben gönderdim. On bir gün önce, bu sıradan."
+DLG_CONF_3,My name does not matter. What I am does. I am an observer for Concord.,Adımın önemi yok. Ne olduğumun var. Concord için gözlemciyim.
+DLG_CONF_4,And what does Concord observe.,Concord neyi gözlüyor.
+DLG_CONF_5,"Children born after the dead years. Find them, confirm them, report them.","Ölü yıllardan sonra doğan çocukları. Bul, doğrula, bildir."
+DLG_CONF_6,There are not many. Ellie is one of them.,Çok yoklar. Ellie onlardan biri.
+DLG_CONF_7,You took her.,Onu sen aldın.
+DLG_CONF_8,"No. She followed me. Out past the fence, on her birthday, because I was a stranger and she was nine.","Hayır. O beni takip etti. Çitin ötesine, doğum gününde, çünkü ben bir yabancıydım ve o dokuz yaşındaydı."
+DLG_CONF_A1,You could have brought her back that hour.,Onu o saat geri getirebilirdin.
+DLG_CONF_R1,"I could. I stayed with her instead, because the cellar was the only dry place.","Getirebilirdim. Bunun yerine yanında kaldım, çünkü kuru olan tek yer bodrumdu."
+DLG_CONF_A2,You kept her safe.,Onu güvende tuttun.
+DLG_CONF_R2,I kept her dry and fed. Safe is a word for people who chose to be there.,"Kuru ve tok tuttum. Güvende, orada olmayı seçenler için kullanılan bir kelime."
+DLG_CONF_9,The date on that map is not a collection. It is a CONTACT visit. They come and they talk.,O haritadaki tarih toplama değil. TEMAS ziyareti. Gelirler ve konuşurlar.
+DLG_CONF_10,But I stopped filing. Eighteen months of nothing from this post. They are coming because I went quiet.,Ama rapor vermeyi kestim. Bu noktadan on sekiz aydır hiçbir şey yok. Geliyorlar çünkü ben sustum.
+DLG_CONF_11,So the reason they are coming to my town is you.,Yani kasabama gelmelerinin sebebi sensin.
+DLG_CONF_12,Yes.,Evet.
+DLG_CONF_13,"...then we have two weeks, and a lot of grass to cut.","...o zaman iki haftamız var, ve biçilecek çok ot."
+DLG_BRIEF_CH18_1,"Home, then. The long way, the way we came.","Eve öyleyse. Uzun yoldan, geldiğimiz yoldan."
+DLG_BRIEF_CH18_2,Walk it slowly. There are things easier to say while moving.,Yavaş yürü. Yürürken söylemesi kolay şeyler var.
+BRIEF_18_ACCEPT,START WALKING,YÜRÜMEYE BAŞLA
+DLG_ROAD_A1,You have never said where you are from.,Nereli olduğunu hiç söylemedin.
+DLG_ROAD_A2,A town about this size. It had a bakery that opened at four.,Bu büyüklükte bir kasaba. Dörtte açılan bir fırını vardı.
+DLG_ROAD_A3,I have not smelled bread at four in the morning in seven years.,Yedi yıldır sabahın dördünde ekmek kokusu almadım.
+DLG_ROAD_B1,Rivera carried a lantern with a cracked glass.,Rivera'nın çatlak camlı bir feneri vardı.
+DLG_ROAD_B2,We found the lantern in the flooded yard. We never found Rivera.,Feneri su basmış bahçede bulduk. Rivera'yı hiç bulamadık.
+DLG_ROAD_B3,Some of them are east. Not all of them. I am not going to promise you which.,Bazıları doğuda. Hepsi değil. Hangisi olduğuna dair sana söz vermeyeceğim.
+DLG_ROAD_C1,Are we going to tell her?,Ona söyleyecek miyiz?
+DLG_ROAD_C2,She is nine. She got lost on her birthday and she was found.,Dokuz yaşında. Doğum gününde kayboldu ve bulundu.
+DLG_ROAD_C3,Let her be a child for one more winter.,Bırak bir kış daha çocuk kalsın.
+DLG_ROAD_C4,...one winter. All right.,...bir kış. Peki.
+DLG_DEB_CH18_F1,There is the water tower. Sarah will have the porch light on.,İşte su kulesi. Sarah verandanın ışığını yakmıştır.
+DLG_DEB_CH18_F2,"Look east before you go in, detective.","İçeri girmeden önce doğuya bak, dedektif."
+DLG_DEB_CH18_P1,Close enough to see the tower. That will do for tonight.,Kuleyi görecek kadar yaklaştık. Bu gece için yeter.
+CASE_03_ID,CASE 03,VAKA 03
+CASE_03_TITLE,THE VISITORS,ZİYARETÇİLER
+CASE_03_OBJECTIVE,Be ready when they arrive.,Geldiklerinde hazır ol.
+CASE_03_LOCKED,To be continued,Devam edecek
+CASE_02_COMPLETE,CASE 02 CLOSED,VAKA 02 KAPANDI
+FINAL_02_HEADLINE,TWO WEEKS ARE UP,İKİ HAFTA DOLDU
+FINAL_02_LINE,"Lights on the east road. Coming this way, and not in a hurry.","Doğu yolunda ışıklar. Bu tarafa geliyorlar, üstelik acelesi yok."
+FINAL_02_SUB,"Convoy headlights, seen from the water tower.","Konvoy farları, su kulesinden görüldü."
+DLG_TOWN_MARSHAL_3A,We are going east in the morning. Do not let anybody make a speech about it.,Sabah doğuya gidiyoruz. Kimse bu konuda nutuk atmasın.
+DLG_TOWN_MARSHAL_3B,And keep the mower fuelled. I have a feeling we will be cutting our way there.,Ve makinenin yakıtını eksik etme. Oraya kadar biçerek gideceğiz gibi geliyor.
+DLG_TOWN_MARSHAL_4A,Somebody has our town circled on a map with a date beside it. I have not told Sarah.,"Birinin haritasında kasabamız çemberli, yanında da bir tarih var. Sarah'ya söylemedim."
+DLG_TOWN_MARSHAL_5A,"Two weeks, they said. Six days of it are gone.",İki hafta demişlerdi. Altı günü gitti.
+DLG_TOWN_MARSHAL_5B,Cut everything they will see on the way in. Let them arrive somewhere that is kept.,İçeri girerken görecekleri her yeri biç. Bakılmış bir yere varsınlar.
+DLG_TOWN_SARAH_3A,You are taking him with you. The man who had my daughter for a day.,Onu da götürüyorsun. Kızım bir gün onun yanındaydı.
+DLG_TOWN_SARAH_4A,She asks where you are every evening. I say working. It is even true.,Her akşam nerede olduğunu soruyor. Çalışıyor diyorum. Doğru bile.
+DLG_TOWN_SARAH_5A,"Whatever is coming, it is coming to a town with a porch light on. That is something.","Ne geliyorsa, verandasında ışık yanan bir kasabaya geliyor. Bu da bir şey."
+DLG_TOWN_GUS_3A,"Take the tractor east if the ground is soft. And bring it back, detective.",Zemin yumuşaksa traktörü doğuya götür. Ve geri getir dedektif.
+DLG_TOWN_GUS_4A,I have been welding a gate. Nobody asked me to. It seemed like the week for it.,Bir kapı kaynak ediyorum. Kimse istemedi. Böyle bir hafta gibi geldi.
+DLG_TOWN_GUS_5A,"Gate is hung. It opens outward, which is the friendly way round.","Kapı takıldı. Dışarı açılıyor, dostça olan yön o."
+DLG_TOWN_COLE_3A,"If you find any clinic out there, bring me the ledger and not the medicine.",Orada bir klinik bulursan bana ilacı değil defteri getir.
+DLG_TOWN_COLE_4A,"Three births after the dead years, in one district. That is not a small number. That is an impossible one.",Ölü yıllardan sonra tek bir bölgede üç doğum. Bu küçük bir sayı değil. İmkânsız bir sayı.
+DLG_TOWN_COLE_5A,I delivered nobody. Somebody did. I would like to shake their hand.,Ben kimseyi doğurtmadım. Biri doğurttu. Elini sıkmak isterdim.
+DLG_TOWN_ELLIE_3A,Are you going where the counting voice is?,Sayan sesin olduğu yere mi gidiyorsun?
+DLG_TOWN_ELLIE_3B,I dreamt about seven stars. Real stars do not stand in sevens.,Rüyamda yedi yıldız gördüm. Gerçek yıldızlar yedili durmaz.
+DLG_TOWN_ELLIE_4A,Mum keeps the light on now. She never used to.,Annem artık ışığı açık bırakıyor. Eskiden bırakmazdı.
+DLG_TOWN_ELLIE_5A,You were gone fourteen sleeps. I counted. I am good at that.,On dört uyku yoktun. Saydım. Bunda iyiyim.
+DLG_TOWN_STRANGER_3A,"I will walk in front. You said where you could see me, and I meant to keep it.","Önden yürüyeceğim. Görebileceğin yerde demiştin, tutmaya niyetliyim."
+DLG_TOWN_STRANGER_4A,"You can ask me to leave. I would understand it, and I would go.","Gitmemi isteyebilirsin. Anlarım, ve giderim."
+DLG_TOWN_STRANGER_4B,I have not decided whether staying is the brave thing or the easy one.,Kalmanın cesurca mı yoksa kolay olan mı olduğuna karar veremedim.
+DLG_TOWN_STRANGER_5A,"Eight days. I will be standing in the road when they come, and I will be the one who talks.","Sekiz gün. Geldiklerinde yolda duruyor olacağım, ve konuşan ben olacağım."
+OBJ_BREAK_TITLE,The Break from Town,Kasabadan Kopuş
+OBJ_BREAK_DESC,Follow the counting voice to the edge of what you know.,Sayan sesin peşinden bildiğin dünyanın kıyısına git.
+OBJ_BREAK_DONE,"Three places, and none of them had a name on our map.","Üç yer, ve hiçbirinin haritamızda adı yoktu."
+OBJ_BREAK_C1,Search the radio room,Telsiz odasını ara
+OBJ_BREAK_C2,Climb the relay hill,Röle tepesine tırman
+OBJ_BREAK_C3,Walk the orchard rows,Elma bahçesinin sıralarını yürü
+OBJ_ROAD_TITLE,The East Road,Doğu Yolu
+OBJ_ROAD_DESC,"Four stops east, and a compass that will not settle.","Doğuda dört durak, ve bir türlü durulmayan bir pusula."
+OBJ_ROAD_DONE,Everybody out here was somebody's family. I will remember that.,Buradaki herkes birinin ailesiydi. Bunu unutmayacağım.
+OBJ_ROAD_C1,Cross the river,Nehri geç
+OBJ_ROAD_C2,Cut through the roadside camp,Yol kenarı kampını aç
+OBJ_ROAD_C3,Reach the listening post,Dinleme noktasına ulaş
+OBJ_ROAD_C4,Search the old clinic,Eski kliniği ara
+OBJ_SAW_TITLE,What Ellie Saw,Ellie Ne Gördü
+OBJ_SAW_DESC,"Find the one who grew the garden, and hear him out.","Bahçeyi yetiştireni bul, ve sonuna kadar dinle."
+OBJ_SAW_DONE,He told me all of it. Now the town has eight days.,Hepsini anlattı. Kasabanın sekiz günü var.
+OBJ_SAW_C1,Read the meeting stone,Buluşma taşını oku
+OBJ_SAW_C2,Reach the signal garden,Sinyal bahçesine var
+OBJ_SAW_C3,Walk the long road home,Uzun dönüş yolunu yürü

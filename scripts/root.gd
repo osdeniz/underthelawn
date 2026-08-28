@@ -265,8 +265,16 @@ func _on_search_finished(evidence: int, total: int) -> void:
 	var is_finale := _is_last_chapter(_pending_variant) and evidence >= total
 	if is_finale:
 		Analytics.track(AnalyticsEvents.CASE_COMPLETED, {"chapter": _pending_variant})
-		_play_dialogue(Dialogue.conversation("finale_case01"), "",
-			func() -> void: _show_reunion())
+		# Which case just closed decides which ending plays. Case 01 ends warm
+		# and then cold — Ellie home, then the question of what she saw. Case 02
+		# ends the same shape: the town in sight, then the lights on the road
+		# behind it (G13).
+		if _in_case_two(_pending_variant):
+			_play_dialogue(Dialogue.conversation("debrief_ch18_full"), "",
+				func() -> void: _show_convoy())
+		else:
+			_play_dialogue(Dialogue.conversation("finale_case01"), "",
+				func() -> void: _show_reunion())
 		return
 	var key := "debrief_full" if evidence >= total else "debrief_partial"
 	var lines := Dialogue.conversation(str(chapter.get(key, "")))
@@ -303,6 +311,26 @@ func _is_last_chapter(variant_id: String) -> bool:
 	if chapters.is_empty():
 		return false
 	return str((chapters.back() as Dictionary).get("variant_id", "")) == variant_id
+
+
+func _in_case_two(variant_id: String) -> bool:
+	for chapter: Dictionary in Story.list("case_02.chapters"):
+		if str(chapter.get("variant_id", "")) == variant_id:
+			return true
+	return false
+
+
+## Case 02's close: two weeks of road behind, and headlights on it.
+func _show_convoy() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 70
+	add_child(layer)
+	var card := ConvoyCard.new()
+	layer.add_child(card)
+	card.finished.connect(func() -> void:
+		layer.queue_free()
+		GameState.set_setting("story", "case02_closed", true)
+		return_to_board())
 
 
 ## The warm close: Ellie home, the board complete, and the door to Case 02.

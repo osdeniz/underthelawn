@@ -1,5 +1,5 @@
 {
-  "_comment": "STRUCTURE ONLY. Every title/desc/text is a TRANSLATION KEY; the sentences live in i18n/strings.csv. This file NEVER invents a goal - every objective here is something the game already asks of the player, written down so it can be seen. A condition's `check` is resolved by Objectives._passes(); adding a new kind of check means adding a branch there, not a new field shape. `reward_scrap` values are PLACEHOLDERS awaiting calibration.",
+  "_comment": "STRUCTURE ONLY. Every title/desc/text is a TRANSLATION KEY; the sentences live in i18n/strings.csv. This file NEVER invents a goal - every objective here is something the game already asks of the player, written down so it can be seen. A condition's `check` is resolved by Objectives._passes(); adding a new kind of check means adding a branch there, not a new field shape. `reward_scrap` values are PLACEHOLDERS awaiting calibration - including Case 02's three (G13).",
   "objectives": [
     {
       "id": "find_ellie",
@@ -9,14 +9,38 @@
       "reward_scrap": 600,
       "done_dialogue": "OBJ_ELLIE_DONE",
       "conditions": [
-        { "text": "OBJ_ELLIE_C1", "check": "chapter:ch01_aldridge" },
-        { "text": "OBJ_ELLIE_C2", "check": "chapter:ch02_neighbor" },
-        { "text": "OBJ_ELLIE_C3", "check": "chapter:ch03_playground" },
-        { "text": "OBJ_ELLIE_C4", "check": "chapter:ch04_flooded" },
-        { "text": "OBJ_ELLIE_C5", "check": "chapter:ch05_greenhouse" },
-        { "text": "OBJ_ELLIE_C6", "check": "chapter:ch06_watertower" },
-        { "text": "OBJ_ELLIE_C7", "check": "chapter:ch07_mill" },
-        { "text": "OBJ_ELLIE_C8", "check": "chapter:ch08_cellar" }
+        {
+          "text": "OBJ_ELLIE_C1",
+          "check": "chapter:ch01_aldridge"
+        },
+        {
+          "text": "OBJ_ELLIE_C2",
+          "check": "chapter:ch02_neighbor"
+        },
+        {
+          "text": "OBJ_ELLIE_C3",
+          "check": "chapter:ch03_playground"
+        },
+        {
+          "text": "OBJ_ELLIE_C4",
+          "check": "chapter:ch04_flooded"
+        },
+        {
+          "text": "OBJ_ELLIE_C5",
+          "check": "chapter:ch05_greenhouse"
+        },
+        {
+          "text": "OBJ_ELLIE_C6",
+          "check": "chapter:ch06_watertower"
+        },
+        {
+          "text": "OBJ_ELLIE_C7",
+          "check": "chapter:ch07_mill"
+        },
+        {
+          "text": "OBJ_ELLIE_C8",
+          "check": "chapter:ch08_cellar"
+        }
       ]
     },
     {
@@ -27,11 +51,23 @@
       "reward_scrap": 400,
       "done_dialogue": "OBJ_WINTER_DONE",
       "opens": "harvest",
-      "ready_step": { "text": "OBJ_WINTER_GO", "check": "harvest:1" },
+      "ready_step": {
+        "text": "OBJ_WINTER_GO",
+        "check": "harvest:1"
+      },
       "conditions": [
-        { "text": "OBJ_WINTER_C1", "check": "restore:farm" },
-        { "text": "OBJ_WINTER_C2", "check": "garage:tractor" },
-        { "text": "OBJ_WINTER_C3", "check": "chapters:3" }
+        {
+          "text": "OBJ_WINTER_C1",
+          "check": "restore:farm"
+        },
+        {
+          "text": "OBJ_WINTER_C2",
+          "check": "garage:tractor"
+        },
+        {
+          "text": "OBJ_WINTER_C3",
+          "check": "chapters:3"
+        }
       ]
     },
     {
@@ -42,7 +78,80 @@
       "reward_scrap": 250,
       "done_dialogue": "OBJ_TOWN_DONE",
       "conditions": [
-        { "text": "OBJ_TOWN_C1", "check": "projects:3" }
+        {
+          "text": "OBJ_TOWN_C1",
+          "check": "projects:3"
+        }
+      ]
+    },
+    {
+      "id": "break_from_town",
+      "type": "case",
+      "title": "OBJ_BREAK_TITLE",
+      "desc": "OBJ_BREAK_DESC",
+      "reward_scrap": 700,
+      "done_dialogue": "OBJ_BREAK_DONE",
+      "conditions": [
+        {
+          "text": "OBJ_BREAK_C1",
+          "check": "chapter:ch09_radio_room"
+        },
+        {
+          "text": "OBJ_BREAK_C2",
+          "check": "chapter:ch10_relay_hill"
+        },
+        {
+          "text": "OBJ_BREAK_C3",
+          "check": "chapter:ch11_orchard"
+        }
+      ]
+    },
+    {
+      "id": "the_east_road",
+      "type": "case",
+      "title": "OBJ_ROAD_TITLE",
+      "desc": "OBJ_ROAD_DESC",
+      "reward_scrap": 900,
+      "done_dialogue": "OBJ_ROAD_DONE",
+      "conditions": [
+        {
+          "text": "OBJ_ROAD_C1",
+          "check": "chapter:ch12_river_crossing"
+        },
+        {
+          "text": "OBJ_ROAD_C2",
+          "check": "chapter:ch13_roadside_camp"
+        },
+        {
+          "text": "OBJ_ROAD_C3",
+          "check": "chapter:ch14_listening_post"
+        },
+        {
+          "text": "OBJ_ROAD_C4",
+          "check": "chapter:ch15_old_clinic"
+        }
+      ]
+    },
+    {
+      "id": "what_ellie_saw",
+      "type": "case",
+      "title": "OBJ_SAW_TITLE",
+      "desc": "OBJ_SAW_DESC",
+      "reward_scrap": 1200,
+      "done_dialogue": "OBJ_SAW_DONE",
+      "conditions": [
+        {
+          "text": "OBJ_SAW_C1",
+          "check": "chapter:ch16_meeting_stone"
+        },
+        {
+          "text": "OBJ_SAW_C2",
+          "check": "chapter:ch17_signal_garden"
+        },
+        {
+          "text": "OBJ_SAW_C3",
+          "check": "chapter:ch18_long_road_home"
+        }
       ]
     }
   ],

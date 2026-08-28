@@ -948,6 +948,8 @@ func _build_landmark(landmark_id: String) -> void:
 		"roadside_camp": _landmark_roadside_camp(root)
 		"listening_post": _landmark_listening_post(root)
 		"old_clinic": _landmark_old_clinic(root)
+		"meeting_stone": _landmark_meeting_stone(root)
+		"signal_garden": _landmark_signal_garden(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
@@ -1300,6 +1302,94 @@ func _landmark_old_clinic(root: Node3D) -> void:
 			Vector3(rng.randf_range(-w * 0.5, w * 0.5), h + 0.30,
 				-d * 0.5 - 0.12))
 	_ao_blob(root, Vector2(w + 3.0, d + 3.0), Vector3(0.0, 0.02, 0.0), 0.55)
+
+
+## A boundary stone at a crossroads, with a chalk ring drawn on it. People have
+## been meeting here — the stone is old, the chalk is two days old, and it did
+## not rain between (G13).
+func _landmark_meeting_stone(root: Node3D) -> void:
+	var rock := _flat("ms_rock", Color(0.53, 0.51, 0.47), 0.95)
+	var dark := _flat("ms_dark", Color(0.40, 0.39, 0.36), 0.95)
+	var chalk := _flat("ms_chalk", Color(0.93, 0.92, 0.88), 0.85)
+	var post := _flat("ms_post", Color(0.38, 0.31, 0.22), 0.95)
+	var iron := _flat("ms_iron", Color(0.40, 0.30, 0.22), 0.9, 0.3)
+
+	# The stone: a leaning slab, not a boulder. Somebody stood it up.
+	_box(root, Vector3(1.9, 3.1, 0.9), rock, Vector3(0.0, 1.55, 0.0),
+		Vector3(0.0, 0.22, -0.06))
+	_box(root, Vector3(2.3, 0.32, 1.3), dark, Vector3(0.0, 0.16, 0.0),
+		Vector3(0.0, 0.22, 0.0))
+	# The chalk ring and its seven marks, on the south face where you would
+	# stand to read it.
+	var face := 0.48
+	for i in 22:
+		var a := TAU * float(i) / 22.0
+		_box(root, Vector3(0.10, 0.10, 0.04), chalk,
+			Vector3(sin(0.22) * face + cos(a) * 0.62, 1.85 + sin(a) * 0.62,
+				-cos(0.22) * face), Vector3(0.0, 0.22, 0.0))
+	for i in 7:
+		var a2 := TAU * float(i) / 7.0 - PI * 0.5
+		_box(root, Vector3(0.16, 0.16, 0.04), chalk,
+			Vector3(sin(0.22) * face + cos(a2) * 0.40, 1.85 + sin(a2) * 0.40,
+				-cos(0.22) * face), Vector3(0.0, 0.22, a2))
+
+	# A signpost with both arms gone, and the nails still in it.
+	_cyl(root, 0.08, 0.10, 2.6, post, Vector3(3.1, 1.30, 1.4))
+	for i in 2:
+		_box(root, Vector3(0.10, 0.05, 0.05), iron,
+			Vector3(3.1, 2.10 - float(i) * 0.34, 1.34))
+	_ao_blob(root, Vector2(4.4, 3.2), Vector3(0.4, 0.02, 0.4), 0.55)
+
+
+## A collapsed glasshouse with a mast through the roof of it: somebody grew
+## things here AND transmitted from here, and the two are the same story. The
+## beacon is still on, which is why the frame is lit from inside (G13).
+func _landmark_signal_garden(root: Node3D) -> void:
+	var frame := _flat("sg_frame", Color(0.42, 0.44, 0.42), 0.7, 0.25)
+	var glass := _flat("sg_glass", Color(0.62, 0.74, 0.68), 0.2, 0.1)
+	var brick := _flat("sg_brick", Color(0.48, 0.38, 0.32), 0.95)
+	var soil := _flat("sg_soil", Color(0.28, 0.22, 0.17), 1.0)
+	var green := _flat("sg_green", Color(0.30, 0.52, 0.26), 0.9)
+	var steel := _flat("sg_steel", Color(0.48, 0.49, 0.50), 0.6, 0.4)
+	var lamp := _flat("sg_lamp", Color(0.42, 0.88, 0.52), 0.3)
+
+	var w := 7.0
+	var d := 4.4
+	_box(root, Vector3(w + 0.5, 0.5, d + 0.5), brick, Vector3(0.0, 0.25, 0.0))
+	# Uprights, most still standing, two folded over.
+	for i in 7:
+		var x := (float(i) - 3.0) * (w / 6.0)
+		var fallen := i == 2 or i == 5
+		var h := 2.6 if not fallen else 1.2
+		for sz: float in [-1.0, 1.0]:
+			_cyl(root, 0.05, 0.05, h, frame,
+				Vector3(x, 0.5 + h * 0.5, sz * d * 0.5),
+				Vector3(0.0, 0.0, 0.5 if fallen else 0.0))
+		if not fallen:
+			_box(root, Vector3(0.08, 0.08, d), frame, Vector3(x, 3.1, 0.0))
+			# One pane per bay, tilted: glass that is still IN the frame.
+			_box(root, Vector3(w / 6.0 - 0.15, 0.04, d * 0.92), glass,
+				Vector3(x + w / 12.0, 3.02, 0.0), Vector3(0.0, 0.0, 0.06))
+	for sz2: float in [-1.0, 1.0]:
+		_box(root, Vector3(w, 0.08, 0.08), frame, Vector3(0.0, 3.1, sz2 * d * 0.5))
+
+	# Beds inside, still in rows, still green. Somebody waters these.
+	for i in 3:
+		_box(root, Vector3(w - 1.4, 0.22, 0.8), soil,
+			Vector3(0.0, 0.61, (float(i) - 1.0) * 1.25))
+		for k in 7:
+			_ball(root, 0.13, green,
+				Vector3((float(k) - 3.0) * 0.72, 0.78, (float(i) - 1.0) * 1.25),
+				Vector3(1.0, 0.7, 1.0))
+
+	# The mast, straight up through the broken bay, with the beacon lit.
+	_cyl(root, 0.06, 0.09, 7.4, steel, Vector3(w * 0.5 - 1.2, 4.2, 0.0))
+	for i in 3:
+		_box(root, Vector3(0.9, 0.05, 0.05), steel,
+			Vector3(w * 0.5 - 1.2, 5.4 + float(i) * 0.9, 0.0),
+			Vector3(0.0, float(i) * 1.1, 0.0))
+	_ball(root, 0.16, lamp, Vector3(w * 0.5 - 1.2, 7.95, 0.0))
+	_ao_blob(root, Vector2(w + 2.5, d + 2.5), Vector3(0.0, 0.02, 0.0), 0.55)
 
 
 ## Rusted swing set, slide and sandpit. The rust colour is what dates it.

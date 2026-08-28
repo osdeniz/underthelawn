@@ -21,6 +21,10 @@ const GRID_SIZES := {
 	"medium": Vector2i(16, 24),
 	"large": Vector2i(20, 30),
 	"cellar": Vector2i(10, 14),
+	## The road home (G13): narrow and long, so the shape of the level is the
+	## shape of a walk rather than of a yard. Low plant density carries the
+	## rest — B18 is a conversation with mowing under it, not a search.
+	"road": Vector2i(9, 34),
 }
 
 
@@ -381,6 +385,10 @@ const PLANT_PROFILES := {
 ## CHARACTER of the sound changes (G13).
 const SIGNAL_STATIC_GAIN := 0.34
 const SIGNAL_CLEAR_GAIN := 0.30
+
+## The red string on the corkboard. One colour, named, because the board draws
+## it in two places (the thread and the pin heads) (G13).
+const BOARD_STRING := Color(0.72, 0.16, 0.14)
 
 # ---------------------------------------------------------------- quiet scenes
 ## What passing The Toll costs: a share of what the player is carrying, floored
@@ -951,6 +959,8 @@ const LANDMARK_IDS: Array[String] = [
 	"antenna_mast", "orchard",
 	# Case 02, Act 2 — the east road.
 	"crossing", "roadside_camp", "listening_post", "old_clinic",
+	# Case 02, Act 3 — the confrontation.
+	"meeting_stone", "signal_garden",
 ]
 
 const HOUSE_MARGIN_Z := 4.8

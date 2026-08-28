@@ -2364,3 +2364,41 @@ count right.
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.
+
+## G13 — Case 02 economy simulation (PLACEHOLDER budgets)
+
+The ten Case 02 chapters continue the V1 curve. Every number below is a
+PLACEHOLDER awaiting the same calibration pass G14.3 gave Case 01; they are
+recorded here so the next pass starts from measurements rather than from a
+blank page.
+
+Simulated at 100% completion with every buried point collected, mid pickup
+value, and `SEARCH_SCRAP_MULTIPLIER` applied — the same model the G14.3 note
+uses, so the two are comparable.
+
+| chapter | budget | payout at 100% | cumulative |
+|---|---|---|---|
+| ch09_radio_room | 13 | 2 037 | 2 037 |
+| ch10_relay_hill | 12 | 1 880 | 3 917 |
+| ch11_orchard | 16 | 2 506 | 6 423 |
+| ch12_river_crossing | 14 | 2 190 | 8 613 |
+| ch13_roadside_camp | 17 | 2 662 | 11 275 |
+| ch14_listening_post | 14 | 2 190 | 13 465 |
+| ch15_old_clinic | 15 | 2 353 | 15 818 |
+| ch16_meeting_stone | 18 | 2 819 | 18 637 |
+| ch17_signal_garden | 12 | 1 880 | 20 517 |
+| ch18_long_road_home | 15 | 2 353 | 22 870 |
+
+**The Toll (B15.5)** takes 15% of the wallet, floored at 30 and capped at 200,
+and never more than the player is carrying. It fires once, on the way back from
+ch15. Worst case for a player who has banked everything and spent nothing by
+then (15 818 earned): the cap makes it **200**, or 1.3% of the run — a real
+cost that is felt as a scene rather than as a setback. For a player who has
+spent down to under 200 the floor makes it 30. It cannot bankrupt anyone and it
+cannot be ignored, which is the whole design of a toll.
+
+Against this, the Case 02 gate is three restoration projects — 950 for the
+cheapest three, cleared by a single chapter at 100%. The gate is a nudge, not a
+wall; it bites only for a player who put every piece of scrap into the garage,
+which is the choice it exists to notice.
+

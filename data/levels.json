@@ -626,6 +626,143 @@
       "reclaim_line": "RECLAIM_CH15",
       "time_of_day": "afternoon",
       "mid_chat": "chat_ch15"
+    },
+    "ch16_meeting_stone": {
+      "palette_id": "DRY_GOLD",
+      "plant_profile_id": "SUNFLOWER",
+      "grid_size": "large",
+      "obstacle_layout_id": "open",
+      "house_variant": "house_none",
+      "landmark_id": "meeting_stone",
+      "decor_seed": 1616,
+      "scrap_budget": 18,
+      "evidence_defs": [
+        {
+          "id": "stones",
+          "icon": "🪨",
+          "name": "EV_CH16_A_NAME",
+          "flavor_text": "EV_CH16_A_LINE",
+          "location_tag": "LOC_STONE",
+          "cole_note": "COLE_CHALK",
+          "marshal_note": "MN_CH16_A"
+        },
+        {
+          "id": "patch",
+          "icon": "🧥",
+          "name": "EV_CH16_B_NAME",
+          "flavor_text": "EV_CH16_B_LINE",
+          "location_tag": "LOC_GRASS",
+          "cole_note": "COLE_BUTTON",
+          "marshal_note": "MN_CH16_B"
+        }
+      ],
+      "opening": {
+        "headline": "OPENING_16_HEADLINE",
+        "subline": "OPENING_16_SUBLINE"
+      },
+      "echo_def": {
+        "id": "notebook",
+        "icon": "📒",
+        "name": "ECHO_CH16_NAME",
+        "flavor_text": "ECHO_CH16_LINE"
+      },
+      "reclaim_line": "RECLAIM_CH16",
+      "time_of_day": "golden",
+      "mid_chat": "chat_ch16"
+    },
+    "ch17_signal_garden": {
+      "palette_id": "LUSH",
+      "plant_profile_id": "GRASS",
+      "grid_size": "small",
+      "obstacle_layout_id": "beds",
+      "house_variant": "house_none",
+      "landmark_id": "signal_garden",
+      "decor_seed": 1717,
+      "scrap_budget": 12,
+      "evidence_defs": [
+        {
+          "id": "receiver",
+          "icon": "📡",
+          "name": "EV_CH17_A_NAME",
+          "flavor_text": "EV_CH17_A_LINE",
+          "location_tag": "LOC_GLASS",
+          "cole_note": "COLE_BEACON",
+          "marshal_note": "MN_CH17_A"
+        },
+        {
+          "id": "seedlings",
+          "icon": "🌱",
+          "name": "EV_CH17_B_NAME",
+          "flavor_text": "EV_CH17_B_LINE",
+          "location_tag": "LOC_BEDS",
+          "cole_note": "COLE_GARDEN_BEDS",
+          "marshal_note": "MN_CH17_B"
+        }
+      ],
+      "opening": {
+        "headline": "OPENING_17_HEADLINE",
+        "subline": "OPENING_17_SUBLINE"
+      },
+      "echo_def": {
+        "id": "log",
+        "icon": "📓",
+        "name": "ECHO_CH17_NAME",
+        "flavor_text": "ECHO_CH17_LINE"
+      },
+      "reclaim_line": "RECLAIM_CH17",
+      "time_of_day": "afternoon"
+    },
+    "ch18_long_road_home": {
+      "palette_id": "WHEAT",
+      "plant_profile_id": "WILD_WHEAT",
+      "grid_size": "road",
+      "obstacle_layout_id": "open",
+      "house_variant": "house_none",
+      "landmark_id": "",
+      "decor_seed": 1818,
+      "scrap_budget": 15,
+      "evidence_defs": [
+        {
+          "id": "boot",
+          "icon": "🥾",
+          "name": "EV_CH18_A_NAME",
+          "flavor_text": "EV_CH18_A_LINE",
+          "location_tag": "LOC_VERGE",
+          "cole_note": "COLE_OUR_TRACKS",
+          "marshal_note": "MN_CH18_A"
+        },
+        {
+          "id": "ribbon",
+          "icon": "🎀",
+          "name": "EV_CH18_B_NAME",
+          "flavor_text": "EV_CH18_B_LINE",
+          "location_tag": "LOC_MARKER",
+          "cole_note": "COLE_ROAD_RIBBON",
+          "marshal_note": "MN_CH18_B"
+        }
+      ],
+      "opening": {
+        "headline": "OPENING_18_HEADLINE",
+        "subline": "OPENING_18_SUBLINE"
+      },
+      "echo_def": {
+        "id": "headline",
+        "icon": "📰",
+        "name": "ECHO_CH18_NAME",
+        "flavor_text": "ECHO_CH18_LINE"
+      },
+      "reclaim_line": "RECLAIM_CH18",
+      "time_of_day": "dusk",
+      "mid_chat": [
+        "chat_ch18_a",
+        "chat_ch18_b",
+        "chat_ch18_c"
+      ],
+      "mid_chat_at": [
+        0.25,
+        0.5,
+        0.75
+      ]
     }
   }
 }

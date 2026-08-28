@@ -1,9 +1,12 @@
 extends Node
 ## G12.10: nothing on the corkboard may sit on top of anything else.
 ##
-## The Marshal's notes are free-positioned Labels that wrap to as many lines as
-## the sentence needs, so a long one grows downward into the chapter below it.
-## Nothing in the layout code noticed; the player saw stacked text.
+## The Marshal's notes wrap to as many lines as the sentence needs, and V1
+## free-positioned them, so a long one grew downward into the chapter below and
+## nothing in the layout code noticed. Board V2 replaced that solver with
+## containers (G13); this test is what says the replacement actually holds, for
+## the worst case the board has — every chapter finished, with the clinic built
+## so every card carries two readings as well as its name.
 
 var _fails := 0
 
@@ -15,7 +18,7 @@ func _ready() -> void:
 	# analysis, which is the layout's worst case (G13.4).
 	GameState.set_setting("restore", "clinic", true)
 	var board := EvidenceBoard.new()
-	board.size = Vector2(1170, 2532 * EvidenceBoard.BOARD_SCALE)
+	board.size = Vector2(1170, 2532)
 	add_child(board)
 	for _i in 4:
 		await get_tree().process_frame
