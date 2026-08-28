@@ -191,6 +191,16 @@ func show_layer(which: int, animate := true) -> void:
 ## "next" button so finishing a search leads back to the map rather than a list.
 func focus_place(variant_id: String) -> void:
 	_selected = variant_id
+	# A Case 02 chapter is a stop on the east road, and the east road is on the
+	# WORLD sheet. Sending it to the town layer put the player on a map that
+	# does not contain the place they were being taken to, and then opened
+	# nothing — which is what "the Case 02 transition is broken" looked like
+	# from the outside (G13).
+	if _is_east_road(variant_id):
+		show_layer(Layer.WORLD, _layer == Layer.TOWN)
+		_update_east_road()
+		_open_panel(variant_id)
+		return
 	show_layer(Layer.TOWN, _layer == Layer.WORLD)
 	if variant_id == GameConfig.HARVEST_VARIANT:
 		# The harvest is not a case place, so it has no route slot to focus:
@@ -571,6 +581,14 @@ func _build_pins() -> void:
 
 
 ## The first place that is not finished — the one the case is asking for.
+## True for a chapter that lives on the east road rather than in the town.
+func _is_east_road(variant_id: String) -> bool:
+	for pin: Dictionary in Story.list("east_road.pins"):
+		if str(pin.get("chapter", "")) == variant_id:
+			return true
+	return false
+
+
 ## The chapter ids of the case `variant_id` belongs to, in board order.
 func _case_order(variant_id: String) -> Array:
 	var out: Array = []

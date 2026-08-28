@@ -21,24 +21,28 @@ func _ready() -> void:
 
 
 func _check_data() -> void:
-	ck("8 bolum var", ChapterProgress.count() == 8,
-		str(ChapterProgress.count()))
+	# CASE 01's eight, asked of Case 01's own list. count() is the whole board
+	# and the board carries two cases now, so asserting a total here made this
+	# test depend on whether Case 02 happened to be open — which is state a
+	# previous test in the same suite can leave behind (G13).
+	ck("vaka 01 sekiz bolum", Story.list("chapters").size() == 8,
+		str(Story.list("chapters").size()))
 	# ARCHITECTURE: chapters must never carry a scene path. G9 builds all eight
 	# from one game scene plus variant data, and this is the assertion that stops
 	# "one .tscn per chapter" creeping back in.
-	for chapter: Dictionary in ChapterProgress.chapters():
+	for chapter: Dictionary in Story.list("chapters"):
 		ck("bolum sahne yolu tasimiyor: %s" % chapter.get("variant_id", "?"),
 			not chapter.has("scene") and not chapter.has("path"), str(chapter))
 		ck("bolum variant_id tasiyor", str(chapter.get("variant_id", "")) != "",
 			str(chapter))
 	# G9 opened all eight: every chapter must be playable AND have a variant.
 	var playable := 0
-	for chapter: Dictionary in ChapterProgress.chapters():
+	for chapter: Dictionary in Story.list("chapters"):
 		if bool(chapter.get("playable", false)):
 			playable += 1
 		var vid := str(chapter.get("variant_id", ""))
 		ck("varyant verisi var: %s" % vid, LevelVariant.ids().has(vid), vid)
-	ck("8 bolum oynanabilir", playable == 8, str(playable))
+	ck("vaka 01 bolumleri oynanabilir", playable == 8, str(playable))
 	ck("aktif bolum ilk bolum",
 		ChapterProgress.current_variant_id() == "ch01_aldridge",
 		ChapterProgress.current_variant_id())

@@ -847,3 +847,4 @@ OBJ_SAW_DONE,He told me all of it. Now the town has eight days.,Hepsini anlattı
 OBJ_SAW_C1,Read the meeting stone,Buluşma taşını oku
 OBJ_SAW_C2,Reach the signal garden,Sinyal bahçesine var
 OBJ_SAW_C3,Walk the long road home,Uzun dönüş yolunu yürü
+CASE_02_WAITING,Waiting on the town — {done}/{total} restored,Kasabayı bekliyor — {done}/{total} onarıldı

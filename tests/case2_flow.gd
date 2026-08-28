@@ -32,6 +32,7 @@ func _ready() -> void:
 	_check_endings()
 	await _check_map()
 	await _check_warm_up_leaves_no_trace()
+	await _check_the_door()
 
 	if _fails > 0:
 		push_error("%d VAKA 02 AKIS TESTI BASARISIZ" % _fails)
@@ -188,6 +189,58 @@ func _check_warm_up_leaves_no_trace() -> void:
 		GameConfig.GRID_COLS == int(before["cols"])
 			and GameConfig.GRID_ROWS == int(before["rows"]),
 		"%dx%d" % [GameConfig.GRID_COLS, GameConfig.GRID_ROWS])
+
+
+## THE DOOR. Closing Case 01 has to leave the player somewhere they can SEE
+## Case 02, whether or not the town is ready yet — the ending card used to
+## announce "CASE 02 UNLOCKED" and then the case appeared nowhere at all,
+## because it also waits on three restorations and nothing said so.
+func _check_the_door() -> void:
+	# Locked: the hub still shows the case, as a counter rather than a wall.
+	GameState.set_setting("story", "case01_closed", true)
+	RestoreBoard.reset()
+	var hub := HubScreen.new()
+	add_child(hub)
+	await settle(1.0)
+	var locked := hub.find_children("CaseTwoTile", "", true, false)
+	ck("kilitliyken vaka 02 karti var", locked.size() == 1, str(locked.size()))
+	if locked.size() == 1:
+		var text := str((locked[0] as Button).text)
+		ck("kilitli kart sayaci gosteriyor", text.contains("0/3"), text)
+		ck("kilitli kart acildi demiyor",
+			not text.contains(tr("CASE_02_UNLOCKED")), text)
+	hub.queue_free()
+	await settle(0.4)
+
+	# Open: the same card, now a way in.
+	for project in ["lantern", "swing", "greenhouse"]:
+		GameState.set_setting("restore", project, true)
+	var hub2 := HubScreen.new()
+	add_child(hub2)
+	await settle(1.0)
+	var open := hub2.find_children("CaseTwoTile", "", true, false)
+	ck("acikken vaka 02 karti var", open.size() == 1, str(open.size()))
+	hub2.queue_free()
+	await settle(0.4)
+
+	# And the map takes an east-road chapter to the map it is actually ON.
+	var map := TownMap.new()
+	map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(map)
+	await settle(1.2)
+	map.focus_place("ch02_neighbor")
+	await settle(0.8)
+	ck("vaka 01 yeri kasaba katmaninda", map._layer == 1, str(map._layer))
+	map.focus_place("ch12_river_crossing")
+	await settle(0.8)
+	ck("dogu yolu duragi dunya katmaninda", map._layer == 0, str(map._layer))
+	var panels := 0
+	for child in map.get_children():
+		if child is PanelContainer:
+			panels += 1
+	ck("durak paneli acildi", panels >= 1, str(panels))
+	map.queue_free()
+	await settle(0.3)
 
 
 func ck(what: String, passed: bool, detail: String) -> void:

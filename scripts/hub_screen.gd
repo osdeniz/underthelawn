@@ -418,6 +418,7 @@ func _build_tiles() -> Control:
 		column.add_child(_make_tile(tile))
 	page.set_meta("column", column)
 	_add_harvest_tile(column)
+	_add_case_two_tile(column)
 
 	var story := Button.new()
 	story.text = tr("UI_STORY")
@@ -458,6 +459,59 @@ func _add_harvest_tile(column: VBoxContainer) -> void:
 	tile.pressed.connect(func() -> void:
 		Haptics.light()
 		open_map_at(GameConfig.HARVEST_VARIANT))
+	column.add_child(tile)
+	column.move_child(tile, 0)
+
+
+## Case 02, at the top of the hub, from the moment Case 01 closes.
+##
+## THE BUG THIS FIXES. Case 01's ending card promised "CASE 02 UNLOCKED" and
+## then Case 02 appeared precisely nowhere, because it also needs the town
+## rebuilt and nothing anywhere said so. The player finished a case and was left
+## looking for a door that had not been drawn.
+##
+## So the door is drawn either way. Locked, it is not a dead tile: it carries
+## the live count of what it is waiting for, which is the whole reason the
+## restore board earns anything — Ellie's line said he would come back when the
+## town was ready, and this is where the player watches that happen (G13).
+func _add_case_two_tile(column: VBoxContainer) -> void:
+	if not bool(GameState.get_setting("story", "case01_closed", false)):
+		return
+	var ready := ChapterProgress.case_two_open()
+	var progress := RestoreBoard.town_ready_progress()
+	var tile := Button.new()
+	tile.name = "CaseTwoTile"
+	tile.custom_minimum_size = Vector2(0, 200)
+	tile.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tile.add_theme_font_size_override("font_size", 44)
+	if ready:
+		tile.text = "%s\n%s" % [Story.text("case_02.id"),
+			Story.text("case_02.title")]
+		tile.add_theme_color_override("font_color", Color(0.13, 0.11, 0.06))
+		var skin := StyleBoxFlat.new()
+		skin.bg_color = GameConfig.CASE_ACCENT
+		skin.set_corner_radius_all(20)
+		skin.set_content_margin_all(22)
+		skin.border_color = Color(0.42, 0.32, 0.10)
+		skin.set_border_width_all(3)
+		for state: String in ["normal", "hover", "pressed", "focus"]:
+			tile.add_theme_stylebox_override(state, skin)
+		tile.pressed.connect(func() -> void:
+			Haptics.light()
+			open_map_at(ChapterProgress.current_variant_id()))
+	else:
+		# Not a locked sign — a counter. The player can see the number move.
+		tile.text = "%s · %s\n%s" % [Story.text("case_02.id"),
+			Story.text("case_02.title"),
+			tr("CASE_02_WAITING").format({"done": progress.x,
+				"total": progress.y})]
+		tile.add_theme_color_override("font_color", Color(0.74, 0.72, 0.66))
+		_style_card(tile, true)
+		# Tapping it goes where the counter is moved: the restore board.
+		tile.pressed.connect(func() -> void:
+			Haptics.light()
+			_on_tile("restore", false))
 	column.add_child(tile)
 	column.move_child(tile, 0)
 
@@ -1649,6 +1703,7 @@ func _refresh_tiles() -> void:
 	for tile: Dictionary in Story.list("hub.tiles"):
 		column.add_child(_make_tile(tile))
 	_add_harvest_tile(column)
+	_add_case_two_tile(column)
 	var story := Button.new()
 	story.text = tr("UI_STORY")
 	story.custom_minimum_size = Vector2(0, 110)

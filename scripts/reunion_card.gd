@@ -145,8 +145,19 @@ func _apply() -> void:
 		_art.texture = TextureLibrary.find("hub/case2_teaser")
 		if _art.texture == null:
 			TextureLibrary.warn_missing("hub/case2_teaser", "vaka 2 karti = duz zemin")
-		_title.text = "%s\n%s" % [tr("CASE_02_UNLOCKED"), tr("CASE_02_TITLE")]
-		_line.text = tr("CASE_02_LOCKED")
+		# Only say UNLOCKED when it is. The card used to announce Case 02 the
+		# moment Case 01 closed, and Case 02 also waits on the town being
+		# rebuilt — so the player was told a door had opened and then could not
+		# find it anywhere (G13). Locked, the card names the condition instead,
+		# which is the same promise with the price attached.
+		if ChapterProgress.case_two_open():
+			_title.text = "%s\n%s" % [tr("CASE_02_UNLOCKED"), tr("CASE_02_TITLE")]
+			_line.text = tr("CASE_02_LOCKED")
+		else:
+			var progress := RestoreBoard.town_ready_progress()
+			_title.text = "%s\n%s" % [tr("CASE_02_ID"), tr("CASE_02_TITLE")]
+			_line.text = tr("CASE_02_WAITING").format({"done": progress.x,
+				"total": progress.y})
 	_art.visible = _art.texture != null
 	if _page == 0:
 		var tw := create_tween()
