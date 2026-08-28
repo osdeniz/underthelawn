@@ -37,6 +37,7 @@ func _ready() -> void:
 	await _check_panel_clears_back()
 	await _check_warm_up_survives_a_road_chapter()
 	await _check_board_is_built_late()
+	await _check_every_way_home_unparks_the_town()
 
 	if _fails > 0:
 		push_error("%d VAKA 02 AKIS TESTI BASARISIZ" % _fails)
@@ -383,6 +384,39 @@ func _check_board_is_built_late() -> void:
 		"indeks %d / %d" % [hub.get_children().find(page), hub.get_child_count()])
 	hub.queue_free()
 	await settle(0.3)
+
+
+## The hub's diorama is rendered at 1/32 scale while a chapter is on screen, so
+## its framebuffer is not held for a town nobody can see. Every route home has
+## to put it back — and one of them did not: returning by way of the case board
+## re-showed the hub by hand and skipped set_diorama_active(true), so the town
+## came back as a 36x79 image stretched across the screen (G13).
+func _check_every_way_home_unparks_the_town() -> void:
+	GameState.set_setting("story", "intro_seen", true)
+	var root: Node = load("res://scenes/Root.tscn").instantiate()
+	add_child(root)
+	await settle(2.5)
+	var hub = root.get_node_or_null("HubLayer/Hub")
+	ck("hub acildi", hub != null, "")
+	if hub == null:
+		return
+	var full: Vector2i = (hub._diorama_view as SubViewport).size
+	ck("hubda diyorama tam cozunurlukte", full.x > 500, str(full))
+
+	for route in ["return_to_hub", "return_to_board"]:
+		root.set("_pending_variant", "ch01_aldridge")
+		root.call("_start_chapter")
+		await settle(2.5)
+		var parked: Vector2i = (hub._diorama_view as SubViewport).size
+		ck("bolumde diyorama park edildi (%s)" % route, parked.x < 100,
+			str(parked))
+		root.call(route)
+		await settle(3.0)
+		var back: Vector2i = (hub._diorama_view as SubViewport).size
+		ck("%s diyoramayi geri buyutuyor" % route, back == full,
+			"%s != %s" % [str(back), str(full)])
+	root.queue_free()
+	await settle(0.5)
 
 
 func _sub_viewports(n: Node) -> int:

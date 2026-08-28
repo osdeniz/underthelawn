@@ -396,14 +396,12 @@ func return_to_hub() -> void:
 ## corkboard, with the pin thunk as the new evidence lands (G10).
 func return_to_board() -> void:
 	_fade_out_then(func() -> void:
-		_clear_game()
-		if _hub == null or not is_instance_valid(_hub):
-			_open_hub()
-		else:
-			_hub.get_parent().visible = true
-			_hub.refresh()
-			AudioDirector.play_theme()
-			_fade_in()
+		# _open_hub(), not a hand-written copy of it. This branch used to re-show
+		# the hub itself and left out set_diorama_active(true), so the town came
+		# back still PARKED — rendered at 1/32 scale for the chapter and then
+		# stretched across the whole screen. It read as heavy shimmering, and it
+		# only happened on this one route home (G13).
+		_open_hub()
 		_hub.open_evidence_board()
 		AudioDirector.play_pin())
 
