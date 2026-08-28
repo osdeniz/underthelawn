@@ -1405,6 +1405,18 @@ const MAP_PLACES := {
 	"ch06_watertower": Vector2(0.85, 0.38),
 	"ch07_mill": Vector2(0.83, 0.14),
 	"ch08_cellar": Vector2(0.92, 0.26),
+	# Case 02, Act 1 (G13). The break from town happens in FAMILIAR country, so
+	# these are pins on the town sheet like Case 01's — not stops on the east
+	# road, which only starts at the river. Without them the first three
+	# chapters had no pin anywhere and the whole case was unreachable: every
+	# east-road stop reported "finish the earlier places" about places the
+	# player could not get to.
+	"ch09_radio_room": Vector2(0.62, 0.62),
+	"ch10_relay_hill": Vector2(0.70, 0.07),
+	"ch11_orchard": Vector2(0.09, 0.58),
+	# And the way back. B18 ends at the town, so it belongs to the town sheet
+	# rather than to the road it walks along.
+	"ch18_long_road_home": Vector2(0.965, 0.62),
 }
 ## Restored buildings that appear on the town map as small icons, and which
 ## screen each one opens.

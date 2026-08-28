@@ -573,6 +573,10 @@ func _build_pins() -> void:
 	var order: Array = GameConfig.MAP_PLACES.keys()
 	var next_id := _next_place(order)
 	for id_any: Variant in order:
+		# A later case's places stay off the sheet until that case opens, or the
+		# town map spoils it and offers pins nothing can start.
+		if _belongs_to_case_two(str(id_any)) and not ChapterProgress.case_two_open():
+			continue
 		var id := str(id_any)
 		var pin := _place_pin(id, id == next_id)
 		pin.position = rect.position \
@@ -581,6 +585,14 @@ func _build_pins() -> void:
 
 
 ## The first place that is not finished — the one the case is asking for.
+## True for a chapter in Case 02, wherever its pin happens to live.
+func _belongs_to_case_two(variant_id: String) -> bool:
+	for chapter: Dictionary in Story.list("case_02.chapters"):
+		if str(chapter.get("variant_id", "")) == variant_id:
+			return true
+	return false
+
+
 ## True for a chapter that lives on the east road rather than in the town.
 func _is_east_road(variant_id: String) -> bool:
 	for pin: Dictionary in Story.list("east_road.pins"):
@@ -727,8 +739,11 @@ func _open_panel(variant_id: String) -> void:
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_panel.offset_left = 40.0
 	_panel.offset_right = -40.0
-	_panel.offset_top = -430.0
-	_panel.offset_bottom = -40.0
+	# Clear of the hub's BACK button, which is anchored to the same edge in the
+	# band -160..-60 — the panel used to run to -40 and the two drew on top of
+	# each other, with the start button underneath the word BACK (G13).
+	_panel.offset_top = -600.0
+	_panel.offset_bottom = -184.0
 	add_child(_panel)
 
 	var rows := VBoxContainer.new()
@@ -870,8 +885,9 @@ func _open_harvest_panel() -> void:
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_panel.offset_left = 40.0
 	_panel.offset_right = -40.0
-	_panel.offset_top = -390.0
-	_panel.offset_bottom = -40.0
+	# Same clearance as the place panel: the BACK button owns the bottom band.
+	_panel.offset_top = -560.0
+	_panel.offset_bottom = -184.0
 	add_child(_panel)
 
 	var rows := VBoxContainer.new()

@@ -33,6 +33,8 @@ func _ready() -> void:
 	await _check_map()
 	await _check_warm_up_leaves_no_trace()
 	await _check_the_door()
+	_check_every_chapter_has_a_pin()
+	await _check_panel_clears_back()
 
 	if _fails > 0:
 		push_error("%d VAKA 02 AKIS TESTI BASARISIZ" % _fails)
@@ -239,6 +241,49 @@ func _check_the_door() -> void:
 		if child is PanelContainer:
 			panels += 1
 	ck("durak paneli acildi", panels >= 1, str(panels))
+	map.queue_free()
+	await settle(0.3)
+
+
+## Every Case 02 chapter has to be somewhere the player can tap. Four of them
+## were nowhere: Act 1 was specified as pins on the TOWN sheet and never given
+## any, and B18 was left off the east road — so the road's stops reported
+## "finish the earlier places" about places that did not exist on any map, and
+## the case could not be started at all (G13).
+func _check_every_chapter_has_a_pin() -> void:
+	for chapter: Dictionary in Story.list("case_02.chapters"):
+		var vid := str(chapter.get("variant_id", ""))
+		var on_town: bool = GameConfig.MAP_PLACES.has(vid)
+		var on_road := false
+		for pin: Dictionary in Story.list("east_road.pins"):
+			if str(pin.get("chapter", "")) == vid:
+				on_road = true
+		ck("haritada yeri var: %s" % vid, on_town or on_road, vid)
+		ck("tek bir haritada: %s" % vid, not (on_town and on_road), vid)
+
+
+## The place panel and the hub's BACK button are both anchored to the bottom
+## edge, and the panel used to run right through the button — the start button
+## and the word BACK drew on top of each other.
+func _check_panel_clears_back() -> void:
+	var map := TownMap.new()
+	map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	map.size = Vector2(1170, 2532)
+	add_child(map)
+	await settle(1.2)
+	map.focus_place("ch09_radio_room")
+	await settle(1.0)
+	var panel: Control = null
+	for child in map.get_children():
+		if child is PanelContainer:
+			panel = child
+	ck("yer paneli acildi", panel != null, "")
+	if panel != null:
+		# The button's band is the bottom 160..60 px of the screen.
+		var back_top := map.size.y - 160.0
+		var panel_bottom := panel.position.y + panel.size.y
+		ck("panel geri dugmesine girmiyor", panel_bottom <= back_top,
+			"panel %.0f > dugme %.0f" % [panel_bottom, back_top])
 	map.queue_free()
 	await settle(0.3)
 

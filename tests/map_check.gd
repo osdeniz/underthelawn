@@ -14,13 +14,20 @@ func _ready() -> void:
 
 	# Every chapter must have a place on the map, or it becomes unreachable the
 	# moment the list is gone.
+	# MAP_PLACES used to be exactly Case 01's eight, so a size comparison said
+	# what was meant. It now also carries Case 02's town-side chapters, and the
+	# rule is the one that always mattered: nothing on a board is without a
+	# place, and no place belongs to nothing (G13).
 	var chapters: Array = Story.list("chapters")
-	ck("her bolumun haritada yeri var",
-		GameConfig.MAP_PLACES.size() == chapters.size(),
-		"%d yer / %d bolum" % [GameConfig.MAP_PLACES.size(), chapters.size()])
+	var all_ids: Array[String] = []
+	for chapter_any: Variant in chapters + Story.list("case_02.chapters"):
+		all_ids.append(str((chapter_any as Dictionary).get("variant_id", "")))
 	for chapter_any: Variant in chapters:
 		var id := str((chapter_any as Dictionary).get("variant_id", ""))
 		ck("yeri var: %s" % id, GameConfig.MAP_PLACES.has(id), "")
+	for place_any: Variant in GameConfig.MAP_PLACES.keys():
+		ck("yer bir bolume ait: %s" % str(place_any),
+			all_ids.has(str(place_any)), str(place_any))
 
 	# Case 1 must END east of where it STARTED, and finish in the far east.
 	#
@@ -29,7 +36,11 @@ func _ready() -> void:
 	# drawn on the west side of the town, and moving that pin off the building
 	# it is named after would be worse than a detour in the route. A real trail
 	# doubles back; what matters is that it ARRIVES in the east.
-	var route: Array = GameConfig.MAP_PLACES.keys()
+	# Case 01's OWN route, in Case 01's order — the dictionary now holds later
+	# chapters too and its key order is no longer one case's journey.
+	var route: Array[String] = []
+	for chapter_any: Variant in chapters:
+		route.append(str((chapter_any as Dictionary).get("variant_id", "")))
 	var first: Vector2 = GameConfig.MAP_PLACES[route[0]]
 	var last: Vector2 = GameConfig.MAP_PLACES[route[route.size() - 1]]
 	ck("rota doguda bitiyor", last.x > first.x + 0.35,
