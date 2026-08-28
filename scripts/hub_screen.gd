@@ -118,14 +118,18 @@ func _ready() -> void:
 	_build_background()
 	_build_top_bar()
 	_tiles_page = _build_tiles()
-	_board_page = _build_board()
+	# The board is built on FIRST USE, not here (G13). It is the most expensive
+	# page the hub owns — sixteen evidence cards, each rendering its object in
+	# its own little 3D world, measured at 14.4 MB and sixteen draw calls a
+	# frame — and a player who never opens it should not pay for it. Building it
+	# costs 9.2 ms and its previews have pixels one frame later, both of which
+	# disappear under the fade _show_page already runs.
 	_town_page = _build_town()
 	_workshop_page = _build_workshop()
 	_restore_page = _build_restore()
 	_echoes_page = _build_echoes()
 	_objectives_page = _build_objectives()
 	add_child(_tiles_page)
-	add_child(_board_page)
 	add_child(_town_page)
 	add_child(_workshop_page)
 	add_child(_restore_page)
@@ -380,6 +384,23 @@ func _show_page(page: Control) -> void:
 
 
 ## Every full-screen page, in no particular order.
+## The board page, building it the first time somebody asks. Every entry point
+## to the board goes through this — the hub tile, the chapter-end "view case
+## board" button, and the map — so there is no path that can reach a page that
+## does not exist yet.
+func _ensure_board_page() -> Control:
+	if _board_page != null and is_instance_valid(_board_page):
+		return _board_page
+	_board_page = _build_board()
+	_board_page.visible = false
+	# Appended, like every other page. An earlier version moved it to index 2 to
+	# "match _ready's order" and buried it behind the background and the
+	# diorama, where it drew but could not be seen — the pages built in _ready
+	# come AFTER the background and the top bar, not before them.
+	add_child(_board_page)
+	return _board_page
+
+
 func _pages() -> Array:
 	var list: Array = []
 	for candidate in [_tiles_page, _board_page, _town_page, _workshop_page,
@@ -586,7 +607,7 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 	Haptics.light()
 	match id:
 		"case_board":
-			_show_page(_board_page)
+			_show_page(_ensure_board_page())
 		"town":
 			_rebuild_town()
 			_show_page(_town_page)
@@ -1272,7 +1293,7 @@ func _on_map_shortcut(page_id: String) -> void:
 ## Opens the case screen on the map, focused on one place. Used by the
 ## chapter-end "next" button so a finished search leads back to the journey.
 func open_map_at(variant_id: String) -> void:
-	_show_page(_board_page)
+	_show_page(_ensure_board_page())
 	_show_board_tab(false)
 	if _map != null and is_instance_valid(_map):
 		_map.focus_place(variant_id)
@@ -1281,6 +1302,9 @@ func open_map_at(variant_id: String) -> void:
 ## Swaps between the chapter list and the corkboard, restyling the tab pair so
 ## the active one reads pressed.
 func _show_board_tab(evidence: bool) -> void:
+	# Same rule as _refresh_board: refresh() calls this on every hub entry.
+	if _board_page == null or not is_instance_valid(_board_page):
+		return
 	Haptics.light()
 	_board_scroll.visible = evidence
 	if _map != null and is_instance_valid(_map):
@@ -1296,7 +1320,7 @@ func _show_board_tab(evidence: bool) -> void:
 
 ## Opens the case board page directly on the corkboard (the case-notes button).
 func open_evidence_board() -> void:
-	_show_page(_board_page)
+	_show_page(_ensure_board_page())
 	_refresh_board()
 	_show_board_tab(true)
 
@@ -1304,6 +1328,11 @@ func open_evidence_board() -> void:
 ## Rebuilt on every entry, so a chapter finished in this session shows as done
 ## without a hub reload.
 func _refresh_board() -> void:
+	# NOT _ensure_board_page(): refresh() runs on every return to the hub, and
+	# building the board here would defeat the whole point of building it late.
+	# Nothing needs refreshing until it exists — it is built from current state.
+	if _board_page == null or not is_instance_valid(_board_page):
+		return
 	var column: VBoxContainer = _board_page.get_meta("column")
 	for child in column.get_children():
 		if child is Button:

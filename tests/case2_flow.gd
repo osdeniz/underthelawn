@@ -36,6 +36,7 @@ func _ready() -> void:
 	_check_every_chapter_has_a_pin()
 	await _check_panel_clears_back()
 	await _check_warm_up_survives_a_road_chapter()
+	await _check_board_is_built_late()
 
 	if _fails > 0:
 		push_error("%d VAKA 02 AKIS TESTI BASARISIZ" % _fails)
@@ -329,6 +330,50 @@ func _check_warm_up_survives_a_road_chapter() -> void:
 	ck("model kendi sinirini koruyor",
 		model.mow(7, 19, 0) == LawnModel.MowResult.NONE, "")
 	LevelVariant.restore(before)
+
+
+## The board is the hub's most expensive page — sixteen evidence cards, each
+## rendering its object in its own 3D world, measured at ~15 MB — and a player
+## who never opens it should not pay for it. Built on first use instead, which
+## has to hold for EVERY route in, and must not be forced by refresh(), which
+## runs on every return to the hub.
+func _check_board_is_built_late() -> void:
+	for chapter: Dictionary in Story.list("chapters"):
+		ChapterProgress.record(str(chapter.get("variant_id", "")), 2, 2)
+	var hub := HubScreen.new()
+	add_child(hub)
+	await settle(1.2)
+	ck("pano hub ile birlikte kurulmuyor",
+		_sub_viewports(hub) == 1, "%d subviewport" % _sub_viewports(hub))
+	hub.refresh()
+	await settle(0.6)
+	ck("refresh panoyu kurdurmuyor",
+		_sub_viewports(hub) == 1, "%d subviewport" % _sub_viewports(hub))
+	hub.open_evidence_board()
+	await settle(1.0)
+	var built := _sub_viewports(hub)
+	ck("pano acilinca kuruluyor", built > 1, "%d subviewport" % built)
+	# And it is not rebuilt: a second route in must reuse the same page.
+	hub.open_map_at("ch01_aldridge")
+	await settle(0.5)
+	hub.open_evidence_board()
+	await settle(0.5)
+	ck("pano yeniden kurulmuyor", _sub_viewports(hub) == built,
+		"%d -> %d" % [built, _sub_viewports(hub)])
+	# Buried behind the background once, where it drew but could not be seen.
+	var page: Node = hub._board_page
+	ck("pano sayfasi gorunur katmanda",
+		page != null and hub.get_children().find(page) >= hub.get_child_count() - 8,
+		"indeks %d / %d" % [hub.get_children().find(page), hub.get_child_count()])
+	hub.queue_free()
+	await settle(0.3)
+
+
+func _sub_viewports(n: Node) -> int:
+	var total := 1 if n is SubViewport else 0
+	for child in n.get_children():
+		total += _sub_viewports(child)
+	return total
 
 
 func ck(what: String, passed: bool, detail: String) -> void:
