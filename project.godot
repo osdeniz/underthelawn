@@ -17,6 +17,15 @@ run/main_scene="res://scenes/Root.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
+[application]
+
+; 60, not "as fast as the device will go". The iOS plist sets
+; CADisableMinimumFrameDurationOnPhone, which lets a ProMotion iPhone run this
+; at 120 — double the GPU, double the CPU and double the battery for a game
+; whose busiest screen is a still model behind menu cards. Reported as the
+; phone getting hot (G13).
+run/max_fps=60
+
 [audio]
 
 general/ios/session_category=3
