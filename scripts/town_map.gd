@@ -563,7 +563,10 @@ func _build_pins() -> void:
 
 	# The harvest, when the town is asking for it: a gold badge on the farm,
 	# outside the case's own sequence entirely (G13.6).
-	if HarvestLog.is_offered():
+	# The badge marks a place that is always there now; it is gold only while the
+	# invitation stands, so an open field still reads differently from a called
+	# one (G13).
+	if HarvestLog.is_available():
 		var farm: Dictionary = GameConfig.MAP_BUILDINGS["farm"]
 		var call_pin := _harvest_pin()
 		call_pin.position = rect.position + rect.size * (farm["at"] as Vector2) \
@@ -840,9 +843,15 @@ func _harvest_pin() -> Button:
 	pin.set_meta("colour", GameConfig.HARVEST_GOLD)
 	pin.set_meta("harvest", true)
 	pin.draw.connect(func() -> void:
-		var beat := 1.0 + 0.10 * sin(_pulse * 3.0)
-		MapArt.draw_pin(pin, Vector2(44, 34), 26.0 * beat,
-			GameConfig.HARVEST_GOLD)
+		# It beats while the field is ASKING and sits still when it is merely
+		# open, so a standing invitation still reads as one (G13).
+		var beat := 1.0
+		var colour: Color = GameConfig.HARVEST_GOLD
+		if HarvestLog.is_offered():
+			beat = 1.0 + 0.10 * sin(_pulse * 3.0)
+		else:
+			colour = Color(GameConfig.HARVEST_GOLD, 0.72)
+		MapArt.draw_pin(pin, Vector2(44, 34), 26.0 * beat, colour)
 		pin.draw_string(ThemeDB.fallback_font, Vector2(35, 44), "\u2605",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color(0.30, 0.22, 0.06)))
 	pin.pressed.connect(func() -> void:

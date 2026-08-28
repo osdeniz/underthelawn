@@ -459,7 +459,11 @@ func _build_tiles() -> Control:
 ## it can always be found, so it sits with the other tiles in its own gold
 ## (G13.6). Removed again the moment the field has been brought in.
 func _add_harvest_tile(column: VBoxContainer) -> void:
-	if not HarvestLog.is_offered():
+	# is_available, not is_offered: the door, not the invitation. The field used
+	# to appear only on the cadence and vanish again once it had been worked,
+	# so the game's one repeatable job was only takeable when the game felt
+	# like offering it (G13).
+	if not HarvestLog.is_available():
 		return
 	var tile := Button.new()
 	tile.name = "HarvestTile"
@@ -496,7 +500,10 @@ func _add_harvest_tile(column: VBoxContainer) -> void:
 ## restore board earns anything — Ellie's line said he would come back when the
 ## town was ready, and this is where the player watches that happen (G13).
 func _add_case_two_tile(column: VBoxContainer) -> void:
-	if not bool(GameState.get_setting("story", "case01_closed", false)):
+	# The chapters, not the flag. A save that says the ending was seen but has
+	# no finished chapters behind it — a reset, a dev run — used to show Case 02
+	# over a board reading 0/8.
+	if not ChapterProgress.case_one_finished():
 		return
 	var ready := ChapterProgress.case_two_open()
 	var progress := RestoreBoard.town_ready_progress()

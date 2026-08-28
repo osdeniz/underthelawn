@@ -51,9 +51,17 @@ func _ready() -> void:
 func _check_gate() -> void:
 	ck("kapali: vaka 01 acik, kasaba hazir degil",
 		not ChapterProgress.case_two_open(), "")
+	# The flag alone must not open it: a save that says the ending was seen but
+	# has no finished chapters behind it used to show Case 02 over a 0/8 board.
 	GameState.set_setting("story", "case01_closed", true)
-	ck("kapali: vaka 01 kapandi ama kasaba hazir degil",
+	ck("bayrak tek basina yetmiyor",
+		not ChapterProgress.case_one_finished(), "")
+	ck("kapali: bolumler bitmeden vaka 02 acilmaz",
 		not ChapterProgress.case_two_open(), "")
+	for chapter: Dictionary in Story.list("chapters"):
+		ChapterProgress.record(str(chapter.get("variant_id", "")), 2, 2)
+	ck("bolumler bitince vaka 01 bitmis sayiliyor",
+		ChapterProgress.case_one_finished(), "")
 	for project in ["lantern", "swing"]:
 		GameState.set_setting("restore", project, true)
 	ck("kapali: iki proje yetmez", not ChapterProgress.case_two_open(),
@@ -65,13 +73,21 @@ func _check_gate() -> void:
 
 
 func _check_board() -> void:
+	# Its own precondition: the gate check above proves the rule by FINISHING
+	# Case 01, and this one is about the board while Case 01 is still open.
+	for chapter: Dictionary in Story.list("chapters"):
+		GameState.set_setting("progress",
+			str(chapter.get("variant_id", "")) + "_done", false)
 	var all := ChapterProgress.chapters()
-	ck("pano iki vakayi tasiyor", all.size() == 18, str(all.size()))
+	ck("vaka 01 acikken pano sadece vaka 01", all.size() == 8, str(all.size()))
 	ck("aktif vaka ikinci",
 		ChapterProgress.active_case_is_two() == false,
 		"vaka 01 hala bitmemis")
 	for chapter: Dictionary in Story.list("chapters"):
 		ChapterProgress.record(str(chapter.get("variant_id", "")), 2, 2)
+	ck("vaka 01 bitince pano iki vakayi tasiyor",
+		ChapterProgress.chapters().size() == 18,
+		str(ChapterProgress.chapters().size()))
 	ck("vaka 01 bitince aktif vaka ikinci",
 		ChapterProgress.active_case_is_two(), "")
 	ck("sonraki bolum vaka 02'nin ilki",

@@ -39,10 +39,20 @@ static func crumb_key() -> String:
 ## Whether the town is asking for a harvest: the farm rebuilt, the tractor
 ## owned, and enough searches finished since the last one. It then waits
 ## indefinitely — an invitation, never a timer.
+## Whether the field can be worked AT ALL: the farm is standing and there is a
+## tractor to work it with. This is the DOOR, and it never closes again once it
+## opens — the harvest is the game's repeatable job, and a job you can only take
+## when the game offers it is not a job (G13).
+static func is_available() -> bool:
+	return RestoreBoard.is_built("farm") \
+		and Garage.is_unlocked(GameConfig.MOWER_TRACTOR)
+
+
+## Whether the field is ASKING right now. This is the INVITATION — Gus's radio
+## call and the gold badge — and it still runs on the old cadence, so being
+## invited stays an event even though the door is always open.
 static func is_offered() -> bool:
-	if not RestoreBoard.is_built("farm"):
-		return false
-	if not Garage.is_unlocked(GameConfig.MOWER_TRACTOR):
+	if not is_available():
 		return false
 	var since := int(GameState.get_setting(SECTION, KEY_SINCE, 0))
 	return ChapterProgress.done_count() - since >= GameConfig.HARVEST_EVERY

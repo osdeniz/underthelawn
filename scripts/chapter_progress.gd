@@ -14,8 +14,24 @@ const SECTION := "progress"
 ## would come back when the town was ready, so the case waits for Case 01 to be
 ## closed AND for the town to be rebuilt (G13).
 static func case_two_open() -> bool:
-	return bool(GameState.get_setting("story", "case01_closed", false)) \
-		and RestoreBoard.town_ready()
+	return case_one_finished() and RestoreBoard.town_ready()
+
+
+## Case 01 is over when its chapters are ACTUALLY done, not when a flag says so.
+##
+## The flag alone was brittle: it is written by the ending card, and any state
+## that sets it without the chapters behind it — a reset, a dev run, a test
+## writing to the same save file — left the game announcing Case 02 over a board
+## reading 0/8. Asking the chapters is self-correcting; the flag stays as the
+## record of having SEEN the ending (G13).
+static func case_one_finished() -> bool:
+	var chapters := Story.list("chapters")
+	if chapters.is_empty():
+		return false
+	for chapter: Dictionary in chapters:
+		if not is_done(str(chapter.get("variant_id", ""))):
+			return false
+	return true
 
 
 ## All chapter entries the game currently knows, in board order — Case 01, plus
