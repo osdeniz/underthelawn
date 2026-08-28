@@ -149,6 +149,13 @@ func mow(col: int, row: int, stripe_dir: int) -> MowResult:
 	if not in_bounds(col, row):
 		return MowResult.NONE
 	var i := index_of(col, row)
+	# Against ITS OWN array, not just against the global grid. in_bounds() asks
+	# GameConfig, and the grid is global mutable state that outlives no
+	# particular model: a scene torn down while another chapter's grid is
+	# already set indexes a model built for a different shape and crashes on a
+	# read. The model is the thing that knows how big the model is (G13).
+	if i < 0 or i >= states.size():
+		return MowResult.NONE
 	var state := states[i]
 
 	if state == CellState.OBSTACLE:

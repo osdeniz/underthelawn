@@ -35,6 +35,7 @@ func _ready() -> void:
 	await _check_the_door()
 	_check_every_chapter_has_a_pin()
 	await _check_panel_clears_back()
+	await _check_warm_up_survives_a_road_chapter()
 
 	if _fails > 0:
 		push_error("%d VAKA 02 AKIS TESTI BASARISIZ" % _fails)
@@ -286,6 +287,48 @@ func _check_panel_clears_back() -> void:
 			"panel %.0f > dugme %.0f" % [panel_bottom, back_top])
 	map.queue_free()
 	await settle(0.3)
+
+
+## The launch crash. current_variant_id() returns the first UNFINISHED chapter,
+## so a player who has nearly finished the game gets the road home warmed — and
+## the road is 9x34 where every other yard is wider than it is short. The
+## warm-up used to restore the grid while the throwaway scene was still alive
+## and still mowing, so a model built for 306 cells was indexed against a
+## 384-cell grid and read off the end of its own array.
+func _check_warm_up_survives_a_road_chapter() -> void:
+	for chapter: Dictionary in Story.list("chapters") + Story.list("case_02.chapters"):
+		var vid := str(chapter.get("variant_id", ""))
+		if vid != "ch18_long_road_home":
+			ChapterProgress.record(vid, 2, 2)
+	ck("isitilacak bolum yol bolumu",
+		ChapterProgress.current_variant_id() == "ch18_long_road_home",
+		ChapterProgress.current_variant_id())
+	var before := LevelVariant.snapshot()
+	var root := RootFlow.new()
+	add_child(root)
+	await root._warm_chapter_shaders(false)
+	await settle(0.5)
+	ck("isitma izgarayi geri verdi",
+		GameConfig.GRID_COLS == int(before["cols"])
+			and GameConfig.GRID_ROWS == int(before["rows"]),
+		"%dx%d" % [GameConfig.GRID_COLS, GameConfig.GRID_ROWS])
+	ck("isitma sahnesi gitti", root.get_node_or_null("Main") == null, "")
+	root.queue_free()
+	await settle(0.3)
+
+	# And the model refuses to read off its own end even if the grid moves
+	# under it, which is the guard that turns this class of mistake into a
+	# no-op instead of a crash.
+	LevelVariant.of("ch18_long_road_home").apply()
+	var model := LawnModel.new(1818)
+	var cells := GameConfig.CELL_COUNT
+	LevelVariant.of("ch01_aldridge").apply()
+	ck("izgara gercekten degisti", GameConfig.CELL_COUNT != cells,
+		"%d -> %d" % [cells, GameConfig.CELL_COUNT])
+	# Row 19, col 7 is inside the NEW grid and past the end of the OLD model.
+	ck("model kendi sinirini koruyor",
+		model.mow(7, 19, 0) == LawnModel.MowResult.NONE, "")
+	LevelVariant.restore(before)
 
 
 func ck(what: String, passed: bool, detail: String) -> void:

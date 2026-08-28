@@ -139,7 +139,19 @@ func _warm_chapter_shaders(announce: bool) -> void:
 	for _i in 4:
 		await RenderingServer.frame_post_draw
 	if is_instance_valid(warm):
+		# STOP it before restoring, and wait for it to actually leave.
+		#
+		# queue_free() is deferred: the scene lives to the end of the frame and
+		# its mower keeps mowing. Restoring the grid first left a LawnModel
+		# built for one grid being indexed against another, which is an
+		# out-of-bounds crash — and it only appeared once a player had
+		# progressed far enough that the warmed chapter was the ROAD (9x34)
+		# rather than a medium yard, because until then the two grids matched
+		# by luck (G13).
+		warm.process_mode = Node.PROCESS_MODE_DISABLED
+		var gone := warm.tree_exited
 		warm.queue_free()
+		await gone
 	LevelVariant.restore(world)
 	if notice != null and is_instance_valid(notice):
 		notice.queue_free()
