@@ -55,8 +55,17 @@ func _ready() -> void:
 	GameState.set_setting("story", "intro_seen", true)
 	var root: Node = load("res://scenes/Root.tscn").instantiate()
 	add_child(root)
+	# The hub keeps building for a while after it appears — the diorama grows
+	# its town over several frames — so sampling too early records a baseline
+	# the rest of the run can only exceed. Waited out rather than guessed at.
 	await settle(1.5)
 	var hub_nodes := int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
+	while true:
+		await settle(0.6)
+		var now := int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
+		if now <= hub_nodes:
+			break
+		hub_nodes = now
 
 	var peak_tex := 0.0
 	var peak_static := 0.0
@@ -75,8 +84,16 @@ func _ready() -> void:
 		settled_static = static_mb()
 		settled_nodes = int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
 
-	ck("doku belleği bütçede", peak_tex <= PEAK_TEXTURE_MB,
-		"%.1f MB > %.1f MB" % [peak_tex, PEAK_TEXTURE_MB])
+	# Godot's texture-memory counter under-counts once render targets have been
+	# freed — it can read zero or go negative — so a plain "under budget" check
+	# passes for the wrong reason exactly when the number is broken. Assert only
+	# on a reading that is physically possible, and say so when it is not.
+	if peak_tex > 1.0:
+		ck("doku belleği bütçede", peak_tex <= PEAK_TEXTURE_MB,
+			"%.1f MB > %.1f MB" % [peak_tex, PEAK_TEXTURE_MB])
+	else:
+		print("  [not] doku sayaci okunamadi (%.1f MB) - bu kosuda atlandi"
+			% peak_tex)
 	ck("statik bellek bütçede", peak_static <= PEAK_STATIC_MB,
 		"%.1f MB > %.1f MB" % [peak_static, PEAK_STATIC_MB])
 	ck("bölüm kapaninca bellek geri veriliyor",

@@ -2365,40 +2365,48 @@ count right.
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.
 
-## G13 — Case 02 economy simulation (PLACEHOLDER budgets)
+## G13 — Case 02 economy, calibrated
 
-The ten Case 02 chapters continue the V1 curve. Every number below is a
-PLACEHOLDER awaiting the same calibration pass G14.3 gave Case 01; they are
-recorded here so the next pass starts from measurements rather than from a
-blank page.
+The problem the calibration found: every sink in the game costs **14 410**
+(6 250 of restoration plus 8 160 of garage), and Case 01 at 100% already pays
+**14 255** — G14.3 tuned it to fund the whole economy on its own. Case 02 on its
+first-pass budgets added another **22 870**, which is 22 715 of scrap with
+nothing to buy. That does not make the player rich; it makes the restore board
+meaningless, and the restore board is Case 02's own gate.
 
-Simulated at 100% completion with every buried point collected, mid pickup
-value, and `SEARCH_SCRAP_MULTIPLIER` applied — the same model the G14.3 note
-uses, so the two are comparable.
+The fix separates two things that were one number. `scrap_budget` is how many
+pieces are BURIED — density, the reward for looking around, and the reason a
+yard feels worth walking. `scrap_multiplier` is what they are WORTH. Case 02
+keeps Case 01's burial density and pays 0.32 of it, because the economy it lands
+in has no new sinks.
 
-| chapter | budget | payout at 100% | cumulative |
-|---|---|---|---|
-| ch09_radio_room | 13 | 2 037 | 2 037 |
-| ch10_relay_hill | 12 | 1 880 | 3 917 |
-| ch11_orchard | 16 | 2 506 | 6 423 |
-| ch12_river_crossing | 14 | 2 190 | 8 613 |
-| ch13_roadside_camp | 17 | 2 662 | 11 275 |
-| ch14_listening_post | 14 | 2 190 | 13 465 |
-| ch15_old_clinic | 15 | 2 353 | 15 818 |
-| ch16_meeting_stone | 18 | 2 819 | 18 637 |
-| ch17_signal_garden | 12 | 1 880 | 20 517 |
-| ch18_long_road_home | 15 | 2 353 | 22 870 |
+| chapter | budget | mult | payout at 100% | cumulative |
+|---|---|---|---|---|
+| ch09_radio_room | 13 | 0.32 | 652 | 652 |
+| ch10_relay_hill | 12 | 0.32 | 602 | 1 254 |
+| ch11_orchard | 16 | 0.32 | 802 | 2 056 |
+| ch12_river_crossing | 14 | 0.32 | 701 | 2 757 |
+| ch13_roadside_camp | 17 | 0.32 | 852 | 3 609 |
+| ch14_listening_post | 14 | 0.32 | 701 | 4 310 |
+| ch15_old_clinic | 15 | 0.32 | 753 | 5 063 |
+| ch16_meeting_stone | 18 | 0.32 | 902 | 5 965 |
+| ch17_signal_garden | 12 | 0.32 | 602 | 6 567 |
+| ch18_long_road_home | 15 | 0.32 | 753 | 7 320 |
+
+**Where that lands.** Both cases at 100% pay 21 575 against 14 410 of sinks —
+**1.50×**. A thorough player affords everything with slack. A player at ~70%
+completion earns about 15 100 and still has to choose between the garage and the
+town, which is exactly the choice the Case 02 gate exists to notice.
 
 **The Toll (B15.5)** takes 15% of the wallet, floored at 30 and capped at 200,
 and never more than the player is carrying. It fires once, on the way back from
-ch15. Worst case for a player who has banked everything and spent nothing by
-then (15 818 earned): the cap makes it **200**, or 1.3% of the run — a real
-cost that is felt as a scene rather than as a setback. For a player who has
-spent down to under 200 the floor makes it 30. It cannot bankrupt anyone and it
-cannot be ignored, which is the whole design of a toll.
+ch15. By then a 100% player has earned 14 255 + 5 063 = 19 318 and spent most of
+it; the cap makes the toll 200 at worst, the floor makes it 30 at best. It
+cannot bankrupt anyone and it cannot be ignored, which is the design of a toll.
 
-Against this, the Case 02 gate is three restoration projects — 950 for the
-cheapest three, cleared by a single chapter at 100%. The gate is a nudge, not a
-wall; it bites only for a player who put every piece of scrap into the garage,
-which is the choice it exists to notice.
+**Objective rewards** (700 / 900 / 1 200 for the three Case 02 objectives) remain
+PLACEHOLDERS by decision — they settle with the next calibration package.
+
+**Case 03 is where this points.** Case 02 deliberately does not add sinks; if
+Case 03 adds any, this multiplier is the first number to revisit.
 

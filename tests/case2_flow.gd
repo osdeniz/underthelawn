@@ -30,6 +30,8 @@ func _ready() -> void:
 	await _check_board()
 	await _check_chapter_runs()
 	_check_endings()
+	await _check_map()
+	await _check_warm_up_leaves_no_trace()
 
 	if _fails > 0:
 		push_error("%d VAKA 02 AKIS TESTI BASARISIZ" % _fails)
@@ -117,6 +119,75 @@ func _check_endings() -> void:
 	ck("donus yolu vaka 02'ye ait",
 		root._in_case_two("ch18_long_road_home"), "")
 	root.free()
+
+
+## The world map has to be able to START a Case 02 chapter, show its NAME, and
+## not put its stops on top of each other. All three were broken at once, and
+## none of them raised anything.
+func _check_map() -> void:
+	var map := TownMap.new()
+	map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(map)
+	await settle(1.2)
+	map.show_layer(0, false)
+	await settle(0.8)
+
+	# The panel must name the place, not print the variant id at the player.
+	ck("harita bolum adini biliyor",
+		map._place_name("ch12_river_crossing") == "CH_12_NAME",
+		map._place_name("ch12_river_crossing"))
+
+	# Every Case 02 chapter must be reachable. The order came from the eight
+	# TOWN places, so no east-road stop was ever "next" and the whole case was
+	# locked out of the map.
+	var order := map._case_order("ch12_river_crossing")
+	ck("harita sirasi vaka 02'yi taniyor", order.has("ch18_long_road_home"),
+		str(order.size()))
+	ck("ilk durak siradaki",
+		map._next_place(order) == "ch09_radio_room", map._next_place(order))
+
+	# Stops must not overlap, or a tap lands on the wrong chapter.
+	var world := map.get_node_or_null("WorldLayer") as Control
+	var road := world.get_node_or_null("EastRoad") as Control
+	ck("dogu yolu katmani tiklamayi gecirir",
+		road != null and road.mouse_filter == Control.MOUSE_FILTER_IGNORE,
+		str(road.mouse_filter) if road != null else "-")
+	var stops: Array[Rect2] = []
+	for child in road.get_children():
+		var b := child as Button
+		if b != null:
+			stops.append(Rect2(b.position, b.custom_minimum_size))
+	ck("alti durak var", stops.size() == 6, str(stops.size()))
+	var clashes := 0
+	for i in stops.size():
+		for j in range(i + 1, stops.size()):
+			if stops[i].intersection(stops[j]).get_area() > 0.0:
+				clashes += 1
+	ck("duraklar ust uste binmiyor", clashes == 0, "%d cakisma" % clashes)
+	map.queue_free()
+	await settle(0.3)
+
+
+## A variant is GLOBAL state. Anything that applies one temporarily has to put
+## the world back, or the next thing to grow grass grows the wrong grass — which
+## is exactly what turned the hub's diorama blue on first launch.
+func _check_warm_up_leaves_no_trace() -> void:
+	var before := LevelVariant.snapshot()
+	LevelVariant.of("ch12_river_crossing").apply()
+	ck("uygula gercekten degistiriyor",
+		GameConfig.active_plant_profile == "REED",
+		GameConfig.active_plant_profile)
+	LevelVariant.restore(before)
+	ck("geri alma paleti kurtariyor",
+		GameConfig.active_grass_palette == str(before["palette"]),
+		GameConfig.active_grass_palette)
+	ck("geri alma bitkiyi kurtariyor",
+		GameConfig.active_plant_profile == str(before["plant"]),
+		GameConfig.active_plant_profile)
+	ck("geri alma izgarayi kurtariyor",
+		GameConfig.GRID_COLS == int(before["cols"])
+			and GameConfig.GRID_ROWS == int(before["rows"]),
+		"%dx%d" % [GameConfig.GRID_COLS, GameConfig.GRID_ROWS])
 
 
 func ck(what: String, passed: bool, detail: String) -> void:

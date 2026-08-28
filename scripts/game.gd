@@ -700,6 +700,12 @@ func _payout() -> Dictionary:
 	var multiplier := GameConfig.SEARCH_SCRAP_MULTIPLIER
 	if variant != null and variant.is_harvest():
 		multiplier = GameConfig.HARVEST_SCRAP_MULTIPLIER
+	# And the chapter's own weighting on top (G13). Case 02 buries as much as
+	# Case 01 does — the yards would feel empty otherwise — but the economy it
+	# lands in has no new sinks, so what it pays is scaled rather than what it
+	# hides.
+	if variant != null:
+		multiplier *= variant.scrap_multiplier
 	for key: String in payout:
 		# "ratio" is completion (0-1), not a scrap amount - multiplying it
 		# made a full harvest report "200% mowed" on the completion panel.

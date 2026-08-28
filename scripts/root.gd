@@ -125,6 +125,11 @@ func _warm_chapter_shaders(announce: bool) -> void:
 	var notice: Label = null
 	if announce and _shader_cache_cold():
 		notice = _build_warm_notice()
+	# The throwaway chapter applies its variant, and a variant is GLOBAL state:
+	# palette, plant profile, obstacle layout and grid. Left set, the hub's
+	# diorama grew the yard's grass instead of the town's — blue-green on first
+	# launch. Snapshot before, restore after (G13).
+	var world := LevelVariant.snapshot()
 	var warm: Node = load(GAME_SCENE).instantiate()
 	warm.set("variant_id", ChapterProgress.current_variant_id())
 	warm.set("autostart_search", false)
@@ -135,6 +140,7 @@ func _warm_chapter_shaders(announce: bool) -> void:
 		await RenderingServer.frame_post_draw
 	if is_instance_valid(warm):
 		warm.queue_free()
+	LevelVariant.restore(world)
 	if notice != null and is_instance_valid(notice):
 		notice.queue_free()
 	GameState.set_setting("meta", WARMED_FOR, _build_stamp())

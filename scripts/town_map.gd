@@ -11,6 +11,12 @@ extends Control
 ## and the creek are generated, so the screen is never a missing-art placeholder.
 ## The generated version is the one this was designed against.
 
+## One stop on the east road. Sized so two neighbouring stops cannot overlap at
+## the spacing story.json gives them — the first pass used 96 px buttons at
+## 56 px apart, and a tap near one landed on the next (G13).
+const STOP_SIZE := 72.0
+const STOP_RADIUS := 20.0
+
 signal place_chosen(variant_id: String)
 signal shortcut_chosen(page_id: String)
 
@@ -334,7 +340,12 @@ func _build_east_road() -> void:
 	var holder := Control.new()
 	holder.name = "EastRoad"
 	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	holder.mouse_filter = Control.MOUSE_FILTER_PASS
+	# IGNORE, not PASS. PASS still receives the click and hands it to its
+	# PARENT, which means a full-rect layer swallows everything behind it — this
+	# one sat over the world map's town button and the town stopped opening.
+	# IGNORE lets the click through; the stop buttons inside are unaffected,
+	# because a parent's filter does not apply to its children.
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_world.add_child(holder)
 
 	var ink := Control.new()
@@ -348,7 +359,7 @@ func _build_east_road() -> void:
 		var vid := str(pin.get("chapter", ""))
 		var stop := Button.new()
 		stop.name = "Stop_" + vid
-		stop.custom_minimum_size = Vector2(96, 96)
+		stop.custom_minimum_size = Vector2(STOP_SIZE, STOP_SIZE)
 		stop.flat = true
 		stop.focus_mode = Control.FOCUS_NONE
 		stop.set_meta("chapter", vid)
@@ -433,10 +444,10 @@ func _draw_stop(stop: Button) -> void:
 	var active := ChapterProgress.current_variant_id() == vid
 	var ring: Color = GameConfig.MAP_PIN_DONE if done \
 		else (GameConfig.MAP_PIN_ACTIVE if active else GameConfig.MAP_INK_FAINT)
-	stop.draw_circle(centre, 22.0, Color(0.96, 0.93, 0.85, 0.92))
-	stop.draw_arc(centre, 22.0, 0.0, TAU, 28, ring, 5.0, true)
+	stop.draw_circle(centre, STOP_RADIUS, Color(0.96, 0.93, 0.85, 0.92))
+	stop.draw_arc(centre, STOP_RADIUS, 0.0, TAU, 28, ring, 5.0, true)
 	if done:
-		stop.draw_circle(centre, 12.0, ring)
+		stop.draw_circle(centre, STOP_RADIUS * 0.55, ring)
 	elif active:
 		# The next stop breathes, the same way the town map's active pin does.
 		stop.draw_circle(centre, 8.0 + 2.0 * sin(_pulse * 3.0), ring)
@@ -560,6 +571,14 @@ func _build_pins() -> void:
 
 
 ## The first place that is not finished — the one the case is asking for.
+## The chapter ids of the case `variant_id` belongs to, in board order.
+func _case_order(variant_id: String) -> Array:
+	var out: Array = []
+	for chapter: Dictionary in ChapterProgress.case_of(variant_id):
+		out.append(str(chapter.get("variant_id", "")))
+	return out
+
+
 func _next_place(order: Array) -> String:
 	for id_any: Variant in order:
 		if not ChapterProgress.is_done(str(id_any)):
@@ -670,7 +689,11 @@ func _open_panel(variant_id: String) -> void:
 	var total := ChapterProgress.evidence_total(variant_id)
 	if total <= 0:
 		total = LevelVariant.of(variant_id).evidence_count()
-	var order: Array = GameConfig.MAP_PLACES.keys()
+	# The order this place belongs to, not Case 01's. MAP_PLACES lists the eight
+	# town places, so an east-road stop was never anybody's "next" and every
+	# Case 02 chapter was permanently locked — the whole case was unreachable
+	# from the map (G13).
+	var order := _case_order(variant_id)
 	var is_next := _next_place(order) == variant_id
 	var locked := not done and not is_next
 
@@ -857,11 +880,15 @@ func _open_harvest_panel() -> void:
 
 
 ## The chapter's display name, from story.json.
+## Both cases, not just the first. The east road's stops are Case 02 chapters,
+## and looking in Case 01 alone made their panels show the raw variant id —
+## "ch12_river_crossing" where the place's name belongs (G13).
 func _place_name(variant_id: String) -> String:
-	for chapter_any: Variant in Story.list("chapters"):
-		var chapter: Dictionary = chapter_any
-		if str(chapter.get("variant_id", "")) == variant_id:
-			return str(chapter.get("name", variant_id))
+	for path in ["chapters", "case_02.chapters"]:
+		for chapter_any: Variant in Story.list(path):
+			var chapter: Dictionary = chapter_any
+			if str(chapter.get("variant_id", "")) == variant_id:
+				return str(chapter.get("name", variant_id))
 	return variant_id
 
 

@@ -23,6 +23,7 @@ func _ready() -> void:
 	_check_plants()
 	_check_quiet_scenes()
 	_check_east_road()
+	_check_audio()
 
 	if _fails > 0:
 		push_error("%d VAKA 02 TESTI BASARISIZ" % _fails)
@@ -49,6 +50,13 @@ func _check_chapter(vid: String, chapter: Dictionary) -> void:
 	ck("hurda butcesi makul: %s" % vid,
 		variant.scrap_budget >= 6 and variant.scrap_budget <= 24,
 		str(variant.scrap_budget))
+	# Burial density and payout are separate on purpose (G13): Case 02 buries as
+	# much as Case 01 and pays a third of it, because the economy it lands in
+	# has no new sinks. If a chapter forgets the weighting it quietly pays three
+	# times what the calibration assumed.
+	ck("odeme agirligi kalibre: %s" % vid,
+		is_equal_approx(variant.scrap_multiplier, 0.32),
+		"%.2f" % variant.scrap_multiplier)
 	_key("acilis basligi: %s" % vid, variant.opening_headline)
 	_key("acilis alt satiri: %s" % vid, variant.opening_subline)
 	_key("geri alim satiri: %s" % vid, variant.reclaim_line)
@@ -161,6 +169,14 @@ func _check_plants() -> void:
 		ck("profil boyu artan: %s" % id,
 			float(GameConfig.plant("height_max", 0.0))
 				> float(GameConfig.plant("height_min", 0.0)), id)
+		if bool(GameConfig.plant("head", false)):
+			# East is +X, and _add_head faces Vector3(sin(yaw), .., cos(yaw)).
+			# The flavour text says the heads follow the ROAD, so the geometry
+			# has to agree with the sentence (G13).
+			var yaw := float(GameConfig.plant("head_yaw", 0.0))
+			ck("ayciceği basi doguya bakiyor: %s" % id,
+				is_equal_approx(sin(yaw), 1.0) and absf(cos(yaw)) < 0.001,
+				"yaw=%.3f -> (%.2f, %.2f)" % [yaw, sin(yaw), cos(yaw)])
 		if form == "stalk":
 			ck("govde genisligi var: %s" % id,
 				float(GameConfig.plant("stalk_width", 0.0)) > 0.0, id)
@@ -222,6 +238,31 @@ func _check_east_road() -> void:
 			"%.2f,%.2f" % [x, y])
 		ck("yol doguya gidiyor: %s" % vid, x > last_x, "%.3f <= %.3f" % [x, last_x])
 		last_x = x
+
+
+## Every plant that names a cut recording has to have one, and B14's two signal
+## layers have to exist — without them the chapter's whole mechanic is silent
+## and nothing reports it.
+func _check_audio() -> void:
+	for id: String in GameConfig.PLANT_PROFILES:
+		var was := GameConfig.active_plant_profile
+		GameConfig.active_plant_profile = id
+		var wanted := str(GameConfig.plant("cut_sound", ""))
+		if wanted != "":
+			ck("kesim sesi var: %s" % wanted,
+				AudioDirector._plant_cut_stream() != null, wanted)
+		# The fallback pitch must actually shift, or a plant with no recording
+		# sounds exactly like grass.
+		var pitch := float(GameConfig.plant("cut_pitch", 1.0))
+		ck("kesim perdesi makul: %s" % id, pitch >= 0.6 and pitch <= 1.4,
+			"%.2f" % pitch)
+		GameConfig.active_plant_profile = was
+	for name in ["signal_static_loop", "signal_clear_loop"]:
+		var found := false
+		for ext in [".ogg", ".wav", ".mp3"]:
+			if ResourceLoader.exists("res://audio/%s%s" % [name, ext]):
+				found = true
+		ck("sinyal katmani var: %s" % name, found, name)
 
 
 ## A key that has no row in strings.csv comes back from the TranslationServer

@@ -1,5 +1,5 @@
 {
-  "_comment": "One LevelVariant per chapter. ONE game scene builds all of them: nothing here is a scene path. Text fields are translation keys; palette_id indexes GameConfig.GRASS_PALETTES; obstacle_layout_id indexes LawnModel.OBSTACLE_LAYOUTS; grid_size indexes GameConfig.GRID_SIZES. decor_seed makes tree/fence/car/mailbox placement repeatable per chapter, so a yard looks the same every visit. SCRAP BUDGETS for ch09-ch18 are PLACEHOLDERS on the V1 curve, awaiting the same calibration pass G14.3 gave Case 01.",
+  "_comment": "One LevelVariant per chapter. ONE game scene builds all of them: nothing here is a scene path. Text fields are translation keys; palette_id indexes GameConfig.GRASS_PALETTES; obstacle_layout_id indexes LawnModel.OBSTACLE_LAYOUTS; grid_size indexes GameConfig.GRID_SIZES. decor_seed makes tree/fence/car/mailbox placement repeatable per chapter, so a yard looks the same every visit. SCRAP: ch09-ch18 keep Case 01's burial density (scrap_budget) but pay a third of it (scrap_multiplier), because the economy they land in has no new sinks - all of them are already funded by Case 01. Calibrated G13 against the measured totals; see README.",
   "variants": {
     "ch01_aldridge": {
       "palette_id": "GREEN",
@@ -369,7 +369,8 @@
         "flavor_text": "ECHO_CH09_LINE"
       },
       "reclaim_line": "RECLAIM_CH09",
-      "time_of_day": "morning"
+      "time_of_day": "morning",
+      "scrap_multiplier": 0.32
     },
     "ch10_relay_hill": {
       "palette_id": "AMBER",
@@ -410,7 +411,8 @@
         "flavor_text": "ECHO_CH10_LINE"
       },
       "reclaim_line": "RECLAIM_CH10",
-      "time_of_day": "midday"
+      "time_of_day": "midday",
+      "scrap_multiplier": 0.32
     },
     "ch11_orchard": {
       "palette_id": "LUSH",
@@ -451,7 +453,8 @@
         "flavor_text": "ECHO_CH11_LINE"
       },
       "reclaim_line": "RECLAIM_CH11",
-      "time_of_day": "afternoon"
+      "time_of_day": "afternoon",
+      "scrap_multiplier": 0.32
     },
     "ch12_river_crossing": {
       "palette_id": "MARSH",
@@ -495,7 +498,8 @@
       "reclaim_line": "RECLAIM_CH12",
       "time_of_day": "morning",
       "evidence_zone": "far",
-      "mid_chat": "chat_ch12"
+      "mid_chat": "chat_ch12",
+      "scrap_multiplier": 0.32
     },
     "ch13_roadside_camp": {
       "palette_id": "DRY_GOLD",
@@ -538,7 +542,8 @@
       },
       "reclaim_line": "RECLAIM_CH13",
       "time_of_day": "midday",
-      "mid_chat": "chat_ch13"
+      "mid_chat": "chat_ch13",
+      "scrap_multiplier": 0.32
     },
     "ch14_listening_post": {
       "palette_id": "DUSK_VIOLET",
@@ -582,7 +587,8 @@
       "reclaim_line": "RECLAIM_CH14",
       "time_of_day": "dusk",
       "mid_chat": "chat_ch14",
-      "signal_layers": true
+      "signal_layers": true,
+      "scrap_multiplier": 0.32
     },
     "ch15_old_clinic": {
       "palette_id": "EMERALD",
@@ -625,7 +631,8 @@
       },
       "reclaim_line": "RECLAIM_CH15",
       "time_of_day": "afternoon",
-      "mid_chat": "chat_ch15"
+      "mid_chat": "chat_ch15",
+      "scrap_multiplier": 0.32
     },
     "ch16_meeting_stone": {
       "palette_id": "DRY_GOLD",
@@ -668,7 +675,8 @@
       },
       "reclaim_line": "RECLAIM_CH16",
       "time_of_day": "golden",
-      "mid_chat": "chat_ch16"
+      "mid_chat": "chat_ch16",
+      "scrap_multiplier": 0.32
     },
     "ch17_signal_garden": {
       "palette_id": "LUSH",
@@ -710,7 +718,8 @@
         "flavor_text": "ECHO_CH17_LINE"
       },
       "reclaim_line": "RECLAIM_CH17",
-      "time_of_day": "afternoon"
+      "time_of_day": "afternoon",
+      "scrap_multiplier": 0.32
     },
     "ch18_long_road_home": {
       "palette_id": "WHEAT",
@@ -762,7 +771,8 @@
         0.25,
         0.5,
         0.75
-      ]
+      ],
+      "scrap_multiplier": 0.32
     }
   }
 }

@@ -418,33 +418,33 @@
     "pins": [
       {
         "chapter": "ch12_river_crossing",
-        "x": 0.615,
+        "x": 0.578,
         "y": 0.47
       },
       {
         "chapter": "ch13_roadside_camp",
-        "x": 0.7,
-        "y": 0.432
+        "x": 0.648,
+        "y": 0.424
       },
       {
         "chapter": "ch14_listening_post",
-        "x": 0.762,
-        "y": 0.478
+        "x": 0.716,
+        "y": 0.484
       },
       {
         "chapter": "ch15_old_clinic",
-        "x": 0.838,
-        "y": 0.436
+        "x": 0.788,
+        "y": 0.428
       },
       {
         "chapter": "ch16_meeting_stone",
-        "x": 0.888,
-        "y": 0.5
+        "x": 0.858,
+        "y": 0.494
       },
       {
         "chapter": "ch17_signal_garden",
-        "x": 0.936,
-        "y": 0.446
+        "x": 0.93,
+        "y": 0.44
       }
     ]
   },

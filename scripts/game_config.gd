@@ -365,7 +365,11 @@ const PLANT_PROFILES := {
 		"form": "stalk", "per_cell": 3, "leaves": 4,
 		"height_min": 1.85, "height_max": 2.35, "tall_chance": 0.5,
 		"stalk_width": 0.048, "leaf_length": 0.52, "spread": 0.44,
-		"head": true, "head_radius": 0.30, "head_yaw": -1.20,
+		## EAST. Row 0 is north (-Z), so east is +X, and _add_head builds its
+		## facing as Vector3(sin(yaw), .., cos(yaw)) — which makes east exactly
+		## a quarter turn. The first pass used -1.20 and the whole field faced
+		## WEST, away from the road the flavour text says they are following.
+		"head": true, "head_radius": 0.30, "head_yaw": PI * 0.5,
 		"head_petal": Color(0.94, 0.72, 0.16), "head_disc": Color(0.30, 0.20, 0.10),
 		"sway": 0.5, "cut_sound": "cut_sunflower", "cut_pitch": 0.92,
 		"clipping_scale": 1.8, "clipping": Color(0.92, 0.74, 0.26),

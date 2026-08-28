@@ -100,6 +100,191 @@ def cut():
     return out
 
 
+# ---- G13 plant cuts: the east road grows three things that do not sound like
+# grass, and the ear tells plants apart faster than the eye does.
+
+
+def cut_reed():
+    """Reeds: a hiss, not a shear.
+
+    A reed is thin, hollow and wet at the base. There is almost no thump —
+    nothing heavy is moving — and the pops are soft and numerous rather than
+    sharp, because a bed of them gives way a dozen stems at a time. Longer than
+    grass and brighter, with a faint whistle from air over the cut tubes.
+    """
+    n = seconds(0.42)
+    out = []
+    crng = random.Random(20261101)
+    lp_a = lp_b = lp_slow = 0.0
+    pops = sorted(crng.uniform(0.02, 0.95) for _ in range(crng.randint(14, 20)))
+    pop_gain = [crng.uniform(0.20, 0.55) for _ in pops]
+    pop_freq = [crng.uniform(2600, 6200) for _ in pops]
+    whistle = crng.uniform(1750, 2100)
+    for i in range(n):
+        t = i / n
+        white = crng.random() - 0.5
+        # Brighter split than grass: one fewer pole of lowpass, so more of the
+        # 4-8 kHz air stays in and the result reads as rustle rather than shear.
+        lp_a += (white - lp_a) * 0.86
+        lp_b += (lp_a - lp_b) * 0.86
+        lp_slow += (lp_b - lp_slow) * 0.07
+        hiss = (lp_b - lp_slow) * 3.6
+        amp = math.sin(math.pi * min(1.0, t * 1.05)) ** 1.15
+        v = hiss * amp
+        # Air over the cut tubes, quiet and detuned so it never reads as a note.
+        v += math.sin(TAU * whistle * (i / SR)) * 0.05 * amp * (0.6 + 0.4 * t)
+        for k, at in enumerate(pops):
+            if t >= at:
+                dt = (t - at) * n / SR
+                if dt < 0.02:
+                    v += (math.sin(TAU * pop_freq[k] * dt) * pop_gain[k]
+                          * 0.10 * math.exp(-260 * dt))
+        out.append(v)
+    return out
+
+
+def cut_corn():
+    """Corn: a crack.
+
+    A stalk is thick, dry and hollow, and it fails all at once. So this is the
+    inverse of the reed — few transients but big ones, low and woody, with a
+    real thump under them and only a short tail of hiss from the leaves. The
+    first crack lands immediately rather than swelling in: the blade does not
+    ease into a stalk, it breaks it.
+    """
+    n = seconds(0.38)
+    out = []
+    crng = random.Random(20261102)
+    lp_a = lp_b = lp_slow = 0.0
+    cracks = sorted(crng.uniform(0.0, 0.55) for _ in range(crng.randint(3, 5)))
+    cracks[0] = 0.0
+    crack_gain = [crng.uniform(0.75, 1.0) for _ in cracks]
+    crack_freq = [crng.uniform(190, 420) for _ in cracks]
+    for i in range(n):
+        t = i / n
+        white = crng.random() - 0.5
+        lp_a += (white - lp_a) * 0.55
+        lp_b += (lp_a - lp_b) * 0.55
+        lp_slow += (lp_b - lp_slow) * 0.18
+        hiss = (lp_b - lp_slow) * 2.0
+        # Leaves only, and they are gone quickly: the stalk is the event.
+        v = hiss * math.exp(-7.0 * t) * 0.55
+        v += math.sin(TAU * 62 * (i / SR)) * 0.30 * math.exp(-19 * (i / SR))
+        for k, at in enumerate(cracks):
+            if t >= at:
+                dt = (t - at) * n / SR
+                if dt < 0.09:
+                    # A snapped fibre bundle: a low body with a bright edge on
+                    # it, both decaying fast. One sine alone read as a drum.
+                    body = math.sin(TAU * crack_freq[k] * dt) * math.exp(-52 * dt)
+                    edge = ((crng.random() - 0.5) * 2.0) * math.exp(-330 * dt)
+                    v += (body * 0.5 + edge * 0.42) * crack_gain[k]
+        out.append(v)
+    return out
+
+
+def cut_sunflower():
+    """Sunflowers: one snap, then the petals.
+
+    A stem thicker than a reed and softer than corn, so the transient is
+    mid-weight and wet rather than dry. What makes it a SUNFLOWER is the tail:
+    the head falls, and its petals flutter — a scatter of tiny papery ticks
+    after the cut, which corn does not have.
+    """
+    n = seconds(0.46)
+    out = []
+    crng = random.Random(20261103)
+    lp_a = lp_b = lp_slow = 0.0
+    stem = crng.uniform(150, 260)
+    flutter = sorted(crng.uniform(0.30, 0.98) for _ in range(crng.randint(9, 14)))
+    flutter_freq = [crng.uniform(3200, 7000) for _ in flutter]
+    for i in range(n):
+        t = i / n
+        white = crng.random() - 0.5
+        lp_a += (white - lp_a) * 0.70
+        lp_b += (lp_a - lp_b) * 0.70
+        lp_slow += (lp_b - lp_slow) * 0.11
+        hiss = (lp_b - lp_slow) * 2.6
+        v = hiss * math.sin(math.pi * min(1.0, t * 2.2)) ** 1.4 * 0.6
+        # The stem: one wet snap, no bright edge — that is what makes it read
+        # as green rather than as dry.
+        st = i / SR
+        v += math.sin(TAU * stem * st) * 0.55 * math.exp(-34 * st)
+        v += math.sin(TAU * 74 * st) * 0.20 * math.exp(-22 * st)
+        for k, at in enumerate(flutter):
+            if t >= at:
+                dt = (t - at) * n / SR
+                if dt < 0.012:
+                    v += (math.sin(TAU * flutter_freq[k] * dt) * 0.09
+                          * math.exp(-420 * dt))
+        out.append(v)
+    return out
+
+
+# ---- G13 signal pair: B14's radio, in two layers that cross-fade as the ground
+# opens. Both loop, so both are built on an exact number of cycles.
+
+
+def signal_static():
+    """Untuned static: band-limited noise with a slow, shallow wander.
+
+    Deliberately dull. This layer exists to be TAKEN AWAY, and anything with a
+    feature in it would be missed when it goes.
+    """
+    n = seconds(2.0)
+    out = []
+    crng = random.Random(20261104)
+    lp_a = lp_b = hp = 0.0
+    for i in range(n):
+        white = crng.random() - 0.5
+        lp_a += (white - lp_a) * 0.62
+        lp_b += (lp_a - lp_b) * 0.62
+        hp += (lp_b - hp) * 0.05
+        v = (lp_b - hp) * 2.4
+        # One slow cycle across the whole loop, so the seam is silent.
+        v *= 0.82 + 0.18 * math.sin(TAU * (i / n))
+        out.append(v)
+    # Cross-fade the last 60 ms into the first, so the loop point cannot tick.
+    tail = seconds(0.06)
+    for k in range(tail):
+        a = k / tail
+        out[k] = out[k] * a + out[n - tail + k] * (1.0 - a)
+    return out[:n - tail]
+
+
+def signal_clear():
+    """The signal underneath: a carrier with one word repeating on it.
+
+    Not literal morse — a repeated three-pulse figure, spaced so the ear reads
+    it as the SAME thing over and over. That is the whole content of the
+    beacon, and the player hears it arrive out of the static as they cut.
+    """
+    n = seconds(2.0)
+    out = []
+    carrier = 620.0
+    # Three pulses and a rest, exactly twice across the loop.
+    figure = [(0.00, 0.10), (0.14, 0.10), (0.28, 0.16)]
+    for i in range(n):
+        st = i / SR
+        t = i / n
+        v = 0.0
+        for cycle in range(2):
+            base = cycle * 1.0
+            for at, dur in figure:
+                start = (base + at) / 2.0
+                stop = (base + at + dur) / 2.0
+                if start <= t < stop:
+                    local = (t - start) * 2.0
+                    # Soft edges: a square gate on a tone clicks.
+                    gate = min(1.0, local / 0.012, (dur - local) / 0.012)
+                    v += math.sin(TAU * carrier * st) * 0.55 * max(0.0, gate)
+                    v += math.sin(TAU * carrier * 2.0 * st) * 0.12 * max(0.0, gate)
+        # A quiet bed of carrier so the layer is present even between pulses.
+        v += math.sin(TAU * carrier * 0.5 * st) * 0.05
+        out.append(v)
+    return out
+
+
 # ---- discovery: two soft bell notes.
 def bell(freq, dur, strike=1.0):
     n = seconds(dur)
@@ -287,4 +472,9 @@ write("car_pass", car(), 0.75)
 write("blade_spin", spin(), 0.6)
 write("theme_town", theme(), 0.9)
 write("pin", pin(), 0.8)
+write("cut_reed", cut_reed(), 0.72)
+write("cut_corn", cut_corn(), 0.86)
+write("cut_sunflower", cut_sunflower(), 0.78)
+write("signal_static_loop", signal_static(), 0.5)
+write("signal_clear_loop", signal_clear(), 0.55)
 print("[gen_audio] bitti")

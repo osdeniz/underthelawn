@@ -42,6 +42,11 @@ var house_variant := "house_v1"
 var landmark_id := ""
 var decor_seed := 0
 var scrap_budget := 9
+## What this chapter's payout is multiplied by, on top of the global search
+## multiplier. Separate from scrap_budget on purpose: the budget is how many
+## pieces are BURIED (density, the reward for looking around) and this is what
+## they are WORTH. Case 02 needed the first without the second (G13).
+var scrap_multiplier := 1.0
 var vignette := false
 var evidence_defs: Array = []
 ## Per-chapter opening title keys; "" falls back to story.json's default.
@@ -100,6 +105,8 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.landmark_id = str(spec.get("landmark_id", ""))
 	variant.decor_seed = int(spec.get("decor_seed", 0))
 	variant.scrap_budget = int(spec.get("scrap_budget", variant.scrap_budget))
+	variant.scrap_multiplier = float(spec.get("scrap_multiplier",
+		variant.scrap_multiplier))
 	variant.vignette = bool(spec.get("vignette", false))
 	variant.evidence_defs = spec.get("evidence_defs", [])
 	variant.reclaim_line = str(spec.get("reclaim_line", ""))
@@ -123,6 +130,34 @@ static func of(variant_id: String) -> LevelVariant:
 static func ids() -> Array:
 	var all: Variant = data().get("variants", {})
 	return (all as Dictionary).keys() if all is Dictionary else []
+
+
+## What apply() overwrites, so a caller that only needed a chapter TEMPORARILY
+## can put the world back.
+##
+## This exists because of a real bug: the shader warm-up builds a throwaway
+## chapter behind the intro cards, and it left that chapter's palette set. The
+## hub's diorama then grew the yard's grass instead of the town's — blue-green
+## on first launch, correcting itself only once something else applied a
+## variant. Anything that applies a variant it does not intend to keep must
+## restore this (G13).
+static func snapshot() -> Dictionary:
+	return {
+		"palette": GameConfig.active_grass_palette,
+		"plant": GameConfig.active_plant_profile,
+		"layout": LawnModel.layout_id,
+		"cols": GameConfig.GRID_COLS,
+		"rows": GameConfig.GRID_ROWS,
+		"current": current,
+	}
+
+
+static func restore(snap: Dictionary) -> void:
+	GameConfig.active_grass_palette = str(snap.get("palette", "GREEN"))
+	GameConfig.active_plant_profile = str(snap.get("plant", "GRASS"))
+	LawnModel.layout_id = str(snap.get("layout", "beds"))
+	GameConfig.set_grid(int(snap.get("cols", 16)), int(snap.get("rows", 24)))
+	current = snap.get("current", null)
 
 
 ## Pushes this variant into the engine. MUST run before LawnModel is built.
