@@ -55,7 +55,6 @@
   },
   "evidence": {
     "card_header": "EVIDENCE_CARD_HEADER",
-    "counter_icon": "📋",
     "counter_label": "EVIDENCE_COUNTER_LABEL",
     "items": [
       {
@@ -89,35 +88,30 @@
         "id": "case_board",
         "label": "HUB_CASE_BOARD",
         "hint": "HUB_CASE_BOARD_HINT",
-        "icon": "📋",
         "locked": false
       },
       {
         "id": "town",
         "label": "HUB_TOWN",
         "hint": "HUB_TOWN_HINT",
-        "icon": "🏘️",
         "locked": false
       },
       {
         "id": "restore",
         "label": "HUB_RESTORE",
         "hint": "HUB_RESTORE_HINT",
-        "icon": "🏘️",
         "locked": false
       },
       {
         "id": "workshop",
         "label": "HUB_WORKSHOP",
         "hint": "HUB_WORKSHOP_HINT2",
-        "icon": "🔧",
         "locked": false
       },
       {
         "id": "echoes",
         "label": "HUB_ECHOES",
         "hint": "HUB_ECHOES_HINT",
-        "icon": "📜",
         "locked": false
       }
     ],
@@ -310,8 +304,91 @@
     "objective": "CASE_02_OBJECTIVE",
     "teaser_image": "hub/case2_teaser",
     "locked_note": "CASE_02_LOCKED",
-    "chapters": [],
-    "_comment": "Skeleton only (G11). Case 2 content lands in a later sprint; the keys exist so the shape of what follows is visible in the data, not just in a plan."
+    "chapters": [
+      {
+        "variant_id": "ch09_radio_room",
+        "name": "CH_09_NAME",
+        "brief": "brief_ch09",
+        "debrief_full": "debrief_ch09_full",
+        "debrief_partial": "debrief_ch09_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch10_relay_hill",
+        "name": "CH_10_NAME",
+        "brief": "brief_ch10",
+        "debrief_full": "debrief_ch10_full",
+        "debrief_partial": "debrief_ch10_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch11_orchard",
+        "name": "CH_11_NAME",
+        "brief": "brief_ch11",
+        "debrief_full": "debrief_ch11_full",
+        "debrief_partial": "debrief_ch11_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch12_river_crossing",
+        "name": "CH_12_NAME",
+        "brief": "brief_ch12",
+        "debrief_full": "debrief_ch12_full",
+        "debrief_partial": "debrief_ch12_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch13_roadside_camp",
+        "name": "CH_13_NAME",
+        "brief": "brief_ch13",
+        "debrief_full": "debrief_ch13_full",
+        "debrief_partial": "debrief_ch13_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch14_listening_post",
+        "name": "CH_14_NAME",
+        "brief": "brief_ch14",
+        "debrief_full": "debrief_ch14_full",
+        "debrief_partial": "debrief_ch14_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch15_old_clinic",
+        "name": "CH_15_NAME",
+        "brief": "brief_ch15",
+        "debrief_full": "debrief_ch15_full",
+        "debrief_partial": "debrief_ch15_partial",
+        "playable": true,
+        "quiet_scene": "toll"
+      },
+      {
+        "variant_id": "ch16_meeting_stone",
+        "name": "CH_16_NAME",
+        "brief": "brief_ch16",
+        "debrief_full": "debrief_ch16_full",
+        "debrief_partial": "debrief_ch16_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch17_signal_garden",
+        "name": "CH_17_NAME",
+        "brief": "brief_ch17",
+        "debrief_full": "debrief_ch17_full",
+        "debrief_partial": "debrief_ch17_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch18_long_road_home",
+        "name": "CH_18_NAME",
+        "brief": "brief_ch18",
+        "debrief_full": "debrief_ch18_full",
+        "debrief_partial": "debrief_ch18_partial",
+        "playable": true
+      }
+    ],
+    "_comment": "Case 02, THREE ACTS. Act 1 (ch09-ch11) is the break from town and plays on the town map's own pins; Act 2 (ch12-ch15) is the road east and plays on the world map; Act 3 (ch16-ch18) is the confrontation. The list grows one act per commit.",
+    "hud_line": "CASE_02_HUD_LINE"
   },
   "echoes": {
     "title": "ECHOES_TITLE",
@@ -324,5 +401,59 @@
     "buy": "RESTORE_BUY",
     "confirm": "RESTORE_CONFIRM",
     "locked_note": "RESTORE_POOR"
+  },
+  "quiet_scenes": {
+    "_comment": "Scenes the player watches rather than plays. The template is scripts/quiet_scene.gd; everything specific to a scene lives here.",
+    "toll": {
+      "dialogue": "quiet_toll",
+      "after_dialogue": "quiet_toll_after",
+      "backdrop": "road_silhouettes",
+      "consequence": "scrap_toll"
+    }
+  },
+  "east_road": {
+    "_comment": "Case 02 Act 2 onward: the chapters are stops on a road east, not pins on the town sheet. x/y are fractions of the world sheet.",
+    "title": "EAST_ROAD_TITLE",
+    "sub": "EAST_ROAD_SUB",
+    "pins": [
+      {
+        "chapter": "ch12_river_crossing",
+        "x": 0.578,
+        "y": 0.47
+      },
+      {
+        "chapter": "ch13_roadside_camp",
+        "x": 0.648,
+        "y": 0.424
+      },
+      {
+        "chapter": "ch14_listening_post",
+        "x": 0.716,
+        "y": 0.484
+      },
+      {
+        "chapter": "ch15_old_clinic",
+        "x": 0.788,
+        "y": 0.428
+      },
+      {
+        "chapter": "ch16_meeting_stone",
+        "x": 0.858,
+        "y": 0.494
+      },
+      {
+        "chapter": "ch17_signal_garden",
+        "x": 0.93,
+        "y": 0.44
+      }
+    ]
+  },
+  "case_03": {
+    "id": "CASE_03_ID",
+    "title": "CASE_03_TITLE",
+    "objective": "CASE_03_OBJECTIVE",
+    "locked_note": "CASE_03_LOCKED",
+    "chapters": [],
+    "_comment": "Skeleton only (G13), the same shape Case 02 was left in by G11: the keys exist so the shape of what follows is visible in the data."
   }
 }

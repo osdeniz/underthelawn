@@ -118,6 +118,31 @@ func _on_cell_tint_changed(col: int, row: int) -> void:
 	_tint_dirty = true
 
 
+## The scent hint (G13.4): the cells AROUND `cell` take the faintest warm tint,
+## so the area reads as worth working without the find itself being marked.
+## Deliberately weak — if a player can spot this from a still frame it has
+## become a waypoint, which is the thing the brief says not to build.
+func tint_hint(cell: Vector2i, radius: int) -> void:
+	if _tint_image == null:
+		return
+	for row in range(cell.y - radius, cell.y + radius + 1):
+		for col in range(cell.x - radius, cell.x + radius + 1):
+			if col < 0 or row < 0 or col >= GameConfig.GRID_COLS \
+					or row >= GameConfig.GRID_ROWS:
+				continue
+			# The find's own cell is skipped: hint the ring, not the spot.
+			if col == cell.x and row == cell.y:
+				continue
+			var away := Vector2(col - cell.x, row - cell.y).length()
+			if away > float(radius):
+				continue
+			var strength := (1.0 - away / float(radius)) * 0.16
+			var base := _tint_image.get_pixel(col, row)
+			_tint_image.set_pixel(col, row,
+				(base + Color(strength, strength * 0.82, 0.0)).clamp())
+	_tint_dirty = true
+
+
 static func _flash_color(final: Color) -> Color:
 	return (final * 1.4 + Color(0.12, 0.14, 0.06)).clamp()
 

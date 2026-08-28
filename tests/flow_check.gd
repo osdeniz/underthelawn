@@ -11,6 +11,7 @@ func _ready() -> void:
 	await _check_hub()
 	await _check_chapter_round_trip()
 	await _check_dialogue()
+	await _check_engine_stops_at_the_end()
 	_check_next_chain()
 	if _fails > 0:
 		push_error("%d AKIS TESTI BASARISIZ" % _fails)
@@ -21,24 +22,28 @@ func _ready() -> void:
 
 
 func _check_data() -> void:
-	ck("8 bolum var", ChapterProgress.count() == 8,
-		str(ChapterProgress.count()))
+	# CASE 01's eight, asked of Case 01's own list. count() is the whole board
+	# and the board carries two cases now, so asserting a total here made this
+	# test depend on whether Case 02 happened to be open — which is state a
+	# previous test in the same suite can leave behind (G13).
+	ck("vaka 01 sekiz bolum", Story.list("chapters").size() == 8,
+		str(Story.list("chapters").size()))
 	# ARCHITECTURE: chapters must never carry a scene path. G9 builds all eight
 	# from one game scene plus variant data, and this is the assertion that stops
 	# "one .tscn per chapter" creeping back in.
-	for chapter: Dictionary in ChapterProgress.chapters():
+	for chapter: Dictionary in Story.list("chapters"):
 		ck("bolum sahne yolu tasimiyor: %s" % chapter.get("variant_id", "?"),
 			not chapter.has("scene") and not chapter.has("path"), str(chapter))
 		ck("bolum variant_id tasiyor", str(chapter.get("variant_id", "")) != "",
 			str(chapter))
 	# G9 opened all eight: every chapter must be playable AND have a variant.
 	var playable := 0
-	for chapter: Dictionary in ChapterProgress.chapters():
+	for chapter: Dictionary in Story.list("chapters"):
 		if bool(chapter.get("playable", false)):
 			playable += 1
 		var vid := str(chapter.get("variant_id", ""))
 		ck("varyant verisi var: %s" % vid, LevelVariant.ids().has(vid), vid)
-	ck("8 bolum oynanabilir", playable == 8, str(playable))
+	ck("vaka 01 bolumleri oynanabilir", playable == 8, str(playable))
 	ck("aktif bolum ilk bolum",
 		ChapterProgress.current_variant_id() == "ch01_aldridge",
 		ChapterProgress.current_variant_id())
@@ -81,10 +86,18 @@ func _check_chapter_round_trip() -> void:
 		for col in GameConfig.GRID_COLS:
 			model.mow(col, row, 0)
 	# _on_completed waits 1.5 s before reporting, so the reward shot can land.
-	await get_tree().create_timer(2.0).timeout
+	await _until(func() -> bool: return reported.size() == 1)
 	ck("bitince search_finished yayinlandi", reported.size() == 1, str(reported))
 	game.queue_free()
 	await get_tree().process_frame
+	# The game scene pauses the whole tree when the window loses focus, on
+	# purpose — a phone call must not leave the mower driving (Game._notification)
+	# — and resuming deliberately does NOT unpause. A test run does not own the
+	# window, so that pause lands whenever the machine feels like it and OUTLIVES
+	# the scene that set it: every await after this point then waits forever, and
+	# the dialogue check below failed for it. Nothing here tests pausing, so the
+	# tree goes back to running (G16).
+	get_tree().paused = false
 
 	# What the hub does with that report.
 	ChapterProgress.record("ch01_aldridge", 1, 2)
@@ -160,8 +173,69 @@ func _check_dialogue() -> void:
 	var closed := []
 	box.finished.connect(func() -> void: closed.append(true))
 	box.play([])
-	await get_tree().create_timer(0.6).timeout
+	await _until(func() -> bool: return closed.size() == 1)
 	ck("bos konusma kutuyu kapatiyor", closed.size() == 1, str(closed))
+
+
+## The engine belongs to the chapter, and the chapter is over the moment the
+## results panel is earned — but the panel plays while the SCENE is still alive,
+## and stop_engine only ran in _exit_tree. So the mower idled underneath "area
+## searched" for as long as the player read it, and went on being simulated
+## under a panel that covers its controls (G13).
+func _check_engine_stops_at_the_end() -> void:
+	GameState.set_setting("meta", "orientation_done", true)
+	var game: Node = load("res://scenes/Main.tscn").instantiate()
+	game.set("variant_id", "ch01_aldridge")
+	add_child(game)
+	await get_tree().process_frame
+	get_tree().paused = false
+	AudioDirector.set_engine_state(0.8, 0.0)
+	await get_tree().create_timer(0.4).timeout
+	ck("oyun sirasinda motor calisiyor", AudioDirector._engine_player.playing, "")
+
+	game._confirm_exit()
+	await get_tree().create_timer(0.4).timeout
+	ck("bitiste motor susuyor", not AudioDirector._engine_player.playing, "")
+	ck("bitiste makine simule edilmiyor",
+		game.mower != null and not game.mower.is_active, "")
+	# Still silent while the panel is being read, not just for one frame.
+	await get_tree().create_timer(2.0).timeout
+	ck("panel acikken motor hala susuyor",
+		not AudioDirector._engine_player.playing, "")
+
+	game.queue_free()
+	await get_tree().process_frame
+	# And the latch must not stay shut: the next chapter needs its engine back.
+	var next: Node = load("res://scenes/Main.tscn").instantiate()
+	next.set("variant_id", "ch02_neighbor")
+	add_child(next)
+	await get_tree().create_timer(1.2).timeout
+	get_tree().paused = false
+	AudioDirector.set_engine_state(0.8, 0.0)
+	await get_tree().create_timer(0.3).timeout
+	ck("sonraki bolum motorunu geri aliyor",
+		AudioDirector._engine_player.playing, "")
+	next.queue_free()
+	await get_tree().process_frame
+
+
+## Waits for `condition` to hold, giving up after `limit` seconds — at which
+## point the assertion that follows reports the real failure.
+##
+## Both waits above sit on a timer inside the code under test: the completion
+## report fires 1.5 s after the last cell, and an empty dialogue box closes over
+## a 0.25 s fade. They used to be a fixed sleep with a fraction of a second of
+## margin, which held on an idle machine and dropped on a loaded one — the test
+## then failed for a reason that had nothing to do with the game. Waiting on the
+## condition passes as fast as the code allows and only spends the ceiling when
+## something is genuinely broken (G16).
+func _until(condition: Callable, limit := 8.0) -> void:
+	var waited := 0.0
+	while waited < limit:
+		if bool(condition.call()):
+			return
+		await get_tree().create_timer(0.1).timeout
+		waited += 0.1
 
 
 ## How much of the case must be closed before this person is in town at all.

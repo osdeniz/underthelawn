@@ -21,6 +21,10 @@ const GRID_SIZES := {
 	"medium": Vector2i(16, 24),
 	"large": Vector2i(20, 30),
 	"cellar": Vector2i(10, 14),
+	## The road home (G13): narrow and long, so the shape of the level is the
+	## shape of a walk rather than of a yard. Low plant density carries the
+	## rest — B18 is a conversation with mowing under it, not a search.
+	"road": Vector2i(9, 34),
 }
 
 
@@ -200,6 +204,25 @@ const GRASS_PALETTES := {
 		"clipping": Color(0.82, 0.60, 0.22),
 	},
 
+	# Harvest levels (G13.6). AMBER pushed all the way into grain: the tips are
+	# nearly white-gold, the base is dry straw, and nothing flowers — this is a
+	# crop standing too long, not a lawn.
+	"WHEAT": {
+		"cluster_base": Color(0.34, 0.24, 0.08),
+		"cluster_tip": Color(0.96, 0.82, 0.40),
+		"accents": [
+			{ "base": Color(0.38, 0.27, 0.09), "tip": Color(1.0, 0.90, 0.52),
+				"weight": 0.22, "flowers": false },
+			{ "base": Color(0.30, 0.22, 0.08), "tip": Color(0.84, 0.70, 0.30),
+				"weight": 0.10, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.78, 0.64, 0.30), Color(0.70, 0.56, 0.25),
+			Color(0.54, 0.42, 0.18), Color(0.62, 0.49, 0.21),
+		],
+		"clipping": Color(0.94, 0.80, 0.38),
+	},
+
 	# B7: last light. Desaturated violet-grey; the one palette where the stripe
 	# ladder carries almost all of the "this is cut" reading.
 	"DUSK_VIOLET": {
@@ -261,6 +284,11 @@ static func stripe_tint(direction: int) -> Color:
 
 
 static func clipping_color() -> Color:
+	# A reed cuts pale, corn cuts gold: the plant profile overrides the
+	# palette's clipping colour when it has an opinion (G13).
+	var profile := plant_profile()
+	if profile.has("clipping"):
+		return profile["clipping"]
 	return grass_palette()["clipping"]
 
 
@@ -288,6 +316,124 @@ static func clump_variants() -> Array:
 
 ## G6.6 density: carpet, not islands — the ground should barely show through
 ## uncut grass. Knob ladder for phone calibration: 9 -> 7 -> 5.
+# ---------------------------------------------------------------- plants (G13)
+## What GROWS in a chapter, as opposed to what COLOUR it is.
+##
+## The palette system (GRASS_PALETTES) answers "what shade of green"; this
+## answers "what plant". They are deliberately separate axes: the east road
+## passes through reeds, corn and sunflowers without leaving the same country,
+## so a chapter picks a palette AND a profile.
+##
+## "form" is the one field that changes the geometry rather than its numbers:
+##   blade — the fanning V-folded clumps the game has always grown
+##   stalk — upright stems with leaves, and optionally a head on top
+##
+## Everything else scales the shared builder. GRASS restates the original
+## constants exactly, so a chapter that names no profile grows what it always
+## grew.
+const PLANT_PROFILES := {
+	"GRASS": {
+		"form": "blade", "per_cell": 9, "blades": 6,
+		"height_min": 0.40, "height_max": 0.90, "tall_chance": 0.30,
+		"base_min": 0.45, "base_max": 0.62,
+		"width_scale": 1.0, "lean_scale": 1.0, "spread": 0.44,
+		"sway": 1.0, "cut_pitch": 1.0, "clipping_scale": 1.0,
+	},
+	## Water-green, chest high, thin as wire, and it moves twice as much as
+	## grass does — a reed bed reads as reeds because of the sway, not the
+	## colour.
+	"REED": {
+		"form": "blade", "per_cell": 7, "blades": 5,
+		"height_min": 0.95, "height_max": 1.55, "tall_chance": 0.45,
+		"base_min": 0.30, "base_max": 0.42,
+		"width_scale": 0.55, "lean_scale": 0.45, "spread": 0.40,
+		"sway": 1.9, "cut_sound": "cut_reed", "cut_pitch": 1.18,
+		"clipping_scale": 0.7, "clipping": Color(0.56, 0.72, 0.52),
+	},
+	## Taller than the machine, which is the whole point: inside a corn field
+	## the camera cannot see past the next row, so the yard becomes corridors
+	## and the player earns the view by cutting it. Free claustrophobia.
+	"CORN": {
+		"form": "stalk", "per_cell": 4, "leaves": 5,
+		"height_min": 2.10, "height_max": 2.70, "tall_chance": 0.5,
+		"stalk_width": 0.055, "leaf_length": 0.62, "spread": 0.42,
+		"sway": 0.45, "cut_sound": "cut_corn", "cut_pitch": 0.78,
+		"clipping_scale": 2.2, "clipping": Color(0.74, 0.68, 0.34),
+	},
+	## Every head turned the same way. One detail, and the field is alive.
+	"SUNFLOWER": {
+		"form": "stalk", "per_cell": 3, "leaves": 4,
+		"height_min": 1.85, "height_max": 2.35, "tall_chance": 0.5,
+		"stalk_width": 0.048, "leaf_length": 0.52, "spread": 0.44,
+		## EAST. Row 0 is north (-Z), so east is +X, and _add_head builds its
+		## facing as Vector3(sin(yaw), .., cos(yaw)) — which makes east exactly
+		## a quarter turn. The first pass used -1.20 and the whole field faced
+		## WEST, away from the road the flavour text says they are following.
+		"head": true, "head_radius": 0.30, "head_yaw": PI * 0.5,
+		"head_petal": Color(0.94, 0.72, 0.16), "head_disc": Color(0.30, 0.20, 0.10),
+		"sway": 0.5, "cut_sound": "cut_sunflower", "cut_pitch": 0.92,
+		"clipping_scale": 1.8, "clipping": Color(0.92, 0.74, 0.26),
+	},
+	## The harvest field's crop, grown thinner and shorter for the roadside.
+	"WILD_WHEAT": {
+		"form": "blade", "per_cell": 8, "blades": 7,
+		"height_min": 0.80, "height_max": 1.15, "tall_chance": 0.40,
+		"base_min": 0.34, "base_max": 0.46,
+		"width_scale": 0.50, "lean_scale": 0.70, "spread": 0.42,
+		"sway": 1.4, "cut_pitch": 1.08, "clipping_scale": 1.2,
+	},
+}
+
+## B14's signal pair. The static starts at full and ends silent; the clear tone
+## does the opposite, so the total loudness stays roughly level and only the
+## CHARACTER of the sound changes (G13).
+const SIGNAL_STATIC_GAIN := 0.34
+const SIGNAL_CLEAR_GAIN := 0.30
+
+## The red string on the corkboard. One colour, named, because the board draws
+## it in two places (the thread and the pin heads) (G13).
+const BOARD_STRING := Color(0.72, 0.16, 0.14)
+
+# ---------------------------------------------------------------- quiet scenes
+## What passing The Toll costs: a share of what the player is carrying, floored
+## and capped so it is never trivial and never ruinous. A percentage alone would
+## punish a rich player and cost a poor one nothing (G13).
+const TOLL_SCRAP_SHARE := 0.15
+const TOLL_SCRAP_MIN := 30
+const TOLL_SCRAP_MAX := 200
+## The drawn still behind a quiet scene: evening, a road, and three people on it.
+const QUIET_SKY := Color(0.16, 0.15, 0.20)
+const QUIET_GROUND := Color(0.11, 0.11, 0.13)
+const QUIET_ROAD := Color(0.19, 0.18, 0.20)
+const QUIET_FIGURE := Color(0.05, 0.05, 0.06)
+
+## Where a chapter's mid-chapter conversation fires, as a completion ratio.
+## Half way: far enough in that the place has been seen, early enough that the
+## chapter is not already ending (G13).
+const MID_CHAT_AT := 0.5
+
+## Set per chapter by LevelVariant, exactly as active_grass_palette is.
+static var active_plant_profile := "GRASS"
+
+
+static func plant_profile() -> Dictionary:
+	return PLANT_PROFILES.get(active_plant_profile, PLANT_PROFILES["GRASS"])
+
+
+## One field of the active profile, falling back to GRASS's value and then to
+## `fallback` — so a profile only has to state what it actually changes.
+static func plant(key: String, fallback: Variant = 0.0) -> Variant:
+	var profile := plant_profile()
+	if profile.has(key):
+		return profile[key]
+	var grass: Dictionary = PLANT_PROFILES["GRASS"]
+	return grass[key] if grass.has(key) else fallback
+
+
+static func plant_is_stalk() -> bool:
+	return str(plant("form", "blade")) == "stalk"
+
+
 const TUFTS_PER_CLUSTER := 9
 const CLUMP_BLADES := 6
 const CLUMP_HEIGHT_MIN := 0.4
@@ -480,11 +626,24 @@ const RESTORE_SCRAP_BONUS := 1
 ## Tier 2 (buildings) stays locked until this many tier-1 repairs are done, so
 ## the spend curve steps instead of presenting a wall of four-figure prices.
 const TIER2_REQUIRES_TIER1 := 2
+## How many restoration projects make the town "ready".
+##
+## This is Ellie's closing line turned into a number: the stranger said he would
+## come back when the town was ready, so the player makes it ready and he comes.
+## Case 02 shows on the board from the moment Case 01 closes, with this counter
+## on its face — visible, never a wall.
+##
+## Calibrated against the measured economy: one chapter at 100% pays 1 567 and
+## the three cheapest projects cost 950 together, so anyone who spends anything
+## at all on the town clears this after a single lawn. It bites only for a
+## player who put every last piece of scrap into the garage — which is the
+## choice the gate exists to notice.
+const TOWN_READY_PROJECTS := 3
 ## Debug only: grants money from the pause menu for balance testing. Ships false.
-const DEV_GRANT_SCRAP := true
+const DEV_GRANT_SCRAP := false
 ## Debug only: the wallet a fresh save starts with, so systems downstream of the
 ## economy can be exercised without grinding to them. Ships 0.
-const DEV_STARTING_SCRAP := 50000
+const DEV_STARTING_SCRAP := 0
 const DEV_GRANT_AMOUNT := 2000
 
 ## Payout multiplier from completed restoration projects. Routed through here so
@@ -533,6 +692,15 @@ const SCRAP_BONUS_SHARE := 0.70
 const SCRAP_BONUS_FLOOR := 0.55
 ## Extra on top for a full mow, shown as its own line so the reward is legible.
 const SCRAP_THOROUGH_BONUS := 0.15
+## G14.3 recalibration. The measured problem: reaching the harvest (2 tier-1
+## restore projects + the tractor, the cheapest path = 550 + 800 = 1350, plus
+## the farm's 900 = 2250) is gated behind `chapters:3`, but the first three
+## chapters at 100% paid only 1 519 — the harvest loop was unreachable exactly
+## when the game asks the player to reach it. Applied the same way as
+## HARVEST_SCRAP_MULTIPLIER (post-hoc in Game._payout, so ScrapField's unit
+## math stays untouched): 1 519 * 1.7 = 2 582, clearing the gate with the same
+## ~15% headroom the harvest gate's own design implies elsewhere.
+const SEARCH_SCRAP_MULTIPLIER := 1.7
 ## Money bundle prop: the genre-classic green cash stack, VISIBLE above the
 ## grass before it is collected — hidden pickups read as luck, visible ones as
 ## goals to steer toward.
@@ -553,7 +721,6 @@ const CARRY_DECK_OFFSET := Vector3(0.0, 0.62, 0.55)
 ## Contact pickup radius, on top of the deck: driving near an object takes it.
 const PICKUP_REACH := 0.55
 ## Scrap pickup visuals.
-const SCRAP_ICON := "💵"
 const SCRAP_RISE := 1.1
 const SCRAP_FLY_TIME := 0.55
 ## Minimum cells between two pickups, so they are spread rather than clustered.
@@ -663,8 +830,11 @@ const AMBIENT_GAIN := 0.18
 
 # ---------------------------------------------------------------- haptics (§15)
 const HAPTIC_ENABLED := true
-const HAPTIC_LIGHT_MS := 10        # cell mown, mower commands
-const HAPTIC_MEDIUM_MS := 25       # secret uncovered
+## iOS drives these through CoreHaptics, which does not do anything useful with
+## a pulse this short; 10/25 ms came from the desktop-era brief. Raised to
+## durations the phone can actually render (G13.3).
+const HAPTIC_LIGHT_MS := 20        # cell mown, mower commands
+const HAPTIC_MEDIUM_MS := 40       # secret uncovered
 ## Secret collected and 100% complete: two medium pulses.
 const HAPTIC_SUCCESS_GAP := 0.08
 
@@ -784,8 +954,17 @@ const HOUSE_VARIANTS := {
 ## Landmark structures that stand where the house would. One low-detail
 ## composition each, built from the same primitives and textures as the house,
 ## and each one casts shadow so it anchors to the ground.
+## Every landmark EnvironmentBuilder._build_landmark can draw. A variant naming
+## anything else logs a warning and stands in an empty yard, so this list and
+## that match statement have to move together.
 const LANDMARK_IDS: Array[String] = [
-	"playground", "greenhouse", "water_tower", "mill",
+	"playground", "greenhouse", "water_tower", "mill", "barn",
+	# Case 02, Act 1 (G13).
+	"antenna_mast", "orchard",
+	# Case 02, Act 2 — the east road.
+	"crossing", "roadside_camp", "listening_post", "old_clinic",
+	# Case 02, Act 3 — the confrontation.
+	"meeting_stone", "signal_garden",
 ]
 
 const HOUSE_MARGIN_Z := 4.8
@@ -881,8 +1060,11 @@ const FLOWER_SWAY_PERIOD := 1.9
 const CLOUD_COUNT := 4
 const CLOUD_SIZE_MIN := 13.0
 const CLOUD_SIZE_MAX := 20.0
-const CLOUD_Y_MIN := 24.0
-const CLOUD_Y_MAX := 30.0
+## Measured, not guessed: the play camera leaves roughly five degrees of sky
+## above the horizon line. Clouds at y 24-30 on a 96 ring sit at nine degrees —
+## above the frame, which is why nobody had ever seen one (G14.2).
+const CLOUD_Y_MIN := 9.0
+const CLOUD_Y_MAX := 17.0
 const CLOUD_DRIFT := 2.5
 const CLOUD_PERIOD := 30.0
 
@@ -1038,3 +1220,437 @@ static func linear_to_db_safe(gain: float) -> float:
 	if gain <= 0.0001:
 		return -80.0
 	return 20.0 * (log(gain) / log(10.0))
+
+
+## How far out the distant hills and rooftops ring sits, in the yard. Well
+## beyond the fence and the road, so nothing there is ever approached (G13.1).
+const HORIZON_RADIUS := 78.0
+
+# ---------------------------------------------------------------- desktop (G14)
+## The game is authored for a 1170-wide portrait screen. On a desktop window the
+## viewport stretches sideways (keep_height), which is GOOD for the 3D — the
+## neighbouring yards come into view — but the HUD would spread its top bar
+## across 4500 px with a hole in the middle. Interface elements are held to this
+## width and centred instead.
+const UI_MAX_WIDTH := 1170.0
+
+# ---------------------------------------------------------------- hub diorama (G13)
+## The plate the town sits on. Small on purpose — this reads as a model of a
+## town, not a place you walk around in.
+## Narrow and DEEP, not wide and shallow. The screen is 1170x2532: a 24x16
+## plate laid the other way filled the width and left two thirds of the screen
+## empty above and below it. Turning it to face the phone is what made the
+## model fill the frame.
+## Big enough that the frame is FULL: the edges are trees, hedges and fog, not
+## bare ground running out (G13.1). Still narrow-and-deep for a portrait screen.
+## Grown again for G13.5: ten buildings on the 26x34 plate stood shoulder to
+## shoulder and the greenhouse sat inside the barn. Roughly double the area.
+const DIORAMA_PLATE := Vector2(36.0, 46.0)
+## How far the ground bevels in at the rim, which is what sells "model".
+const DIORAMA_BEVEL := 2.4
+const DIORAMA_BEVEL_DROP := 1.6
+## Writes draw-call, triangle and frame-rate lines to the console on hub entry.
+## OS.is_debug_build(), not a hand-edited true: this shipped switched on, and a
+## release build has no console to read it in (G16).
+static var PERF_LOG := OS.is_debug_build()
+
+## Framed for a PORTRAIT screen. Godot measures fov vertically by default, and
+## at 1170x2532 that leaves a ~20 degree horizontal window — the two side
+## buildings sat completely outside it. keep_aspect KEEP_WIDTH makes this a
+## HORIZONTAL angle instead, and the tall screen then has depth to spare.
+const DIORAMA_CAM_POS := Vector3(0.0, 28.0, 28.5)
+const DIORAMA_CAM_LOOK := Vector3(0.0, 1.8, -3.4)
+const DIORAMA_CAM_FOV := 48.0
+## The hub's cards cover the bottom half of the screen, so the model is pushed
+## up into the half that stays visible. This is a frustum shift, not a rotation:
+## turning the camera up would have tilted the whole model off its plate.
+const DIORAMA_V_OFFSET := -9.6
+## The plate's grass. grass_albedo is a greyscale pattern, so this is what makes
+## it green (the yard tints it in a shader instead).
+const DIORAMA_GRASS_TINT := Color(0.40, 0.58, 0.28)
+
+# ---- the diorama's grass field (G13.1)
+## Sparse across the plate, dense where a ruin stands: nature took the town
+## back, and a rebuilt plot gets cleared.
+const DIORAMA_TUFT_SPACING := 0.78
+const DIORAMA_TUFT_JITTER := 0.34
+## Radius around a ruined building that grows thick weeds, and how many extra
+## clumps go in it.
+const DIORAMA_OVERGROWTH_RADIUS := 4.6
+const DIORAMA_OVERGROWTH_COUNT := 40
+## Kept clear of the paving so the square does not sprout grass.
+const DIORAMA_SQUARE_RADIUS := 4.2
+## Trees and hedges that close the frame. Radius from centre, count.
+const DIORAMA_EDGE_TREES := 24
+const DIORAMA_EDGE_BUSHES := 44
+## A breath of movement so the scene is not a photograph. Degrees and Hz.
+const DIORAMA_SWAY_DEG := 0.55
+const DIORAMA_SWAY_HZ := 0.06
+## Optional finger pan, clamped hard: this is a diorama, not a camera you fly.
+const DIORAMA_PAN_ENABLED := true
+const DIORAMA_PAN_DEG := 10.0
+const DIORAMA_PAN_PER_PIXEL := 0.02
+const DIORAMA_PAN_RETURN := 1.6
+
+## Where each restorable building stands, and which way it faces. Only three
+## exist in this slice; the rest of projects.json is not in the scene yet.
+## The buildings are authored at roughly 3 m; the plate is much bigger than
+## that, so each plot is scaled as one piece rather than every box being
+## rewritten.
+const DIORAMA_BUILDING_SCALE := 1.55
+
+## All ten restore projects, each with a place on the plate. Every one has a
+## ruined form as well as a restored one: a locked project shows its RUIN, not
+## an empty lot, so the player can see what the money is for (G13.5).
+const DIORAMA_BUILDINGS := {
+	"station": {"pos": Vector3(-7.4, 0.0, 5.2), "yaw": 0.34},
+	"homes": {"pos": Vector3(7.6, 0.0, 5.8), "yaw": -0.34},
+	"watchtower": {"pos": Vector3(2.0, 0.0, -13.2), "yaw": 0.10},
+	# The swing hangs from the oak, so its plot IS the oak's spot; its parts are
+	# positioned against the limb rather than the ground.
+	# scale 1.0, NOT the shared building scale: the swing has to line up with
+	# the oak's limb, and the oak is not scaled. At 1.55 the ropes hung in open
+	# air beside the tree (G13.5).
+	"swing": {"pos": Vector3(-1.2, 0.0, -4.6), "yaw": 0.40, "scale": 1.0},
+	"lantern": {"pos": Vector3(4.8, 0.0, -1.0), "yaw": 0.0},
+	"greenhouse": {"pos": Vector3(12.4, 0.0, 0.6), "yaw": -0.55},
+	"clinic": {"pos": Vector3(-12.6, 0.0, -1.8), "yaw": 0.62},
+	"mast": {"pos": Vector3(-10.8, 0.0, -12.4), "yaw": 0.18},
+	"farm": {"pos": Vector3(11.2, 0.0, -9.6), "yaw": -0.22},
+	"barn": {"pos": Vector3(13.4, 0.0, -15.8), "yaw": -0.40},
+}
+
+## Who walks the town, and between which two points. A figure only appears once
+## the thing that brings them here is built (G13.5). Positions are plate-space;
+## the pair is walked back and forth, not a path-finding route.
+const DIORAMA_FIGURES := {
+	"sarah": {"needs": "greenhouse", "colour": Color(0.72, 0.42, 0.48),
+		"from": Vector3(8.6, 0.0, 3.6), "to": Vector3(11.6, 0.0, 1.4), "speed": 0.55},
+	"gus": {"needs": "mast", "colour": Color(0.42, 0.46, 0.56),
+		"from": Vector3(-8.4, 0.0, -9.0), "to": Vector3(-10.2, 0.0, -11.4), "speed": 0.45},
+	"farmer": {"needs": "farm", "colour": Color(0.56, 0.50, 0.34),
+		"from": Vector3(9.6, 0.0, -8.4), "to": Vector3(12.4, 0.0, -10.6), "speed": 0.40},
+	"cat": {"needs": "barn", "colour": Color(0.38, 0.34, 0.32),
+		"from": Vector3(12.2, 0.0, -14.4), "to": Vector3(14.2, 0.0, -16.4), "speed": 0.65},
+}
+## Ellie sits on the swing once the case is closed AND the swing is built.
+const DIORAMA_ELLIE_NEEDS := "swing"
+
+# ---- reclaimed: mowing -> town (G13.4)
+## A band of tall weeds around the town that retreats one step per finished
+## chapter. This is the visible answer to "what did all that mowing do?" — and
+## it is tied to CHAPTERS, not money, so it measures work rather than spending.
+const RECLAIM_STEPS := 8
+## How deep the band is at step 0, and at the last step.
+const RECLAIM_BAND_START := 9.0
+const RECLAIM_BAND_END := 1.6
+## Clumps per square unit of band. Dense: this is meant to look like the town
+## is being strangled.
+const RECLAIM_DENSITY := 0.42
+const RECLAIM_CLUMP_SCALE := Vector2(1.15, 1.85)
+## The retreat animation played on returning to the hub.
+const RECLAIM_FALL_SECONDS := 1.5
+## Percentages of a chapter's lawn at which the Marshal says something and a
+## faint tint appears near the evidence (G13.4 §3).
+const SCENT_AT := [0.30, 0.60]
+const SCENT_TINT_CELLS := 3
+const SCENT_TOAST_SECONDS := 3.4
+## Purists can switch the hints off.
+static var hint_moments := true
+
+## How long a restore card has to be held before the camera glances at the plot
+## it would build, and how long the glance lasts.
+const DIORAMA_PEEK_HOLD := 0.35
+const DIORAMA_PEEK_SECONDS := 1.6
+## The dead oak in the square. The swing project will hang from it later.
+const DIORAMA_TREE_POS := Vector3(-1.2, 0.0, -4.6)
+
+# ---- the restore transition (G13 §3)
+## Camera push-in, the collapse, then parts landing one after another.
+const RESTORE_ZOOM_IN := 1.0
+const RESTORE_ZOOM_OUT := 0.7
+const RESTORE_COLLAPSE := 0.55
+## The gap between two parts landing. It is a CEILING, not a fixed value: a
+## building with many parts (the greenhouse has about thirty) would otherwise
+## take five seconds to raise, and the brief's whole transition is meant to be
+## three or four (G13.7).
+const RESTORE_PART_GAP := 0.15
+## However many parts a building has, the raise takes about this long.
+const RESTORE_RAISE_SECONDS := 1.7
+const RESTORE_PART_FALL := 0.34
+## How high a part starts above its resting place.
+## Low enough that a falling wall stays inside the frame. At 5.0 the station's
+## wall block filled the screen on its way down.
+const RESTORE_PART_RISE := 2.8
+const RESTORE_SHINE := 0.5
+## How close the camera gets to the building it is rebuilding.
+## Along the camera's own view line, so this is a true distance from the
+## building. Under about 8 the building overflows the frame.
+const RESTORE_CAM_DISTANCE := 13.0
+
+
+# ---------------------------------------------------------------- map (G13.5)
+## The case board's PLACES list is replaced by a two-layer map. Positions are
+## fractions of the map rect, so the same numbers work at any screen size.
+##
+## Case 1 reads WEST to EAST across the town: the Aldridge house at the edge,
+## then the neighbour, the square, the creek, and out past the greenhouse to the
+## mill and the cellar. That line IS Ellie's route, drawn without a word.
+const MAP_PLACES := {
+	"ch01_aldridge": Vector2(0.25, 0.73),
+	"ch02_neighbor": Vector2(0.37, 0.84),
+	"ch03_playground": Vector2(0.47, 0.54),
+	"ch04_flooded": Vector2(0.41, 0.69),
+	"ch05_greenhouse": Vector2(0.17, 0.31),
+	"ch06_watertower": Vector2(0.85, 0.38),
+	"ch07_mill": Vector2(0.83, 0.14),
+	"ch08_cellar": Vector2(0.92, 0.26),
+	# Case 02, Act 1 (G13). The break from town happens in FAMILIAR country, so
+	# these are pins on the town sheet like Case 01's — not stops on the east
+	# road, which only starts at the river. Without them the first three
+	# chapters had no pin anywhere and the whole case was unreachable: every
+	# east-road stop reported "finish the earlier places" about places the
+	# player could not get to.
+	"ch09_radio_room": Vector2(0.62, 0.62),
+	"ch10_relay_hill": Vector2(0.70, 0.07),
+	"ch11_orchard": Vector2(0.09, 0.58),
+	# And the way back. B18 ends at the town, so it belongs to the town sheet
+	# rather than to the road it walks along.
+	"ch18_long_road_home": Vector2(0.965, 0.62),
+}
+## Restored buildings that appear on the town map as small icons, and which
+## screen each one opens.
+const MAP_BUILDINGS := {
+	"station": {"at": Vector2(0.56, 0.30), "opens": "case_board"},
+	"homes": {"at": Vector2(0.63, 0.55), "opens": "town"},
+	"watchtower": {"at": Vector2(0.85, 0.38), "opens": "town"},
+	"clinic": {"at": Vector2(0.28, 0.24), "opens": "town"},
+	"greenhouse": {"at": Vector2(0.17, 0.31), "opens": "town"},
+	"farm": {"at": Vector2(0.13, 0.45), "opens": "town"},
+	"barn": {"at": Vector2(0.84, 0.78), "opens": "town"},
+	"mast": {"at": Vector2(0.72, 0.22), "opens": "workshop"},
+	"lantern": {"at": Vector2(0.50, 0.46), "opens": "town"},
+	"swing": {"at": Vector2(0.45, 0.44), "opens": "town"},
+}
+## The town's own spot on the world map, and the far light in the east.
+const MAP_TOWN_AT := Vector2(0.27, 0.50)
+const MAP_FAR_LIGHT := Vector2(0.90, 0.32)
+
+const MAP_INK := Color(0.30, 0.22, 0.15)
+const MAP_INK_FAINT := Color(0.42, 0.34, 0.26, 0.55)
+const MAP_PARCHMENT := Color(0.83, 0.74, 0.56)
+const MAP_PARCHMENT_DARK := Color(0.62, 0.52, 0.37)
+const MAP_WATER := Color(0.44, 0.56, 0.58)
+## Pin states, in the scheme the rest of the case screens already use.
+const MAP_PIN_DONE := Color(0.42, 0.72, 0.36)
+const MAP_PIN_ACTIVE := Color(0.95, 0.82, 0.45)
+const MAP_PIN_LOCKED := Color(0.52, 0.50, 0.46)
+## How far a finished place brightens the map around it — the reclaimed band's
+## answer on paper (G13.4).
+const MAP_RECLAIM_RADIUS := 0.085
+const MAP_ZOOM_SECONDS := 0.45
+## The painted sheets are 3:2. On a portrait screen the map keeps that shape and
+## is centred, rather than being cropped to a narrow strip — the greenhouse and
+## the water tower live at the left and right edges and would be the first
+## things lost (G13.5).
+const MAP_SHEET_ASPECT := 1.5
+
+
+# ---------------------------------------------------------------- first run (G15)
+## The one-time orientation pass. A player who has finished a search never sees
+## any of this again — it exists to stop somebody leaving in the first minute
+## because they do not yet know what the mowing is FOR.
+##
+## Six layers already say it (five intro cards, the opening title, the case line
+## in the top bar, the poster, the Marshal's radio, the first evidence card).
+## These add a seventh and an eighth deliberately, for the first run only.
+const FIRST_RUN_MODAL_AFTER := 4.0
+## Percentages at which the Marshal speaks on a FIRST run: much earlier than the
+## usual 30/60, so the player hears where to look inside the first few seconds.
+const FIRST_RUN_SCENT_AT := [0.08, 0.45]
+## How long Ellie's poster pulses at the start of a first run.
+const FIRST_RUN_POSTER_PULSE := 12.0
+## How wide the one-off evidence hint reaches, in cells. Wider than a scent
+## moment: this one is allowed to point, once.
+const FIRST_RUN_HINT_CELLS := 4
+
+
+# ---------------------------------------------------------------- harvest (G13.6)
+## A repeatable bonus level: mow the town's crop. It advances no case and holds
+## no evidence — it pays in scrap and in the barn filling up.
+##
+## Everything here rides on systems that already exist: a LevelVariant, a grass
+## palette, the scrap field and Gus's dialogue. The only new thing on screen is
+## the crop standing around the plot, and that is decor.
+## The harvest's own colour: the map badge and the radio card, so the bonus
+## level reads as a different errand from a case pin.
+const HARVEST_GOLD := Color(0.92, 0.76, 0.24)
+const HARVEST_VARIANT := "harvest_field"
+## Offered after this many finished searches, once the farm is rebuilt and the
+## tractor is owned. It then waits indefinitely: an invitation, not a timer.
+const HARVEST_EVERY := 3
+## Scrap is denser here than in a search — this is the paying job.
+const HARVEST_SCRAP_MULTIPLIER := 2.2
+## Hay bales that pile up outside the barn in the diorama, one per harvest.
+const HARVEST_BALES_MAX := 4
+
+## The crop standing around the plot. Deliberately enormous: the brief asked for
+## sunflowers and corn you look UP at, so these are authored at two to three
+## times a person's height and planted right up to the fence.
+const CROP_ROWS := 7
+## The first row stands right against the fence — on a 20-wide plot the side
+## rows are already near the edge of a portrait frame, and any further out they
+## are simply not on screen.
+const CROP_ROW_GAP := 1.15
+const CROP_SPACING := 1.25
+## Extra distance for the rows behind the mower's starting fence, so a six-metre
+## sunflower does not sit in front of the camera.
+const CROP_SOUTH_SETBACK := 0.0
+## Sunflower: stalk height, head radius. A head this size is roughly a dinner
+## plate at the game's scale.
+const SUNFLOWER_HEIGHT := Vector2(4.2, 6.4)
+const SUNFLOWER_HEAD := 0.95
+const SUNFLOWER_PETALS := 18
+const SUNFLOWER_PETAL := Color(0.98, 0.78, 0.16)
+const SUNFLOWER_CENTRE := Color(0.32, 0.20, 0.10)
+const SUNFLOWER_STALK := Color(0.32, 0.46, 0.18)
+## Corn: stalk height, and the leaves that fan off it.
+const CORN_HEIGHT := Vector2(4.6, 6.8)
+const CORN_LEAVES := 7
+const CORN_STALK := Color(0.44, 0.56, 0.22)
+const CORN_LEAF := Color(0.38, 0.54, 0.20)
+const CORN_COB := Color(0.92, 0.82, 0.34)
+const CORN_TASSEL := Color(0.74, 0.66, 0.34)
+
+# ---------------------------------------------------------------- time of day
+
+## The eight chapters are ONE day (G14.1): Ellie goes missing on the morning of
+## her ninth birthday and is found in time for the evening. These presets make
+## that day visible without a dynamic sky — the same two nodes the scene already
+## has, with different numbers. No addon, no textures, nothing per frame.
+##
+## `elev` is the sun's height above the horizon in degrees and `azim` the
+## compass direction it comes from; midday is the hand-tuned angle the whole
+## game was lit and balanced against, so it is the one entry that must not
+## drift.
+const TIME_OF_DAY := {
+	# The hour, not the darkness: the grass still has to read tall-versus-cut,
+	# so the low sun is paid for with ambient rather than with gloom. First pass
+	# used elev 14 / energy 0.85 / ambient 0.50 and the yard was unplayable.
+	"dawn": {
+		"elev": 24.0, "azim": 95.0,
+		"sun": Color(1.00, 0.88, 0.74), "sun_energy": 1.02,
+		"sky_top": Color(0.42, 0.60, 0.86), "sky_horizon": Color(0.98, 0.86, 0.72),
+		"ground": Color(0.66, 0.66, 0.58),
+		"ambient": Color(0.62, 0.66, 0.78), "ambient_energy": 0.64,
+		"fog": Color(0.90, 0.86, 0.82),
+	},
+	"morning": {
+		"elev": 34.0, "azim": 78.0,
+		"sun": Color(1.00, 0.95, 0.86), "sun_energy": 1.00,
+		"sky_top": Color(0.33, 0.58, 0.92), "sky_horizon": Color(0.95, 0.91, 0.80),
+		"ground": Color(0.63, 0.68, 0.60),
+		"ambient": Color(0.55, 0.62, 0.72), "ambient_energy": 0.45,
+		"fog": Color(0.85, 0.90, 0.95),
+	},
+	"midday": {
+		"elev": 50.0, "azim": 47.7,
+		"sun": Color(1.00, 0.96, 0.88), "sun_energy": 1.05,
+		"sky_top": Color(0.28, 0.56, 0.94), "sky_horizon": Color(0.93, 0.89, 0.78),
+		"ground": Color(0.62, 0.68, 0.60),
+		"ambient": Color(0.55, 0.62, 0.70), "ambient_energy": 0.42,
+		"fog": Color(0.80, 0.88, 0.95),
+	},
+	"afternoon": {
+		"elev": 38.0, "azim": 8.0,
+		"sun": Color(1.00, 0.94, 0.82), "sun_energy": 1.00,
+		"sky_top": Color(0.31, 0.57, 0.90), "sky_horizon": Color(0.96, 0.88, 0.74),
+		"ground": Color(0.64, 0.66, 0.56),
+		"ambient": Color(0.58, 0.60, 0.66), "ambient_energy": 0.42,
+		"fog": Color(0.86, 0.88, 0.90),
+	},
+	"golden": {
+		"elev": 16.0, "azim": -22.0,
+		"sun": Color(1.00, 0.82, 0.58), "sun_energy": 1.15,
+		"sky_top": Color(0.36, 0.52, 0.82), "sky_horizon": Color(1.00, 0.78, 0.52),
+		"ground": Color(0.62, 0.58, 0.46),
+		"ambient": Color(0.64, 0.58, 0.54), "ambient_energy": 0.48,
+		"fog": Color(0.95, 0.80, 0.62),
+	},
+	# Same rule as dawn, harder: this is the chapter Ellie is found in, and it
+	# must not be the chapter nobody can see. Colour carries the hour; ambient
+	# keeps the lawn legible.
+	"dusk": {
+		"elev": 14.0, "azim": -40.0,
+		"sun": Color(1.00, 0.72, 0.52), "sun_energy": 1.00,
+		"sky_top": Color(0.28, 0.38, 0.66), "sky_horizon": Color(0.96, 0.66, 0.50),
+		"ground": Color(0.52, 0.50, 0.48),
+		"ambient": Color(0.60, 0.58, 0.70), "ambient_energy": 0.62,
+		"fog": Color(0.84, 0.70, 0.68),
+	},
+}
+
+## The one a level falls back to. Everything looked like this before G14.2.
+const TIME_OF_DAY_DEFAULT := "midday"
+
+# ---------------------------------------------------------------- open country
+
+## What lies past the fence. Every yard used to end in a 90x76 dirt apron with
+## nothing beyond it, and the distant hills were built at 78 while the fog
+## closed at 70 — so the hills had never once been visible in the game (G14.2).
+const MEADOW_SIZE := 420.0
+## How far the meadow's colour sits from the yard's own grass: the country
+## around a bright lawn is duller and greyer, never a second lawn.
+const MEADOW_FADE := 0.45
+const MEADOW_GREY := Color(0.42, 0.46, 0.34)
+
+## Fog now has to reach past the horizon ring instead of stopping in front of
+## it. Begin still sits just past the yard so the near ground is untouched.
+const FOG_BEGIN := 34.0
+const FOG_END := 210.0
+
+## Clouds ring the whole sky rather than sitting in a strip to the north, so
+## tilting the camera anywhere finds some.
+const CLOUD_RING_RADIUS := 118.0
+const CLOUD_RING_COUNT := 14
+
+## Slow birds, high up and always in silhouette. Sound is deliberately NOT part
+## of this: the ambient bird loop was removed from gameplay in G9.4 and stays
+## removed.
+const BIRDS_ENABLED := true
+## Two flocks of four. Every bird is two unshaded quads, so this is 16 draws on
+## a hub that was cut from 752 to 226 — a third of a percent is worth it, three
+## percent would not be.
+const BIRD_FLOCKS := 2
+const BIRDS_PER_FLOCK := 4
+const BIRD_SPEED := Vector2(0.020, 0.045)
+const BIRD_COLOUR := Color(0.26, 0.28, 0.30, 0.70)
+
+## The hub's own sky. These are placed RELATIVE TO THE CAMERA, not around the
+## plate: the hub camera stands at (0, 28, 28.5) looking north and down, so a
+## ring centred on the town put most of its clouds beside and behind it. A probe
+## found 0 of 11 clouds and 0 of 30 birds actually on screen.
+##
+## `SPREAD` is the half-angle either side of the view direction, `DIST` how far
+## out along it, and `DROP` how far below the camera's own height they sit —
+## which is what decides where on the screen they land.
+## The grass the town's own country is made of, matched to the plate's turf.
+const DIORAMA_COUNTRY := Color(0.34, 0.44, 0.27)
+const DIORAMA_CLOUD_COUNT := 11
+## The camera's horizontal half-angle is 24 degrees (fov 48, keep-width), so a
+## 38 degree spread threw most of the clouds off the sides before height was
+## even considered.
+const DIORAMA_SKY_SPREAD := 20.0
+const DIORAMA_CLOUD_DIST := Vector2(58.0, 115.0)
+## NEGATIVE drop = above the camera, i.e. in the actual sky. Measured at the
+## shipping 1170x2532: the hub camera's top edge is 4.5 degrees ABOVE the
+## horizon, so it has a real, if thin, band of sky. (An earlier measurement said
+## the opposite; it was taken in a 1519-wide test window, and the camera keeps
+## its WIDTH — a wider window sees LESS vertically than the phone does.)
+const DIORAMA_CLOUD_DROP := Vector2(-0.5, 4.5)
+const DIORAMA_CLOUD_SIZE := Vector2(9.0, 17.0)
+## Birds fly nearer and lower than the clouds, so they cross in front of the
+## far hills rather than sitting in empty haze.
+const DIORAMA_BIRD_DIST := Vector2(46.0, 78.0)
+const DIORAMA_BIRD_DROP := Vector2(19.0, 26.0)
+const DIORAMA_BIRD_SIZE := 0.75

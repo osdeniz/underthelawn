@@ -28,6 +28,10 @@ var camera_yaw: float = 0.0
 var _pad_index := -1
 var _pad_origin := Vector2.ZERO
 var _pad_stick := Vector2.ZERO
+## Desktop keyboard state (G14): held this frame, and held last frame, so
+## releasing the keys can stop the mower without stamping on a live touch.
+var _keyboard_active := false
+var _keyboard_was_active := false
 ## Latest drag position, for the HUD's pad ring.
 var _pad_now := Vector2.ZERO
 # Camera yaw LATCHED when the finger went down. The camera yaw chases the
@@ -174,6 +178,7 @@ func _on_reset() -> void:
 # ---------------------------------------------------------------- core loop (§7)
 
 func _physics_process(delta: float) -> void:
+	_read_keyboard()
 	_gather_input(delta)
 	_update_speed(delta)
 	_update_steering(delta)
@@ -185,6 +190,39 @@ func _physics_process(delta: float) -> void:
 
 	_mow(delta)
 	_idle_shake(delta)
+
+
+## WASD / arrow keys, for the desktop build (G14).
+##
+## The keys feed the SAME `_pad_stick` the touch pad fills, so camera-relative
+## steering, the reverse-instead-of-pirouette rule and every per-mower turn
+## limit apply unchanged. A desktop input path that drove `throttle` directly
+## would have had to re-implement all of it, and would have drifted from the
+## phone build the first time either was tuned.
+func _read_keyboard() -> void:
+	if not keyboard_enabled():
+		return
+	var keys := Input.get_vector("move_left", "move_right",
+		"move_back", "move_forward")
+	_keyboard_active = keys.length_squared() > 0.0
+	if _keyboard_active:
+		# A finger already on the pad wins: never fight the player's thumb.
+		if _pad_index < 0:
+			_pad_stick = keys
+	elif _pad_index < 0 and _keyboard_was_active:
+		# Let go of the keys and the mower coasts, exactly as lifting a finger.
+		_pad_stick = Vector2.ZERO
+	_keyboard_was_active = _keyboard_active
+
+
+## True while WASD is being held. Subclasses use it the way they use a finger.
+func keyboard_active() -> bool:
+	return _keyboard_active
+
+
+## The robot drives itself; a subclass can refuse the keyboard entirely.
+func keyboard_enabled() -> bool:
+	return true
 
 
 ## Subclasses set `throttle` (-reverse..1) and `desired_omega` here.
@@ -406,8 +444,11 @@ func on_touch_released(index: int, _screen_pos: Vector2) -> void:
 
 
 ## True while a finger is down on the pad.
+## True when the player is steering: a finger on the pad, OR held keys on the
+## desktop build. Every mower gates its driving on this, so counting the
+## keyboard here is what makes WASD work for all of them at once (G14).
 func pad_engaged() -> bool:
-	return _pad_index != -1
+	return _pad_index != -1 or _keyboard_active
 
 
 ## The virtual stick: x = right, y = forward, each -1..1. Zero inside the

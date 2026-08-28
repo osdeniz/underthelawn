@@ -149,6 +149,13 @@ func mow(col: int, row: int, stripe_dir: int) -> MowResult:
 	if not in_bounds(col, row):
 		return MowResult.NONE
 	var i := index_of(col, row)
+	# Against ITS OWN array, not just against the global grid. in_bounds() asks
+	# GameConfig, and the grid is global mutable state that outlives no
+	# particular model: a scene torn down while another chapter's grid is
+	# already set indexes a model built for a different shape and crashes on a
+	# read. The model is the thing that knows how big the model is (G13).
+	if i < 0 or i >= states.size():
+		return MowResult.NONE
 	var state := states[i]
 
 	if state == CellState.OBSTACLE:
@@ -237,16 +244,41 @@ func _recount_mowable() -> void:
 
 ## Two secrets per run: at least SECRET_EDGE_MARGIN cells in from every edge,
 ## on a TALL cell, at least SECRET_MIN_SEPARATION cells apart. Redistributed on
+## The row band this chapter's evidence may land in. Row 0 is north, the far
+## edge; the mower starts at the south. A chapter that wants its evidence past
+## a crossing says evidence_zone "far" and gets the northern half (G13).
+func _row_floor(margin: int) -> int:
+	var zone := LevelVariant.current.evidence_zone if LevelVariant.current != null \
+		else "any"
+	if zone == "far":
+		return margin
+	if zone == "near":
+		return int(GameConfig.GRID_ROWS * 0.55)
+	return margin
+
+
+func _row_ceil(margin: int) -> int:
+	var zone := LevelVariant.current.evidence_zone if LevelVariant.current != null \
+		else "any"
+	var last := GameConfig.GRID_ROWS - 1 - margin
+	if zone == "far":
+		return maxi(int(GameConfig.GRID_ROWS * 0.45), margin + 1)
+	return last
+
+
 ## every reset (§3, §18 trap 4).
 func _place_secrets() -> void:
 	secret_cells.clear()
+	# A harvest buries nothing: the field is work, not a search (G13.6).
+	if LevelVariant.current != null and LevelVariant.current.is_harvest():
+		return
 	var margin := GameConfig.SECRET_EDGE_MARGIN
 	var tries := 0
 	while secret_cells.size() < GameConfig.SECRET_COUNT \
 			and tries < GameConfig.SECRET_PLACEMENT_TRIES:
 		tries += 1
 		var col := _rng.randi_range(margin, GameConfig.GRID_COLS - 1 - margin)
-		var row := _rng.randi_range(margin, GameConfig.GRID_ROWS - 1 - margin)
+		var row := _rng.randi_range(_row_floor(margin), _row_ceil(margin))
 		if states[index_of(col, row)] != CellState.TALL:
 			continue
 		var candidate := Vector2i(col, row)

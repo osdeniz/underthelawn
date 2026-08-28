@@ -1564,7 +1564,849 @@ eleven suites are scene tests.
   Still emoji, and still blank on a phone: the top bar's evidence and wallet
   chips (`hud.gd`).
 
+## Sprint G13 — 3D kasaba diyoraması (dikey dilim)
+
+A TRIAL of replacing the hub's 2D collage with a small fixed-camera 3D town.
+Three buildings only: Marshal's station, two homes, the watchtower. The slice was accepted: G13.8 removed the legacy collage and the `hub_mode`
+switch entirely, so what follows describes the only hub there is.
+
+| Piece | Where |
+| --- | --- |
+| Scene | `scenes/TownDiorama.tscn` → `scripts/town_diorama.gd` |
+| Tuning | `GameConfig` `DIORAMA_*`, `RESTORE_*` |
+| Hub host | `hub_screen.gd` `_build_diorama_background`, `_play_restore_scene` |
+| Tests | `tests/DioramaCheck.tscn` |
+| Frames | `docs/g13/` — ruined vs restored, and the five transition beats |
+
+**Framing was the hard part, and it is a portrait-screen problem.** Godot
+measures `fov` VERTICALLY. At 1170x2532 a 42-degree vertical fov leaves about a
+20-degree horizontal window, so the two side buildings sat completely outside
+the frame while the measurements all looked correct. Two fixes together:
+`camera.keep_aspect = KEEP_WIDTH` makes the angle horizontal, and the plate is
+17x23 — NARROW AND DEEP, turned to face the phone. Laid the other way (24x16)
+it filled the width and left two thirds of the screen empty.
+
+`camera.v_offset` shifts the model up into the half the hub's cards do not
+cover. It is a frustum shift, not a rotation: turning the camera up would tilt
+the model off its plate. The restore close-up tweens it back to 0, or the
+building it flew to ends up off the top of the screen.
+
+**The transition** (`play_restore`): push in along the camera's OWN view line
+(going in along the line from the square outward swung round behind whichever
+building sat on that side), the ruin sinks and flattens with a dust puff, then
+the restored parts fall from 2.8 m — sorted by resting height, so it reads as
+construction rather than collapse in reverse — each with a tick and a puff, then
+a warm light blooms inside and fades. A tap anywhere skips; `skip()` is checked
+between every step, and the test asserts a skipped transition still leaves the
+building standing with no part left in the air.
+
+* The parts are the restored form's TOP-LEVEL children; anything nested deeper
+  rides along with its parent instead of landing on its own.
+* The flash is an OmniLight3D inside the building, not a tint: the materials in
+  `_mats` are shared with every other building.
+* `_drop_part` is started with `.call(...)`, not awaited — the parts have to
+  overlap, and a coroutine cannot be called bare.
+
+**Performance.** 40 visible meshes / 1266 triangles ruined, 67 / 1806 fully
+restored — far under the yard. The SubViewport draws every other frame (30 fps
+behind menus), and `set_diorama_active(false)` disables it entirely while a
+chapter is playing: `root.gd` only HIDES the hub, so without that the town
+would keep rendering behind the yard.
+
+### G13.1 — the yard's quality recipe, applied
+
+The first slice was small, empty, untextured and dead. Every part of the yard's
+recipe now runs in the diorama too.
+
+| | before | after |
+| --- | --- | --- |
+| Plate | 17x23, flat plane, one albedo colour | 26x34, `lawn_ground.gdshader` + `grass_normal` + a noise tint texture |
+| Grass | none | `TuftField.cluster_mesh` MultiMesh, ~600 clumps, `grass_clump.gdshader` wind |
+| Buildings | flat colours | `siding_albedo`, `roof_shingles_albedo`, `wood_albedo`, layered windows, ivy on the ruins |
+| Light | flat ambient colour | sky as ambient AND reflection source, warm sun, soft shadows, fog, screen overlay |
+| Life | nothing | swaying crowns and washing, flickering lanterns, chimney smoke, birds crossing |
+| Edges | bare ground into fog | tree clusters, hedges, and a `Horizon` ring of hills and rooftops |
+| Draws / triangles | 40 / 1.3k | 432 / 19k — the yard measures 580 / 30k |
+
+Things that had to be measured rather than guessed:
+
+* **`grass_albedo` is a GREYSCALE pattern**, tinted by `lawn_ground.gdshader`.
+  Used as a StandardMaterial albedo it renders grey. The diorama runs the same
+  shader, and its `cell_tint` texture carries the COLOUR, not just brightness —
+  a tint of pale greys left the plate white.
+* **Unshaded meshes bypass the tonemapper.** The horizon hills had to be
+  authored much darker than they should look; at "correct" values they came out
+  near-white and read as snowfields standing over the town.
+* **Fog at 30/58 reached the middle of the plate.** It is 52/96 now, so only the
+  far rim dissolves, and `fog_sky_affect` is 0.15 or the sky is fog too.
+* **Clearing only the clumps TAGGED to a plot was invisible.** The open-field
+  grass around a finished house kept it looking abandoned, so anything inside
+  the overgrowth radius is cleared.
+* No SDFGI and no SSAO: broken on the mobile renderer. Every contact shadow here
+  is a painted AO blob, same as the yard.
+
+**`Horizon` runs in every yard too** (`environment_builder.gd`), not just the
+hub — distant hills and rooftops at `GameConfig.HORIZON_RADIUS`, so no chapter
+ends at a blank wall of fog.
+
+`docs/g13/yard_reference.jpg` and `docs/g13/hub_diorama.jpg` are the two scenes
+shot the same way, for judging the gap.
+
+### G13.2 — the frozen hub after a purchase
+
+Buying the station left the hub unresponsive. `_play_restore_scene` fades every
+visible page out, waits for the four-second animation, then fades them back —
+but `_apply_restore_layers` queue_frees the `Restore_*` badges the instant a
+project is bought, so by the time the animation ended those nodes were gone.
+The cast threw, `skipper.queue_free()` on the next line never ran, and a
+full-screen invisible Button stayed over the hub swallowing every touch.
+
+* **`is_instance_valid` has to come BEFORE the cast.** Casting a freed object
+  throws in GDScript, so a guard written after the cast never runs. The first
+  fix put the guard after `as Node` and still threw. The same trap was live in
+  `town_diorama.gd`'s `_life` loops; those are guarded now too.
+* The skip button is removed FIRST and unconditionally, so no later failure can
+  leave the hub covered.
+* `Restore_*` badges are skipped when collecting pages — they are rebuilt on
+  every purchase, so fading them was pointless and holding them was the bug.
+* `tests/DioramaCheck.tscn` reproduces it: it frees a visible page mid-animation
+  and asserts no blocking button survives and no page is left faded. Without the
+  fix it reports 1 blocking button and 6 faded pages.
+
+### G13.5 — all ten restore projects are physical
+
+(Named G13.5, not G13.3: that number is already taken above by the device
+console pass.)
+
+The slice's other seven projects now exist on the plate, each with a ruined and
+a restored form, each rebuilt through the same Tween transition. A locked
+project shows its RUIN rather than an empty lot, so the player can see what the
+money buys before Tier 2 opens.
+
+| Project | Ruined | Restored |
+| --- | --- | --- |
+| swing | bare limb, one frayed rope | ropes, seat, the case's yellow ribbon; Ellie rides it once the case is closed |
+| lantern | snapped post in the grass | iron post, warm lamp, an additive light pool on the paving |
+| greenhouse | leaning frame, three panes left | new and salvaged glass mixed, seedling beds read through it |
+| clinic | boarded door, collapsed veranda | red cross sign, level veranda, supply crates |
+| mast | lattice on its side | standing lattice, slow red beacon, hut, sagging cable |
+| farm | weeded beds, fence half down | worked rows, stone well, scarecrow |
+| barn | half the roof in the loft | patched panel, X-braced door, hay bales, cat asleep on top |
+
+* **Figures.** The brief referred to "the existing cat figure" and Sarah's
+  "second stop" — there were no figures at all, so Sarah, Gus, a farmer and the
+  cat are new. Each appears only when the project that brings them back is
+  built. They walk a two-point line with scissoring legs; there is no navmesh.
+* **Peek.** Holding a restore card for `DIORAMA_PEEK_HOLD` leans the camera at
+  that plot and back, before any money moves. It refuses while a rebuild plays.
+* **Plate 26x34 -> 36x46.** Ten buildings on the old plate stood shoulder to
+  shoulder, with the greenhouse inside the barn.
+* **The swing needed its own scale.** Every plot is scaled by
+  `DIORAMA_BUILDING_SCALE`, but the oak is not — at 1.55 the ropes hung in open
+  air beside the tree. Its config entry carries `"scale": 1.0`.
+* The clinic cross was authored BEHIND its own sign board (smaller z is further
+  back), and `_life` re-places the camera every frame, so the shot script has to
+  call `set_process(false)` or every frame comes out at the hub framing.
+
+**Performance, reported as the brief asks — and it is over budget.** 666 draws /
+28.7k triangles ruined, **752 draws / 31.3k restored**, against the yard's
+580 / 30k. G13 kept the diorama under the yard; ten buildings does not. It still
+draws only every other frame and stops entirely during a chapter, but the draw
+count is the number to watch on a real device.
+
+Frames: `docs/g13/p_<project>_0ruin.jpg` and `_1built.jpg` for all ten, plus
+`docs/g13/hero.jpg`.
+
+### G13.6 — baking the static diorama
+
+752 mesh draws down to 226. `MeshBake` welds a subtree's MeshInstance3Ds into
+one mesh per material: the authoring style stays primitives-in-code, and the
+runtime cost is paid once at build time.
+
+Measured before touching anything, which is what decided the plan: edge trees
+240 draws, bushes 132, horizon 88, farm 72. Trees bake per tree and the whole
+tree now leans instead of just its crown — at this distance the same picture
+for a tenth of the draws. Bushes bake as one group, since they never move.
+
+Never baked: figures, birds, washing, the swing, the reclaimed weed band, and a
+restored building DURING its rebuild — the transition tweens each part. Ruined
+forms bake immediately (they sink as one node); restored forms when their
+animation ends. Baking is one-way.
+
+`GameConfig.PERF_LOG` prints draws, triangles and fps on hub entry. On desktop
+that reads `cizim=334` for the whole screen, UI and shadow passes included.
+
+`surface_get_primitive_type` only exists on ArrayMesh — asking a CylinderMesh
+for it throws.
+
+### G13.4 — mowing / case / town
+
+Three links between systems that already existed. Theme: *every lawn you clear,
+the town breathes a little easier.*
+
+**Mowing → town.** A band of tall weeds rings the diorama and retreats one of
+eight steps per finished chapter. It is its own MultiMesh, deliberately outside
+the G13.6 bake, and retreating rewrites the transform list rather than
+rebuilding it. Returning to the hub plays the step: the doomed clumps lie down
+over 1.5 s, staggered by depth so the fall sweeps outward. The hub bar carries
+`TOWN RECLAIMED {percent}` — tied to CHAPTERS, not to money, because this is
+the measure of work. Each chapter's case notes gain one line from
+`reclaim_line` in `data/levels.json`.
+
+**Town → case.** Building the clinic gives every found corkboard card a second
+line of Dr. Cole's reading of the object (`cole_note` per evidence def, sixteen
+of them). The watchtower gives the Marshal his line about the east road. The
+three projects that serve the case carry a `SERVES THE CASE` badge.
+
+* The taller cards broke the corkboard layout — `tests/BoardLayout.tscn` caught
+  two overlaps, and `BOARD_SCALE` went 2.0 → 2.3. Curiously 2.6 fails again:
+  more room changes which candidate the note solver settles on.
+
+**Case → mowing.** At 30 % and 60 % of a lawn the Marshal says one line over
+the radio and the cells AROUND a still-buried find take the faintest warm tint.
+It names a region, never the cell, and the find's own cell is skipped — the
+difference between a hint and a waypoint. `GameConfig.hint_moments` switches it
+off. `tests/ScentCheck.tscn` asserts both fire, that every region line is
+translated, and that off means off.
+
+* Evidence only becomes a node once its cell is mown, so the MODEL is what
+  knows where the finds are; the first version looked for spawned props and
+  would have found none.
+
+**Text pass.** `RESTORE_POOR` said "Come back richer", pointing at money where
+the theme points at work; it now says "Go clear another lawn." No other string
+contradicted the theme. New keys: `HUB_RECLAIMED`, `RECLAIM_CH01`–`CH08`,
+`HUB_TOWER_LINE`, `RESTORE_CASE_BADGE`, `SCENT_*`, `COLE_*` — en and tr.
+
+Frames: `docs/g134/`.
+
+### G13.7 — four things the device showed
+
+* **A giant swing pasted over the screen.** `_apply_restore_layers` adds a 2D
+  picture of each finished building to the hub — that is the LEGACY collage's
+  mechanism, and in diorama mode the town is already built in 3D, so every
+  purchase stuck a full-screen picture in front of it. It now returns early
+  unless `hub_mode` is legacy.
+* **Black blotches on the buildings.** The AO blobs are transparent quads;
+  welding them into one mesh threw away their per-quad depth sorting. They
+  carry a `no_bake` meta now and `MeshBake` skips them. Everything else in a
+  plot still welds.
+* **The grass flashed overgrown on entry.** `_build_tufts` wrote every clump,
+  then `refresh_state` immediately dropped the ones on cleared plots. The first
+  write is gone; `refresh_state` does it once, with the cleared plots known.
+* **Long rebuilds, the greenhouse worst.** `RESTORE_PART_GAP` was a fixed 0.15 s
+  per part, so a thirty-part building took five seconds. It is a CEILING now,
+  with `RESTORE_RAISE_SECONDS` spreading however many parts there are across a
+  fixed span. Measured after: lantern 3.1 s, greenhouse 3.3, farm 3.3,
+  station 3.4 — all inside the brief's 3-4 s.
+
+A building is also welded when its rebuild animation ends, which the first bake
+pass missed: a purchase now reports a second, smaller saving.
+
+**Not in the slice.** The other seven projects — swing, lantern, greenhouse,
+clinic, mast, farm, barn — have no building in the scene yet. Adding one is a
+`DIORAMA_BUILDINGS` entry plus a ruined/restored builder pair; nothing else.
+The dead oak in the square is where the swing will hang.
+
+### G13.3 — device console
+
+From a session on an A16 device. Most of that log is Godot's own Metal shader
+chatter (`unused variable`, `uninitialized`) and is not ours.
+
+* **Empty Info.plist usage strings.** Xcode flagged
+  `NSPhotoLibraryUsageDescription`, `NSMicrophoneUsageDescription` and
+  `NSCameraUsageDescription` as empty. The game asks for none of them, but Godot
+  writes the keys into Info.plist whether or not they have a value, and an empty
+  string is invalid — App Store Connect rejects it. They now carry a truthful
+  sentence in `export_presets.cfg`.
+* **The blade note on every launch.** `_ensure_all_mowers` printed a line for
+  the blade every time. The blade has no `.tscn` — it is built in code — so it
+  is ALWAYS spawned there and that is expected. The other three do have scenes,
+  so those are still reported, now as `push_warning`.
+* **`Could not vibrate using haptic engine`.** Godot's own iOS message, from
+  `Input.vibrate_handheld`. Our pulses were 10 ms and 25 ms, which came from the
+  desktop-era brief; CoreHaptics does nothing useful with a pulse that short, so
+  they are 20/40 ms now. NOT confirmed as the cause — the same message also
+  appears when the device has System Haptics turned off or Low Power Mode on.
+* `mouse_get_position(): Mouse is not supported` is Godot's own UI code, not a
+  call of ours; `fopen failed for data file` and the CoreMotion plist warning
+  are engine/system noise.
+
+### G13.4 — the leaks at exit
+
+Two orphans, both mine, both from G13:
+
+* `_build_diorama_background` created a `shade` ColorRect, configured it, and
+  never added it to the tree — the wash beside it became a TextureRect and the
+  ColorRect was left behind. That is one leaked CanvasItem plus its objects,
+  every time a hub is built.
+* `_on_diorama_building` called `_on_tile(id, false, Button.new())` for a
+  throwaway button that `_on_tile` only uses to shake a LOCKED tile. The
+  parameter now defaults to null.
+* `_dust` built a ParticleProcessMaterial, a QuadMesh and a StandardMaterial3D
+  on every call — a dozen per restore, and a fresh particle shader variant each
+  time. Both are built once and shared now; per-puff size is the NODE's scale.
+
+Verified with `--verbose`, which names the leaked instances. After the fix both
+`tests/DioramaCheck.tscn` and a full purchase run report nothing leaked.
+
+**A tooling lesson, not a game one:** the first attempt at the `_dust` change
+used `s[s.index(A):s.index(B)]` to slice out the old function, with B occurring
+BEFORE A in the file. That yields an empty string, and `str.replace(, new)`
+inserts `new` between every character — it turned a 52 KB script into 90 MB.
+Slice bounds have to be ordered, or the edit made with a tool that verifies the
+match.
+
+### G13.5 — the case board's two-layer map
+
+The PLACES list is gone. A list told the player which chapters exist; a map
+tells them where Ellie went.
+
+**Layer 1, the region.** One interactive thing on it: our own town. Everything
+else is hills, a coast and two roads under fog — the world is large and closed.
+Our circle is the only COLOURED ground on the sheet. A faint pulsing light sits
+in the east with a "?" beside it and nothing to press: Concord, two cases away.
+
+**Layer 2, the town.** The square, paths radiating from it, the creek and its
+bridge, plot blocks. Eight case pins and, once built, the restored buildings as
+small roofed marks that shortcut to their screens.
+
+* **Pin states:** green + tick (searched), green + "!" (searched, evidence left
+  behind), gold + a breathing pulse (next), grey + dash (locked).
+* **The route** is drawn as a dashed line through the places already searched —
+  it grows as the case does, and it points east.
+* **Reclaimed on paper:** a finished place brightens the parchment around it,
+  the map's answer to G13.4's weed band.
+
+**Case 1 reads west to east**, and `tests/MapCheck.tscn` asserts it: the x of
+each place must exceed the one before. The Aldridge house sits at the town's
+west edge, the neighbour beside it, then the square, the creek, the greenhouse,
+and out to the water tower, the mill and the cellar in the north-east. Nobody
+says "she went east"; the pins do.
+
+**Nothing about starting a chapter changed.** A pin's SEARCH button emits the
+same `chapter_chosen` signal the rows used, so the briefing and the chapter-start
+path are untouched — only the door is new. The chapter-end NEXT button now
+returns to the map with the following place focused instead of dropping straight
+into it, which is the journey the brief asked for and costs one extra tap.
+
+Both sheets are generated (`MapArt`): parchment as an ImageTexture, roads, creek
+and pins as `draw_*` calls. `textures/map/world_map.png` and `town_map.png` are
+used when present, with the ink always drawn on top so pins stay readable over
+painted art.
+
+* `NOTIFICATION_RESIZED` arrives when the node enters the tree — BEFORE `_ready`
+  has built the layers — so refreshing on it walks into a null.
+* `PanelContainer` stretches its children, so the place sheet's close button
+  ended up in the middle of the panel until it moved into a title row.
+
+Frames: `docs/g135/`.
+
+#### The painted sheets
+
+`textures/map/world_map.png` and `town_map.png` arrived hand-painted and are now
+what the screen uses; `MapArt`'s generated versions stay as the fallback and are
+skipped entirely when a sheet is found, so the art is never drawn over.
+
+**They are 3:2, and the game is portrait.** The two layers want opposite things
+about that, which is why they no longer share a rule:
+
+* The REGION is FITTED and centred. That layer's whole job is "the world is
+  large and you are one dot in it", so it has to be seen whole. Filling the
+  screen with it put the town half off the left edge and the light in the east
+  out of frame entirely.
+* The TOWN is FILLED and DRAGGED. Letterboxed, it was 40 % of a portrait screen
+  and unreadable. It now covers the screen and pans under the finger, clamped so
+  no edge ever shows paper — which is what a map screen on a phone does anyway.
+  Opening it centres the sheet; `focus_place` pans to the pin before opening its
+  panel, so the sheet never talks about something off-screen.
+
+Around both, a dim parchment "desk" fills whatever the sheet does not, so the
+letterbox reads as the table the map is lying on. Pin labels sit on small paper
+plates: over painted trees a drop shadow was not enough to keep a name legible.
+
+**Case 1's route bends, and the test now says so.** The first rule demanded a
+strictly increasing x — every place further east than the last. The painted map
+does not allow it: the greenhouse is drawn on the WEST side of town, and moving
+that pin off the building it is named after would be a worse lie than a detour.
+`MapCheck` asserts what actually matters instead — the case ends far east of
+where it started, and the last three places are all past x 0.7. A real trail
+doubles back; what matters is where it arrives.
+
+Both sheets import at `compress/mode=2`. At the lossless default the pair cost
+12 MB of VRAM; compressed they cost about 1.5 MB.
+
+## Sprint G14 — desktop (Steam) input and layout
+
+Keyboard driving, and the layout work a portrait phone game needs before it can
+sit in a desktop window.
+
+**WASD / arrows feed the SAME `_pad_stick` the touch pad fills.** Camera-relative
+steering, the reverse-instead-of-pirouette rule and every per-mower turn limit
+then apply unchanged. A separate desktop path driving `throttle` directly would
+have re-implemented all of it and drifted from the phone build the first time
+either was tuned.
+
+* `pad_engaged()` counts held keys as well as a finger — that one line is what
+  makes WASD work for every mower at once, since they all gate driving on it.
+* A finger on the pad outranks the keyboard; the mower never fights a thumb.
+* `physical_keycode`, so the WASD block stays in the same PLACE on AZERTY and
+  QWERTZ rather than becoming ZQSD letters.
+* The blade replaces `_physics_process` entirely, so it calls `_read_keyboard()`
+  itself — the base loop never runs for it. Held keys freeze its camera exactly
+  as a held finger does.
+* The robot plans its own route and declines the keyboard (`keyboard_enabled`).
+* Escape toggles pause, Tab/Space cycles to the next OWNED machine.
+* Mouse already worked: `emulate_touch_from_mouse` was on from the start.
+
+**Wide screens.** `stretch/aspect` is `keep_height`, so a 16:9 window makes the
+viewport 4501x2532. That is GOOD for the 3D — the neighbouring yards come into
+view — but the HUD spread its top bar across the whole monitor with a hole in
+the middle. `Hud._centre_for_wide_screens` holds the full-width strips to
+`UI_MAX_WIDTH` and pulls the right-edge controls (pause, home, the MISSING
+poster) in by the same margin. On a phone the margin is zero and nothing moves.
+
+* It runs `call_deferred`: the pause button, home button and poster are built
+  further down `_ready`, so running inline found none of them.
+* It re-runs on `size_changed`, so resizing the window keeps it together.
+
+`tests/KeyboardCheck.tscn` drives each hand-driven mower with a held key and
+asserts it travels that way ON SCREEN. Writing it turned up that
+`snap_to_target()` copies the MOWER's yaw onto the camera — a test that zeroes
+the camera without first zeroing the mower is measuring the leftover heading,
+which is why the blade appeared to steer 90 degrees off.
+
+**Still phone-shaped, and worth knowing before Steam:** the game is authored at
+1170x2532. Wide windows now frame correctly, but the interface is still a tall
+column down the middle — it does not USE the extra width. Controller support,
+key rebinding, and a settings screen do not exist.
+
+### G14.1 — the parts that cannot wait
+
+Mobile is the priority; Steam is later. These are the three things that get
+EXPENSIVE or impossible if they are left until then. Everything else on the
+desktop list is deliberately deferred.
+
+**Save versioning — the only truly one-way one.** `settings.cfg` had no format
+version. Once players have save files, a file with no version is
+indistinguishable from a future format that happens to lack the key, so a later
+change to how progress is stored can only guess — or wipe. `SAVE_VERSION` is
+stamped now and `_migrate()` walks a file forward through every step it missed,
+in a while-loop rather than a match, so someone who skipped updates crosses
+several versions in one launch. A file written by a NEWER build is left alone
+rather than mangled.
+
+**Backgrounding pauses the search — and this was a live mobile bug.** Audio
+already suspended itself on `NOTIFICATION_APPLICATION_PAUSED`, but the lawn kept
+being mown: a phone call, a locked screen or an alt-tab left the mower driving
+with nobody watching. The same notification covers both platforms (iOS sends
+APPLICATION_PAUSED, a desktop window sends WM_WINDOW_FOCUS_OUT). Resuming does
+NOT unpause — the sheet stays up and the player chooses, which is the only safe
+thing when you cannot know how long they were gone.
+
+**Gamepad bindings on the SAME actions.** Left stick and d-pad on the four
+driving actions, Y and Start on the two shortcuts. Nothing in the input code
+changes: it reads actions, so a pad works the moment the bindings exist. Adding
+them now means every screen built from here is automatically pad-aware, rather
+than needing an audit later.
+
+`tests/InputMapCheck.tscn` asserts every action answers to both a key and a pad,
+that the movement keys are bound by `physical_keycode`, that the save carries a
+version, and that backgrounding really pauses the tree — verified by removing
+the fix and watching it fail.
+
+**Deliberately left for when Steam is actually on the table:** a settings screen
+(resolution, fullscreen, volumes), key rebinding UI, controller-driven menu
+navigation and button glyphs, using the extra width for landscape menu layouts,
+and the Steam SDK itself (achievements, cloud saves).
+
+### G14.2 — the asset audit
+
+Measured before launch on mobile, web and Steam. Four findings, all real:
+
+| | before | after |
+| --- | --- | --- |
+| Textures on disk | 77 MB | 32 MB |
+| Texture VRAM | 113 MB | 6 MB |
+| Duplicate images | 10 pairs | none |
+| 3D textures with mipmaps | 0 of 11 | 11 of 11 |
+
+**Ten pictures shipped twice.** Every `restore_*` layer existed as both `.png`
+and `.jpg`. `TextureLibrary.EXTENSIONS` tries `.png` first, so the JPEGs were
+never loaded — and could not have been, since the layers need alpha and JPEG has
+none. 19 MB of the package was a format that could not work.
+
+**113 MB of VRAM, most of it in screens the default build never opens.** The ten
+restore layers were up to 1536x2458 and imported LOSSLESS, which costs
+`w * h * 4` bytes each. They are hub-collage art, and diorama mode returns
+before drawing them (G13.7) — so that was ~100 MB reserved for a mode that is
+off by default. They are half-size and VRAM compressed now. Everything above
+256x256 is compressed; below that the saving is not worth the softening.
+
+**No 3D texture had mipmaps.** Not one of grass, dirt, asphalt, siding,
+shingles, wood or bark. Without them the GPU samples full resolution at every
+pixel however far away the surface is: it shimmers in motion AND burns memory
+bandwidth, which on a phone is heat. All eleven world textures generate mipmaps
+now; UI textures deliberately do not, since they are drawn at one size.
+
+Quality was checked by rendering afterwards, not assumed: the painted town map,
+the yard, and Ellie's portrait — the hardest case, since compression shows on
+faces first — are all unchanged to the eye.
+
+`tests/AssetCheck.tscn` locks all three rules in, and was confirmed by reverting
+one texture and watching it fail. Audio was already QOA-compressed at 2.3 MB.
+
+**Left alone deliberately:** `msaa_3d=2` (4x). It is affordable on the
+tile-based GPUs phones use, and dropping it is a visual-quality call rather than
+a correctness one — worth revisiting only if a real device says so.
+
+### G14.3 — the restore layers are gone, and quality came back
+
+Two corrections to the audit above.
+
+**The collage layers were deleted, not shrunk.** Ten `restore_*.png` existed to
+paint a finished building onto the 2D hub — a job the 3D diorama does now, and
+`_apply_restore_layers` returns before drawing them in diorama mode anyway.
+Legacy mode is NOT broken by their absence: it already fell back to a small
+house badge per project when the art was missing. 7 MB of package for a picture
+of a barn that nothing was going to draw.
+
+**The compression pass went too far, and it showed.** Portraits, story cards and
+the maps were all switched to VRAM compression in G14.2, which is exactly the
+wrong trade for photographic art: compression artefacts appear on skin and on
+smooth gradients before anywhere else, and that is most of what those pictures
+are. They are LOSSLESS again.
+
+The VRAM is paid for the other way instead — by size. Nothing is now larger than
+it is drawn: the story cards were 1536x2752 on a 1170-wide screen, the dialogue
+portraits 860x1528 for a half-screen frame, the round faces 320px for a 96px
+circle. Downscaling to display size keeps every pixel perfect AND costs less
+than squashing an oversized image ever did.
+
+| | G14.2 | now |
+| --- | --- | --- |
+| Textures on disk | 32 MB | 13 MB |
+| Photographic art | VRAM compressed | lossless, display-sized |
+
+Tiling world textures stay compressed with mipmaps — compression is invisible on
+them and they are sampled constantly. `AssetCheck` now enforces the two rules
+separately: world textures must be compressed, and NOTHING may exceed the
+screen's longest edge. The old rule ("everything above 256x256 must be
+compressed") was wrong and would have blocked this fix.
+
+### G13.8 — legacy hub removed
+
+The diorama is the hub. There is no second mode.
+
+Deleted: `GameConfig.hub_mode` and both `HUB_MODE_*` constants, the branch in
+`_build_background`, `_apply_restore_layers` and its house-badge fallback, the
+`layer` and `layer_rect` fields on all ten projects in `data/projects.json`
+(20 fields), and the legacy assertions in `DioramaCheck`. The ten
+`restore_*.png` were already gone in G14.3.
+
+**Dependency scan before deleting, as the brief asked.** Nothing outside the
+collage path referenced that art: the restore cards show name, effect and price;
+the map shows a built project as a small roofed mark; and holding a card leans
+the camera at the plot. No new asset was needed and none was made.
+
+**Orphan scan** is now part of `AssetCheck`, reported rather than enforced. It
+lists four: `face_sarah`, `face_cole`, `face_marshal`, `face_stranger`. All four
+ARE used — loaded through a name the code builds at runtime,
+`"portraits/face_" + id` — which is exactly why the rule reports instead of
+failing.
+
+**Dead config keys**: 45 of 457 are read nowhere. Three were removed because
+their death is traceable — `SCRAP_ICON` (the banknote emoji, replaced by
+`UiIcons` in G12.10) and `DESKTOP_WINDOW` / `DIORAMA_FPS` (added in G14 and G13
+and never wired up). The other 42 are older constants from the SceneKit-era
+brief; they are listed by `tools`-side scanning rather than deleted blind, since
+a few are read from scenes rather than scripts.
+
+`tests/FullFlow.tscn` walks the whole run in one process — boot, map, chapter 1
+mown to completion, a restoration bought, the case finished, board and map
+swapped — as proof that no seam still reaches for a mode or a picture that is
+gone.
+
+**Size, end to end:** textures 77 MB → 13 MB, texture VRAM 113 MB → about 60 MB
+of lossless photographic art at display size plus 6 MB of compressed world
+textures. Audio unchanged at 2.3 MB.
+
+## Sprint G15 — the first-run orientation
+
+A one-time pass at the start of the very first search, to stop a new player
+leaving before they know what the mowing is FOR.
+
+Six layers already said it — five intro cards, the opening title, the case line
+in the top bar, Ellie's poster, the Marshal's radio, the first evidence card —
+so this is a seventh and an eighth, added deliberately and shown ONCE.
+
+* **The sheet** appears four seconds in, with Ellie's face and three lines. It
+  pauses the tree, so nothing is being mown behind it. It repeats what the intro
+  said on purpose: by now the player has their hands on the mower, and the
+  sentence lands differently.
+* **Closing it marks both buried finds**, widely. This is the ONLY place in the
+  game that points at evidence rather than at a region — it contradicts G13.4's
+  rule on purpose, once, and never again.
+* **The Marshal speaks at 8 %** on a first run instead of 30 %, so a player who
+  skips the sheet still hears where to look inside the first few seconds.
+* **The poster pulses** for twelve seconds at the start. No interruption.
+
+The flag lives in the SAVE (`meta/orientation_done`), not in memory: a player
+who quits during their first lawn must not get the whole thing again.
+
+**It broke two suites, and that was the useful part.** `DragPad` and
+`KeyboardCheck` drive a mower — and a paused tree cannot be driven. They were
+inheriting a cleared flag from `FirstRunCheck`, which shares one `settings.cfg`
+with every other suite. Both now state their own precondition, and the first-run
+suite leaves the flag SET rather than cleared. A test that depends on what
+another test left behind is a test that will lie eventually.
+
+## Sprint G13.6 — the harvest
+
+A second reason to mow. `level_type: "harvest"` in `data/levels.json` picks a
+level apart from the eight searches: the WHEAT palette, a large grid, sparse
+stones, no evidence, no echo, and scrap paid at 2.2x. Everything under it is
+the systems that were already there — one flag, one variant entry.
+
+* **The invitation** opens once the farm is rebuilt AND the tractor is owned
+  AND three cases have been closed since the last harvest. It then waits
+  indefinitely: a gold pin on the town map, and Gus on the radio once per
+  invitation when the hub opens. The offer is measured from the chapter count
+  at the last harvest (`harvest/since_chapter`), not from the harvest count —
+  the first formula needed nine chapters for a third harvest in an eight
+  chapter game, which no player could ever reach.
+* **The field is the point.** 577 plants ring the plot: sunflowers on the inner
+  rows, corn outside them, four to seven metres tall, so the camera looks UP at
+  the crop. There is no south row — six-metre sunflowers stood between the
+  camera and the lawn. The opening camera descends for fourteen seconds from
+  high above, which is also why the shot suite now waits 950 frames: shooting
+  early only photographs the fog it starts in.
+* **A harvest buries nothing.** `LawnModel._place_secrets` returns early on a
+  harvest, and the HUD drops the evidence chip, the missing poster and the case
+  line for "HARVEST — Bring the field in". The HUD is told from `Game._ready`,
+  not from its own, because the variant is applied after the HUD builds.
+* **It is replayable, so it is re-seeded.** `LevelVariant.of` offsets
+  `decor_seed` by the run count, which moves the scrap, the stones and the crop
+  rows together. The tractor throws chaff rather than clippings: fatter, slower
+  flecks in the palette's grain colour.
+* **It pays back visibly.** One hay bale stacks outside the new barn landmark
+  per harvest, up to four.
+
+**The tooling lied for one round.** `timeout` does not exist on macOS, so a
+suite loop written around it ran nothing and printed `ok` for all 39 scenes. A
+harness that cannot fail is worse than no harness — the limiter is now a small
+`kill`-based script, and a suite with no verdict line prints `??` rather than
+passing by default.
+
+### G13.6b — two lists that could not be reached
+
+The completion panel's card was a fixed 980x870 box with a VBox in it: the
+moment the case notes ran to two lines, RESTART fell off the bottom of the
+phone with no way to scroll to it. The hub's tile column had the same shape and
+broke the same way as soon as the harvest tile was added to it. Both are
+ScrollContainers now, with the content still centred (completion) and still
+bottom-aligned (hub) when it is short enough to fit.
+
+**The harvest also needed a door.** Gus's radio card says it once and fades,
+and the gold map badge is two screens in — neither is somewhere a player can go
+looking. While the invitation is open there is now a gold HARVEST tile at the
+top of the hub, and `focus_place` knows the harvest is not a case place: it
+pans to the farm and opens the field's own sheet.
+
+## Sprint G14.1 — the birthday
+
+Case 1 gains one fact and never states it: the outbreak took Ellie's parents,
+and the town raised her between them. Sarah is the woman who took her — the
+Voss name is Sarah's. Ellie went missing on the morning of her ninth birthday,
+with the square already being set up for the party.
+
+Nothing dramatises the orphanhood. It is assembled by the player out of small
+things: nine unsigned packages in Gus's workshop ("we never wrote who they're
+from — we never do"), a cake nobody had the heart to take out of the oven, a
+Marshal who says the whole town raised her and the whole town is out looking,
+and Sarah's own "I'm not her mother. But nine years ago the town handed me a
+baby, and I've been hers ever since." Ellie still calls her Mum two screens
+later. That contradiction is the point, and it stays.
+
+**The clock moved with it.** She used to have vanished "last night"; the
+birthday ribbon Sarah tied "this morning" makes that impossible, so every
+reference — the intro card, the poster, the alert, the first-run sheet, the
+Marshal's answer in the briefing — now reads from this morning. `ROLE_SARAH`
+no longer says "Ellie's mother".
+
+**The case closes on the party it was interrupting.** The reunion card is three
+beats instead of two: Ellie home, then nine candles in the square, then Case 2.
+The warm one sits directly against the cold one on purpose. The middle beat
+uses `textures/story/birthday.png` when it exists and falls back to the reunion
+photograph, which already has the lanterns and the gathered town in it.
+
+### G14.1b — the crash the blade was always going to have
+
+`BladeMower._check_spark` read `model.collision_rects[1]` directly, with a
+comment saying index 1 was the stone. That was true of exactly one layout. On
+`open` — the playground and the harvest field — the array is EMPTY, so
+starting either level with the blade threw `Out of bounds get index '1'` every
+physics frame; on `pool`, index 1 is a sunbed, so the sparks were measuring
+garden furniture. It now resolves every obstacle actually named "stone" once
+per model and walks that list; a yard with no stones simply never sparks.
+`SparkCheck` drives the blade across all four layouts.
+
+**Review pass on the birthday text.** "Ellie didn't come home" implied an
+evening she never reached, which fights the morning disappearance — it reads
+"Ellie didn't come back" now. The Marshal's "before the candles mean something
+else" traded its shadow for want: "find her before the candles burn down — I
+want her blowing them out." The poster gained its photograph's caption, "Taken
+this morning, before the party."
+
+`textures/story/birthday.png` arrived at 2.37 MB; it is a 571 KB JPEG now, the
+same convention as `reunion.jpg`, with identical import settings. The card's
+scrim drops from 0.55 to 0.22 on that page — the art is lit by nine candles and
+the readable-text scrim was putting them out.
+
+### G13.6c — the panel nobody had looked at
+
+The harvest's completion panel was never rendered during G13.6; only the parts
+of it that were explicitly written. Everything that was NOT written still said
+"search": the headline read AREA SEARCHED, the stats line counted cells
+"searched", the pay row listed a "Search bonus", and an empty evidence strip
+printed "nothing recovered" — on a level that deliberately buries nothing.
+All four now have harvest wording, and HarvestCheck asserts the headline and
+the stats line, verified by breaking them on purpose first.
+
+The lesson repeats one already in this file: writing a special case is not the
+same as looking at it.
+
+## Sprint G14.2 — the day, the country, and a measurement that was wrong
+
+Two things were asked for: make the eight chapters feel like different times,
+and stop the world ending in brown dirt. A third — a dynamic sky addon — was
+turned down, and the reason is in the numbers below.
+
+**The one day, made visible.** `GameConfig.TIME_OF_DAY` holds six presets and
+each chapter names one: B1 dawn, B2-B3 morning, B4-B5 midday, B6 afternoon,
+B7 golden, B8 dusk. Sun angle, sun colour, sky colours, ambient and fog, on
+the two nodes the scene already had. No addon, no textures, nothing per frame.
+The first pass was rejected by its own screenshots — dawn and dusk were so dark
+that tall grass and cut stripe stopped being distinguishable. The hour is
+carried by COLOUR; a low sun is paid for with ambient light, never with gloom.
+`SkyCheck` enforces that as a floor (`ambient_energy >= 0.40`, `elev >= 10`)
+and enforces that the day never runs backwards.
+
+**The hills had never been visible. Not once.** The horizon ring was built at
+78 units and the fog closed at 70 — in front of it. Every distant hill and
+rooftop this project has drawn since G13.1 was inside solid fog. The fog now
+reaches 210, the hills were repainted paler (they had been authored to be read
+through a fog wall), and a 420-unit meadow sits under everything so the yard
+stops being a brown island.
+
+**And the measurement that was wrong.** Asked for clouds and birds, the first
+probe said the cameras never show sky at all — top edge 2.8 degrees BELOW the
+horizon in the hub. It was taken in the 1519-wide test window. The camera keeps
+its WIDTH, so a wider window sees LESS vertically than the phone: at the
+shipping 1170x2532 the hub's top edge is 4.5 degrees ABOVE the horizon. The
+yard's is 11 degrees below, so that half of the conclusion held — there are no
+clouds in a yard because a yard camera cannot see any.
+
+The hub got both, and getting them ON SCREEN took three corrections a
+screenshot would not have caught: a ring centred on the plate is mostly behind
+a camera that stands at (0, 28, 28.5); a 38-degree spread is wider than the
+24-degree horizontal half-angle; and the sky band is thin enough that height
+matters to the metre. A probe found 0 of 11 clouds and 0 of 30 birds on screen
+before any of that. `SkyLifeCheck` now asserts they are visible — pinning the
+viewport to 1170x2532 first, because headless reports a SQUARE viewport and
+squareness alone flips the answer.
+
+### G14.2b — country past the fence, and the mission compass
+
+**The horizon band had grass and trees added to it.** Hills alone still read as
+paper: the country a town sits in has the same grass and the same trees, just
+smaller with distance. `Horizon` now owns the ground plane too — tinted from
+the level's own palette, so a wheat yard is not ringed in green — with two
+thinning bands of low-poly trees between the scene and the hills. The yard's
+separate meadow was folded into it; one place decides what is out there.
+
+**The objectives screen invents nothing.** Every entry in `data/objectives.json`
+is a goal the game already had — the eight chapters, the harvest the farm and
+the tractor unlock, the first three restorations — written down with its
+conditions ticked so the player can SEE what is missing instead of inferring
+it. Rewards are paid once, on the crossing from unmet to met, and that fact is
+the only thing stored: everything else is derived on read, which is what makes
+it safe to poll from anywhere.
+
+Two things that only showed up by running it:
+
+* The harvest objective could never complete. Its gate is "three chapters since
+  the last harvest", and bringing a harvest in RESETS that counter — so the
+  conditions unticked themselves at the exact moment the deed was done. The
+  deed alone finishes an objective now; conditions are the gate to reach it.
+* `_show_page` walked a hardcoded list of pages that did not include the new
+  one, so the objectives screen never closed once opened and drew on top of
+  whatever came next. It walks `_pages()` now — a list that cannot be forgotten.
+
+Reward values (600 / 400 / 250 scrap) are PLACEHOLDERS awaiting economy
+calibration and are marked as such in the data file.
+
+### G14.2c — the objectives chip
+
+The icon was blank and the chip showed a bare number. Two causes, one of them
+worth remembering: `_draw_objectives` was written and never reached, because
+the edit meant to add it to `UiIcons._make`'s match had the wrong indentation
+and the replace silently did nothing. **A string replace that matches nothing
+is a no-op, not an error** — the same trap that once turned a 52 KB file into
+90 MB. Edits like that need an assert or a grep afterwards, which is how this
+one was found: by rendering the icon on its own and getting an empty square.
+
+The chip was also too narrow at 104 px for an icon and a count together, so
+even a working icon would have been squeezed out. It is 150x86 now, icon left,
+count right.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
 lives in future briefs.
+
+## G13 — Case 02 economy, calibrated
+
+The problem the calibration found: every sink in the game costs **14 410**
+(6 250 of restoration plus 8 160 of garage), and Case 01 at 100% already pays
+**14 255** — G14.3 tuned it to fund the whole economy on its own. Case 02 on its
+first-pass budgets added another **22 870**, which is 22 715 of scrap with
+nothing to buy. That does not make the player rich; it makes the restore board
+meaningless, and the restore board is Case 02's own gate.
+
+The fix separates two things that were one number. `scrap_budget` is how many
+pieces are BURIED — density, the reward for looking around, and the reason a
+yard feels worth walking. `scrap_multiplier` is what they are WORTH. Case 02
+keeps Case 01's burial density and pays 0.32 of it, because the economy it lands
+in has no new sinks.
+
+| chapter | budget | mult | payout at 100% | cumulative |
+|---|---|---|---|---|
+| ch09_radio_room | 13 | 0.32 | 652 | 652 |
+| ch10_relay_hill | 12 | 0.32 | 602 | 1 254 |
+| ch11_orchard | 16 | 0.32 | 802 | 2 056 |
+| ch12_river_crossing | 14 | 0.32 | 701 | 2 757 |
+| ch13_roadside_camp | 17 | 0.32 | 852 | 3 609 |
+| ch14_listening_post | 14 | 0.32 | 701 | 4 310 |
+| ch15_old_clinic | 15 | 0.32 | 753 | 5 063 |
+| ch16_meeting_stone | 18 | 0.32 | 902 | 5 965 |
+| ch17_signal_garden | 12 | 0.32 | 602 | 6 567 |
+| ch18_long_road_home | 15 | 0.32 | 753 | 7 320 |
+
+**Where that lands.** Both cases at 100% pay 21 575 against 14 410 of sinks —
+**1.50×**. A thorough player affords everything with slack. A player at ~70%
+completion earns about 15 100 and still has to choose between the garage and the
+town, which is exactly the choice the Case 02 gate exists to notice.
+
+**The Toll (B15.5)** takes 15% of the wallet, floored at 30 and capped at 200,
+and never more than the player is carrying. It fires once, on the way back from
+ch15. By then a 100% player has earned 14 255 + 5 063 = 19 318 and spent most of
+it; the cap makes the toll 200 at worst, the floor makes it 30 at best. It
+cannot bankrupt anyone and it cannot be ignored, which is the design of a toll.
+
+**Objective rewards** (700 / 900 / 1 200 for the three Case 02 objectives) remain
+PLACEHOLDERS by decision — they settle with the next calibration package.
+
+**Case 03 is where this points.** Case 02 deliberately does not add sinks; if
+Case 03 adds any, this multiplier is the first number to revisit.
+

@@ -63,6 +63,9 @@ var _poster: Control
 @onready var _teaser_locked: Label = %TeaserLocked
 @onready var _return_button: Button = %ReturnButton
 @onready var _scrap_label: Label = %ScrapLabel
+@onready var _wallet_icon: TextureRect = %WalletIcon
+@onready var _evidence_icon: TextureRect = %EvidenceIcon
+@onready var _evidence_chip: HBoxContainer = %EvidenceChip
 @onready var _exit_card: PanelContainer = %ExitCard
 @onready var _exit_title: Label = %ExitTitle
 @onready var _exit_continue: Button = %ExitContinue
@@ -72,6 +75,8 @@ var _poster: Control
 @onready var _board_button: Button = %BoardButton
 
 var _shown_percent := 0.0
+## The Marshal's radio line, if one is on screen (G13.4).
+var _scent_toast: PanelContainer
 var _target_percent := 0.0
 var _card_home := Vector2.ZERO
 var _card_tween: Tween
@@ -93,6 +98,13 @@ func _ready() -> void:
 	# present, so a non-Latin language does not render as boxes.
 	LocaleSupport.apply()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Deferred: the pause button, the home button and the poster are all built
+	# further down _ready, so running now would find none of them (G14).
+	_centre_for_wide_screens.call_deferred()
+	get_viewport().size_changed.connect(_centre_for_wide_screens)
+	# Drawn, not emoji: iOS renders an emoji glyph as a blank box (G12.10).
+	_wallet_icon.texture = UiIcons.money()
+	_evidence_icon.texture = UiIcons.evidence()
 	_complete_panel.visible = false
 	_secret_card.visible = false
 	_missed_label.visible = false
@@ -147,19 +159,19 @@ func _apply_percent() -> void:
 # ---------------------------------------------------------------- secrets
 
 func set_secret_count(found: int, total: int) -> void:
-	# G7: evidence, not secrets — "📋 Evidence 1/2".
+	# G7: evidence, not secrets. The clipboard beside it is a drawn icon node
+	# now, not a glyph in this string (G12.10).
 	_secret_counter.text = tr("UI_EVIDENCE_COUNTER").format({
-		"icon": Story.raw("evidence.counter_icon", "📋"),
 		"found": found, "total": total})
 
 
 func bump_secret_counter() -> void:
 	if _counter_tween and _counter_tween.is_valid():
 		_counter_tween.kill()
-	_secret_counter.pivot_offset = _secret_counter.size * 0.5
-	_secret_counter.scale = Vector2(1.35, 1.35)
+	_evidence_chip.pivot_offset = _evidence_chip.size * 0.5
+	_evidence_chip.scale = Vector2(1.35, 1.35)
 	_counter_tween = create_tween()
-	_counter_tween.tween_property(_secret_counter, "scale", Vector2.ONE, 0.35) \
+	_counter_tween.tween_property(_evidence_chip, "scale", Vector2.ONE, 0.35) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
@@ -223,8 +235,14 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 		total_secrets: int, payout := {}, next_name := "") -> void:
 	_shown_percent = 100.0
 	_apply_percent()
-	_complete_stats.text = tr("UI_STATS").format(
-		{"cells": cells, "time": elapsed})
+	# A harvest was cut, not searched, and the panel has to stop saying
+	# otherwise: title, stats line and the pay row all have their own wording
+	# (G13.6). The panel is built once, so this runs before any of them.
+	var is_harvest := LevelVariant.current != null and LevelVariant.current.is_harvest()
+	_complete_title.text = tr("HARVEST_DONE_TITLE") if is_harvest \
+		else Story.text("complete.title", "AREA SEARCHED")
+	_complete_stats.text = (tr("HARVEST_STATS") if is_harvest else tr("UI_STATS")) \
+		.format({"cells": cells, "time": elapsed})
 
 	for child in _collection.get_children():
 		child.queue_free()
@@ -315,8 +333,170 @@ func _on_mute_pressed() -> void:
 	_refresh_mute_label()
 
 
+## The one-time orientation sheet (G15). Shown a few seconds into the FIRST
+## search, never again. It repeats what the intro said, on purpose: by now the
+## player has their hands on the mower and the sentence lands differently.
+##
+## Pauses the tree while it is up, so nothing is being mown behind it.
+func show_orientation(on_closed: Callable) -> void:
+	var dim := ColorRect.new()
+	dim.name = "OrientationDim"
+	dim.color = Color(0.03, 0.04, 0.03, 0.82)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(dim)
+
+	var sheet := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.11, 0.10, 0.09, 0.98)
+	style.border_color = GameConfig.CASE_ACCENT
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(22)
+	style.set_content_margin_all(34)
+	sheet.add_theme_stylebox_override("panel", style)
+	sheet.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	sheet.offset_left = -470.0
+	sheet.offset_right = 470.0
+	sheet.offset_top = -520.0
+	sheet.offset_bottom = 520.0
+	dim.add_child(sheet)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 22)
+	sheet.add_child(rows)
+
+	var face := TextureLibrary.find("portraits/face_ellie")
+	if face != null:
+		var picture := TextureRect.new()
+		picture.texture = face
+		picture.custom_minimum_size = Vector2(0, 300)
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		rows.add_child(picture)
+
+	for spec: Array in [["FIRST_TITLE", 46, GameConfig.CASE_ACCENT],
+			["FIRST_L1", 34, Color(0.95, 0.93, 0.88)],
+			["FIRST_L2", 30, GameConfig.CASE_MUTED],
+			["FIRST_L3", 30, GameConfig.CASE_MUTED]]:
+		var line := Label.new()
+		line.text = tr(str(spec[0]))
+		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		line.add_theme_font_size_override("font_size", int(spec[1]))
+		line.add_theme_color_override("font_color", spec[2])
+		rows.add_child(line)
+
+	var go := Button.new()
+	go.text = tr("FIRST_OK")
+	go.custom_minimum_size = Vector2(0, 112)
+	go.add_theme_font_size_override("font_size", 38)
+	_style_primary(go)
+	rows.add_child(go)
+	go.pressed.connect(func() -> void:
+		Haptics.medium()
+		get_tree().paused = false
+		dim.queue_free()
+		on_closed.call())
+
+	get_tree().paused = true
+	dim.process_mode = Node.PROCESS_MODE_ALWAYS
+	dim.modulate.a = 0.0
+	var fade := create_tween()
+	fade.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	fade.tween_property(dim, "modulate:a", 1.0, 0.3)
+
+
+## Draws attention to Ellie's poster for a few seconds at the start of a first
+## run: a slow pulse, no interruption (G15).
+func pulse_poster(seconds: float) -> void:
+	if _poster == null or not is_instance_valid(_poster):
+		return
+	var beat := create_tween()
+	beat.set_loops(int(seconds / 1.4))
+	beat.tween_property(_poster, "modulate",
+		Color(1.35, 1.28, 1.12), 0.7).set_trans(Tween.TRANS_SINE)
+	beat.tween_property(_poster, "modulate", Color.WHITE, 0.7) \
+		.set_trans(Tween.TRANS_SINE)
+
+
+## A short line from the Marshal over the radio (G13.4). One at a time: a
+## second one replaces the first rather than stacking.
+func show_scent(key: String) -> void:
+	if _scent_toast != null and is_instance_valid(_scent_toast):
+		_scent_toast.queue_free()
+	var toast := PanelContainer.new()
+	toast.name = "ScentToast"
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.09, 0.11, 0.10, 0.92)
+	style.border_color = GameConfig.CASE_ACCENT
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	style.set_content_margin_all(18)
+	toast.add_theme_stylebox_override("panel", style)
+	toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	# Below the MISSING poster, which lives in the top right: at 340 the two
+	# overlapped (G13.4).
+	toast.offset_left = -420.0
+	toast.offset_right = 420.0
+	toast.offset_top = 530.0
+	toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	toast.add_child(row)
+	var mark := Label.new()
+	mark.text = "//"
+	mark.add_theme_font_size_override("font_size", 30)
+	mark.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+	row.add_child(mark)
+	var line := Label.new()
+	line.text = tr(key)
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line.add_theme_font_size_override("font_size", 30)
+	line.add_theme_color_override("font_color", Color(0.92, 0.90, 0.84))
+	row.add_child(line)
+	add_child(toast)
+	_scent_toast = toast
+	toast.modulate.a = 0.0
+	var fade := create_tween()
+	fade.tween_property(toast, "modulate:a", 1.0, 0.25)
+	fade.tween_interval(GameConfig.SCENT_TOAST_SECONDS)
+	fade.tween_property(toast, "modulate:a", 0.0, 0.45)
+	fade.tween_callback(toast.queue_free)
+
+
+## Holds the full-width interface strips to UI_MAX_WIDTH and centres them, so a
+## desktop window does not stretch the top bar across the whole monitor with a
+## hole in the middle (G14). On a phone the margin is zero and nothing moves.
+func _centre_for_wide_screens() -> void:
+	var wide := get_viewport_rect().size.x
+	var margin := maxf(0.0, (wide - GameConfig.UI_MAX_WIDTH) * 0.5)
+	for entry: Array in [["TopBarPanel", 30.0], ["TopBar", 56.0],
+			["CompletePanel", 0.0], ["OpeningTitle", 0.0]]:
+		var node := get_node_or_null(NodePath(entry[0])) as Control
+		if node == null:
+			continue
+		node.offset_left = margin + float(entry[1])
+		node.offset_right = -margin - float(entry[1])
+	# Controls pinned to the right edge — pause, home, the MISSING poster — are
+	# pulled in by the same margin, so they stay beside the bar instead of
+	# drifting to the far corner of a wide monitor.
+	for child in get_children():
+		var control := child as Control
+		if control == null or not control.get_meta("hug_right", false):
+			continue
+		if not control.has_meta("edge_offsets"):
+			control.set_meta("edge_offsets",
+				Vector2(control.offset_left, control.offset_right))
+		var kept: Vector2 = control.get_meta("edge_offsets")
+		control.offset_left = kept.x - margin
+		control.offset_right = kept.y - margin
+
+
 func _refresh_mute_label() -> void:
-	_mute_button.text = "🔇" if AudioDirector.muted else "🔊"
+	# Drawn speaker, not an emoji glyph (G12.10).
+	_mute_button.text = ""
+	_mute_button.icon = UiIcons.sound(not AudioDirector.muted)
+	_mute_button.expand_icon = false
 
 
 # ---------------------------------------------------------------- case framing (G7/G8)
@@ -382,10 +562,31 @@ func _style_button(button: Button) -> void:
 	button.add_theme_stylebox_override("focus", base)
 
 
+## True if this chapter id is one of Case 02's. Asked of the story data rather
+## than of ChapterProgress, because the HUD must name the right case even while
+## the case is still locked on the board (a replay, or a dev run).
+func _belongs_to_case_two(variant_id: String) -> bool:
+	for chapter: Dictionary in Story.list("case_02.chapters"):
+		if str(chapter.get("variant_id", "")) == variant_id:
+			return true
+	return false
+
+
 ## Pulls every fixed string out of data/story.json. Called once at _ready, so a
 ## story-file edit needs no scene edit.
 func _apply_story_text() -> void:
-	_case_line.text = Story.text("case.hud_line")
+	# A harvest is not a case: the bar says what this level actually is (G13.6).
+	# And a Case 02 chapter is not Case 01: the bar names the case the chapter
+	# belongs to, or it spent the whole eastern road claiming to be looking for
+	# a girl who was found in the first act (G13).
+	var variant := LevelVariant.current
+	if variant != null and variant.is_harvest():
+		_case_line.text = tr("HARVEST_HUD_LINE")
+	else:
+		var case_path := "case.hud_line"
+		if variant != null and _belongs_to_case_two(variant.id):
+			case_path = "case_02.hud_line"
+		_case_line.text = Story.text(case_path)
 	_complete_title.text = Story.text("complete.title", "AREA SEARCHED")
 	_missed_label.text = Story.text("complete.incomplete",
 		"The search feels incomplete...")
@@ -466,14 +667,32 @@ func _build_case_notes(collected: Array, total: int) -> void:
 		row.add_theme_color_override("font_color", Color(1.0, 0.91, 0.62))
 		line.add_child(row)
 		_notes_list.add_child(line)
-	if collected.is_empty():
+	if collected.is_empty() and not (LevelVariant.current != null \
+			and LevelVariant.current.is_harvest()):
 		var none := Label.new()
 		none.text = "· " + tr("UI_NOTHING_RECOVERED")
 		none.add_theme_font_size_override("font_size", 36)
 		none.add_theme_color_override("font_color", Color(0.6, 0.62, 0.58))
 		_notes_list.add_child(none)
+	var harvest := LevelVariant.current != null and LevelVariant.current.is_harvest()
+	if harvest:
+		# No evidence, no case progress: the panel says what was actually
+		# achieved and gets out of the way.
+		_notes_progress.text = tr(HarvestLog.crumb_key())
+		_notes_header.text = tr("HARVEST_COMPLETE")
+		return
 	_notes_progress.text = Story.text("complete.notes_full") if collected.size() >= total \
 		else Story.text("complete.notes_partial")
+	# What this search did to the TOWN, not to the case. The theme of G13.4 in
+	# one line: every lawn you clear, the town breathes a little easier.
+	var variant := LevelVariant.current
+	if variant != null and variant.reclaim_line != "":
+		var reclaimed := Label.new()
+		reclaimed.text = "+ " + tr(variant.reclaim_line)
+		reclaimed.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		reclaimed.add_theme_font_size_override("font_size", 32)
+		reclaimed.add_theme_color_override("font_color", Color(0.62, 0.86, 0.54))
+		_notes_list.add_child(reclaimed)
 
 
 func _on_teaser_pressed() -> void:
@@ -484,7 +703,7 @@ func _on_teaser_pressed() -> void:
 # ---------------------------------------------------------------- G9 economy
 
 func set_scrap(total: int) -> void:
-	_scrap_label.text = "%s %d" % [GameConfig.SCRAP_ICON, total]
+	_scrap_label.text = "%d" % total
 
 
 ## A value flies from the pickup's screen position to the counter, so the number
@@ -559,9 +778,11 @@ func _build_payout(payout: Dictionary) -> void:
 		child.queue_free()
 	if payout.is_empty():
 		return
+	var bonus_key := "HARVEST_PAYOUT_BONUS" if LevelVariant.current != null \
+		and LevelVariant.current.is_harvest() else "PAYOUT_BONUS"
 	var rows := [
 		[tr("PAYOUT_GROUND"), int(payout.get("ground", 0)), false],
-		[tr("PAYOUT_BONUS").format(
+		[tr(bonus_key).format(
 			{"pct": int(round(float(payout.get("ratio", 0.0)) * 100.0))}),
 			int(payout.get("bonus", 0)), false],
 	]
@@ -576,13 +797,21 @@ func _build_payout(payout: Dictionary) -> void:
 		name_label.text = str(row[0])
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_label.add_theme_font_size_override("font_size", 34)
+		var coin := TextureRect.new()
+		coin.texture = UiIcons.money()
+		coin.custom_minimum_size = Vector2(34, 34)
+		coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		var value_label := Label.new()
-		value_label.text = "%s %d" % [GameConfig.SCRAP_ICON, int(row[1])]
+		value_label.text = "%d" % int(row[1])
 		value_label.add_theme_font_size_override("font_size", 34)
 		if bool(row[2]):
 			for label in [name_label, value_label]:
 				label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+		line.add_theme_constant_override("separation", 8)
 		line.add_child(name_label)
+		line.add_child(coin)
 		line.add_child(value_label)
 		_payout_list.add_child(line)
 
@@ -670,6 +899,7 @@ func _build_pause() -> void:
 	_pause_button.add_theme_font_size_override("font_size", 44)
 	# Right end of the new top bar, aligned with the percentage row.
 	_pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_pause_button.set_meta("hug_right", true)
 	_pause_button.offset_left = -152
 	_pause_button.offset_right = -48
 	_pause_button.offset_top = 94
@@ -684,6 +914,7 @@ func _build_pause() -> void:
 	home.text = "⌂"
 	home.add_theme_font_size_override("font_size", 46)
 	home.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	home.set_meta("hug_right", true)
 	home.offset_left = -278
 	home.offset_right = -174
 	home.offset_top = 94
@@ -736,7 +967,9 @@ func _build_pause() -> void:
 	sound.add_theme_font_size_override("font_size", 42)
 	_style_button(sound)
 	var refresh_sound := func() -> void:
-		sound.text = "🔇" if AudioDirector.muted else "🔊"
+		sound.text = ""
+		sound.icon = UiIcons.sound(not AudioDirector.muted)
+		sound.expand_icon = false
 	refresh_sound.call()
 	sound.pressed.connect(func() -> void:
 		AudioDirector.muted = not AudioDirector.muted
@@ -756,7 +989,7 @@ func _build_pause() -> void:
 	# Balance testing only: ships disabled, so it costs nothing at runtime.
 	if GameConfig.DEV_GRANT_SCRAP:
 		var grant := Button.new()
-		grant.text = "DEV +%d 💵" % GameConfig.DEV_GRANT_AMOUNT
+		grant.text = "DEV +%d" % GameConfig.DEV_GRANT_AMOUNT
 		grant.add_theme_font_size_override("font_size", 38)
 		_style_button(grant)
 		grant.pressed.connect(func() -> void:
@@ -772,6 +1005,24 @@ func _build_pause() -> void:
 		_close_pause()
 		restart_pressed.emit())
 	rows.add_child(restart)
+
+
+## Opens the pause sheet because the app lost focus, never closes it. Silent —
+## no haptic, no click — since the player is not looking (G14.1).
+func pause_for_background() -> void:
+	if _pause_layer == null or _pause_layer.visible:
+		return
+	_pause_layer.visible = true
+	get_tree().paused = true
+
+
+## Escape on the desktop build: opens the sheet, or closes it if it is already
+## open, which is what a keyboard player expects from that key (G14).
+func toggle_pause() -> void:
+	if _pause_layer != null and _pause_layer.visible:
+		_close_pause()
+	else:
+		_open_pause()
 
 
 func _open_pause() -> void:
@@ -838,7 +1089,9 @@ func _show_card_art(emoji: String, evidence_id: String) -> void:
 		_card_preview.show_item(evidence_id)
 		return
 	_card_preview.visible = false
-	_card_art.text = emoji
+	# Stripped, not shown: one emoji on screen loads the OS colour-emoji font
+	# and 184 MB with it, for a glyph iOS draws as a blank box anyway (G16).
+	_card_art.text = GlyphGuard.safe(emoji)
 
 
 ## A small MISSING poster under the top bar. It is the only piece of HUD that
@@ -848,10 +1101,12 @@ func _build_poster() -> void:
 	_poster = PanelContainer.new()
 	_poster.name = "MissingPoster"
 	_poster.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_poster.set_meta("hug_right", true)
 	_poster.offset_left = -250
 	_poster.offset_right = -40
 	_poster.offset_top = 306
-	_poster.offset_bottom = 566
+	# Room for the caption line under the date (G14.1).
+	_poster.offset_bottom = 626
 	_poster.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.93, 0.90, 0.80, 0.94)
@@ -897,6 +1152,25 @@ func _build_poster() -> void:
 	since.add_theme_font_size_override("font_size", 20)
 	since.add_theme_color_override("font_color", Color(0.34, 0.30, 0.26))
 	rows.add_child(since)
+
+	# The photograph's own caption. It dates the picture to hours ago, which is
+	# the whole reason the poster is unbearable to look at (G14.1).
+	var taken := Label.new()
+	taken.text = tr("POSTER_TAKEN")
+	taken.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	taken.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	taken.add_theme_font_size_override("font_size", 17)
+	taken.add_theme_color_override("font_color", Color(0.42, 0.36, 0.30))
+	rows.add_child(taken)
+
+
+## A harvest is a job, not a search: no evidence counter, no missing poster, and
+## the bar names the errand. Called from Game._ready, because the HUD's own
+## _ready runs before the variant is applied (G13.6).
+func apply_harvest_mode() -> void:
+	_case_line.text = tr("HARVEST_HUD_LINE")
+	_evidence_chip.visible = false
+	set_poster_visible(false)
 
 
 ## Hidden once the search is over, so it never sits behind the results panel.

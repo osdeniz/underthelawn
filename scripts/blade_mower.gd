@@ -16,6 +16,14 @@ var _trail: GPUParticles3D
 var _sparks: GPUParticles3D
 var _spark_audio: AudioStreamPlayer3D
 var _spark_cooldown := 0.0
+## The stone rects this yard actually has, resolved once. It used to be a bare
+## `collision_rects[1]`, which crashed on the layouts that have no obstacles at
+## all (the playground and the harvest field are "open") and pointed at a
+## sunbed on the pool layout (G14.1).
+var _stone_rects: Array[Rect2] = []
+## The model the cache above was built from. Comparing the count would miss a
+## new yard that happens to have the same number of stones somewhere else.
+var _stone_model: LawnModel = null
 var _spin_rate := GameConfig.BLADE_SPIN_IDLE_DEG
 
 
@@ -77,8 +85,13 @@ func on_touch_released(index: int, _screen_pos: Vector2) -> void:
 
 ## Fully replaces the core throttle/steering loop: direct chase, no yaw.
 func _physics_process(delta: float) -> void:
+	# This class replaces the base loop entirely, so the desktop keyboard read
+	# has to be invoked here too — the base _physics_process never runs (G14).
+	_read_keyboard()
 	var stick := pad_stick()
-	if _has_finger and stick != Vector2.ZERO:
+	# A held key steers exactly as a held finger does.
+	var steering := _has_finger or keyboard_active()
+	if steering and stick != Vector2.ZERO:
 		# The stick IS the direction, read against the LIVE camera — which is
 		# frozen for the duration of this gesture (see _physics_process), so the
 		# frame cannot drift out from under the finger the way a latched copy
@@ -88,7 +101,7 @@ func _physics_process(delta: float) -> void:
 		var desired := minf(stick.length(), 1.0) * GameConfig.BLADE_MAX_SPEED
 		_velocity = dir * desired
 		position += _velocity * delta
-	elif _has_finger:
+	elif steering:
 		_velocity = Vector3.ZERO
 	elif _glide > 0.0:
 		# Short coast after release.
@@ -108,7 +121,9 @@ func _physics_process(delta: float) -> void:
 	# drift mid-drag (G12.10).
 	var rig := camera as CameraRig
 	if rig != null:
-		rig.freeze_yaw = _has_finger
+		# Held keys freeze the camera exactly as a held finger does: WASD has to
+		# mean the same direction for as long as it is down (G14).
+		rig.freeze_yaw = _has_finger or keyboard_active()
 
 	_resolve_walls()
 	_resolve_obstacles()
@@ -143,19 +158,39 @@ func _idle_shake(_delta: float) -> void:
 	pass
 
 
+## Every stone in the yard, in world space. Rebuilt when the model changes, so
+## the per-frame check below is a walk over a short list and not a search.
+func _resolve_stones() -> void:
+	_stone_rects.clear()
+	_stone_model = model
+	if model == null:
+		return
+	for i in model.obstacles.size():
+		if str((model.obstacles[i] as Dictionary).get("name", "")) != "stone":
+			continue
+		if i < model.collision_rects.size():
+			_stone_rects.append(model.collision_rects[i])
+
+
 ## Orange spark burst + metallic clink + 25 ms haptic when the disk grinds the
-## stone obstacle's edge (collision rect index 1 in LawnModel.OBSTACLES).
+## edge of a stone. A yard with no stones simply never sparks.
 func _check_spark(delta: float) -> void:
 	_spark_cooldown = maxf(_spark_cooldown - delta, 0.0)
 	if not GameConfig.BLADE_FX_ENABLED or model == null or _spark_cooldown > 0.0:
 		return
 	if speed < 1.0:
 		return
-	var stone: Rect2 = model.collision_rects[1]
+	if _stone_model != model:
+		_resolve_stones()
 	var p := Vector2(position.x, position.z)
-	var closest := Vector2(clampf(p.x, stone.position.x, stone.end.x),
-		clampf(p.y, stone.position.y, stone.end.y))
-	if p.distance_to(closest) > body_radius() + 0.06:
+	var touching := false
+	for stone: Rect2 in _stone_rects:
+		var closest := Vector2(clampf(p.x, stone.position.x, stone.end.x),
+			clampf(p.y, stone.position.y, stone.end.y))
+		if p.distance_to(closest) <= body_radius() + 0.06:
+			touching = true
+			break
+	if not touching:
 		return
 	_spark_cooldown = GameConfig.BLADE_SPARK_COOLDOWN
 	if _sparks:
@@ -568,7 +603,10 @@ func _build_clippings() -> void:
 	pm.scale_min = 0.8
 	pm.scale_max = 1.25
 	var quad := QuadMesh.new()
-	quad.size = Vector2(0.045, 0.12)
+	# Corn throws coarse pieces, a reed throws thin ribbons: the plant profile
+	# scales the fleck, so what comes off the blade matches what went in (G13).
+	var clip_scale := float(GameConfig.plant("clipping_scale", 1.0))
+	quad.size = Vector2(0.045 * clip_scale, 0.12 * clip_scale)
 	var qm := StandardMaterial3D.new()
 	qm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	qm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -586,4 +624,13 @@ func _build_clippings() -> void:
 	clippings.local_coords = false
 	clippings.emitting = false
 	clippings.position.y = 0.1
+	# A harvest throws chaff, not grass: shorter, fatter, slower-falling flecks
+	# in the palette's grain colour, and more of them (G13.6).
+	if LevelVariant.current != null and LevelVariant.current.is_harvest():
+		quad.size = Vector2(0.08, 0.08)
+		pm.gravity = Vector3(0, GameConfig.CLIP_GRAVITY * 0.55, 0)
+		pm.initial_velocity_max = 5.4
+		pm.scale_max = 1.7
+		clippings.amount = 160
+		clippings.lifetime = 0.95
 	add_child(clippings)

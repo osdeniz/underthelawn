@@ -96,6 +96,12 @@ func _nearest_pending() -> Vector2i:
 
 # ---------------------------------------------------------------- driving
 
+## The robot plans its own route; WASD would fight the planner rather than
+## drive it, so it declines the keyboard (G14).
+func keyboard_enabled() -> bool:
+	return false
+
+
 func _gather_input(_delta: float) -> void:
 	# G6.12: a held drag takes the robot off its route and drives it by hand,
 	# with the same stick mapping as the other three. Letting go hands it back

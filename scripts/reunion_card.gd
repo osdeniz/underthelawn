@@ -1,9 +1,13 @@
 class_name ReunionCard
 extends Control
-## The end of Case 1 (G11): Ellie home, then the door to Case 2.
+## The end of Case 1 (G11): Ellie home, the party that was waiting for her, then
+## the door to Case 2.
 ##
-## Two full-screen beats, tapped through like the opening cards, because the
+## Three full-screen beats, tapped through like the opening cards, because the
 ## case should close the way it opened — quietly, with a picture and two lines.
+## The middle beat is the warm one and the last is the cold one, deliberately
+## next to each other (G14.1): the town gets its evening, and the question of
+## what Ellie saw is already standing behind it.
 
 signal finished()
 
@@ -11,6 +15,7 @@ const FADE := 0.4
 
 var _page := 0
 var _art: TextureRect
+var _scrim: ColorRect
 var _title: Label
 var _line: Label
 var _hint: Label
@@ -39,7 +44,8 @@ func _build() -> void:
 	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_art)
 
-	var scrim := ColorRect.new()
+	_scrim = ColorRect.new()
+	var scrim := _scrim
 	scrim.color = Color(0, 0, 0, 0.55)
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -106,7 +112,7 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	accept_event()
 	_page += 1
-	if _page > 1:
+	if _page > 2:
 		_close()
 		return
 	var tw := create_tween()
@@ -117,18 +123,41 @@ func _gui_input(event: InputEvent) -> void:
 
 func _apply() -> void:
 	_lock = 0.5
+	_scrim.color.a = 0.55
 	if _page == 0:
 		_art.texture = TextureLibrary.find("story/reunion")
 		if _art.texture == null:
 			TextureLibrary.warn_missing("story/reunion", "kavusma karti = duz zemin")
 		_title.text = tr("REUNION_TITLE")
 		_line.text = tr("REUNION_LINE")
+	elif _page == 1:
+		# The party in the square. Its own art if it has been drawn; the reunion
+		# photograph carries the beat until then, and the words do the work.
+		_art.texture = TextureLibrary.find("story/birthday")
+		if _art.texture == null:
+			_art.texture = TextureLibrary.find("story/reunion")
+		_title.text = tr("BIRTHDAY_TITLE")
+		_line.text = tr("BIRTHDAY_LINE")
+		# The party art is lit by candles and nothing else; the scrim that keeps
+		# text readable over the other two would put it out.
+		_scrim.color.a = 0.22
 	else:
 		_art.texture = TextureLibrary.find("hub/case2_teaser")
 		if _art.texture == null:
 			TextureLibrary.warn_missing("hub/case2_teaser", "vaka 2 karti = duz zemin")
-		_title.text = "%s\n%s" % [tr("CASE_02_UNLOCKED"), tr("CASE_02_TITLE")]
-		_line.text = tr("CASE_02_LOCKED")
+		# Only say UNLOCKED when it is. The card used to announce Case 02 the
+		# moment Case 01 closed, and Case 02 also waits on the town being
+		# rebuilt — so the player was told a door had opened and then could not
+		# find it anywhere (G13). Locked, the card names the condition instead,
+		# which is the same promise with the price attached.
+		if ChapterProgress.case_two_open():
+			_title.text = "%s\n%s" % [tr("CASE_02_UNLOCKED"), tr("CASE_02_TITLE")]
+			_line.text = tr("CASE_02_LOCKED")
+		else:
+			var progress := RestoreBoard.town_ready_progress()
+			_title.text = "%s\n%s" % [tr("CASE_02_ID"), tr("CASE_02_TITLE")]
+			_line.text = tr("CASE_02_WAITING").format({"done": progress.x,
+				"total": progress.y})
 	_art.visible = _art.texture != null
 	if _page == 0:
 		var tw := create_tween()

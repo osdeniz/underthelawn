@@ -21,12 +21,32 @@ static var current: LevelVariant
 
 var id := ""
 var palette_id := "GREEN"
+## What grows here, as opposed to what colour it is (G13). Reeds, corn and
+## sunflowers are the east road; "GRASS" is every chapter before it.
+var plant_profile_id := "GRASS"
+## Where in the yard this chapter's evidence is allowed to land: "any" (the
+## default, anywhere past the edge margin), "far" (the half furthest from the
+## start), or "near". "far" is how the river crossing asks the player to open a
+## path rather than to mow a lawn — the evidence is on the other side, so
+## reaching it IS the level (G13).
+var evidence_zone := "any"
+## Optional mid-chapter conversation(s). A string is one chat at the default
+## mark; an array is several, and the marks come from mid_chat_at (G13).
+## True for the chapter whose radio clears as the ground does (G13).
+var signal_layers := false
+var mid_chat: Variant = ""
+var mid_chat_at: Array = []
 var grid_size := "medium"
 var obstacle_layout_id := "beds"
 var house_variant := "house_v1"
 var landmark_id := ""
 var decor_seed := 0
 var scrap_budget := 9
+## What this chapter's payout is multiplied by, on top of the global search
+## multiplier. Separate from scrap_budget on purpose: the budget is how many
+## pieces are BURIED (density, the reward for looking around) and this is what
+## they are WORTH. Case 02 needed the first without the second (G13).
+var scrap_multiplier := 1.0
 var vignette := false
 var evidence_defs: Array = []
 ## Per-chapter opening title keys; "" falls back to story.json's default.
@@ -35,6 +55,15 @@ var opening_subline := ""
 ## One optional world-history find per chapter, separate from the case evidence
 ## (G12.6). It never advances the case; it only says what the dead years left.
 var echo_def: Dictionary = {}
+## The one-line "town reclaimed" note this chapter adds to the case notes when
+## it is finished (G13.4).
+var reclaim_line := ""
+## Which GameConfig.TIME_OF_DAY preset lights this chapter. The eight chapters
+## run from dawn to dusk across one day (G14.2).
+var time_of_day := "midday"
+## "search" (the default) or "harvest" (G13.6). A harvest carries no evidence
+## and no echo, pays more scrap, and stands in a field of crop.
+var level_type := "search"
 
 
 static func data() -> Dictionary:
@@ -62,6 +91,13 @@ static func of(variant_id: String) -> LevelVariant:
 		return variant
 	var spec: Dictionary = (all as Dictionary)[variant_id]
 	variant.palette_id = str(spec.get("palette_id", variant.palette_id))
+	variant.plant_profile_id = str(spec.get("plant_profile_id",
+		variant.plant_profile_id))
+	variant.evidence_zone = str(spec.get("evidence_zone", variant.evidence_zone))
+	variant.signal_layers = bool(spec.get("signal_layers", false))
+	variant.mid_chat = spec.get("mid_chat", "")
+	var marks: Variant = spec.get("mid_chat_at", [])
+	variant.mid_chat_at = marks if marks is Array else []
 	variant.grid_size = str(spec.get("grid_size", variant.grid_size))
 	variant.obstacle_layout_id = str(spec.get("obstacle_layout_id",
 		variant.obstacle_layout_id))
@@ -69,8 +105,14 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.landmark_id = str(spec.get("landmark_id", ""))
 	variant.decor_seed = int(spec.get("decor_seed", 0))
 	variant.scrap_budget = int(spec.get("scrap_budget", variant.scrap_budget))
+	variant.scrap_multiplier = float(spec.get("scrap_multiplier",
+		variant.scrap_multiplier))
 	variant.vignette = bool(spec.get("vignette", false))
 	variant.evidence_defs = spec.get("evidence_defs", [])
+	variant.reclaim_line = str(spec.get("reclaim_line", ""))
+	variant.level_type = str(spec.get("level_type", "search"))
+	variant.time_of_day = str(spec.get("time_of_day",
+		GameConfig.TIME_OF_DAY_DEFAULT))
 	var echo: Variant = spec.get("echo_def", {})
 	if echo is Dictionary:
 		variant.echo_def = echo
@@ -78,6 +120,10 @@ static func of(variant_id: String) -> LevelVariant:
 	if opening is Dictionary:
 		variant.opening_headline = str((opening as Dictionary).get("headline", ""))
 		variant.opening_subline = str((opening as Dictionary).get("subline", ""))
+	# A harvest is replayed, so its seed moves with the run counter: scrap,
+	# stones and the crop rows land somewhere new each time (G13.6).
+	if variant.is_harvest():
+		variant.decor_seed += HarvestLog.count() * 1013
 	return variant
 
 
@@ -86,12 +132,70 @@ static func ids() -> Array:
 	return (all as Dictionary).keys() if all is Dictionary else []
 
 
+## What apply() overwrites, so a caller that only needed a chapter TEMPORARILY
+## can put the world back.
+##
+## This exists because of a real bug: the shader warm-up builds a throwaway
+## chapter behind the intro cards, and it left that chapter's palette set. The
+## hub's diorama then grew the yard's grass instead of the town's — blue-green
+## on first launch, correcting itself only once something else applied a
+## variant. Anything that applies a variant it does not intend to keep must
+## restore this (G13).
+static func snapshot() -> Dictionary:
+	return {
+		"palette": GameConfig.active_grass_palette,
+		"plant": GameConfig.active_plant_profile,
+		"layout": LawnModel.layout_id,
+		"cols": GameConfig.GRID_COLS,
+		"rows": GameConfig.GRID_ROWS,
+		"current": current,
+	}
+
+
+static func restore(snap: Dictionary) -> void:
+	GameConfig.active_grass_palette = str(snap.get("palette", "GREEN"))
+	GameConfig.active_plant_profile = str(snap.get("plant", "GRASS"))
+	LawnModel.layout_id = str(snap.get("layout", "beds"))
+	GameConfig.set_grid(int(snap.get("cols", 16)), int(snap.get("rows", 24)))
+	current = snap.get("current", null)
+
+
 ## Pushes this variant into the engine. MUST run before LawnModel is built.
 func apply() -> void:
 	current = self
 	GameConfig.set_grid_named(grid_size)
 	GameConfig.active_grass_palette = palette_id
+	GameConfig.active_plant_profile = plant_profile_id
 	LawnModel.layout_id = obstacle_layout_id
+
+
+## The completion ratios this chapter's mid-chapter chats fire at. Defaults to
+## the halfway mark, which is where a conversation on a long walk belongs.
+func mid_chat_marks() -> Array:
+	if mid_chat is Array:
+		if not mid_chat_at.is_empty():
+			return mid_chat_at
+		var spread: Array = []
+		for i in (mid_chat as Array).size():
+			spread.append(0.25 + 0.25 * float(i))
+		return spread
+	if str(mid_chat) == "":
+		return []
+	return mid_chat_at if not mid_chat_at.is_empty() \
+		else [GameConfig.MID_CHAT_AT]
+
+
+func mid_chat_key(index: int) -> String:
+	if mid_chat is Array:
+		var list := mid_chat as Array
+		return str(list[index]) if index < list.size() else ""
+	return str(mid_chat)
+
+
+## True for the repeatable crop level. Kept as a question rather than a string
+## comparison at every call site.
+func is_harvest() -> bool:
+	return level_type == "harvest"
 
 
 func evidence_count() -> int:
@@ -110,6 +214,13 @@ func evidence_info(index: int) -> Dictionary:
 		"line": TranslationServer.translate(str(entry.get("flavor_text", ""))),
 		"id": str(entry.get("id", "")),
 		"where": TranslationServer.translate(str(entry.get("location_tag", ""))),
+		# Dr. Cole's reading of the object, which the corkboard only shows once
+		# the clinic is built (G13.4). Left as the KEY, not translated here, so
+		# the board can test it for emptiness before deciding to show a line.
+		"cole_note": str(entry.get("cole_note", "")),
+		# The Marshal's own margin note — what the detective wrote down rather
+		# than what the doctor measured. Same rule: the KEY, not the sentence.
+		"marshal_note": str(entry.get("marshal_note", "")),
 	}
 
 

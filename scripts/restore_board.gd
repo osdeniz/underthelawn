@@ -69,6 +69,18 @@ static func tier2_open() -> bool:
 	return tier1_built() >= GameConfig.TIER2_REQUIRES_TIER1
 
 
+## True once the town is rebuilt enough for Case 02 to open — the mechanical
+## half of "he said the town wasn't ready yet" (DLG_FINALE_4).
+static func town_ready() -> bool:
+	return built_count() >= GameConfig.TOWN_READY_PROJECTS
+
+
+## How far along that is, as built/needed, for the counter on the locked card.
+static func town_ready_progress() -> Vector2i:
+	return Vector2i(mini(built_count(), GameConfig.TOWN_READY_PROJECTS),
+		GameConfig.TOWN_READY_PROJECTS)
+
+
 ## The station regroups the case screens under one hub card.
 static func station_built() -> bool:
 	return is_built("station")
@@ -133,12 +145,12 @@ static func buy(project_id: String) -> bool:
 	var cost := int(project.get("cost", 0))
 	if GameState.scrap_total() < cost:
 		return false
-	GameState.set_setting("economy", "scrap", GameState.scrap_total() - cost)
+	GameState.spend_scrap(cost)
 	GameState.set_setting(SECTION, project_id, true)
-	Analytics.track("restore_bought",
+	Analytics.track(AnalyticsEvents.RESTORE_BOUGHT,
 		{"id": project_id, "cost": cost, "tier": int(project.get("tier", 1))})
 	if project_id == "station":
-		Analytics.track("station_completed", {})
+		Analytics.track(AnalyticsEvents.STATION_COMPLETED, {})
 	return true
 
 

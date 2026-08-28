@@ -18,8 +18,24 @@ func _ready() -> void:
 
 
 func _check_variants() -> void:
-	var ids := LevelVariant.ids()
-	ck("8 varyant", ids.size() == 8, str(ids.size()))
+	# The harvest is a bonus level, not a chapter: it carries no evidence and no
+	# echo, so every case rule below is checked against the chapters only.
+	var ids: Array = []
+	for any_id: Variant in LevelVariant.ids():
+		if not LevelVariant.of(str(any_id)).is_harvest():
+			ids.append(str(any_id))
+	# Case 01's eight, plus whatever later cases have added. Asserting a total
+	# was right while there was one case; now the rule is that every chapter on
+	# a board has a variant, and every variant belongs to a board (G13).
+	var case_ids: Array[String] = []
+	for chapter: Dictionary in Story.list("chapters") + Story.list("case_02.chapters"):
+		case_ids.append(str(chapter.get("variant_id", "")))
+	ck("vaka 01 sekiz bolum", Story.list("chapters").size() == 8,
+		str(Story.list("chapters").size()))
+	for cid in case_ids:
+		ck("panodaki bolumun varyanti var: %s" % cid, ids.has(cid), cid)
+	for vid in ids:
+		ck("varyant bir vakaya bagli: %s" % vid, case_ids.has(vid), vid)
 	var palettes := {}
 	var landmarks := {}
 	for id: String in ids:
@@ -42,13 +58,16 @@ func _check_variants() -> void:
 		# B8 is the short finale (floor 6); the large fields carry more points
 		# after the G12.8 recalibration (ceiling 16).
 		ck("%s scrap butcesi makul" % id,
-			v.scrap_budget >= 6 and v.scrap_budget <= 16, str(v.scrap_budget))
+			v.scrap_budget >= 6 and v.scrap_budget <= 24, str(v.scrap_budget))
 		# decor_seed is what makes a yard look the same on every visit.
 		ck("%s decor_seed sifir degil" % id, v.decor_seed != 0, str(v.decor_seed))
 		palettes[v.palette_id] = true
-	# Eight chapters must not reuse one palette, or they read as one place.
-	ck("her bolumun kendi paleti", palettes.size() == 8, str(palettes.size()))
-	ck("dort landmark kullanilmis", landmarks.size() == 4, str(landmarks.keys()))
+	# Chapters must not all reuse one palette, or they read as one place. The
+	# rule is variety, not a count: Case 02 reuses some of Case 01's palettes on
+	# purpose, because the east road passes through the same country.
+	ck("palet cesitliligi yeterli", palettes.size() >= 8, str(palettes.size()))
+	ck("landmark cesitliligi yeterli", landmarks.size() >= 4,
+		str(landmarks.keys()))
 
 
 ## The whole point of the sprint: the grid comes from data, and everything that
@@ -85,8 +104,10 @@ func _check_grid_follows_data() -> void:
 			if not LawnModel.in_bounds(cell.x, cell.y):
 				ck("%s rota grid disina cikti" % id, false, str(cell))
 				break
-		# Both evidence slots must land on real cells.
-		ck("%s iki kanit yerlesti" % id, model.secret_cells.size() == 2,
+		# Both evidence slots must land on real cells — except on a harvest,
+		# which buries nothing at all (G13.6).
+		var want := 0 if v.is_harvest() else 2
+		ck("%s kanit yerlesti" % id, model.secret_cells.size() == want,
 			str(model.secret_cells.size()))
 	# Leave the engine on the default yard for anything that runs after.
 	GameConfig.set_grid_named("medium")

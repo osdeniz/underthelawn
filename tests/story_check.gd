@@ -28,7 +28,7 @@ func _ready() -> void:
 	for path in [
 		"case.hud_line", "case.id", "case.title", "case.objective",
 		"opening.headline", "opening.subline",
-		"evidence.card_header", "evidence.counter_icon", "evidence.counter_label",
+		"evidence.card_header", "evidence.counter_label",
 		"complete.title", "complete.notes_header", "complete.notes_full",
 		"complete.notes_partial", "complete.incomplete",
 		"complete.teaser_title", "complete.teaser_line", "complete.teaser_locked",
@@ -149,6 +149,9 @@ func _ready() -> void:
 	# G12.6: every chapter's echo, and every restoration project, must resolve.
 	for vid: String in LevelVariant.ids():
 		var v := LevelVariant.of(vid)
+		# A harvest has no history to find in it (G13.6).
+		if v.is_harvest():
+			continue
 		ck("%s echo tanimli" % vid, not v.echo_def.is_empty(), "")
 		for field in ["name", "flavor_text"]:
 			var key := str(v.echo_def.get(field, ""))

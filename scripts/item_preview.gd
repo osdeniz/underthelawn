@@ -69,6 +69,26 @@ func _ready() -> void:
 	env.environment = environment
 	_viewport.add_child(env)
 
+	# A spinning preview redraws a whole little 3D world — two lights, a camera
+	# and an environment — every frame. The reveal card is hidden for almost the
+	# entire chapter, and UPDATE_ALWAYS does not care whether anyone can see it,
+	# so the spin has to be switched with the card (G16). Last, so everything it
+	# reaches for is already built.
+	visibility_changed.connect(_sync_spin)
+	_sync_spin()
+
+
+## Renders only while the card is actually on screen.
+func _sync_spin() -> void:
+	if not spin:
+		return
+	var seen := is_visible_in_tree()
+	set_process(seen)
+	if _viewport == null:
+		return
+	_viewport.render_target_update_mode = (SubViewport.UPDATE_ALWAYS
+		if seen else SubViewport.UPDATE_DISABLED)
+
 
 ## Swaps in a new object. The pivot turns slowly so the shape reads in the round.
 func show_item(evidence_id: String) -> void:
@@ -96,7 +116,9 @@ func _item_height(evidence_id: String) -> float:
 	match evidence_id:
 		"ellie": return 0.55
 		"rabbit", "toy": return 0.45
-		"radio", "can", "candle", "flashlight": return 0.28
+		"radio", "receiver", "can", "candle", "flashlight": return 0.28
+		"battery", "apple": return 0.24
+		"crate_lid": return 0.12
 		"boot", "seedlings", "gap": return 0.30
 		"ribbon", "thread", "arrow", "prints", "stones", "hatch": return 0.12
 	return 0.14
@@ -112,6 +134,9 @@ func _fit_scale(evidence_id: String) -> float:
 		"ribbon", "thread", "patch", "candle": return 1.55
 		"boot", "can", "flashlight", "drawing", "map", "notebook": return 1.15
 		"note", "leaflet", "letter", "log", "headline": return 1.05
+		"number_log": return 1.05
+		"battery", "apple": return 1.30
+		"crate_lid": return 1.15
 	return 1.10
 
 

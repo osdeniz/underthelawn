@@ -23,6 +23,11 @@ var _game: Node
 var _intro: IntroSequence
 var _dialogue: DialogueBox
 var _pending_variant := ""
+## Set once the yard's shaders have been compiled, so a replayed intro does not
+## pay for it a second time.
+var _shaders_warmed := false
+## Save key holding the build the yard's shaders were last compiled for.
+const WARMED_FOR := "shaders_warmed_for"
 
 
 func _ready() -> void:
@@ -42,6 +47,14 @@ func _ready() -> void:
 		AudioDirector.play_theme()
 		_play_intro()
 	else:
+		# A returning player has no intro to hide the shader bill behind, and
+		# the hub -> yard transition is only a 0.35 s fade — far too short to
+		# cover a cold compile, which is where the wait would otherwise land.
+		# So it is paid here instead, at launch, on the black the fade is
+		# already holding, with one line saying what is happening. On a warm
+		# cache (every launch after the first) this returns immediately and
+		# nothing is drawn.
+		await _warm_chapter_shaders(true)
 		_open_hub()
 
 
@@ -59,6 +72,9 @@ func _play_intro() -> void:
 	_intro.name = "Intro"
 	layer.add_child(_intro)
 	_fade.color.a = 0.0
+	# The cards are opaque and the player is reading them: the best moment in
+	# the whole game to pay the shader bill. See _warm_chapter_shaders.
+	_warm_chapter_shaders(false)
 	_intro.finished.connect(func() -> void:
 		_intro = null
 		layer.queue_free()
@@ -72,6 +88,108 @@ func _play_intro() -> void:
 			_on_chapter_chosen(ChapterProgress.current_variant_id())
 		else:
 			_open_hub())
+
+
+## Builds a throwaway yard behind the intro cards so the first real chapter does
+## not have to.
+##
+## THE PROBLEM. A yard's shaders are compiled the first time the yard is drawn,
+## and only then. Measured cold on a desktop: 1.4 s inside _ready and another
+## 0.8 s on the first drawn frame. On a phone that was five to six seconds of
+## black before the player's first lawn — and only ever the first, because the
+## pipeline cache is kept from then on, which is exactly why every later garden
+## opened instantly and this looked like a mystery.
+##
+## THE FIX. The cost cannot be removed, so it is moved to where it is free. The
+## intro's ground is a full-rect opaque ColorRect, so nothing built behind it is
+## ever seen; the player is reading a card while this runs. Afterwards the real
+## chapter builds from a warm cache — measured 670 ms -> 93 ms within one
+## process, a seven-fold drop.
+##
+## The copy is built with autostart_search off, so it fires no analytics event,
+## starts no run clock and arms no orientation countdown. It is freed as soon as
+## it has been drawn; what survives is the compiled pipelines, which is the
+## whole point.
+## `announce` puts a line on the black while it works. The intro path passes
+## false — it has a full screen of art to hide behind, and a loading notice over
+## a story card would be worse than the wait it describes. The hub path passes
+## true, because there the only cover is the fade itself, and an unexplained
+## still frame is what "broken" looks like.
+func _warm_chapter_shaders(announce: bool) -> void:
+	if _shaders_warmed:
+		return
+	_shaders_warmed = true
+	# The notice is for a WAIT, not for the warm-up. On every launch after the
+	# first the cache is already full, the whole thing takes about eighty
+	# milliseconds, and a line that flashes for five frames reads as a glitch.
+	var notice: Label = null
+	if announce and _shader_cache_cold():
+		notice = _build_warm_notice()
+	# The throwaway chapter applies its variant, and a variant is GLOBAL state:
+	# palette, plant profile, obstacle layout and grid. Left set, the hub's
+	# diorama grew the yard's grass instead of the town's — blue-green on first
+	# launch. Snapshot before, restore after (G13).
+	var world := LevelVariant.snapshot()
+	var warm: Node = load(GAME_SCENE).instantiate()
+	warm.set("variant_id", ChapterProgress.current_variant_id())
+	warm.set("autostart_search", false)
+	add_child(warm)
+	# DRAWN, not merely built: compilation happens when the frame is rendered,
+	# so building it and freeing it in the same breath would warm nothing.
+	for _i in 4:
+		await RenderingServer.frame_post_draw
+	if is_instance_valid(warm):
+		# STOP it before restoring, and wait for it to actually leave.
+		#
+		# queue_free() is deferred: the scene lives to the end of the frame and
+		# its mower keeps mowing. Restoring the grid first left a LawnModel
+		# built for one grid being indexed against another, which is an
+		# out-of-bounds crash — and it only appeared once a player had
+		# progressed far enough that the warmed chapter was the ROAD (9x34)
+		# rather than a medium yard, because until then the two grids matched
+		# by luck (G13).
+		warm.process_mode = Node.PROCESS_MODE_DISABLED
+		var gone := warm.tree_exited
+		warm.queue_free()
+		await gone
+	LevelVariant.restore(world)
+	if notice != null and is_instance_valid(notice):
+		notice.queue_free()
+	GameState.set_setting("meta", WARMED_FOR, _build_stamp())
+
+
+## True when this build has never compiled the yard's shaders on this install —
+## the only case slow enough to be worth explaining.
+##
+## Inspecting user://shader_cache does not answer this: Godot creates that
+## folder and starts filling it with the engine's own shaders before _ready
+## runs, so it is never empty by the time anyone can look. So the answer is
+## recorded instead, and recorded AGAINST THE BUILD VERSION — a new binary
+## invalidates the compiled pipelines, and the first launch after an update
+## deserves the same line the first launch after an install gets.
+func _shader_cache_cold() -> bool:
+	return str(GameState.get_setting("meta", WARMED_FOR, "")) != _build_stamp()
+
+
+func _build_stamp() -> String:
+	var version := str(ProjectSettings.get_setting("application/config/version", ""))
+	return version if version != "" else "0"
+
+
+## One quiet line on the black, for the one path with nothing to hide behind.
+## It lives on the fade layer, above everything, and is gone within the frame
+## the warm-up ends. On a warm cache it is never built at all.
+func _build_warm_notice() -> Label:
+	var label := Label.new()
+	label.text = tr("UI_PREPARING")
+	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 34)
+	label.add_theme_color_override("font_color", Color(0.62, 0.60, 0.55))
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_layer.add_child(label)
+	return label
 
 
 # ---------------------------------------------------------------- hub
@@ -89,6 +207,7 @@ func _open_hub() -> void:
 		_hub.chapter_chosen.connect(_on_chapter_chosen)
 		_hub.replay_intro_requested.connect(_play_intro)
 	_hub.get_parent().visible = true
+	_hub.set_diorama_active(true)
 	_hub.refresh()
 	AudioDirector.play_theme()
 	_fade_in()
@@ -139,6 +258,7 @@ func _start_chapter() -> void:
 	_fade_out_then(func() -> void:
 		_clear_game()
 		if _hub != null and is_instance_valid(_hub):
+			_hub.set_diorama_active(false)
 			_hub.get_parent().visible = false
 		_game = load(GAME_SCENE).instantiate()
 		# Handed the id BEFORE _ready, so the scene can build from it in G9.
@@ -153,29 +273,98 @@ func _start_chapter() -> void:
 func _on_search_finished(evidence: int, total: int) -> void:
 	ChapterProgress.record(_pending_variant, evidence, total)
 	var chapter := ChapterProgress.entry(_pending_variant)
+	# Harvest has its own completion event (game.gd's HARVEST_COMPLETED, with
+	# the scrap payout); this is the case-chapter funnel's bottom.
+	if not LevelVariant.of(_pending_variant).is_harvest():
+		Analytics.track(AnalyticsEvents.CHAPTER_COMPLETED, {"chapter": _pending_variant,
+			"evidence": evidence, "total": total, "full": evidence >= total})
 	# G11: the last chapter ends the CASE, not just a search — Ellie speaks, then
 	# the reunion card. A partial finish still gets the ordinary nudge.
 	var is_finale := _is_last_chapter(_pending_variant) and evidence >= total
 	if is_finale:
-		_play_dialogue(Dialogue.conversation("finale_case01"), "",
-			func() -> void: _show_reunion())
+		Analytics.track(AnalyticsEvents.CASE_COMPLETED, {"chapter": _pending_variant})
+		# Which case just closed decides which ending plays. Case 01 ends warm
+		# and then cold — Ellie home, then the question of what she saw. Case 02
+		# ends the same shape: the town in sight, then the lights on the road
+		# behind it (G13).
+		if _in_case_two(_pending_variant):
+			_play_dialogue(Dialogue.conversation("debrief_ch18_full"), "",
+				func() -> void: _show_convoy())
+		else:
+			_play_dialogue(Dialogue.conversation("finale_case01"), "",
+				func() -> void: _show_reunion())
 		return
 	var key := "debrief_full" if evidence >= total else "debrief_partial"
 	var lines := Dialogue.conversation(str(chapter.get(key, "")))
+	# A chapter can be followed by a scene rather than by silence: the road east
+	# has one, and it is charged whether or not the debrief had anything to say
+	# (G13).
+	var scene := str(chapter.get("quiet_scene", ""))
 	if lines.is_empty():
+		if scene != "":
+			_play_quiet_scene(scene)
 		return
-	_play_dialogue(lines, "", func() -> void: pass)
+	_play_dialogue(lines, "", func() -> void:
+		if scene != "":
+			_play_quiet_scene(scene))
 
 
+## A scene the player watches, over its own drawn still, between chapters.
+func _play_quiet_scene(scene_id: String) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 65
+	add_child(layer)
+	var scene := QuietScene.new()
+	layer.add_child(scene)
+	scene.finished.connect(func() -> void: layer.queue_free())
+	scene.play(scene_id)
+
+
+## Last of ITS OWN case, not of the game. Once Case 02's chapters joined the
+## board this asked the wrong question and Case 01's ending stopped firing: the
+## cellar is no longer the final entry in the list, only the final entry in the
+## case it belongs to (G13).
 func _is_last_chapter(variant_id: String) -> bool:
-	var chapters := ChapterProgress.chapters()
+	var chapters := ChapterProgress.case_of(variant_id)
 	if chapters.is_empty():
 		return false
 	return str((chapters.back() as Dictionary).get("variant_id", "")) == variant_id
 
 
+func _in_case_two(variant_id: String) -> bool:
+	for chapter: Dictionary in Story.list("case_02.chapters"):
+		if str(chapter.get("variant_id", "")) == variant_id:
+			return true
+	return false
+
+
+## Case 02's close: two weeks of road behind, and headlights on it.
+func _show_convoy() -> void:
+	# The chapter goes FIRST. Its HUD is still on screen otherwise, and the
+	# results panel underneath is a full-screen Control that takes the tap at
+	# the GUI stage — before _unhandled_input, which is how these cards listen.
+	# So the card drew, and every tap on it went to a panel nobody could see:
+	# the ending sat there and "continue" did nothing (G13).
+	_clear_game()
+	var layer := CanvasLayer.new()
+	layer.layer = 70
+	add_child(layer)
+	var card := ConvoyCard.new()
+	layer.add_child(card)
+	card.finished.connect(func() -> void:
+		layer.queue_free()
+		GameState.set_setting("story", "case02_closed", true)
+		return_to_board())
+
+
 ## The warm close: Ellie home, the board complete, and the door to Case 02.
 func _show_reunion() -> void:
+	# The chapter goes FIRST. Its HUD is still on screen otherwise, and the
+	# results panel underneath is a full-screen Control that takes the tap at
+	# the GUI stage — before _unhandled_input, which is how these cards listen.
+	# So the card drew, and every tap on it went to a panel nobody could see:
+	# the ending sat there and "continue" did nothing (G13).
+	_clear_game()
 	var layer := CanvasLayer.new()
 	layer.layer = 70
 	add_child(layer)
@@ -190,13 +379,24 @@ func _show_reunion() -> void:
 
 ## Called by the case-notes NEXT button: brief and start the chapter after
 ## `current_id`, exactly as if it had been picked on the board.
+## The chapter-end NEXT button. It used to drop the player straight into the
+## following search; it now returns to the case map with that place focused, so
+## the case reads as a journey across the town rather than a queue of levels
+## (G13.5). One more tap to start, and the map is what earns it.
 func start_next_chapter(current_id: String) -> void:
 	var chapters := ChapterProgress.chapters()
 	for i in chapters.size():
-		if str(chapters[i].get("variant_id", "")) == current_id:
-			if i + 1 < chapters.size():
-				_on_chapter_chosen(str(chapters[i + 1].get("variant_id", "")))
+		if str(chapters[i].get("variant_id", "")) != current_id:
+			continue
+		if i + 1 >= chapters.size():
+			_open_hub()
 			return
+		var next_id := str(chapters[i + 1].get("variant_id", ""))
+		_fade_out_then(func() -> void:
+			_open_hub()
+			if _hub != null and is_instance_valid(_hub):
+				_hub.open_map_at(next_id))
+		return
 
 
 ## Called by the game scene's RETURN TO TOWN button.
@@ -208,14 +408,12 @@ func return_to_hub() -> void:
 ## corkboard, with the pin thunk as the new evidence lands (G10).
 func return_to_board() -> void:
 	_fade_out_then(func() -> void:
-		_clear_game()
-		if _hub == null or not is_instance_valid(_hub):
-			_open_hub()
-		else:
-			_hub.get_parent().visible = true
-			_hub.refresh()
-			AudioDirector.play_theme()
-			_fade_in()
+		# _open_hub(), not a hand-written copy of it. This branch used to re-show
+		# the hub itself and left out set_diorama_active(true), so the town came
+		# back still PARKED — rendered at 1/32 scale for the chapter and then
+		# stretched across the whole screen. It read as heavy shimmering, and it
+		# only happened on this one route home (G13).
+		_open_hub()
 		_hub.open_evidence_board()
 		AudioDirector.play_pin())
 

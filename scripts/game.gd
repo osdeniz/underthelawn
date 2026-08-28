@@ -25,6 +25,14 @@ var character: Character
 var _mowers: Array[MowerController] = []
 var _active_index := GameConfig.MOWER_PUSH
 var _collected: Array = []
+## Which scent moments have already fired this chapter (G13.4).
+var _scent_done: Dictionary = {}
+## Which mid-chapter conversations have already played this run (G13).
+var _mid_chat_done: Dictionary = {}
+## First-run orientation (G15): whether this search is the player's first, and
+## the countdown to the sheet. Zero means "not pending".
+var _first_run := false
+var _orientation_due := 0.0
 var _complete_shown := false
 ## G7: the case has to be accepted before the search starts. While this is
 ## false the lawn ignores touches and the run clock has not begun.
@@ -119,6 +127,8 @@ func _ready() -> void:
 
 	hud.set_progress(0.0)
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
+	if variant != null and variant.is_harvest():
+		hud.apply_harvest_mode()
 
 	hud.return_requested.connect(_return_to_hub)
 	hud.exit_confirmed.connect(_confirm_exit)
@@ -129,6 +139,9 @@ func _ready() -> void:
 			root.return_to_board())
 
 	_apply_quality()
+	# The chapter's hour, before the first frame is drawn (G14.2).
+	SkyTime.apply($WorldEnvironment as WorldEnvironment,
+		$Sun as DirectionalLight3D, variant.time_of_day)
 	_activate(GameConfig.MOWER_PUSH, true)
 	# G9.4: no birds in play — the theme runs instead (RootFlow keeps it going).
 	# Standalone (tests, direct scene run) start it here so the scene sounds
@@ -137,11 +150,15 @@ func _ready() -> void:
 
 	# G8: the briefing moved to RootFlow's DialogueBox, so by the time this
 	# scene exists the case has already been accepted.
+	if variant != null and variant.signal_layers:
+		AudioDirector.start_signal()
+
 	if autostart_search:
 		_begin_search()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_tick_orientation(delta)
 	_check_pickups()
 	if mower != null and hud != null:
 		hud.set_pad_state(mower.pad_engaged(), mower._pad_origin, mower._pad_now)
@@ -175,7 +192,13 @@ func _ensure_all_mowers() -> void:
 				built = (load("res://scenes/Robot.tscn") as PackedScene).instantiate()
 		if built == null:
 			continue
-		print("[Game] sahnede eksik mower koddan eklendi: %s" % GameConfig.MOWER_TYPES[i]["id"])
+		# The blade has no .tscn — it is built entirely in code — so it is ALWAYS
+		# spawned here and that is not worth a line in the console every launch.
+		# The other three do have scenes, so one of those missing is a real
+		# problem (the editor has silently eaten a node before).
+		if i != GameConfig.MOWER_BLADE:
+			push_warning("[Game] sahnede eksik mower koddan eklendi: %s"
+				% GameConfig.MOWER_TYPES[i]["id"])
 		_mower_root.add_child(built)
 		built.model = model
 		built.tuft_field = lawn.tuft_field
@@ -187,6 +210,128 @@ func _ensure_all_mowers() -> void:
 		built.scrap_field = scrap_field
 		built.set_active(false)
 		_mowers.insert(i, built)
+
+
+## Counts down to the orientation sheet on a first run, then stops. Driven from
+## _process rather than a timer so pausing the game pauses the countdown too.
+func _tick_orientation(delta: float) -> void:
+	if _orientation_due <= 0.0:
+		return
+	_orientation_due -= delta
+	if _orientation_due > 0.0:
+		return
+	_orientation_due = 0.0
+	GameState.mark_orientation_done()
+	Analytics.track(AnalyticsEvents.ORIENTATION_SHOWN, {"chapter": variant_id})
+	hud.show_orientation(_on_orientation_closed)
+
+
+## Closing the sheet marks BOTH buried finds, once. This is the only place in
+## the game that points at evidence rather than at a region — it is the price of
+## a first-run player knowing what "search" means, and it never happens again.
+func _on_orientation_closed() -> void:
+	for cell_any: Variant in model.secret_cells:
+		var cell: Vector2i = cell_any
+		if model.is_cut(cell.x, cell.y):
+			continue
+		lawn.tint_hint(cell, GameConfig.FIRST_RUN_HINT_CELLS)
+	Analytics.track(AnalyticsEvents.ORIENTATION_HINT_MARKED, {"chapter": variant_id})
+
+
+## The Marshal on the radio at set points in a search, plus the faintest tint on
+## the ground near the evidence he is talking about (G13.4).
+##
+## It does NOT say where the evidence is. It names a region — "that corner by
+## the oak" — and tints two or three cells AROUND the find, so the player is
+## drawn to an area and still has to work it. That is the difference between a
+## hint and a waypoint.
+func _check_scent(ratio: float) -> void:
+	if not GameConfig.hint_moments or variant == null:
+		return
+	# A first run hears him almost immediately; after that, at the usual points.
+	var marks: Array = GameConfig.FIRST_RUN_SCENT_AT if _first_run \
+		else GameConfig.SCENT_AT
+	for i in marks.size():
+		if _scent_done.has(i):
+			continue
+		if ratio < float(marks[i]):
+			continue
+		_scent_done[i] = true
+		var target := _scent_target(i)
+		if target == Vector2i(-1, -1):
+			continue
+		hud.show_scent(_scent_line(target))
+		AudioDirector.play_static()
+		lawn.tint_hint(target, GameConfig.SCENT_TINT_CELLS)
+		Analytics.track(AnalyticsEvents.SCENT_SHOWN, {"chapter": variant_id, "at": ratio})
+		return
+
+
+## The chapters on the east road are a journey, and a journey has conversations
+## in the middle of it (G13). A chapter can name `mid_chat` in levels.json and
+## get a short scripted exchange partway through — the dialogue box, not a
+## toast, because these lines are people talking rather than the game hinting.
+##
+## The mow pauses under it for the same reason the briefing does: a line worth
+## reading is worth not driving through.
+func _check_mid_chat(ratio: float) -> void:
+	if variant == null or _complete_shown:
+		return
+	var marks: Array = variant.mid_chat_marks()
+	for i in marks.size():
+		if _mid_chat_done.has(i):
+			continue
+		if ratio < float(marks[i]):
+			continue
+		_mid_chat_done[i] = true
+		var key := variant.mid_chat_key(i)
+		var lines := Dialogue.conversation(key)
+		if lines.is_empty():
+			return
+		_play_mid_chat(lines)
+		return
+
+
+func _play_mid_chat(lines: Array) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 60
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var box := DialogueBox.new()
+	layer.add_child(box)
+	get_tree().paused = true
+	box.finished.connect(func() -> void:
+		get_tree().paused = false
+		layer.queue_free())
+	box.play(lines)
+
+
+## The cell of an evidence item that is still buried. Evidence only becomes a
+## node once its cell is mown, so the MODEL is what knows where they are.
+func _scent_target(index: int) -> Vector2i:
+	var wanted := index
+	for cell_any: Variant in model.secret_cells:
+		var cell: Vector2i = cell_any
+		if model.is_cut(cell.x, cell.y):
+			continue
+		if wanted > 0:
+			wanted -= 1
+			continue
+		return cell
+	return Vector2i(-1, -1)
+
+
+## Which of the Marshal's four lines fits where the find is on the lawn.
+func _scent_line(cell: Vector2i) -> String:
+	var cols := GameConfig.GRID_COLS
+	var rows := GameConfig.GRID_ROWS
+	if cell.y < rows / 3:
+		return "SCENT_BACK"
+	if cell.x < cols / 4 or cell.x > cols * 3 / 4:
+		return "SCENT_FENCE"
+	if cell.y > rows * 2 / 3:
+		return "SCENT_OAK"
+	return "SCENT_NEAR"
 
 
 ## G6 quality switches (game_config): shadow atlas size, subtle bloom.
@@ -293,6 +438,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	# The intro cards and the briefing are modal: the lawn hears nothing.
 	if not _search_started:
 		return
+	# Desktop keyboard shortcuts (G14). A touch build never fires these.
+	if not event.is_echo():
+		if event.is_action_pressed("ui_pause"):
+			hud.toggle_pause()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("mower_next"):
+			_cycle_mower()
+			get_viewport().set_input_as_handled()
+			return
 	if mower == null:
 		return
 	var touch := event as InputEventScreenTouch
@@ -364,6 +519,9 @@ func _collect_evidence(prop: Node3D) -> void:
 	# rather than an emoji (G12.10).
 	_collected.append({ "emoji": info["emoji"], "name": info["name"],
 		"where": info.get("where", ""), "id": str(info.get("id", "")) })
+	Analytics.track(AnalyticsEvents.EVIDENCE_FOUND, {"chapter": variant_id,
+		"id": str(info.get("id", "")), "count": _collected.size(),
+		"total": _evidence_total()})
 	hud.show_secret_card(info["emoji"], info["name"], info["line"],
 		func() -> void:
 			hud.set_secret_count(_collected.size(), _evidence_total())
@@ -377,12 +535,44 @@ func _collect_evidence(prop: Node3D) -> void:
 func _glance_at(at: Vector3) -> void:
 	if not GameConfig.FIND_PAN_ENABLED or cam == null:
 		return
-	Analytics.track("evidence_location_panned", {"chapter": variant_id})
+	Analytics.track(AnalyticsEvents.EVIDENCE_LOCATION_PANNED, {"chapter": variant_id})
 	cam.glance_at(at, GameConfig.FIND_PAN_TIME)
+
+
+## Backgrounding the app pauses the search (G14.1).
+##
+## Audio already suspended itself here, but the LAWN kept being mown: a phone
+## call, a locked screen or an alt-tab left the mower driving with nobody
+## watching. The same notification covers both platforms — iOS sends
+## APPLICATION_PAUSED, a desktop window sends WM_WINDOW_FOCUS_OUT.
+##
+## Resuming does NOT unpause: the sheet stays up and the player chooses when to
+## go back in, which is what every mobile game does and the only safe thing to
+## do when you cannot know how long they were gone.
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+			if _search_started and hud != null and is_instance_valid(hud):
+				hud.pause_for_background()
+
+
+## Tab / Space: the next machine the player actually owns.
+func _cycle_mower() -> void:
+	var count := GameConfig.MOWER_TYPES.size()
+	for step in range(1, count + 1):
+		var next := (_active_index + step) % count
+		if Garage.is_unlocked(next):
+			select_mower(next)
+			return
 
 
 func _on_cells_mown(_count: int) -> void:
 	hud.set_progress(model.completion_ratio())
+	_check_scent(model.completion_ratio())
+	_check_mid_chat(model.completion_ratio())
+	# The listening post's radio tunes itself as the ground opens (G13).
+	if variant != null and variant.signal_layers:
+		AudioDirector.set_signal_clarity(model.completion_ratio())
 	# The echo is revealed by cutting its cell, same as evidence — but silently,
 	# with no marker until it is actually picked up.
 	if _echo_cell.x >= 0 and model.is_cut(_echo_cell.x, _echo_cell.y):
@@ -394,6 +584,16 @@ func _on_completed() -> void:
 		return
 	_complete_shown = true
 	GameState.finish_run()
+	# The run is over, so the machine is too. stop_engine only ran in
+	# _exit_tree, when the scene is destroyed — but the reward shot and the
+	# results panel both play while the scene is still ALIVE, so the mower went
+	# on idling underneath "area searched" for as long as the player read it
+	# (G13). set_engine_profile clears the latch when the next chapter starts.
+	AudioDirector.stop_engine()
+	# And it stops being driven: the panel covers the controls but the mower was
+	# still simulated under it, so a finger left on the pad kept it moving.
+	if mower != null and is_instance_valid(mower):
+		mower.set_active(false)
 	cam.set_bird_view(true)
 	hud.flash()
 	Haptics.success()
@@ -404,6 +604,10 @@ func _on_completed() -> void:
 		GameState.add_scrap(int(payout["total"]))
 		hud.set_scrap(GameState.scrap_total())
 		search_finished.emit(_collected.size(), _evidence_total())
+		if variant != null and variant.is_harvest():
+			HarvestLog.record()
+			Analytics.track(AnalyticsEvents.HARVEST_COMPLETED,
+				{"scrap": int(payout["total"]), "run": HarvestLog.count()})
 		hud.show_complete(model.mowed_count, GameState.format_elapsed(),
 			_collected, _evidence_total(), payout, _next_chapter_name()))
 
@@ -420,6 +624,8 @@ func _restart() -> void:
 	for child in _fx_root.get_children():
 		child.queue_free()
 	_collected.clear()
+	_scent_done.clear()
+	_mid_chat_done.clear()
 	_complete_shown = false
 
 	model.reset()
@@ -450,10 +656,25 @@ func _begin_search() -> void:
 	if _search_started:
 		return
 	_search_started = true
-	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index], 2.4)
+	# The one-time orientation, on a first run only (G15).
+	_first_run = GameState.is_first_run()
+	if _first_run:
+		hud.pulse_poster(GameConfig.FIRST_RUN_POSTER_PULSE)
+		_orientation_due = GameConfig.FIRST_RUN_MODAL_AFTER
+	# A harvest opens from higher and slower: the crop rings the plot, and from
+	# the play camera's usual height a six-metre sunflower on the far fence is
+	# simply off screen. The descent is what introduces the field (G13.6).
+	var harvest := variant != null and variant.is_harvest()
+	cam.descend_to(GameConfig.MOWER_CAMERA[_active_index],
+		4.2 if harvest else 2.4, 62.0 if harvest else 26.0,
+		14.0 if harvest else 3.0)
 	hud.show_opening_title(variant.opening_headline, variant.opening_subline)
 	hud.show_drive_hint()
 	GameState.start_run()
+	# Harvest has its own start event (town_map.gd, fired when the invitation is
+	# accepted); this is the case-chapter funnel's top of the mouth.
+	if not harvest:
+		Analytics.track(AnalyticsEvents.CHAPTER_STARTED, {"chapter": variant_id})
 
 
 # ---------------------------------------------------------------- G9 economy
@@ -480,7 +701,28 @@ func _on_scrap_found(col: int, row: int, value: int) -> void:
 ## The end-of-chapter scrap breakdown.
 func _payout() -> Dictionary:
 	var budget := variant.scrap_budget if variant != null else 9
-	return ScrapField.payout(_scrap_banked, model.completion_ratio(), budget)
+	var payout := ScrapField.payout(_scrap_banked, model.completion_ratio(), budget)
+	# A harvest is the paying job, and the multiplier is applied HERE rather
+	# than in ScrapField so ScrapField's own math stays a pure, unit-tested
+	# function (G13.6). The search multiplier below follows the same pattern
+	# (G14.3): it closes the gate where the harvest loop paid less than it
+	# cost to reach.
+	var multiplier := GameConfig.SEARCH_SCRAP_MULTIPLIER
+	if variant != null and variant.is_harvest():
+		multiplier = GameConfig.HARVEST_SCRAP_MULTIPLIER
+	# And the chapter's own weighting on top (G13). Case 02 buries as much as
+	# Case 01 does — the yards would feel empty otherwise — but the economy it
+	# lands in has no new sinks, so what it pays is scaled rather than what it
+	# hides.
+	if variant != null:
+		multiplier *= variant.scrap_multiplier
+	for key: String in payout:
+		# "ratio" is completion (0-1), not a scrap amount - multiplying it
+		# made a full harvest report "200% mowed" on the completion panel.
+		if key == "ratio":
+			continue
+		payout[key] = int(round(float(payout[key]) * multiplier))
+	return payout
 
 
 # ---------------------------------------------------------------- G9 early exit
@@ -559,7 +801,7 @@ func _check_echo(col: int, row: int) -> void:
 	FindMarker.spawn(_fx_root, at, str(info.get("id", "")))
 	AudioDirector.play_discovery()
 	Haptics.light()
-	Analytics.track("echo_found",
+	Analytics.track(AnalyticsEvents.ECHO_FOUND,
 		{"chapter": variant_id, "echo": info.get("id", "")})
 	hud.show_echo_card(str(info["emoji"]), str(info["name"]), str(info["line"]),
 		str(info.get("id", "")))
@@ -567,6 +809,8 @@ func _check_echo(col: int, row: int) -> void:
 
 ## Audio lives on the AudioDirector autoload, which outlives this scene, so a
 ## chapter has to hand back the engine when it leaves — otherwise the blade goes
-## on spinning over the hub (G12.9).
+## on spinning over the hub (G12.9). The listening post's signal pair is the
+## same rule: it belongs to one chapter (G13).
 func _exit_tree() -> void:
 	AudioDirector.stop_engine()
+	AudioDirector.stop_signal()

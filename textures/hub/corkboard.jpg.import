@@ -3,20 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://caxtskef844cm"
-path="res://.godot/imported/corkboard.jpg-ea69afb97c3d7ad528500d1deb5b2fc7.ctex"
+path.bptc="res://.godot/imported/corkboard.jpg-ea69afb97c3d7ad528500d1deb5b2fc7.bptc.ctex"
+path.astc="res://.godot/imported/corkboard.jpg-ea69afb97c3d7ad528500d1deb5b2fc7.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://textures/hub/corkboard.jpg"
-dest_files=["res://.godot/imported/corkboard.jpg-ea69afb97c3d7ad528500d1deb5b2fc7.ctex"]
+dest_files=["res://.godot/imported/corkboard.jpg-ea69afb97c3d7ad528500d1deb5b2fc7.bptc.ctex", "res://.godot/imported/corkboard.jpg-ea69afb97c3d7ad528500d1deb5b2fc7.astc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

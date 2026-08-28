@@ -43,6 +43,15 @@ func _ready() -> void:
 	_build_neighbors()
 	_build_smalls()
 	_build_clouds()
+	# G13.1: distant hills and rooftops in EVERY yard, not just the hub's
+	# diorama. Every chapter used to end at a fog wall with nothing behind it.
+	# The country between the fence and the hills is the horizon's job now, and
+	# it takes the palette's colour so a wheat yard is not ringed in green.
+	Horizon.build(self, GameConfig.HORIZON_RADIUS, _rng.randi(), true,
+		_country_tint())
+	# A harvest stands inside the town's crop; a search does not (G13.6).
+	if _variant != null and _variant.is_harvest():
+		_build_crop_field()
 	if GameConfig.SKY_HIGH_CLOUDS_ENABLED:
 		_build_high_clouds()
 	_build_driveways()
@@ -883,20 +892,32 @@ func _build_clouds() -> void:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 
-	for i in GameConfig.CLOUD_COUNT:
+	# On a ring, not in a strip: the four clouds used to sit north of the house
+	# between z -34 and -6, so every other direction was empty sky (G14.2).
+	for i in GameConfig.CLOUD_RING_COUNT:
 		var size := _rng.randf_range(GameConfig.CLOUD_SIZE_MIN, GameConfig.CLOUD_SIZE_MAX)
 		var quad := QuadMesh.new()
 		quad.size = Vector2(size, size * 0.5)
 		quad.material = mat
 		var mi := MeshInstance3D.new()
 		mi.mesh = quad
-		var base_x := -24.0 + float(i) * 16.0
+		var a := TAU * (float(i) + _rng.randf_range(-0.3, 0.3)) \
+			/ float(GameConfig.CLOUD_RING_COUNT)
+		var ring := GameConfig.CLOUD_RING_RADIUS * _rng.randf_range(0.7, 1.25)
+		var base_x := cos(a) * ring
 		mi.position = Vector3(base_x,
 			_rng.randf_range(GameConfig.CLOUD_Y_MIN, GameConfig.CLOUD_Y_MAX),
-			_rng.randf_range(-34.0, -6.0))
+			sin(a) * ring)
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		_clouds.append({ "node": mi, "base_x": base_x, "phase": _rng.randf() * TAU })
+
+
+## Duller and greyer than the lawn: the country is not a second garden.
+func _country_tint() -> Color:
+	var pal := GameConfig.grass_palette()
+	var far: Color = (pal["ground_mowed"] as Array)[0]
+	return far.lerp(GameConfig.MEADOW_GREY, GameConfig.MEADOW_FADE)
 
 
 # ---------------------------------------------------------------- G9 variants
@@ -920,9 +941,455 @@ func _build_landmark(landmark_id: String) -> void:
 		"greenhouse": _landmark_greenhouse(root)
 		"water_tower": _landmark_water_tower(root)
 		"mill": _landmark_mill(root)
+		"barn": _landmark_barn(root)
+		"antenna_mast": _landmark_antenna_mast(root)
+		"orchard": _landmark_orchard(root)
+		"crossing": _landmark_crossing(root)
+		"roadside_camp": _landmark_roadside_camp(root)
+		"listening_post": _landmark_listening_post(root)
+		"old_clinic": _landmark_old_clinic(root)
+		"meeting_stone": _landmark_meeting_stone(root)
+		"signal_garden": _landmark_signal_garden(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
+
+
+## The farm's barn: the harvest level's anchor. Red boards, a gambrel roof, a
+## white-framed door, and one hay bale per harvest already brought in, up to the
+## cap — so the field visibly repays the work (G13.6).
+func _landmark_barn(root: Node3D) -> void:
+	var board := _flat("barn_board", Color(0.52, 0.17, 0.14), 0.95)
+	var trim := _flat("barn_trim", Color(0.88, 0.86, 0.80), 0.9)
+	var roof := _flat("barn_roof", Color(0.30, 0.28, 0.27), 0.9)
+	var hay := _flat("barn_hay", Color(0.82, 0.70, 0.34), 1.0)
+	var stone := _flat("barn_stone", Color(0.52, 0.50, 0.46), 0.95)
+
+	var w := 9.0
+	var d := 6.0
+	var h := 4.2
+	_box(root, Vector3(w + 0.5, 0.3, d + 0.5), stone, Vector3(0.0, 0.15, 0.0))
+	_box(root, Vector3(w, h, d), board, Vector3(0.0, h * 0.5 + 0.3, 0.0))
+	# Gambrel: a shallow upper pitch over a steep lower one, both sides.
+	for sx: float in [-1.0, 1.0]:
+		_box(root, Vector3(w * 0.30, 0.22, d + 0.5), roof,
+			Vector3(sx * w * 0.22, h + 1.35, 0.0), Vector3(0.0, 0.0, sx * 0.52))
+		_box(root, Vector3(w * 0.34, 0.22, d + 0.5), roof,
+			Vector3(sx * w * 0.42, h + 0.62, 0.0), Vector3(0.0, 0.0, sx * 1.02))
+	_box(root, Vector3(0.3, 0.3, d + 0.7), roof, Vector3(0.0, h + 1.72, 0.0))
+	# The big south door, framed in white, with its cross-brace boards.
+	_box(root, Vector3(3.4, 3.1, 0.12), trim, Vector3(0.0, 1.85, -d * 0.5 - 0.06))
+	_box(root, Vector3(3.0, 2.8, 0.10), board, Vector3(0.0, 1.80, -d * 0.5 - 0.13))
+	for sx2: float in [-1.0, 1.0]:
+		_box(root, Vector3(3.2, 0.16, 0.06), trim,
+			Vector3(0.0, 1.80, -d * 0.5 - 0.19), Vector3(0.0, 0.0, sx2 * 0.72))
+	# Hay loft opening up in the gable, with straw spilling from it.
+	_box(root, Vector3(1.3, 1.2, 0.12), trim,
+		Vector3(0.0, h - 0.3, -d * 0.5 - 0.06))
+	_box(root, Vector3(1.0, 0.9, 0.10), hay, Vector3(0.0, h - 0.35, -d * 0.5 - 0.13))
+
+	var bales := HarvestLog.bales()
+	for i in bales:
+		var col := i % 2
+		var row := i / 2
+		_cyl(root, 0.62, 0.62, 1.1, hay,
+			Vector3(w * 0.5 + 1.6 + float(col) * 1.5, 0.62 + float(row) * 1.2,
+				d * 0.20),
+			Vector3(0.0, 0.0, PI * 0.5))
+	_ao_blob(root, Vector2(w + 2.4, d + 2.4),
+		Vector3(0.0, 0.02, 0.0), 0.6)
+
+
+## Case 02 opens under this: a lattice mast with a shed at its foot, guy wires
+## running out to their anchors, and one dish still pointed east.
+##
+## The dish is the whole landmark. Everything else has weathered into the same
+## grey, but somebody has kept that one thing aimed — and it aims the way the
+## chapter is about to send the player (G13).
+func _landmark_antenna_mast(root: Node3D) -> void:
+	var steel := _flat("mast_steel", Color(0.46, 0.47, 0.49), 0.65, 0.35)
+	var rust := _flat("mast_rust", Color(0.44, 0.26, 0.18), 0.9, 0.1)
+	var board := _flat("mast_board", Color(0.40, 0.38, 0.34), 0.95)
+	var roof := _flat("mast_roof", Color(0.26, 0.26, 0.27), 0.9)
+	var dish := _flat("mast_dish", Color(0.74, 0.73, 0.68), 0.55, 0.2)
+	var wire := _flat("mast_wire", Color(0.32, 0.32, 0.33), 0.8, 0.5)
+
+	var height := 9.4
+	# Four legs drawing in towards the top, cross-braced: a lattice reads as a
+	# lattice from the diagonals, not from the uprights.
+	for sx: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
+			_cyl(root, 0.055, 0.085, height, steel,
+				Vector3(sx * 0.52, height * 0.5, sz * 0.52),
+				Vector3(sz * 0.035, 0.0, -sx * 0.035))
+	# Rungs all the way round plus one diagonal per face per level. A lattice
+	# reads as a lattice from the diagonals; with only the uprights and a rung
+	# on one face it reads as a ladder, which is what the first pass drew.
+	for level in 7:
+		var y := 0.8 + float(level) * 1.28
+		var span := lerpf(1.10, 0.70, float(level) / 6.0)
+		var lean := 1.0 if level % 2 == 0 else -1.0
+		for face in 4:
+			var a := TAU * float(face) / 4.0
+			var mid := Vector3(cos(a), 0.0, sin(a)) * span * 0.5
+			_cyl(root, 0.026, 0.026, span, steel, mid + Vector3(0.0, y, 0.0),
+				Vector3(0.0, -a, PI * 0.5))
+			var diag := sqrt(span * span + 1.28 * 1.28)
+			_cyl(root, 0.021, 0.021, diag, steel,
+				mid + Vector3(0.0, y + 0.64, 0.0),
+				Vector3(0.0, -a, lean * atan2(span, 1.28)))
+
+	# Guy wires out to three ground anchors. Thick enough to read at the
+	# camera's distance: a hairline cylinder came out looking like a scratch on
+	# the lens rather than a cable.
+	for i in 3:
+		var angle := TAU * float(i) / 3.0 + 0.4
+		var reach := 4.2
+		var top := Vector3(0.0, height * 0.74, 0.0)
+		var anchor := Vector3(cos(angle) * reach, 0.25, sin(angle) * reach)
+		var mid := (anchor + top) * 0.5
+		var line := _cyl(root, 0.032, 0.032, anchor.distance_to(top), wire, mid,
+			Vector3.ZERO, 6)
+		line.look_at_from_position(mid, anchor, Vector3.UP)
+		line.rotate_object_local(Vector3.RIGHT, PI * 0.5)
+		_box(root, Vector3(0.30, 0.42, 0.30), rust,
+			anchor + Vector3(0.0, -0.04, 0.0))
+
+	# The dish, still aimed east, and its little counterweight arm.
+	var arm := Vector3(0.0, height * 0.86, 0.0)
+	_cyl(root, 0.05, 0.05, 1.5, steel, arm + Vector3(0.62, 0.0, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5))
+	_cyl(root, 0.92, 0.92, 0.10, dish, arm + Vector3(1.34, 0.0, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5))
+	_cyl(root, 0.06, 0.06, 0.46, rust, arm + Vector3(1.62, 0.0, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5))
+
+	# The shed at its foot: where the receiver and the log were found.
+	var shed := Node3D.new()
+	shed.position = Vector3(2.9, 0.0, 1.1)
+	shed.rotation.y = -0.24
+	root.add_child(shed)
+	_box(shed, Vector3(2.6, 2.1, 2.2), board, Vector3(0.0, 1.05, 0.0))
+	_box(shed, Vector3(2.9, 0.14, 2.5), roof, Vector3(0.0, 2.16, 0.0),
+		Vector3(0.10, 0.0, 0.0))
+	_box(shed, Vector3(0.9, 1.7, 0.08), rust, Vector3(-0.5, 0.85, -1.12))
+	_box(shed, Vector3(0.5, 0.5, 0.06), steel, Vector3(0.7, 1.45, -1.12))
+	_ao_blob(shed, Vector2(3.4, 3.0), Vector3(0.0, 0.02, 0.0), 0.55)
+	_ao_blob(root, Vector2(3.2, 3.2), Vector3(0.0, 0.02, 0.0), 0.5)
+
+
+## Four rows of old apple trees, and a low dry-stone wall along the back.
+##
+## The rows are the evidence: they are EVEN. Trees planted by a person who
+## expected to come back and pick them, standing in the country that stopped
+## coming back for anything (G13).
+func _landmark_orchard(root: Node3D) -> void:
+	var bark := _flat("orch_bark", Color(0.32, 0.26, 0.20), 0.95)
+	var leaf := _flat("orch_leaf", Color(0.24, 0.42, 0.20), 0.9)
+	var fruit := _flat("orch_fruit", Color(0.58, 0.15, 0.14), 0.5)
+	var stone := _flat("orch_stone", Color(0.55, 0.53, 0.48), 0.95)
+	var crate := _flat("orch_crate", Color(0.68, 0.58, 0.42), 0.9)
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 111101
+	for row in 4:
+		for col in 5:
+			var tree := Node3D.new()
+			tree.position = Vector3((float(col) - 2.0) * 2.9 + rng.randf_range(-0.12, 0.12),
+				0.0, (float(row) - 1.5) * 2.5 + rng.randf_range(-0.10, 0.10))
+			root.add_child(tree)
+			var h := rng.randf_range(2.1, 2.7)
+			_cyl(tree, 0.13, 0.20, h, bark, Vector3(0.0, h * 0.5, 0.0))
+			# Three crowns rather than one ball: an apple tree is wide and open.
+			for i in 3:
+				var a := TAU * float(i) / 3.0 + rng.randf_range(0.0, 1.0)
+				var r := rng.randf_range(0.62, 0.86)
+				_ball(tree, r, leaf,
+					Vector3(cos(a) * 0.46, h + rng.randf_range(-0.10, 0.22),
+						sin(a) * 0.46), Vector3(1.0, 0.78, 1.0))
+			# A few apples still up, because nobody stripped these trees bare.
+			for i in 3:
+				var a2 := rng.randf_range(0.0, TAU)
+				_ball(tree, 0.075, fruit,
+					Vector3(cos(a2) * rng.randf_range(0.45, 0.85),
+						h + rng.randf_range(-0.25, 0.25),
+						sin(a2) * rng.randf_range(0.45, 0.85)))
+			_ao_blob(tree, Vector2(1.9, 1.9), Vector3(0.0, 0.02, 0.0), 0.5)
+
+	# The dry-stone wall the crate lid was leaning against.
+	for i in 16:
+		var x := (float(i) - 7.5) * 0.86
+		var y := 0.22 + (0.0 if i % 3 else 0.14)
+		_box(root, Vector3(0.84, 0.44 + (0.18 if i % 3 == 0 else 0.0), 0.46),
+			stone, Vector3(x, y, 5.4), Vector3(0.0, rng.randf_range(-0.1, 0.1), 0.0))
+	_box(root, Vector3(0.62, 0.42, 0.46), crate, Vector3(2.1, 0.21, 4.85),
+		Vector3(0.0, 0.34, 0.0))
+	_box(root, Vector3(0.66, 0.03, 0.50), crate, Vector3(1.4, 0.02, 4.9),
+		Vector3(0.0, 0.12, 0.0))
+
+
+## The far bank: two anchor posts, a rope walkway and the planks somebody has
+## been maintaining. It sits at the FAR edge because the chapter is about
+## getting to it — the reeds are between the player and this (G13).
+func _landmark_crossing(root: Node3D) -> void:
+	var post := _flat("cr_post", Color(0.35, 0.28, 0.20), 0.95)
+	var rope := _flat("cr_rope", Color(0.72, 0.64, 0.44), 0.9)
+	var plank := _flat("cr_plank", Color(0.48, 0.42, 0.33), 0.95)
+	var water := _flat("cr_water", Color(0.24, 0.36, 0.38), 0.35, 0.1)
+	var stone := _flat("cr_stone", Color(0.52, 0.51, 0.47), 0.95)
+
+	# The water itself, a flat band running across behind the bank.
+	_box(root, Vector3(30.0, 0.06, 5.2), water, Vector3(0.0, 0.03, 3.2))
+	for i in 14:
+		_box(root, Vector3(0.9, 0.34, 0.5), stone,
+			Vector3((float(i) - 6.5) * 1.05, 0.15, 0.5),
+			Vector3(0.0, float(i) * 0.7, 0.0))
+
+	# Two A-frames carrying the ropes, and the deck between them.
+	for sx: float in [-1.0, 1.0]:
+		for lean: float in [-1.0, 1.0]:
+			_cyl(root, 0.08, 0.10, 2.9, post,
+				Vector3(sx * 1.5 + lean * 0.34, 1.45, 1.3),
+				Vector3(0.0, 0.0, -lean * 0.14))
+		_cyl(root, 0.05, 0.05, 3.4, rope,
+			Vector3(sx * 1.5, 2.55, 3.0), Vector3(PI * 0.5, 0.0, 0.0))
+	for i in 9:
+		_box(root, Vector3(2.9, 0.07, 0.30), plank,
+			Vector3(0.0, 0.92 - float(i) * 0.012, 1.5 + float(i) * 0.42))
+	# The knot the evidence is about: rope turned twice round the near post.
+	for i in 2:
+		_cyl(root, 0.115, 0.115, 0.09, rope,
+			Vector3(-1.5, 2.05 + float(i) * 0.10, 1.3), Vector3(0.0, 0.0, 0.0), 10)
+	_ao_blob(root, Vector2(5.0, 3.0), Vector3(0.0, 0.02, 1.6), 0.5)
+
+
+## A place people stopped, twice. The lower camp is tidy — its stone ring and
+## its guy-line stakes are still square. The upper one was left in a hurry: the
+## caravan is on its side and a tent is a bare skeleton (G13).
+func _landmark_roadside_camp(root: Node3D) -> void:
+	var shell := _flat("rc_shell", Color(0.74, 0.72, 0.66), 0.85)
+	var rust := _flat("rc_rust", Color(0.46, 0.30, 0.20), 0.95)
+	var glass := _flat("rc_glass", Color(0.28, 0.34, 0.34), 0.3, 0.2)
+	var pole := _flat("rc_pole", Color(0.40, 0.38, 0.34), 0.9)
+	var canvas := _flat("rc_canvas", Color(0.56, 0.52, 0.42), 0.95)
+	var stone := _flat("rc_stone", Color(0.48, 0.46, 0.43), 0.95)
+	var ash := _flat("rc_ash", Color(0.20, 0.19, 0.18), 1.0)
+
+	# The caravan, on its side, wheels toward the road.
+	var van := Node3D.new()
+	van.position = Vector3(-3.4, 0.0, 0.4)
+	van.rotation = Vector3(0.0, 0.42, PI * 0.5 + 0.06)
+	root.add_child(van)
+	_box(van, Vector3(2.3, 4.6, 2.0), shell, Vector3(0.0, 1.15, 0.0))
+	_box(van, Vector3(2.35, 0.12, 2.05), rust, Vector3(0.0, 3.46, 0.0))
+	for i in 2:
+		_box(van, Vector3(0.05, 0.9, 0.8), glass,
+			Vector3(1.18, 0.9 + float(i) * 1.7, 0.0))
+	for sz: float in [-1.0, 1.0]:
+		_cyl(van, 0.34, 0.34, 0.22, rust, Vector3(-1.22, 1.4, sz * 0.7),
+			Vector3(0.0, 0.0, PI * 0.5))
+
+	# Two tent skeletons: poles standing, canvas mostly gone.
+	for t in 2:
+		var tent := Node3D.new()
+		tent.position = Vector3(1.6 + float(t) * 3.0, 0.0, 1.5 - float(t) * 0.8)
+		tent.rotation.y = 0.3 - float(t) * 0.7
+		root.add_child(tent)
+		for sx: float in [-1.0, 1.0]:
+			_cyl(tent, 0.035, 0.035, 1.9, pole, Vector3(sx * 0.9, 0.95, 0.0),
+				Vector3(0.0, 0.0, -sx * 0.34))
+		_cyl(tent, 0.03, 0.03, 2.4, pole, Vector3(0.0, 1.72, 0.0),
+			Vector3(PI * 0.5, 0.0, 0.0))
+		if t == 0:
+			_box(tent, Vector3(1.3, 0.04, 1.1), canvas,
+				Vector3(0.35, 0.62, 0.42), Vector3(0.5, 0.2, 0.3))
+
+	# The lower camp: a stone ring still square, and its stakes still in line.
+	for i in 9:
+		var a := TAU * float(i) / 9.0
+		_box(root, Vector3(0.34, 0.20, 0.34), stone,
+			Vector3(0.4 + cos(a) * 0.72, 0.10, 3.5 + sin(a) * 0.72),
+			Vector3(0.0, a, 0.0))
+	_cyl(root, 0.62, 0.62, 0.05, ash, Vector3(0.4, 0.03, 3.5), Vector3.ZERO, 12)
+	for i in 4:
+		_cyl(root, 0.025, 0.025, 0.34, pole,
+			Vector3(-1.6 + float(i) * 1.15, 0.17, 4.9),
+			Vector3(0.0, 0.0, 0.22))
+	_ao_blob(root, Vector2(9.0, 6.0), Vector3(0.0, 0.02, 1.8), 0.45)
+
+
+## A shipping container put into the ground rather than onto it, with a whip
+## antenna and a hatch. Half-buried is the tell: this was meant not to be seen
+## from the road (G13).
+func _landmark_listening_post(root: Node3D) -> void:
+	var steel := _flat("lp_steel", Color(0.30, 0.36, 0.34), 0.8, 0.2)
+	var rib := _flat("lp_rib", Color(0.25, 0.30, 0.29), 0.85, 0.2)
+	var soil := _flat("lp_soil", Color(0.31, 0.26, 0.21), 1.0)
+	var hatch := _flat("lp_hatch", Color(0.42, 0.44, 0.42), 0.7, 0.3)
+	var wire := _flat("lp_wire", Color(0.34, 0.34, 0.35), 0.75, 0.5)
+	var lamp := _flat("lp_lamp", Color(0.85, 0.34, 0.22), 0.4)
+
+	# The mound it is buried in, then the container sunk into it.
+	_cyl(root, 4.4, 5.6, 1.1, soil, Vector3(0.0, 0.55, 0.6), Vector3.ZERO, 16)
+	_box(root, Vector3(6.1, 2.5, 2.5), steel, Vector3(0.0, 0.85, 0.6))
+	for i in 11:
+		_box(root, Vector3(0.10, 2.5, 2.56), rib,
+			Vector3((float(i) - 5.0) * 0.54, 0.85, 0.6))
+	_box(root, Vector3(6.2, 0.16, 2.6), rib, Vector3(0.0, 2.12, 0.6))
+
+	# Hatch on top, open, with the ladder rail sticking out of it.
+	_box(root, Vector3(1.0, 0.10, 1.0), hatch, Vector3(1.7, 2.22, 0.6))
+	_box(root, Vector3(1.0, 0.08, 1.0), hatch, Vector3(2.35, 2.55, 0.6),
+		Vector3(0.0, 0.0, -0.95))
+	for sz: float in [-1.0, 1.0]:
+		_cyl(root, 0.03, 0.03, 0.7, hatch,
+			Vector3(1.42, 2.5, 0.6 + sz * 0.22))
+
+	# The whip antenna, and one lamp that is still red.
+	_cyl(root, 0.02, 0.05, 6.2, wire, Vector3(-2.3, 5.2, 0.6),
+		Vector3(0.0, 0.0, 0.05))
+	for i in 3:
+		var a := TAU * float(i) / 3.0
+		_cyl(root, 0.012, 0.012, 3.0, wire,
+			Vector3(-2.3 + cos(a) * 0.7, 3.6, 0.6 + sin(a) * 0.7),
+			Vector3(sin(a) * 0.24, 0.0, -cos(a) * 0.24))
+	_ball(root, 0.11, lamp, Vector3(-2.3, 8.3, 0.6))
+	_ao_blob(root, Vector2(7.5, 4.5), Vector3(0.0, 0.02, 0.6), 0.5)
+
+
+## A single-storey clinic with ivy over most of it and its cross gone pale.
+## Nothing is broken here — that is the unsettling part (G13).
+func _landmark_old_clinic(root: Node3D) -> void:
+	var render := _flat("cl_render", Color(0.78, 0.78, 0.73), 0.95)
+	var trim := _flat("cl_trim", Color(0.60, 0.62, 0.60), 0.9)
+	var roof := _flat("cl_roof", Color(0.34, 0.34, 0.33), 0.9)
+	var glass := _flat("cl_glass", Color(0.30, 0.38, 0.38), 0.25, 0.25)
+	var ivy := _flat("cl_ivy", Color(0.21, 0.36, 0.20), 0.95)
+	var cross := _flat("cl_cross", Color(0.70, 0.44, 0.42), 0.9)
+
+	var w := 10.0
+	var d := 5.4
+	var h := 3.2
+	_box(root, Vector3(w + 0.6, 0.28, d + 0.6), trim, Vector3(0.0, 0.14, 0.0))
+	_box(root, Vector3(w, h, d), render, Vector3(0.0, h * 0.5 + 0.28, 0.0))
+	_box(root, Vector3(w + 0.8, 0.24, d + 0.8), roof, Vector3(0.0, h + 0.42, 0.0))
+	# Windows along the south face, all intact.
+	for i in 4:
+		_box(root, Vector3(1.3, 1.5, 0.10), trim,
+			Vector3((float(i) - 1.5) * 2.2, 1.95, -d * 0.5 - 0.05))
+		_box(root, Vector3(1.1, 1.3, 0.06), glass,
+			Vector3((float(i) - 1.5) * 2.2, 1.95, -d * 0.5 - 0.11))
+	_box(root, Vector3(1.5, 2.3, 0.12), trim, Vector3(-w * 0.5 + 1.6, 1.43,
+		-d * 0.5 - 0.06))
+
+	# The cross over the door, faded to pink.
+	_box(root, Vector3(0.9, 0.26, 0.08), cross,
+		Vector3(-w * 0.5 + 1.6, 3.05, -d * 0.5 - 0.12))
+	_box(root, Vector3(0.26, 0.9, 0.08), cross,
+		Vector3(-w * 0.5 + 1.6, 3.05, -d * 0.5 - 0.12))
+
+	# Ivy: a mat over the east third, and runners reaching along the roof line.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 151501
+	for i in 46:
+		var t := rng.randf()
+		_box(root, Vector3(rng.randf_range(0.5, 1.2), rng.randf_range(0.4, 1.0),
+			0.06), ivy,
+			Vector3(w * 0.5 - rng.randf_range(0.2, 3.4), 0.5 + t * (h - 0.4),
+				-d * 0.5 - 0.14), Vector3(0.0, 0.0, rng.randf_range(-0.3, 0.3)))
+	for i in 14:
+		_box(root, Vector3(rng.randf_range(0.6, 1.4), 0.32, 0.06), ivy,
+			Vector3(rng.randf_range(-w * 0.5, w * 0.5), h + 0.30,
+				-d * 0.5 - 0.12))
+	_ao_blob(root, Vector2(w + 3.0, d + 3.0), Vector3(0.0, 0.02, 0.0), 0.55)
+
+
+## A boundary stone at a crossroads, with a chalk ring drawn on it. People have
+## been meeting here — the stone is old, the chalk is two days old, and it did
+## not rain between (G13).
+func _landmark_meeting_stone(root: Node3D) -> void:
+	var rock := _flat("ms_rock", Color(0.53, 0.51, 0.47), 0.95)
+	var dark := _flat("ms_dark", Color(0.40, 0.39, 0.36), 0.95)
+	var chalk := _flat("ms_chalk", Color(0.93, 0.92, 0.88), 0.85)
+	var post := _flat("ms_post", Color(0.38, 0.31, 0.22), 0.95)
+	var iron := _flat("ms_iron", Color(0.40, 0.30, 0.22), 0.9, 0.3)
+
+	# The stone: a leaning slab, not a boulder. Somebody stood it up.
+	_box(root, Vector3(1.9, 3.1, 0.9), rock, Vector3(0.0, 1.55, 0.0),
+		Vector3(0.0, 0.22, -0.06))
+	_box(root, Vector3(2.3, 0.32, 1.3), dark, Vector3(0.0, 0.16, 0.0),
+		Vector3(0.0, 0.22, 0.0))
+	# The chalk ring and its seven marks, on the south face where you would
+	# stand to read it.
+	var face := 0.48
+	for i in 22:
+		var a := TAU * float(i) / 22.0
+		_box(root, Vector3(0.10, 0.10, 0.04), chalk,
+			Vector3(sin(0.22) * face + cos(a) * 0.62, 1.85 + sin(a) * 0.62,
+				-cos(0.22) * face), Vector3(0.0, 0.22, 0.0))
+	for i in 7:
+		var a2 := TAU * float(i) / 7.0 - PI * 0.5
+		_box(root, Vector3(0.16, 0.16, 0.04), chalk,
+			Vector3(sin(0.22) * face + cos(a2) * 0.40, 1.85 + sin(a2) * 0.40,
+				-cos(0.22) * face), Vector3(0.0, 0.22, a2))
+
+	# A signpost with both arms gone, and the nails still in it.
+	_cyl(root, 0.08, 0.10, 2.6, post, Vector3(3.1, 1.30, 1.4))
+	for i in 2:
+		_box(root, Vector3(0.10, 0.05, 0.05), iron,
+			Vector3(3.1, 2.10 - float(i) * 0.34, 1.34))
+	_ao_blob(root, Vector2(4.4, 3.2), Vector3(0.4, 0.02, 0.4), 0.55)
+
+
+## A collapsed glasshouse with a mast through the roof of it: somebody grew
+## things here AND transmitted from here, and the two are the same story. The
+## beacon is still on, which is why the frame is lit from inside (G13).
+func _landmark_signal_garden(root: Node3D) -> void:
+	var frame := _flat("sg_frame", Color(0.42, 0.44, 0.42), 0.7, 0.25)
+	var glass := _flat("sg_glass", Color(0.62, 0.74, 0.68), 0.2, 0.1)
+	var brick := _flat("sg_brick", Color(0.48, 0.38, 0.32), 0.95)
+	var soil := _flat("sg_soil", Color(0.28, 0.22, 0.17), 1.0)
+	var green := _flat("sg_green", Color(0.30, 0.52, 0.26), 0.9)
+	var steel := _flat("sg_steel", Color(0.48, 0.49, 0.50), 0.6, 0.4)
+	var lamp := _flat("sg_lamp", Color(0.42, 0.88, 0.52), 0.3)
+
+	var w := 7.0
+	var d := 4.4
+	_box(root, Vector3(w + 0.5, 0.5, d + 0.5), brick, Vector3(0.0, 0.25, 0.0))
+	# Uprights, most still standing, two folded over.
+	for i in 7:
+		var x := (float(i) - 3.0) * (w / 6.0)
+		var fallen := i == 2 or i == 5
+		var h := 2.6 if not fallen else 1.2
+		for sz: float in [-1.0, 1.0]:
+			_cyl(root, 0.05, 0.05, h, frame,
+				Vector3(x, 0.5 + h * 0.5, sz * d * 0.5),
+				Vector3(0.0, 0.0, 0.5 if fallen else 0.0))
+		if not fallen:
+			_box(root, Vector3(0.08, 0.08, d), frame, Vector3(x, 3.1, 0.0))
+			# One pane per bay, tilted: glass that is still IN the frame.
+			_box(root, Vector3(w / 6.0 - 0.15, 0.04, d * 0.92), glass,
+				Vector3(x + w / 12.0, 3.02, 0.0), Vector3(0.0, 0.0, 0.06))
+	for sz2: float in [-1.0, 1.0]:
+		_box(root, Vector3(w, 0.08, 0.08), frame, Vector3(0.0, 3.1, sz2 * d * 0.5))
+
+	# Beds inside, still in rows, still green. Somebody waters these.
+	for i in 3:
+		_box(root, Vector3(w - 1.4, 0.22, 0.8), soil,
+			Vector3(0.0, 0.61, (float(i) - 1.0) * 1.25))
+		for k in 7:
+			_ball(root, 0.13, green,
+				Vector3((float(k) - 3.0) * 0.72, 0.78, (float(i) - 1.0) * 1.25),
+				Vector3(1.0, 0.7, 1.0))
+
+	# The mast, straight up through the broken bay, with the beacon lit.
+	_cyl(root, 0.06, 0.09, 7.4, steel, Vector3(w * 0.5 - 1.2, 4.2, 0.0))
+	for i in 3:
+		_box(root, Vector3(0.9, 0.05, 0.05), steel,
+			Vector3(w * 0.5 - 1.2, 5.4 + float(i) * 0.9, 0.0),
+			Vector3(0.0, float(i) * 1.1, 0.0))
+	_ball(root, 0.16, lamp, Vector3(w * 0.5 - 1.2, 7.95, 0.0))
+	_ao_blob(root, Vector2(w + 2.5, d + 2.5), Vector3(0.0, 0.02, 0.0), 0.55)
 
 
 ## Rusted swing set, slide and sandpit. The rust colour is what dates it.
@@ -1212,3 +1679,130 @@ func _build_traces() -> void:
 			Vector3(sign_x, 0.85, sign_z), Vector3(0.0, 0.0, 0.14))
 		_box(self, Vector3(0.9, 0.6, 0.04), rust,
 			Vector3(sign_x + 0.22, 1.55, sign_z), Vector3(0.0, 0.1, 0.14))
+
+
+# ---------------------------------------------------------------- crop (G13.6)
+
+## The standing crop around a harvest plot: sunflowers and corn, authored to be
+## looked UP at. Rows run outward from the fence on all four sides, so whichever
+## way the player faces there is a wall of stalks behind the lawn.
+##
+## Decor only — nothing here is mowable or collidable. The mowing happens on the
+## lawn inside; this is what the lawn is standing IN.
+func _build_crop_field() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = (_variant.decor_seed if _variant != null else 4242) + 8080
+	var field := Node3D.new()
+	field.name = "CropField"
+	add_child(field)
+
+	var half_x := GameConfig.HALF_X + 0.7
+	var half_z := GameConfig.HALF_Z + 0.7
+	for row in GameConfig.CROP_ROWS:
+		var out := float(row) * GameConfig.CROP_ROW_GAP
+		# Corn behind, sunflowers in front: the flowers read at a glance and the
+		# corn gives the mass behind them.
+		var corn := row >= 2
+		_crop_line(field, rng, Vector3(0.0, 0.0, -half_z - out),
+			Vector3(1.0, 0.0, 0.0), half_x + out, corn)
+		# NO south row. The camera sits behind the mower, which starts at the
+		# south fence, so a six-metre sunflower on that edge stands between the
+		# player and their own lawn. Three sides is also the better picture:
+		# looking forward, the field is always ahead of you (G13.6).
+		_crop_line(field, rng, Vector3(-half_x - out, 0.0, 0.0),
+			Vector3(0.0, 0.0, 1.0), half_z + out, corn)
+		_crop_line(field, rng, Vector3(half_x + out, 0.0, 0.0),
+			Vector3(0.0, 0.0, 1.0), half_z + out, corn)
+
+
+## One row of plants along `axis`, centred on `at` and reaching `reach` either
+## way. Spacing is jittered so the rows read as planted, not stamped.
+func _crop_line(parent: Node3D, rng: RandomNumberGenerator, at: Vector3,
+		axis: Vector3, reach: float, corn: bool) -> void:
+	var count := int(reach * 2.0 / GameConfig.CROP_SPACING)
+	for i in count:
+		var along := -reach + float(i) * GameConfig.CROP_SPACING \
+			+ rng.randf_range(-0.22, 0.22)
+		var spot := at + axis * along
+		spot.x += rng.randf_range(-0.18, 0.18)
+		spot.z += rng.randf_range(-0.18, 0.18)
+		if corn:
+			_build_corn(parent, rng, spot)
+		else:
+			_build_sunflower(parent, rng, spot)
+
+
+## A sunflower: one tall stalk, two leaves, and a head that turns to face the
+## plot. Built from the same primitives as everything else in the yard.
+func _build_sunflower(parent: Node3D, rng: RandomNumberGenerator,
+		at: Vector3) -> void:
+	var stalk_mat := _flat("crop_stalk", GameConfig.SUNFLOWER_STALK, 1.0)
+	var petal_mat := _flat("crop_petal", GameConfig.SUNFLOWER_PETAL, 0.9)
+	var centre_mat := _flat("crop_centre", GameConfig.SUNFLOWER_CENTRE, 1.0)
+	var leaf_mat := _flat("crop_leaf", GameConfig.CORN_LEAF, 1.0)
+
+	var plant := Node3D.new()
+	plant.position = at
+	plant.rotation.y = rng.randf() * TAU
+	parent.add_child(plant)
+
+	var height := rng.randf_range(GameConfig.SUNFLOWER_HEIGHT.x,
+		GameConfig.SUNFLOWER_HEIGHT.y)
+	var lean := rng.randf_range(-0.09, 0.09)
+	_cyl(plant, 0.07, 0.11, height, stalk_mat,
+		Vector3(0.0, height * 0.5, 0.0), Vector3(0.0, 0.0, lean))
+	for side: float in [-1.0, 1.0]:
+		_box(plant, Vector3(0.9, 0.05, 0.42), leaf_mat,
+			Vector3(side * 0.45, height * rng.randf_range(0.35, 0.6), 0.0),
+			Vector3(0.0, rng.randf_range(-0.5, 0.5), side * 0.5))
+
+	# The head, tipped forward so it is seen face-on from the lawn.
+	var head := Node3D.new()
+	head.position = Vector3(lean * -height, height, 0.0)
+	head.rotation = Vector3(deg_to_rad(rng.randf_range(-38.0, -18.0)), 0.0, 0.0)
+	plant.add_child(head)
+	var scale := rng.randf_range(0.85, 1.2)
+	_cyl(head, GameConfig.SUNFLOWER_HEAD * scale,
+		GameConfig.SUNFLOWER_HEAD * scale, 0.16, centre_mat, Vector3.ZERO,
+		Vector3(deg_to_rad(90.0), 0.0, 0.0))
+	for i in GameConfig.SUNFLOWER_PETALS:
+		var a := TAU * float(i) / float(GameConfig.SUNFLOWER_PETALS)
+		var reach := GameConfig.SUNFLOWER_HEAD * scale * 1.62
+		_box(head, Vector3(0.30, 0.05, reach * 0.9), petal_mat,
+			Vector3(sin(a) * reach * 0.62, 0.0, cos(a) * reach * 0.62),
+			Vector3(0.0, a, 0.0))
+
+
+## Corn: a jointed stalk, leaves fanning off it, a cob and a tassel on top.
+func _build_corn(parent: Node3D, rng: RandomNumberGenerator, at: Vector3) -> void:
+	var stalk_mat := _flat("corn_stalk", GameConfig.CORN_STALK, 1.0)
+	var leaf_mat := _flat("corn_leaf", GameConfig.CORN_LEAF, 1.0)
+	var cob_mat := _flat("corn_cob", GameConfig.CORN_COB, 0.95)
+	var tassel_mat := _flat("corn_tassel", GameConfig.CORN_TASSEL, 1.0)
+
+	var plant := Node3D.new()
+	plant.position = at
+	plant.rotation.y = rng.randf() * TAU
+	parent.add_child(plant)
+
+	var height := rng.randf_range(GameConfig.CORN_HEIGHT.x,
+		GameConfig.CORN_HEIGHT.y)
+	_cyl(plant, 0.06, 0.10, height, stalk_mat, Vector3(0.0, height * 0.5, 0.0),
+		Vector3(0.0, 0.0, rng.randf_range(-0.06, 0.06)))
+	# Leaves alternate up the stalk, drooping further the higher they are.
+	for i in GameConfig.CORN_LEAVES:
+		var t := 0.28 + float(i) / float(GameConfig.CORN_LEAVES) * 0.62
+		var side := 1.0 if i % 2 == 0 else -1.0
+		var droop := 0.5 + t * 0.5
+		_box(plant, Vector3(1.5, 0.05, 0.34), leaf_mat,
+			Vector3(side * 0.62, height * t, 0.0),
+			Vector3(0.0, float(i) * 1.3, side * droop))
+	# One cob, tucked against the stalk.
+	_cyl(plant, 0.15, 0.19, 0.72, cob_mat,
+		Vector3(0.20, height * 0.52, 0.0), Vector3(0.0, 0.0, 0.28))
+	# The tassel: a few thin spikes at the very top.
+	for i in 5:
+		var a := TAU * float(i) / 5.0
+		_box(plant, Vector3(0.04, 0.52, 0.04), tassel_mat,
+			Vector3(sin(a) * 0.10, height + 0.24, cos(a) * 0.10),
+			Vector3(sin(a) * 0.3, 0.0, cos(a) * 0.3))
