@@ -403,19 +403,26 @@ func _draw_east_road(canvas: Control) -> void:
 		var a: Vector2 = points[i]
 		var b: Vector2 = points[i + 1]
 		var travelled := i < done_to
+		# MAP_INK, not MAP_INK_FAINT: the faint ink is for labels on parchment
+		# and the road ahead disappeared into the paper entirely.
 		var col: Color = GameConfig.MAP_PIN_DONE if travelled \
-			else GameConfig.MAP_INK_FAINT
-		var width := 7.0 if travelled else 4.0
+			else Color(GameConfig.MAP_INK, 0.55)
+		var width := 7.0 if travelled else 5.0
 		if travelled:
 			canvas.draw_line(a, b, col, width, true)
 			continue
-		# Ahead of the player the road is dashed: not walked yet.
-		var steps := maxi(int(a.distance_to(b) / 22.0), 1)
+		# Ahead of the player the road is dashed: not walked yet. Long dashes,
+		# and started clear of the ring at each end — short ones fell entirely
+		# inside the two stop markers and nothing was drawn between them.
+		var ring := 26.0 / maxf(a.distance_to(b), 1.0)
+		var from := a.lerp(b, ring)
+		var to := a.lerp(b, 1.0 - ring)
+		var steps := maxi(int(from.distance_to(to) / 30.0), 1)
 		for k in steps:
 			if k % 2 == 1:
 				continue
-			canvas.draw_line(a.lerp(b, float(k) / float(steps)),
-				a.lerp(b, float(k + 1) / float(steps)), col, width, true)
+			canvas.draw_line(from.lerp(to, float(k) / float(steps)),
+				from.lerp(to, float(k + 1) / float(steps)), col, width, true)
 
 
 ## One stop: a ring, filled when the chapter is finished.
