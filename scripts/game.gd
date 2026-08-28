@@ -584,6 +584,16 @@ func _on_completed() -> void:
 		return
 	_complete_shown = true
 	GameState.finish_run()
+	# The run is over, so the machine is too. stop_engine only ran in
+	# _exit_tree, when the scene is destroyed — but the reward shot and the
+	# results panel both play while the scene is still ALIVE, so the mower went
+	# on idling underneath "area searched" for as long as the player read it
+	# (G13). set_engine_profile clears the latch when the next chapter starts.
+	AudioDirector.stop_engine()
+	# And it stops being driven: the panel covers the controls but the mower was
+	# still simulated under it, so a finger left on the pad kept it moving.
+	if mower != null and is_instance_valid(mower):
+		mower.set_active(false)
 	cam.set_bird_view(true)
 	hud.flash()
 	Haptics.success()

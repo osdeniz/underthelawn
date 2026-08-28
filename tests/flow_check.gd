@@ -11,6 +11,7 @@ func _ready() -> void:
 	await _check_hub()
 	await _check_chapter_round_trip()
 	await _check_dialogue()
+	await _check_engine_stops_at_the_end()
 	_check_next_chain()
 	if _fails > 0:
 		push_error("%d AKIS TESTI BASARISIZ" % _fails)
@@ -174,6 +175,48 @@ func _check_dialogue() -> void:
 	box.play([])
 	await _until(func() -> bool: return closed.size() == 1)
 	ck("bos konusma kutuyu kapatiyor", closed.size() == 1, str(closed))
+
+
+## The engine belongs to the chapter, and the chapter is over the moment the
+## results panel is earned — but the panel plays while the SCENE is still alive,
+## and stop_engine only ran in _exit_tree. So the mower idled underneath "area
+## searched" for as long as the player read it, and went on being simulated
+## under a panel that covers its controls (G13).
+func _check_engine_stops_at_the_end() -> void:
+	GameState.set_setting("meta", "orientation_done", true)
+	var game: Node = load("res://scenes/Main.tscn").instantiate()
+	game.set("variant_id", "ch01_aldridge")
+	add_child(game)
+	await get_tree().process_frame
+	get_tree().paused = false
+	AudioDirector.set_engine_state(0.8, 0.0)
+	await get_tree().create_timer(0.4).timeout
+	ck("oyun sirasinda motor calisiyor", AudioDirector._engine_player.playing, "")
+
+	game._confirm_exit()
+	await get_tree().create_timer(0.4).timeout
+	ck("bitiste motor susuyor", not AudioDirector._engine_player.playing, "")
+	ck("bitiste makine simule edilmiyor",
+		game.mower != null and not game.mower.is_active, "")
+	# Still silent while the panel is being read, not just for one frame.
+	await get_tree().create_timer(2.0).timeout
+	ck("panel acikken motor hala susuyor",
+		not AudioDirector._engine_player.playing, "")
+
+	game.queue_free()
+	await get_tree().process_frame
+	# And the latch must not stay shut: the next chapter needs its engine back.
+	var next: Node = load("res://scenes/Main.tscn").instantiate()
+	next.set("variant_id", "ch02_neighbor")
+	add_child(next)
+	await get_tree().create_timer(1.2).timeout
+	get_tree().paused = false
+	AudioDirector.set_engine_state(0.8, 0.0)
+	await get_tree().create_timer(0.3).timeout
+	ck("sonraki bolum motorunu geri aliyor",
+		AudioDirector._engine_player.playing, "")
+	next.queue_free()
+	await get_tree().process_frame
 
 
 ## Waits for `condition` to hold, giving up after `limit` seconds — at which
