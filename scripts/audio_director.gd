@@ -19,6 +19,11 @@ const PATHS := {
 	"ambient": "res://audio/ambient_birds_loop",
 	"theme": "res://audio/theme_town",
 	"pin": "res://audio/pin",
+	# B14's two signal layers (G13). Both are optional: with neither file
+	# present the crossfade simply never starts and the chapter is silent on
+	# this axis rather than broken.
+	"signal_static": "res://audio/signal_static_loop",
+	"signal_clear": "res://audio/signal_clear_loop",
 }
 const AUDIO_EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
 
@@ -37,6 +42,11 @@ var _ambient_player: AudioStreamPlayer
 var _one_shot: AudioStreamPlayer
 var _cut_players: Array[AudioStreamPlayer] = []
 var _cut_index := 0
+## B14's two-layer signal (G13): a static loop that thins out and a clear tone
+## that comes up as the ground around the listening post is cut.
+var _signal_static: AudioStreamPlayer
+var _signal_clear: AudioStreamPlayer
+var _signal_active := false
 var _engine_target := 0.0
 var _engine_mix := 0.0
 var _turn_amount := 0.0
@@ -85,6 +95,8 @@ func _build_players() -> void:
 	_engine_player = _make_player("EngineLoop", "engine", true)
 	_ambient_player = _make_player("Ambient", "ambient", true)
 	_one_shot = _make_player("OneShot", "", false)
+	_signal_static = _make_player("SignalStatic", "signal_static", true)
+	_signal_clear = _make_player("SignalClear", "signal_clear", true)
 	for i in CUT_VOICES:
 		_cut_players.append(_make_player("Cut%d" % i, "cut", false))
 
@@ -178,6 +190,27 @@ func set_engine_state(speed_fraction: float, turn_amount: float = 0.0) -> void:
 		_engine_player.play()
 
 
+## The dedicated recording for the active plant, or null when there is none.
+## Looked up on disk exactly as PATHS entries are, so dropping
+## audio/cut_reed.ogg into the project is the whole installation step.
+var _plant_cut_cache := {}
+
+func _plant_cut_stream() -> AudioStream:
+	var name := str(GameConfig.plant("cut_sound", ""))
+	if name == "":
+		return null
+	if _plant_cut_cache.has(name):
+		return _plant_cut_cache[name]
+	var found: AudioStream = null
+	for ext in AUDIO_EXTENSIONS:
+		var path := "res://audio/%s%s" % [name, ext]
+		if ResourceLoader.exists(path):
+			found = load(path) as AudioStream
+			break
+	_plant_cut_cache[name] = found
+	return found
+
+
 ## One cut sound per frame maximum, matching the haptics rule.
 func play_cut() -> void:
 	if _streams.is_empty() or not _streams.has("cut"):
@@ -188,8 +221,14 @@ func play_cut() -> void:
 	_cut_frame = frame
 	var p := _cut_players[_cut_index]
 	_cut_index = (_cut_index + 1) % _cut_players.size()
+	# A reed hisses and corn cracks. If a recording for this plant exists it is
+	# used; if not, the shared cut is pitched to suggest it, which is enough for
+	# the ear to hear a different plant (G13).
+	var plant_stream := _plant_cut_stream()
+	p.stream = plant_stream if plant_stream != null else _streams["cut"]
 	p.pitch_scale = GameConfig.CUT_PITCH_VARIANTS[
-		_rng.randi_range(0, GameConfig.CUT_PITCH_VARIANTS.size() - 1)]
+		_rng.randi_range(0, GameConfig.CUT_PITCH_VARIANTS.size() - 1)] \
+		* (1.0 if plant_stream != null else float(GameConfig.plant("cut_pitch", 1.0)))
 	p.volume_db = GameConfig.linear_to_db_safe(GameConfig.CUT_GAIN)
 	p.play()
 
@@ -245,6 +284,41 @@ func _fade_music(target_linear: float, duration: float) -> void:
 ## rather than adding a bus: it is a one-shot, and it must not cut the engine.
 func play_static() -> void:
 	play_scrap()
+
+
+## Starts the signal pair. Called by a chapter that has one; silently does
+## nothing when neither recording is in the project.
+func start_signal() -> void:
+	if _signal_static == null or _signal_static.stream == null:
+		return
+	_signal_active = true
+	set_signal_clarity(0.0)
+	_signal_static.play()
+	if _signal_clear != null and _signal_clear.stream != null:
+		_signal_clear.play()
+
+
+## `clarity` 0 = all static, 1 = the signal comes through. Driven by how much of
+## the yard has been cut: the mowing IS the tuning, which is the one moment in
+## the game where clearing ground and hearing something are the same act (G13).
+func set_signal_clarity(clarity: float) -> void:
+	if not _signal_active:
+		return
+	var t := clampf(clarity, 0.0, 1.0)
+	if _signal_static != null:
+		_signal_static.volume_db = GameConfig.linear_to_db_safe(
+			GameConfig.SIGNAL_STATIC_GAIN * (1.0 - t))
+	if _signal_clear != null:
+		_signal_clear.volume_db = GameConfig.linear_to_db_safe(
+			GameConfig.SIGNAL_CLEAR_GAIN * t)
+
+
+func stop_signal() -> void:
+	_signal_active = false
+	if _signal_static != null:
+		_signal_static.stop()
+	if _signal_clear != null:
+		_signal_clear.stop()
 
 
 func play_pin() -> void:

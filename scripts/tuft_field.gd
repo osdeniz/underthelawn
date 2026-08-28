@@ -42,7 +42,10 @@ func setup(model: LawnModel, seed_value: int = 20260822) -> void:
 func _build_material() -> void:
 	_material = ShaderMaterial.new()
 	_material.shader = load("res://shaders/grass_clump.gdshader")
-	_material.set_shader_parameter("wind_amplitude", GameConfig.WIND_AMPLITUDE)
+	# Sway is per plant: reeds move nearly twice as much as grass, corn barely
+	# moves at all, and that difference is most of what tells them apart (G13).
+	_material.set_shader_parameter("wind_amplitude",
+		GameConfig.WIND_AMPLITUDE * float(GameConfig.plant("sway", 1.0)))
 	_material.set_shader_parameter("wind_speed", GameConfig.WIND_SPEED)
 
 
@@ -83,26 +86,139 @@ static func _make_cluster(rng: RandomNumberGenerator, variant: int) -> ArrayMesh
 	var spec: Dictionary = GameConfig.clump_variants()[variant]
 	var root_col: Color = spec["base"]
 	var tip_col: Color = spec["tip"]
-	# One cell = one instance whose MESH holds TUFTS_PER_CLUSTER clumps spread
-	# across the cell (G1's layout). Heights are baked per clump — bimodal:
-	# short filler with tall spikes — so instance scale never shrinks footprints.
-	for clump in GameConfig.TUFTS_PER_CLUSTER:
-		var center := Vector3(
-			rng.randf_range(-GameConfig.TUFT_CLUSTER_SPREAD, GameConfig.TUFT_CLUSTER_SPREAD),
-			0.0,
-			rng.randf_range(-GameConfig.TUFT_CLUSTER_SPREAD, GameConfig.TUFT_CLUSTER_SPREAD))
-		var band_split := lerpf(GameConfig.CLUMP_HEIGHT_MIN, GameConfig.CLUMP_HEIGHT_MAX, 0.45)
-		var clump_h := rng.randf_range(band_split, GameConfig.CLUMP_HEIGHT_MAX) \
-			if rng.randf() < GameConfig.CLUMP_TALL_CHANCE \
-			else rng.randf_range(GameConfig.CLUMP_HEIGHT_MIN, band_split)
-		_add_clump(st, rng, center, clump_h, root_col, tip_col, spec["flowers"])
+	# One cell = one instance whose MESH holds `per_cell` plants spread across
+	# the cell (G1's layout). Heights are baked per plant — bimodal: short
+	# filler with tall spikes — so instance scale never shrinks footprints.
+	#
+	# What grows here comes from the chapter's plant profile (G13). GRASS
+	# restates the original constants, so this loop draws exactly what it always
+	# drew unless a chapter asked for something else.
+	var per_cell := int(GameConfig.plant("per_cell", GameConfig.TUFTS_PER_CLUSTER))
+	var spread := float(GameConfig.plant("spread", GameConfig.TUFT_CLUSTER_SPREAD))
+	var h_min := float(GameConfig.plant("height_min", GameConfig.CLUMP_HEIGHT_MIN))
+	var h_max := float(GameConfig.plant("height_max", GameConfig.CLUMP_HEIGHT_MAX))
+	var tall := float(GameConfig.plant("tall_chance", GameConfig.CLUMP_TALL_CHANCE))
+	var stalks := GameConfig.plant_is_stalk()
+	for clump in per_cell:
+		var center := Vector3(rng.randf_range(-spread, spread), 0.0,
+			rng.randf_range(-spread, spread))
+		var band_split := lerpf(h_min, h_max, 0.45)
+		var clump_h := rng.randf_range(band_split, h_max) \
+			if rng.randf() < tall else rng.randf_range(h_min, band_split)
+		if stalks:
+			_add_stalk(st, rng, center, clump_h, root_col, tip_col)
+		else:
+			_add_clump(st, rng, center, clump_h, root_col, tip_col, spec["flowers"])
 	return st.commit()
+
+
+## One upright stem with leaves, and optionally a head: corn and sunflowers.
+##
+## A stalk is not a tall blade. It stands rather than fans, it is thick enough
+## to hide what is behind it, and its leaves hang OUT — which is what turns a
+## field of them into corridors instead of a taller lawn.
+static func _add_stalk(st: SurfaceTool, rng: RandomNumberGenerator,
+		center: Vector3, height: float, root_col: Color, tip_col: Color) -> void:
+	var width := float(GameConfig.plant("stalk_width", 0.05))
+	var leaves := int(GameConfig.plant("leaves", 4))
+	var leaf_len := float(GameConfig.plant("leaf_length", 0.55))
+	var shade := rng.randf_range(0.92, 1.06)
+	# A slight lean per stalk, so a field never looks like a pin cushion.
+	var lean_dir := Vector3(rng.randf_range(-1.0, 1.0), 0.0,
+		rng.randf_range(-1.0, 1.0)).normalized() * rng.randf_range(0.03, 0.11)
+
+	# The stem: a four-sided prism tapering to the top, built as three bands so
+	# the wind shader has something to bend.
+	var bands: Array[float] = [0.0, 0.38, 0.72, 1.0]
+	var rings: Array = []
+	for lv in bands:
+		var w := width * (1.0 - 0.45 * lv)
+		var c := center + lean_dir * lv * lv + Vector3(0.0, height * lv, 0.0)
+		var col := root_col.lerp(tip_col, lv * 0.7) * shade
+		col.a = 1.0
+		rings.append([[c + Vector3(-w, 0.0, -w), c + Vector3(w, 0.0, -w),
+			c + Vector3(w, 0.0, w), c + Vector3(-w, 0.0, w)], col, lv])
+	for i in bands.size() - 1:
+		var lo: Array = rings[i]
+		var hi: Array = rings[i + 1]
+		var lo_ring: Array = lo[0]
+		var hi_ring: Array = hi[0]
+		for k in 4:
+			_vquad(st, lo_ring[k], lo_ring[(k + 1) % 4], hi_ring[(k + 1) % 4],
+				hi_ring[k], lo[1], lo[1].darkened(0.16), hi[1],
+				hi[1].darkened(0.16), lo[2], hi[2])
+
+	# Leaves: long, drooping, alternating around the stem.
+	for i in leaves:
+		var lv := 0.28 + 0.62 * float(i) / maxf(1.0, float(leaves - 1))
+		var a := TAU * float(i) * 0.61 + rng.randf_range(-0.3, 0.3)
+		var dir := Vector3(cos(a), 0.0, sin(a))
+		var root := center + lean_dir * lv * lv + Vector3(0.0, height * lv, 0.0)
+		var col := root_col.lerp(tip_col, lv) * shade
+		col.a = 1.0
+		var length := leaf_len * rng.randf_range(0.8, 1.15)
+		var droop := -length * rng.randf_range(0.34, 0.58)
+		var mid := root + dir * length * 0.55 + Vector3(0.0, length * 0.16, 0.0)
+		var tip := root + dir * length + Vector3(0.0, droop, 0.0)
+		var side := Vector3(-dir.z, 0.0, dir.x) * width * 1.7
+		_vquad(st, root - side * 0.5, root + side * 0.5, mid + side * 0.6,
+			mid - side * 0.6, col, col.darkened(0.2), col, col.darkened(0.2),
+			lv, lv + 0.1)
+		_vtri(st, mid - side * 0.6, mid + side * 0.6, tip,
+			col, col.darkened(0.2), col.lerp(tip_col, 0.5), lv + 0.1, lv + 0.2)
+
+	if bool(GameConfig.plant("head", false)):
+		var top: Array = rings[rings.size() - 1]
+		var top_ring: Array = top[0]
+		var head_at: Vector3 = (top_ring[0] + top_ring[2]) * 0.5
+		_add_head(st, head_at, rng)
+
+
+## A sunflower head. Every one of them faces the SAME way, which is the single
+## detail that makes the field read as alive rather than as scattered props.
+static func _add_head(st: SurfaceTool, at: Vector3, rng: RandomNumberGenerator) -> void:
+	var radius := float(GameConfig.plant("head_radius", 0.28))
+	var yaw := float(GameConfig.plant("head_yaw", 0.0))
+	var petal: Color = GameConfig.plant("head_petal", Color(0.94, 0.72, 0.16))
+	var disc: Color = GameConfig.plant("head_disc", Color(0.30, 0.20, 0.10))
+	var face := Vector3(sin(yaw), 0.10, cos(yaw)).normalized()
+	var right := face.cross(Vector3.UP).normalized()
+	var up := right.cross(face).normalized()
+	var centre := at + face * radius * 0.22 + Vector3(0.0, radius * 0.55, 0.0)
+	var petals := 13
+	for i in petals:
+		var a0 := TAU * float(i) / float(petals)
+		var a1 := TAU * float(i + 1) / float(petals)
+		var inner := radius * 0.42
+		var outer := radius * rng.randf_range(0.94, 1.06)
+		var p0 := centre + (right * cos(a0) + up * sin(a0)) * inner
+		var p1 := centre + (right * cos(a1) + up * sin(a1)) * inner
+		var mid_a := (a0 + a1) * 0.5
+		var p2 := centre + (right * cos(mid_a) + up * sin(mid_a)) * outer
+		_vtri(st, p0, p1, p2, petal, petal, petal.lightened(0.12), 1.0, 1.0)
+		_vtri(st, p1, p0, p2, petal.darkened(0.15), petal.darkened(0.15),
+			petal, 1.0, 1.0)
+	for i in 10:
+		var a0 := TAU * float(i) / 10.0
+		var a1 := TAU * float(i + 1) / 10.0
+		var r := radius * 0.44
+		_vtri(st, centre,
+			centre + (right * cos(a0) + up * sin(a0)) * r,
+			centre + (right * cos(a1) + up * sin(a1)) * r,
+			disc.lightened(0.1), disc, disc, 1.0, 1.0)
 
 
 static func _add_clump(st: SurfaceTool, rng: RandomNumberGenerator, center: Vector3,
 		clump_h: float, root_col: Color, tip_col: Color, flowered: bool) -> void:
-	var blades := GameConfig.CLUMP_BLADES + rng.randi_range(-1, 1)
-	var base := rng.randf_range(GameConfig.CLUMP_BASE_MIN, GameConfig.CLUMP_BASE_MAX)
+	# Blade count and fan width come from the plant profile (G13): a reed bed is
+	# the same builder with fewer, thinner, straighter blades.
+	var blades := int(GameConfig.plant("blades", GameConfig.CLUMP_BLADES)) \
+		+ rng.randi_range(-1, 1)
+	var base := rng.randf_range(
+		float(GameConfig.plant("base_min", GameConfig.CLUMP_BASE_MIN)),
+		float(GameConfig.plant("base_max", GameConfig.CLUMP_BASE_MAX)))
+	var width_scale := float(GameConfig.plant("width_scale", 1.0))
+	var lean_scale := float(GameConfig.plant("lean_scale", 1.0))
 	var flower_slots: Array[int] = []
 	if flowered and rng.randf() < 0.5:
 		for f in rng.randi_range(2, 3):
@@ -114,8 +230,8 @@ static func _add_clump(st: SurfaceTool, rng: RandomNumberGenerator, center: Vect
 		# Tight at the base, fanning outward toward the tips.
 		var root_off := center + lean_dir * rng.randf_range(0.02, 0.10)
 		var height := clump_h * rng.randf_range(0.8, 1.05)
-		var lean := rng.randf_range(0.20, 0.36) * base
-		var width := rng.randf_range(0.12, 0.18) * (base / 0.42)
+		var lean := rng.randf_range(0.20, 0.36) * base * lean_scale
+		var width := rng.randf_range(0.12, 0.18) * (base / 0.42) * width_scale
 		var tip := _add_blade(st, root_off, lean_dir, lean, height, width,
 			root_col, tip_col, rng)
 		if flower_slots.has(b):

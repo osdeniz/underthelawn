@@ -237,6 +237,28 @@ func _recount_mowable() -> void:
 
 ## Two secrets per run: at least SECRET_EDGE_MARGIN cells in from every edge,
 ## on a TALL cell, at least SECRET_MIN_SEPARATION cells apart. Redistributed on
+## The row band this chapter's evidence may land in. Row 0 is north, the far
+## edge; the mower starts at the south. A chapter that wants its evidence past
+## a crossing says evidence_zone "far" and gets the northern half (G13).
+func _row_floor(margin: int) -> int:
+	var zone := LevelVariant.current.evidence_zone if LevelVariant.current != null \
+		else "any"
+	if zone == "far":
+		return margin
+	if zone == "near":
+		return int(GameConfig.GRID_ROWS * 0.55)
+	return margin
+
+
+func _row_ceil(margin: int) -> int:
+	var zone := LevelVariant.current.evidence_zone if LevelVariant.current != null \
+		else "any"
+	var last := GameConfig.GRID_ROWS - 1 - margin
+	if zone == "far":
+		return maxi(int(GameConfig.GRID_ROWS * 0.45), margin + 1)
+	return last
+
+
 ## every reset (§3, §18 trap 4).
 func _place_secrets() -> void:
 	secret_cells.clear()
@@ -249,7 +271,7 @@ func _place_secrets() -> void:
 			and tries < GameConfig.SECRET_PLACEMENT_TRIES:
 		tries += 1
 		var col := _rng.randi_range(margin, GameConfig.GRID_COLS - 1 - margin)
-		var row := _rng.randi_range(margin, GameConfig.GRID_ROWS - 1 - margin)
+		var row := _rng.randi_range(_row_floor(margin), _row_ceil(margin))
 		if states[index_of(col, row)] != CellState.TALL:
 			continue
 		var candidate := Vector2i(col, row)

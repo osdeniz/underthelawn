@@ -88,7 +88,8 @@ const MESH_IDS: Array[String] = ["rabbit", "toy", "radio", "boot", "gap",
 	"ribbon", "arrow", "prints", "can", "seedlings", "thread", "flashlight",
 	"note", "leaflet", "letter", "log", "headline", "hatch", "stones", "ellie",
 	"drawing", "map", "notebook", "patch", "candle", "battery", "apple",
-	"crate_lid", "receiver", "number_log"]
+	"crate_lid", "receiver", "number_log", "anchor", "bed", "headset",
+	"coldbox", "pot"]
 
 
 static func has_mesh_for(evidence_id: String) -> bool:
@@ -117,6 +118,11 @@ func _build_by_id(evidence_id: String) -> void:
 		"patch": _build_patch()
 		"candle": _build_candle()
 		"battery": _build_battery()
+		"anchor": _build_anchor()
+		"bed": _build_bed()
+		"headset": _build_headset()
+		"coldbox": _build_coldbox()
+		"pot": _build_pot()
 		"apple": _build_apple()
 		"crate_lid": _build_crate_lid()
 		_: _build_radio()
@@ -455,6 +461,161 @@ func _build_patch() -> void:
 
 
 ## A memorial candle tin, burned to the base.
+## A bridge anchor: a driven stake with a rope turned round it twice and the
+## free end whipped. The knot being FRESH is the evidence, so the rope is the
+## part with the detail on it.
+func _build_anchor() -> void:
+	var wood := _metal(Color(0.36, 0.28, 0.19), 0.0, 0.95)
+	var rope := _metal(Color(0.74, 0.66, 0.44), 0.0, 0.9)
+	var whip := _metal(Color(0.52, 0.36, 0.22), 0.0, 0.9)
+	var stake := CylinderMesh.new()
+	stake.top_radius = 0.045
+	stake.bottom_radius = 0.055
+	stake.height = 0.42
+	stake.radial_segments = 10
+	_piece(stake, wood, Vector3(0.0, 0.21, 0.0), Vector3(0.0, 0.0, 0.16))
+	for i in 2:
+		var coil := TorusMesh.new()
+		coil.inner_radius = 0.050
+		coil.outer_radius = 0.072
+		coil.rings = 14
+		coil.ring_segments = 6
+		_piece(coil, rope, Vector3(0.012, 0.27 + float(i) * 0.055, 0.0),
+			Vector3(PI * 0.5, 0.0, 0.16))
+	var tail := CylinderMesh.new()
+	tail.top_radius = 0.020
+	tail.bottom_radius = 0.020
+	tail.height = 0.30
+	tail.radial_segments = 7
+	_piece(tail, rope, Vector3(0.14, 0.30, 0.06), Vector3(0.0, 0.4, 1.15))
+	var band := CylinderMesh.new()
+	band.top_radius = 0.024
+	band.bottom_radius = 0.024
+	band.height = 0.035
+	band.radial_segments = 7
+	_piece(band, whip, Vector3(0.25, 0.24, 0.10), Vector3(0.0, 0.4, 1.15))
+
+
+## A bed built out of crates, child length, with a line of stone toys at the
+## head of it. The toys are the whole evidence: somebody made a home here.
+func _build_bed() -> void:
+	var crate := _metal(Color(0.62, 0.51, 0.36), 0.0, 0.92)
+	var cloth := _metal(Color(0.44, 0.38, 0.42), 0.0, 0.95)
+	var stone := _metal(Color(0.56, 0.55, 0.51), 0.0, 0.85)
+	for i in 3:
+		var box := BoxMesh.new()
+		box.size = Vector3(0.17, 0.11, 0.42)
+		_piece(box, crate, Vector3((float(i) - 1.0) * 0.175, 0.055, 0.0))
+	var pad := BoxMesh.new()
+	pad.size = Vector3(0.50, 0.045, 0.38)
+	_piece(pad, cloth, Vector3(0.0, 0.132, 0.0))
+	var roll := CylinderMesh.new()
+	roll.top_radius = 0.055
+	roll.bottom_radius = 0.055
+	roll.height = 0.30
+	roll.radial_segments = 10
+	_piece(roll, cloth, Vector3(-0.19, 0.18, 0.0), Vector3(0.0, 0.0, PI * 0.5))
+	# Five small stones, in a line, at the head. Placed, not dropped.
+	for i in 5:
+		var toy := SphereMesh.new()
+		toy.radius = 0.026 - float(i) * 0.002
+		toy.height = toy.radius * 1.7
+		toy.radial_segments = 8
+		toy.rings = 5
+		_piece(toy, stone, Vector3(-0.30, 0.026, (float(i) - 2.0) * 0.062))
+
+
+## A headset, one cup turned up. The foam is the detail the flavour text is
+## about, so the ear cup is the biggest thing on the model.
+func _build_headset() -> void:
+	var shell := _metal(Color(0.17, 0.18, 0.21), 0.1, 0.6)
+	var foam := _metal(Color(0.30, 0.28, 0.26), 0.0, 0.98)
+	var band := TorusMesh.new()
+	band.inner_radius = 0.115
+	band.outer_radius = 0.135
+	band.rings = 18
+	band.ring_segments = 6
+	_piece(band, shell, Vector3(0.0, 0.13, 0.0), Vector3(0.35, 0.0, 0.0))
+	for sx: float in [-1.0, 1.0]:
+		var cup := CylinderMesh.new()
+		cup.top_radius = 0.070
+		cup.bottom_radius = 0.062
+		cup.height = 0.048
+		cup.radial_segments = 14
+		_piece(cup, shell, Vector3(sx * 0.125, 0.055, 0.0),
+			Vector3(0.0, 0.0, PI * 0.5))
+		var pad := CylinderMesh.new()
+		pad.top_radius = 0.058
+		pad.bottom_radius = 0.058
+		pad.height = 0.022
+		pad.radial_segments = 14
+		_piece(pad, foam, Vector3(sx * 0.152, 0.055, 0.0),
+			Vector3(0.0, 0.0, PI * 0.5))
+	var lead := CylinderMesh.new()
+	lead.top_radius = 0.008
+	lead.bottom_radius = 0.008
+	lead.height = 0.26
+	lead.radial_segments = 6
+	_piece(lead, shell, Vector3(0.05, 0.02, 0.14), Vector3(1.35, 0.5, 0.0))
+
+
+## A medical cold-box, lid open, empty. The seven-star stamp is on the lid, and
+## the emptiness is what the Marshal is looking at.
+func _build_coldbox() -> void:
+	var case_mat := _metal(Color(0.82, 0.83, 0.84), 0.15, 0.45)
+	var seal := _metal(Color(0.26, 0.44, 0.52), 0.0, 0.7)
+	var ink := _metal(Color(0.20, 0.22, 0.28), 0.0, 0.75)
+	var body := BoxMesh.new()
+	body.size = Vector3(0.36, 0.20, 0.26)
+	_piece(body, case_mat, Vector3(0.0, 0.10, 0.0))
+	var rim := BoxMesh.new()
+	rim.size = Vector3(0.38, 0.022, 0.28)
+	_piece(rim, seal, Vector3(0.0, 0.205, 0.0))
+	var lid := BoxMesh.new()
+	lid.size = Vector3(0.36, 0.035, 0.26)
+	_piece(lid, case_mat, Vector3(0.0, 0.30, -0.20), Vector3(-1.05, 0.0, 0.0))
+	var hollow := BoxMesh.new()
+	hollow.size = Vector3(0.30, 0.10, 0.20)
+	_piece(hollow, seal, Vector3(0.0, 0.145, 0.0))
+	for i in 7:
+		var a := TAU * float(i) / 7.0
+		var star := BoxMesh.new()
+		star.size = Vector3(0.016, 0.004, 0.016)
+		_piece(star, ink, Vector3(cos(a) * 0.055, 0.352, -0.235 + sin(a) * 0.055),
+			Vector3(-1.05, a, 0.0))
+
+
+## A cooking pot, burnt through at the base, still holding what was in it.
+func _build_pot() -> void:
+	var iron := _metal(Color(0.24, 0.23, 0.22), 0.45, 0.8)
+	var soot := _metal(Color(0.10, 0.09, 0.09), 0.0, 1.0)
+	var grain := _metal(Color(0.78, 0.66, 0.30), 0.0, 0.85)
+	var body := CylinderMesh.new()
+	body.top_radius = 0.135
+	body.bottom_radius = 0.105
+	body.height = 0.15
+	body.radial_segments = 16
+	_piece(body, iron, Vector3(0.0, 0.075, 0.0))
+	var burn := CylinderMesh.new()
+	burn.top_radius = 0.108
+	burn.bottom_radius = 0.108
+	burn.height = 0.03
+	burn.radial_segments = 16
+	_piece(burn, soot, Vector3(0.0, 0.016, 0.0))
+	var food := CylinderMesh.new()
+	food.top_radius = 0.115
+	food.bottom_radius = 0.115
+	food.height = 0.02
+	food.radial_segments = 16
+	_piece(food, grain, Vector3(0.0, 0.10, 0.0))
+	var handle := TorusMesh.new()
+	handle.inner_radius = 0.115
+	handle.outer_radius = 0.130
+	handle.rings = 14
+	handle.ring_segments = 5
+	_piece(handle, iron, Vector3(0.0, 0.135, 0.0), Vector3(PI * 0.5, 0.0, 0.0))
+
+
 ## Case 02's supply trail: three cells stood upright on their tin, the way
 ## somebody counting them would leave them. The cap ring is the only bright
 ## thing on the object, so the eye lands on the end that gets checked.

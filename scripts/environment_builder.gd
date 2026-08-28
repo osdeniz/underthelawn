@@ -944,6 +944,10 @@ func _build_landmark(landmark_id: String) -> void:
 		"barn": _landmark_barn(root)
 		"antenna_mast": _landmark_antenna_mast(root)
 		"orchard": _landmark_orchard(root)
+		"crossing": _landmark_crossing(root)
+		"roadside_camp": _landmark_roadside_camp(root)
+		"listening_post": _landmark_listening_post(root)
+		"old_clinic": _landmark_old_clinic(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
@@ -1120,6 +1124,182 @@ func _landmark_orchard(root: Node3D) -> void:
 		Vector3(0.0, 0.34, 0.0))
 	_box(root, Vector3(0.66, 0.03, 0.50), crate, Vector3(1.4, 0.02, 4.9),
 		Vector3(0.0, 0.12, 0.0))
+
+
+## The far bank: two anchor posts, a rope walkway and the planks somebody has
+## been maintaining. It sits at the FAR edge because the chapter is about
+## getting to it — the reeds are between the player and this (G13).
+func _landmark_crossing(root: Node3D) -> void:
+	var post := _flat("cr_post", Color(0.35, 0.28, 0.20), 0.95)
+	var rope := _flat("cr_rope", Color(0.72, 0.64, 0.44), 0.9)
+	var plank := _flat("cr_plank", Color(0.48, 0.42, 0.33), 0.95)
+	var water := _flat("cr_water", Color(0.24, 0.36, 0.38), 0.35, 0.1)
+	var stone := _flat("cr_stone", Color(0.52, 0.51, 0.47), 0.95)
+
+	# The water itself, a flat band running across behind the bank.
+	_box(root, Vector3(30.0, 0.06, 5.2), water, Vector3(0.0, 0.03, 3.2))
+	for i in 14:
+		_box(root, Vector3(0.9, 0.34, 0.5), stone,
+			Vector3((float(i) - 6.5) * 1.05, 0.15, 0.5),
+			Vector3(0.0, float(i) * 0.7, 0.0))
+
+	# Two A-frames carrying the ropes, and the deck between them.
+	for sx: float in [-1.0, 1.0]:
+		for lean: float in [-1.0, 1.0]:
+			_cyl(root, 0.08, 0.10, 2.9, post,
+				Vector3(sx * 1.5 + lean * 0.34, 1.45, 1.3),
+				Vector3(0.0, 0.0, -lean * 0.14))
+		_cyl(root, 0.05, 0.05, 3.4, rope,
+			Vector3(sx * 1.5, 2.55, 3.0), Vector3(PI * 0.5, 0.0, 0.0))
+	for i in 9:
+		_box(root, Vector3(2.9, 0.07, 0.30), plank,
+			Vector3(0.0, 0.92 - float(i) * 0.012, 1.5 + float(i) * 0.42))
+	# The knot the evidence is about: rope turned twice round the near post.
+	for i in 2:
+		_cyl(root, 0.115, 0.115, 0.09, rope,
+			Vector3(-1.5, 2.05 + float(i) * 0.10, 1.3), Vector3(0.0, 0.0, 0.0), 10)
+	_ao_blob(root, Vector2(5.0, 3.0), Vector3(0.0, 0.02, 1.6), 0.5)
+
+
+## A place people stopped, twice. The lower camp is tidy — its stone ring and
+## its guy-line stakes are still square. The upper one was left in a hurry: the
+## caravan is on its side and a tent is a bare skeleton (G13).
+func _landmark_roadside_camp(root: Node3D) -> void:
+	var shell := _flat("rc_shell", Color(0.74, 0.72, 0.66), 0.85)
+	var rust := _flat("rc_rust", Color(0.46, 0.30, 0.20), 0.95)
+	var glass := _flat("rc_glass", Color(0.28, 0.34, 0.34), 0.3, 0.2)
+	var pole := _flat("rc_pole", Color(0.40, 0.38, 0.34), 0.9)
+	var canvas := _flat("rc_canvas", Color(0.56, 0.52, 0.42), 0.95)
+	var stone := _flat("rc_stone", Color(0.48, 0.46, 0.43), 0.95)
+	var ash := _flat("rc_ash", Color(0.20, 0.19, 0.18), 1.0)
+
+	# The caravan, on its side, wheels toward the road.
+	var van := Node3D.new()
+	van.position = Vector3(-3.4, 0.0, 0.4)
+	van.rotation = Vector3(0.0, 0.42, PI * 0.5 + 0.06)
+	root.add_child(van)
+	_box(van, Vector3(2.3, 4.6, 2.0), shell, Vector3(0.0, 1.15, 0.0))
+	_box(van, Vector3(2.35, 0.12, 2.05), rust, Vector3(0.0, 3.46, 0.0))
+	for i in 2:
+		_box(van, Vector3(0.05, 0.9, 0.8), glass,
+			Vector3(1.18, 0.9 + float(i) * 1.7, 0.0))
+	for sz: float in [-1.0, 1.0]:
+		_cyl(van, 0.34, 0.34, 0.22, rust, Vector3(-1.22, 1.4, sz * 0.7),
+			Vector3(0.0, 0.0, PI * 0.5))
+
+	# Two tent skeletons: poles standing, canvas mostly gone.
+	for t in 2:
+		var tent := Node3D.new()
+		tent.position = Vector3(1.6 + float(t) * 3.0, 0.0, 1.5 - float(t) * 0.8)
+		tent.rotation.y = 0.3 - float(t) * 0.7
+		root.add_child(tent)
+		for sx: float in [-1.0, 1.0]:
+			_cyl(tent, 0.035, 0.035, 1.9, pole, Vector3(sx * 0.9, 0.95, 0.0),
+				Vector3(0.0, 0.0, -sx * 0.34))
+		_cyl(tent, 0.03, 0.03, 2.4, pole, Vector3(0.0, 1.72, 0.0),
+			Vector3(PI * 0.5, 0.0, 0.0))
+		if t == 0:
+			_box(tent, Vector3(1.3, 0.04, 1.1), canvas,
+				Vector3(0.35, 0.62, 0.42), Vector3(0.5, 0.2, 0.3))
+
+	# The lower camp: a stone ring still square, and its stakes still in line.
+	for i in 9:
+		var a := TAU * float(i) / 9.0
+		_box(root, Vector3(0.34, 0.20, 0.34), stone,
+			Vector3(0.4 + cos(a) * 0.72, 0.10, 3.5 + sin(a) * 0.72),
+			Vector3(0.0, a, 0.0))
+	_cyl(root, 0.62, 0.62, 0.05, ash, Vector3(0.4, 0.03, 3.5), Vector3.ZERO, 12)
+	for i in 4:
+		_cyl(root, 0.025, 0.025, 0.34, pole,
+			Vector3(-1.6 + float(i) * 1.15, 0.17, 4.9),
+			Vector3(0.0, 0.0, 0.22))
+	_ao_blob(root, Vector2(9.0, 6.0), Vector3(0.0, 0.02, 1.8), 0.45)
+
+
+## A shipping container put into the ground rather than onto it, with a whip
+## antenna and a hatch. Half-buried is the tell: this was meant not to be seen
+## from the road (G13).
+func _landmark_listening_post(root: Node3D) -> void:
+	var steel := _flat("lp_steel", Color(0.30, 0.36, 0.34), 0.8, 0.2)
+	var rib := _flat("lp_rib", Color(0.25, 0.30, 0.29), 0.85, 0.2)
+	var soil := _flat("lp_soil", Color(0.31, 0.26, 0.21), 1.0)
+	var hatch := _flat("lp_hatch", Color(0.42, 0.44, 0.42), 0.7, 0.3)
+	var wire := _flat("lp_wire", Color(0.34, 0.34, 0.35), 0.75, 0.5)
+	var lamp := _flat("lp_lamp", Color(0.85, 0.34, 0.22), 0.4)
+
+	# The mound it is buried in, then the container sunk into it.
+	_cyl(root, 4.4, 5.6, 1.1, soil, Vector3(0.0, 0.55, 0.6), Vector3.ZERO, 16)
+	_box(root, Vector3(6.1, 2.5, 2.5), steel, Vector3(0.0, 0.85, 0.6))
+	for i in 11:
+		_box(root, Vector3(0.10, 2.5, 2.56), rib,
+			Vector3((float(i) - 5.0) * 0.54, 0.85, 0.6))
+	_box(root, Vector3(6.2, 0.16, 2.6), rib, Vector3(0.0, 2.12, 0.6))
+
+	# Hatch on top, open, with the ladder rail sticking out of it.
+	_box(root, Vector3(1.0, 0.10, 1.0), hatch, Vector3(1.7, 2.22, 0.6))
+	_box(root, Vector3(1.0, 0.08, 1.0), hatch, Vector3(2.35, 2.55, 0.6),
+		Vector3(0.0, 0.0, -0.95))
+	for sz: float in [-1.0, 1.0]:
+		_cyl(root, 0.03, 0.03, 0.7, hatch,
+			Vector3(1.42, 2.5, 0.6 + sz * 0.22))
+
+	# The whip antenna, and one lamp that is still red.
+	_cyl(root, 0.02, 0.05, 6.2, wire, Vector3(-2.3, 5.2, 0.6),
+		Vector3(0.0, 0.0, 0.05))
+	for i in 3:
+		var a := TAU * float(i) / 3.0
+		_cyl(root, 0.012, 0.012, 3.0, wire,
+			Vector3(-2.3 + cos(a) * 0.7, 3.6, 0.6 + sin(a) * 0.7),
+			Vector3(sin(a) * 0.24, 0.0, -cos(a) * 0.24))
+	_ball(root, 0.11, lamp, Vector3(-2.3, 8.3, 0.6))
+	_ao_blob(root, Vector2(7.5, 4.5), Vector3(0.0, 0.02, 0.6), 0.5)
+
+
+## A single-storey clinic with ivy over most of it and its cross gone pale.
+## Nothing is broken here — that is the unsettling part (G13).
+func _landmark_old_clinic(root: Node3D) -> void:
+	var render := _flat("cl_render", Color(0.78, 0.78, 0.73), 0.95)
+	var trim := _flat("cl_trim", Color(0.60, 0.62, 0.60), 0.9)
+	var roof := _flat("cl_roof", Color(0.34, 0.34, 0.33), 0.9)
+	var glass := _flat("cl_glass", Color(0.30, 0.38, 0.38), 0.25, 0.25)
+	var ivy := _flat("cl_ivy", Color(0.21, 0.36, 0.20), 0.95)
+	var cross := _flat("cl_cross", Color(0.70, 0.44, 0.42), 0.9)
+
+	var w := 10.0
+	var d := 5.4
+	var h := 3.2
+	_box(root, Vector3(w + 0.6, 0.28, d + 0.6), trim, Vector3(0.0, 0.14, 0.0))
+	_box(root, Vector3(w, h, d), render, Vector3(0.0, h * 0.5 + 0.28, 0.0))
+	_box(root, Vector3(w + 0.8, 0.24, d + 0.8), roof, Vector3(0.0, h + 0.42, 0.0))
+	# Windows along the south face, all intact.
+	for i in 4:
+		_box(root, Vector3(1.3, 1.5, 0.10), trim,
+			Vector3((float(i) - 1.5) * 2.2, 1.95, -d * 0.5 - 0.05))
+		_box(root, Vector3(1.1, 1.3, 0.06), glass,
+			Vector3((float(i) - 1.5) * 2.2, 1.95, -d * 0.5 - 0.11))
+	_box(root, Vector3(1.5, 2.3, 0.12), trim, Vector3(-w * 0.5 + 1.6, 1.43,
+		-d * 0.5 - 0.06))
+
+	# The cross over the door, faded to pink.
+	_box(root, Vector3(0.9, 0.26, 0.08), cross,
+		Vector3(-w * 0.5 + 1.6, 3.05, -d * 0.5 - 0.12))
+	_box(root, Vector3(0.26, 0.9, 0.08), cross,
+		Vector3(-w * 0.5 + 1.6, 3.05, -d * 0.5 - 0.12))
+
+	# Ivy: a mat over the east third, and runners reaching along the roof line.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 151501
+	for i in 46:
+		var t := rng.randf()
+		_box(root, Vector3(rng.randf_range(0.5, 1.2), rng.randf_range(0.4, 1.0),
+			0.06), ivy,
+			Vector3(w * 0.5 - rng.randf_range(0.2, 3.4), 0.5 + t * (h - 0.4),
+				-d * 0.5 - 0.14), Vector3(0.0, 0.0, rng.randf_range(-0.3, 0.3)))
+	for i in 14:
+		_box(root, Vector3(rng.randf_range(0.6, 1.4), 0.32, 0.06), ivy,
+			Vector3(rng.randf_range(-w * 0.5, w * 0.5), h + 0.30,
+				-d * 0.5 - 0.12))
+	_ao_blob(root, Vector2(w + 3.0, d + 3.0), Vector3(0.0, 0.02, 0.0), 0.55)
 
 
 ## Rusted swing set, slide and sandpit. The rust colour is what dates it.

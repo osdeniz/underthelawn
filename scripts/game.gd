@@ -27,6 +27,8 @@ var _active_index := GameConfig.MOWER_PUSH
 var _collected: Array = []
 ## Which scent moments have already fired this chapter (G13.4).
 var _scent_done: Dictionary = {}
+## Which mid-chapter conversations have already played this run (G13).
+var _mid_chat_done: Dictionary = {}
 ## First-run orientation (G15): whether this search is the player's first, and
 ## the countdown to the sheet. Zero means "not pending".
 var _first_run := false
@@ -148,6 +150,9 @@ func _ready() -> void:
 
 	# G8: the briefing moved to RootFlow's DialogueBox, so by the time this
 	# scene exists the case has already been accepted.
+	if variant != null and variant.signal_layers:
+		AudioDirector.start_signal()
+
 	if autostart_search:
 		_begin_search()
 
@@ -260,6 +265,45 @@ func _check_scent(ratio: float) -> void:
 		lawn.tint_hint(target, GameConfig.SCENT_TINT_CELLS)
 		Analytics.track(AnalyticsEvents.SCENT_SHOWN, {"chapter": variant_id, "at": ratio})
 		return
+
+
+## The chapters on the east road are a journey, and a journey has conversations
+## in the middle of it (G13). A chapter can name `mid_chat` in levels.json and
+## get a short scripted exchange partway through — the dialogue box, not a
+## toast, because these lines are people talking rather than the game hinting.
+##
+## The mow pauses under it for the same reason the briefing does: a line worth
+## reading is worth not driving through.
+func _check_mid_chat(ratio: float) -> void:
+	if variant == null or _complete_shown:
+		return
+	var marks: Array = variant.mid_chat_marks()
+	for i in marks.size():
+		if _mid_chat_done.has(i):
+			continue
+		if ratio < float(marks[i]):
+			continue
+		_mid_chat_done[i] = true
+		var key := variant.mid_chat_key(i)
+		var lines := Dialogue.conversation(key)
+		if lines.is_empty():
+			return
+		_play_mid_chat(lines)
+		return
+
+
+func _play_mid_chat(lines: Array) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 60
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(layer)
+	var box := DialogueBox.new()
+	layer.add_child(box)
+	get_tree().paused = true
+	box.finished.connect(func() -> void:
+		get_tree().paused = false
+		layer.queue_free())
+	box.play(lines)
 
 
 ## The cell of an evidence item that is still buried. Evidence only becomes a
@@ -525,6 +569,10 @@ func _cycle_mower() -> void:
 func _on_cells_mown(_count: int) -> void:
 	hud.set_progress(model.completion_ratio())
 	_check_scent(model.completion_ratio())
+	_check_mid_chat(model.completion_ratio())
+	# The listening post's radio tunes itself as the ground opens (G13).
+	if variant != null and variant.signal_layers:
+		AudioDirector.set_signal_clarity(model.completion_ratio())
 	# The echo is revealed by cutting its cell, same as evidence — but silently,
 	# with no marker until it is actually picked up.
 	if _echo_cell.x >= 0 and model.is_cut(_echo_cell.x, _echo_cell.y):
@@ -567,6 +615,7 @@ func _restart() -> void:
 		child.queue_free()
 	_collected.clear()
 	_scent_done.clear()
+	_mid_chat_done.clear()
 	_complete_shown = false
 
 	model.reset()
@@ -744,6 +793,8 @@ func _check_echo(col: int, row: int) -> void:
 
 ## Audio lives on the AudioDirector autoload, which outlives this scene, so a
 ## chapter has to hand back the engine when it leaves — otherwise the blade goes
-## on spinning over the hub (G12.9).
+## on spinning over the hub (G12.9). The listening post's signal pair is the
+## same rule: it belongs to one chapter (G13).
 func _exit_tree() -> void:
 	AudioDirector.stop_engine()
+	AudioDirector.stop_signal()

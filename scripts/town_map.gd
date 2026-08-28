@@ -53,6 +53,7 @@ func _ready() -> void:
 		add_child(desk)
 	_build_world()
 	_build_town()
+	_build_east_road()
 	# Lay the sheets out before the first frame: _ready never called this, so
 	# until something triggered a refresh both layers used their unpositioned
 	# full-rect size and the region came out cropped.
@@ -316,6 +317,122 @@ func _update_world() -> void:
 		var at := box.position + box.size * GameConfig.MAP_TOWN_AT
 		button.position = at - button.custom_minimum_size * 0.5
 		button.size = button.custom_minimum_size
+	_update_east_road()
+
+
+# ------------------------------------------------------- the east road (G13)
+
+## Case 02 leaves the town, so the map has to leave it too. From Act 2 the
+## chapters are not pins on the town sheet any more; they are stops along a road
+## that runs east off the edge of everything the player knows.
+##
+## Nothing here is drawn until the road is EARNED: before Case 02 opens the
+## world sheet is exactly the one Case 01 shipped with.
+func _build_east_road() -> void:
+	if _world == null:
+		return
+	var holder := Control.new()
+	holder.name = "EastRoad"
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	holder.mouse_filter = Control.MOUSE_FILTER_PASS
+	_world.add_child(holder)
+
+	var ink := Control.new()
+	ink.name = "RoadInk"
+	ink.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ink.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ink.draw.connect(_draw_east_road.bind(ink))
+	holder.add_child(ink)
+
+	for pin: Dictionary in Story.list("east_road.pins"):
+		var vid := str(pin.get("chapter", ""))
+		var stop := Button.new()
+		stop.name = "Stop_" + vid
+		stop.custom_minimum_size = Vector2(96, 96)
+		stop.flat = true
+		stop.focus_mode = Control.FOCUS_NONE
+		stop.set_meta("chapter", vid)
+		stop.set_meta("at", Vector2(float(pin.get("x", 0.5)),
+			float(pin.get("y", 0.5))))
+		stop.draw.connect(_draw_stop.bind(stop))
+		stop.pressed.connect(func() -> void:
+			Haptics.light()
+			Analytics.track(AnalyticsEvents.MAP_PIN_TAPPED, {"chapter": vid})
+			_open_panel(vid))
+		holder.add_child(stop)
+
+
+## Places the stops and repaints them, so a chapter finished since the map was
+## last opened turns green without the map being rebuilt.
+func _update_east_road() -> void:
+	var holder := _world.get_node_or_null("EastRoad") as Control
+	if holder == null:
+		return
+	holder.visible = ChapterProgress.case_two_open()
+	if not holder.visible:
+		return
+	var box := _world_rect()
+	for child in holder.get_children():
+		var stop := child as Button
+		if stop == null:
+			continue
+		var at: Vector2 = stop.get_meta("at", Vector2(0.5, 0.5))
+		stop.position = box.position + box.size * at \
+			- stop.custom_minimum_size * 0.5
+		stop.size = stop.custom_minimum_size
+		stop.queue_redraw()
+	var ink := holder.get_node_or_null("RoadInk") as Control
+	if ink != null:
+		ink.queue_redraw()
+
+
+## The road itself, dashed, with the stretch already travelled inked solid.
+## Reclaim works out here too: the road behind you is the part that is safe.
+func _draw_east_road(canvas: Control) -> void:
+	var box := _world_rect()
+	var points: Array[Vector2] = [box.position + box.size * GameConfig.MAP_TOWN_AT]
+	var done_to := 0
+	var index := 0
+	for pin: Dictionary in Story.list("east_road.pins"):
+		index += 1
+		points.append(box.position + box.size * Vector2(
+			float(pin.get("x", 0.5)), float(pin.get("y", 0.5))))
+		if ChapterProgress.is_done(str(pin.get("chapter", ""))):
+			done_to = index
+	for i in points.size() - 1:
+		var a: Vector2 = points[i]
+		var b: Vector2 = points[i + 1]
+		var travelled := i < done_to
+		var col: Color = GameConfig.MAP_PIN_DONE if travelled \
+			else GameConfig.MAP_INK_FAINT
+		var width := 7.0 if travelled else 4.0
+		if travelled:
+			canvas.draw_line(a, b, col, width, true)
+			continue
+		# Ahead of the player the road is dashed: not walked yet.
+		var steps := maxi(int(a.distance_to(b) / 22.0), 1)
+		for k in steps:
+			if k % 2 == 1:
+				continue
+			canvas.draw_line(a.lerp(b, float(k) / float(steps)),
+				a.lerp(b, float(k + 1) / float(steps)), col, width, true)
+
+
+## One stop: a ring, filled when the chapter is finished.
+func _draw_stop(stop: Button) -> void:
+	var vid := str(stop.get_meta("chapter", ""))
+	var centre := stop.custom_minimum_size * 0.5
+	var done := ChapterProgress.is_done(vid)
+	var active := ChapterProgress.current_variant_id() == vid
+	var ring: Color = GameConfig.MAP_PIN_DONE if done \
+		else (GameConfig.MAP_PIN_ACTIVE if active else GameConfig.MAP_INK_FAINT)
+	stop.draw_circle(centre, 22.0, Color(0.96, 0.93, 0.85, 0.92))
+	stop.draw_arc(centre, 22.0, 0.0, TAU, 28, ring, 5.0, true)
+	if done:
+		stop.draw_circle(centre, 12.0, ring)
+	elif active:
+		# The next stop breathes, the same way the town map's active pin does.
+		stop.draw_circle(centre, 8.0 + 2.0 * sin(_pulse * 3.0), ring)
 
 
 # ---------------------------------------------------------------- town layer

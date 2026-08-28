@@ -280,6 +280,11 @@ static func stripe_tint(direction: int) -> Color:
 
 
 static func clipping_color() -> Color:
+	# A reed cuts pale, corn cuts gold: the plant profile overrides the
+	# palette's clipping colour when it has an opinion (G13).
+	var profile := plant_profile()
+	if profile.has("clipping"):
+		return profile["clipping"]
 	return grass_palette()["clipping"]
 
 
@@ -307,6 +312,116 @@ static func clump_variants() -> Array:
 
 ## G6.6 density: carpet, not islands — the ground should barely show through
 ## uncut grass. Knob ladder for phone calibration: 9 -> 7 -> 5.
+# ---------------------------------------------------------------- plants (G13)
+## What GROWS in a chapter, as opposed to what COLOUR it is.
+##
+## The palette system (GRASS_PALETTES) answers "what shade of green"; this
+## answers "what plant". They are deliberately separate axes: the east road
+## passes through reeds, corn and sunflowers without leaving the same country,
+## so a chapter picks a palette AND a profile.
+##
+## "form" is the one field that changes the geometry rather than its numbers:
+##   blade — the fanning V-folded clumps the game has always grown
+##   stalk — upright stems with leaves, and optionally a head on top
+##
+## Everything else scales the shared builder. GRASS restates the original
+## constants exactly, so a chapter that names no profile grows what it always
+## grew.
+const PLANT_PROFILES := {
+	"GRASS": {
+		"form": "blade", "per_cell": 9, "blades": 6,
+		"height_min": 0.40, "height_max": 0.90, "tall_chance": 0.30,
+		"base_min": 0.45, "base_max": 0.62,
+		"width_scale": 1.0, "lean_scale": 1.0, "spread": 0.44,
+		"sway": 1.0, "cut_pitch": 1.0, "clipping_scale": 1.0,
+	},
+	## Water-green, chest high, thin as wire, and it moves twice as much as
+	## grass does — a reed bed reads as reeds because of the sway, not the
+	## colour.
+	"REED": {
+		"form": "blade", "per_cell": 7, "blades": 5,
+		"height_min": 0.95, "height_max": 1.55, "tall_chance": 0.45,
+		"base_min": 0.30, "base_max": 0.42,
+		"width_scale": 0.55, "lean_scale": 0.45, "spread": 0.40,
+		"sway": 1.9, "cut_sound": "cut_reed", "cut_pitch": 1.18,
+		"clipping_scale": 0.7, "clipping": Color(0.56, 0.72, 0.52),
+	},
+	## Taller than the machine, which is the whole point: inside a corn field
+	## the camera cannot see past the next row, so the yard becomes corridors
+	## and the player earns the view by cutting it. Free claustrophobia.
+	"CORN": {
+		"form": "stalk", "per_cell": 4, "leaves": 5,
+		"height_min": 2.10, "height_max": 2.70, "tall_chance": 0.5,
+		"stalk_width": 0.055, "leaf_length": 0.62, "spread": 0.42,
+		"sway": 0.45, "cut_sound": "cut_corn", "cut_pitch": 0.78,
+		"clipping_scale": 2.2, "clipping": Color(0.74, 0.68, 0.34),
+	},
+	## Every head turned the same way. One detail, and the field is alive.
+	"SUNFLOWER": {
+		"form": "stalk", "per_cell": 3, "leaves": 4,
+		"height_min": 1.85, "height_max": 2.35, "tall_chance": 0.5,
+		"stalk_width": 0.048, "leaf_length": 0.52, "spread": 0.44,
+		"head": true, "head_radius": 0.30, "head_yaw": -1.20,
+		"head_petal": Color(0.94, 0.72, 0.16), "head_disc": Color(0.30, 0.20, 0.10),
+		"sway": 0.5, "cut_sound": "cut_sunflower", "cut_pitch": 0.92,
+		"clipping_scale": 1.8, "clipping": Color(0.92, 0.74, 0.26),
+	},
+	## The harvest field's crop, grown thinner and shorter for the roadside.
+	"WILD_WHEAT": {
+		"form": "blade", "per_cell": 8, "blades": 7,
+		"height_min": 0.80, "height_max": 1.15, "tall_chance": 0.40,
+		"base_min": 0.34, "base_max": 0.46,
+		"width_scale": 0.50, "lean_scale": 0.70, "spread": 0.42,
+		"sway": 1.4, "cut_pitch": 1.08, "clipping_scale": 1.2,
+	},
+}
+
+## B14's signal pair. The static starts at full and ends silent; the clear tone
+## does the opposite, so the total loudness stays roughly level and only the
+## CHARACTER of the sound changes (G13).
+const SIGNAL_STATIC_GAIN := 0.34
+const SIGNAL_CLEAR_GAIN := 0.30
+
+# ---------------------------------------------------------------- quiet scenes
+## What passing The Toll costs: a share of what the player is carrying, floored
+## and capped so it is never trivial and never ruinous. A percentage alone would
+## punish a rich player and cost a poor one nothing (G13).
+const TOLL_SCRAP_SHARE := 0.15
+const TOLL_SCRAP_MIN := 30
+const TOLL_SCRAP_MAX := 200
+## The drawn still behind a quiet scene: evening, a road, and three people on it.
+const QUIET_SKY := Color(0.16, 0.15, 0.20)
+const QUIET_GROUND := Color(0.11, 0.11, 0.13)
+const QUIET_ROAD := Color(0.19, 0.18, 0.20)
+const QUIET_FIGURE := Color(0.05, 0.05, 0.06)
+
+## Where a chapter's mid-chapter conversation fires, as a completion ratio.
+## Half way: far enough in that the place has been seen, early enough that the
+## chapter is not already ending (G13).
+const MID_CHAT_AT := 0.5
+
+## Set per chapter by LevelVariant, exactly as active_grass_palette is.
+static var active_plant_profile := "GRASS"
+
+
+static func plant_profile() -> Dictionary:
+	return PLANT_PROFILES.get(active_plant_profile, PLANT_PROFILES["GRASS"])
+
+
+## One field of the active profile, falling back to GRASS's value and then to
+## `fallback` — so a profile only has to state what it actually changes.
+static func plant(key: String, fallback: Variant = 0.0) -> Variant:
+	var profile := plant_profile()
+	if profile.has(key):
+		return profile[key]
+	var grass: Dictionary = PLANT_PROFILES["GRASS"]
+	return grass[key] if grass.has(key) else fallback
+
+
+static func plant_is_stalk() -> bool:
+	return str(plant("form", "blade")) == "stalk"
+
+
 const TUFTS_PER_CLUSTER := 9
 const CLUMP_BLADES := 6
 const CLUMP_HEIGHT_MIN := 0.4
@@ -834,6 +949,8 @@ const LANDMARK_IDS: Array[String] = [
 	"playground", "greenhouse", "water_tower", "mill", "barn",
 	# Case 02, Act 1 (G13).
 	"antenna_mast", "orchard",
+	# Case 02, Act 2 — the east road.
+	"crossing", "roadside_camp", "listening_post", "old_clinic",
 ]
 
 const HOUSE_MARGIN_Z := 4.8

@@ -21,6 +21,21 @@ static var current: LevelVariant
 
 var id := ""
 var palette_id := "GREEN"
+## What grows here, as opposed to what colour it is (G13). Reeds, corn and
+## sunflowers are the east road; "GRASS" is every chapter before it.
+var plant_profile_id := "GRASS"
+## Where in the yard this chapter's evidence is allowed to land: "any" (the
+## default, anywhere past the edge margin), "far" (the half furthest from the
+## start), or "near". "far" is how the river crossing asks the player to open a
+## path rather than to mow a lawn — the evidence is on the other side, so
+## reaching it IS the level (G13).
+var evidence_zone := "any"
+## Optional mid-chapter conversation(s). A string is one chat at the default
+## mark; an array is several, and the marks come from mid_chat_at (G13).
+## True for the chapter whose radio clears as the ground does (G13).
+var signal_layers := false
+var mid_chat: Variant = ""
+var mid_chat_at: Array = []
 var grid_size := "medium"
 var obstacle_layout_id := "beds"
 var house_variant := "house_v1"
@@ -71,6 +86,13 @@ static func of(variant_id: String) -> LevelVariant:
 		return variant
 	var spec: Dictionary = (all as Dictionary)[variant_id]
 	variant.palette_id = str(spec.get("palette_id", variant.palette_id))
+	variant.plant_profile_id = str(spec.get("plant_profile_id",
+		variant.plant_profile_id))
+	variant.evidence_zone = str(spec.get("evidence_zone", variant.evidence_zone))
+	variant.signal_layers = bool(spec.get("signal_layers", false))
+	variant.mid_chat = spec.get("mid_chat", "")
+	var marks: Variant = spec.get("mid_chat_at", [])
+	variant.mid_chat_at = marks if marks is Array else []
 	variant.grid_size = str(spec.get("grid_size", variant.grid_size))
 	variant.obstacle_layout_id = str(spec.get("obstacle_layout_id",
 		variant.obstacle_layout_id))
@@ -108,7 +130,31 @@ func apply() -> void:
 	current = self
 	GameConfig.set_grid_named(grid_size)
 	GameConfig.active_grass_palette = palette_id
+	GameConfig.active_plant_profile = plant_profile_id
 	LawnModel.layout_id = obstacle_layout_id
+
+
+## The completion ratios this chapter's mid-chapter chats fire at. Defaults to
+## the halfway mark, which is where a conversation on a long walk belongs.
+func mid_chat_marks() -> Array:
+	if mid_chat is Array:
+		if not mid_chat_at.is_empty():
+			return mid_chat_at
+		var spread: Array = []
+		for i in (mid_chat as Array).size():
+			spread.append(0.25 + 0.25 * float(i))
+		return spread
+	if str(mid_chat) == "":
+		return []
+	return mid_chat_at if not mid_chat_at.is_empty() \
+		else [GameConfig.MID_CHAT_AT]
+
+
+func mid_chat_key(index: int) -> String:
+	if mid_chat is Array:
+		var list := mid_chat as Array
+		return str(list[index]) if index < list.size() else ""
+	return str(mid_chat)
 
 
 ## True for the repeatable crop level. Kept as a question rather than a string

@@ -270,9 +270,28 @@ func _on_search_finished(evidence: int, total: int) -> void:
 		return
 	var key := "debrief_full" if evidence >= total else "debrief_partial"
 	var lines := Dialogue.conversation(str(chapter.get(key, "")))
+	# A chapter can be followed by a scene rather than by silence: the road east
+	# has one, and it is charged whether or not the debrief had anything to say
+	# (G13).
+	var scene := str(chapter.get("quiet_scene", ""))
 	if lines.is_empty():
+		if scene != "":
+			_play_quiet_scene(scene)
 		return
-	_play_dialogue(lines, "", func() -> void: pass)
+	_play_dialogue(lines, "", func() -> void:
+		if scene != "":
+			_play_quiet_scene(scene))
+
+
+## A scene the player watches, over its own drawn still, between chapters.
+func _play_quiet_scene(scene_id: String) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 65
+	add_child(layer)
+	var scene := QuietScene.new()
+	layer.add_child(scene)
+	scene.finished.connect(func() -> void: layer.queue_free())
+	scene.play(scene_id)
 
 
 ## Last of ITS OWN case, not of the game. Once Case 02's chapters joined the

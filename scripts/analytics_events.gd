@@ -49,5 +49,9 @@ const MAP_PIN_TAPPED := "map_pin_tapped"
 const WORLD_MAP_VIEWED := "world_map_viewed"
 
 # ---------------------------------------------------------------- first run
+# ---------------------------------------------------------------- quiet scenes
+## metadata: {scene, amount} — what a scripted road scene cost the player.
+const TOLL_PAID := "toll_paid"
+
 const ORIENTATION_SHOWN := "orientation_shown"
 const ORIENTATION_HINT_MARKED := "orientation_hint_marked"

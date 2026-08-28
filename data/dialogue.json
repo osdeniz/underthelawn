@@ -575,6 +575,398 @@
           "text": "DLG_DEB_CH11_P2"
         }
       ]
+    },
+    "brief_ch12": {
+      "lines": [
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH12_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH12_2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH12_3"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_BRIEF_CH12_A1",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH12_R1"
+                }
+              },
+              {
+                "text": "DLG_BRIEF_CH12_A2",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH12_R2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH12_4"
+        }
+      ],
+      "accept": "BRIEF_12_ACCEPT"
+    },
+    "debrief_ch12_full": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH12_F1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH12_F2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH12_F3"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH12_F4"
+        }
+      ]
+    },
+    "debrief_ch12_partial": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH12_P1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH12_P2"
+        }
+      ]
+    },
+    "chat_ch12": {
+      "lines": [
+        {
+          "speaker": "stranger",
+          "text": "DLG_CHAT_CH12_1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_CHAT_CH12_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_CHAT_CH12_3"
+        }
+      ]
+    },
+    "brief_ch13": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH13_1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH13_2"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_BRIEF_CH13_A1",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH13_R1"
+                }
+              },
+              {
+                "text": "DLG_BRIEF_CH13_A2",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH13_R2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH13_3"
+        }
+      ],
+      "accept": "BRIEF_13_ACCEPT"
+    },
+    "debrief_ch13_full": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH13_F1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH13_F2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH13_F3"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH13_F4"
+        }
+      ]
+    },
+    "debrief_ch13_partial": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH13_P1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH13_P2"
+        }
+      ]
+    },
+    "chat_ch13": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_CHAT_CH13_1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_CHAT_CH13_2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_CHAT_CH13_3"
+        }
+      ]
+    },
+    "brief_ch14": {
+      "lines": [
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH14_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH14_2"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_BRIEF_CH14_A1",
+                "reply": {
+                  "speaker": "marshal",
+                  "text": "DLG_BRIEF_CH14_R1"
+                }
+              },
+              {
+                "text": "DLG_BRIEF_CH14_A2",
+                "reply": {
+                  "speaker": "marshal",
+                  "text": "DLG_BRIEF_CH14_R2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH14_3"
+        }
+      ],
+      "accept": "BRIEF_14_ACCEPT"
+    },
+    "debrief_ch14_full": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH14_F1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH14_F2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH14_F3"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH14_F4"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH14_F5"
+        }
+      ]
+    },
+    "debrief_ch14_partial": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH14_P1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_DEB_CH14_P2"
+        }
+      ]
+    },
+    "chat_ch14": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_CHAT_CH14_1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_CHAT_CH14_2"
+        }
+      ]
+    },
+    "brief_ch15": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH15_1"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH15_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH15_3"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_BRIEF_CH15_A1",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH15_R1"
+                }
+              },
+              {
+                "text": "DLG_BRIEF_CH15_A2",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_BRIEF_CH15_R2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH15_4"
+        }
+      ],
+      "accept": "BRIEF_15_ACCEPT"
+    },
+    "debrief_ch15_full": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH15_F1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH15_F2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH15_F3"
+        }
+      ]
+    },
+    "debrief_ch15_partial": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH15_P1"
+        }
+      ]
+    },
+    "chat_ch15": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_CHAT_CH15_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_CHAT_CH15_2"
+        }
+      ]
+    },
+    "quiet_toll": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_TOLL_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_TOLL_2"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_TOLL_3"
+        },
+        {
+          "speaker": "stranger",
+          "text": "DLG_TOLL_4"
+        },
+        {
+          "choice": {
+            "options": [
+              {
+                "text": "DLG_TOLL_A1",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_TOLL_R1"
+                }
+              },
+              {
+                "text": "DLG_TOLL_A2",
+                "reply": {
+                  "speaker": "stranger",
+                  "text": "DLG_TOLL_R2"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_TOLL_5"
+        }
+      ]
+    },
+    "quiet_toll_after": {
+      "lines": [
+        {
+          "speaker": "stranger",
+          "text": "DLG_TOLL_AFTER_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_TOLL_AFTER_2"
+        }
+      ]
     }
   },
   "town": {

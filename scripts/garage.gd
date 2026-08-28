@@ -59,7 +59,7 @@ static func buy_unlock(type_index: int) -> bool:
 	var cost := unlock_cost(type_index)
 	if GameState.scrap_total() < cost:
 		return false
-	GameState.set_setting("economy", "scrap", GameState.scrap_total() - cost)
+	GameState.spend_scrap(cost)
 	GameState.set_setting(SECTION, mower_id(type_index) + "_unlocked", true)
 	Analytics.track(AnalyticsEvents.MOWER_UNLOCKED, {"id": mower_id(type_index), "cost": cost})
 	return true
@@ -69,7 +69,7 @@ static func buy_upgrade(type_index: int) -> bool:
 	var cost := next_upgrade_cost(type_index)
 	if cost < 0 or GameState.scrap_total() < cost:
 		return false
-	GameState.set_setting("economy", "scrap", GameState.scrap_total() - cost)
+	GameState.spend_scrap(cost)
 	var new_tier := tier(type_index) + 1
 	GameState.set_setting(SECTION, mower_id(type_index) + "_tier", new_tier)
 	Analytics.track(AnalyticsEvents.MOWER_UPGRADED,

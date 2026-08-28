@@ -192,3 +192,13 @@ func add_scrap(amount: int) -> int:
 	var total := scrap_total() + maxi(amount, 0)
 	set_setting(ECONOMY, "scrap", total)
 	return total
+
+
+## Takes `amount` off the wallet and returns what was actually taken, which is
+## never more than the player had. Three call sites were each writing
+## `set_setting("economy", "scrap", scrap_total() - cost)` by hand, and none of
+## them clamped — a cost larger than the wallet wrote a NEGATIVE balance (G13).
+func spend_scrap(amount: int) -> int:
+	var take := clampi(amount, 0, scrap_total())
+	set_setting(ECONOMY, "scrap", scrap_total() - take)
+	return take

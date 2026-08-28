@@ -603,7 +603,10 @@ func _build_clippings() -> void:
 	pm.scale_min = 0.8
 	pm.scale_max = 1.25
 	var quad := QuadMesh.new()
-	quad.size = Vector2(0.045, 0.12)
+	# Corn throws coarse pieces, a reed throws thin ribbons: the plant profile
+	# scales the fleck, so what comes off the blade matches what went in (G13).
+	var clip_scale := float(GameConfig.plant("clipping_scale", 1.0))
+	quad.size = Vector2(0.045 * clip_scale, 0.12 * clip_scale)
 	var qm := StandardMaterial3D.new()
 	qm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	qm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
