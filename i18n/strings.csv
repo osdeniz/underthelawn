@@ -848,3 +848,43 @@ OBJ_SAW_C1,Read the meeting stone,Buluşma taşını oku
 OBJ_SAW_C2,Reach the signal garden,Sinyal bahçesine var
 OBJ_SAW_C3,Walk the long road home,Uzun dönüş yolunu yürü
 CASE_02_WAITING,Waiting on the town — {done}/{total} restored,Kasabayı bekliyor — {done}/{total} onarıldı
+MENU_TITLE,UNDER THE LAWN,ÇİM ALTINDA
+MENU_SUBTITLE,The dead years are over. The grass does not know that yet.,Ölü yıllar bitti. Ot henüz bunu bilmiyor.
+MENU_CONTINUE,Continue,Devam Et
+MENU_NEW_GAME,New Game,Yeni Oyun
+MENU_PLAY,Play,Başla
+MENU_JOURNAL,Journal,Günlük
+MENU_SETTINGS,Settings,Ayarlar
+MENU_QUIT,Quit,Çıkış
+MENU_NEW_GAME_CONFIRM_TITLE,Start over?,Baştan mı başlansın?
+MENU_NEW_GAME_CONFIRM_BODY,"This erases everything on this device — every chapter, every restoration, every tool. There is no undo.","Bu cihazdaki her şeyi siler — her bölüm, her onarım, her alet. Geri alınamaz."
+MENU_NEW_GAME_CONFIRM_ACTION,Erase and start over,Sil ve baştan başla
+UI_CANCEL,Cancel,Vazgeç
+SETTINGS_GROUP_FEEL,Sound & Feel,Ses ve His
+SETTINGS_GROUP_GAME,Game,Oyun
+SETTINGS_SOUND,Sound,Ses
+SETTINGS_SOUND_HINT,Music and effects,Müzik ve efektler
+SETTINGS_HAPTICS,Haptics,Titreşim
+SETTINGS_HAPTICS_HINT,"Feedback when you mow, find, and spend","Biçerken, bulurken, harcarken geri bildirim"
+SETTINGS_LANGUAGE,Language,Dil
+SETTINGS_RESET,Erase Progress…,İlerlemeyi Sil…
+CASE_LEAD_LABEL,CURRENT LEAD,GÜNCEL İPUCU
+CASE_AREAS_LABEL,AREAS,BÖLGELER
+CASE_DISCOVERIES_LABEL,DISCOVERIES,BULGULAR
+CASE_DISCOVERIES_COUNT,{found} / {total} pieces of evidence found,{found} / {total} kanıt bulundu
+CASE_CONTINUE,CONTINUE,DEVAM ET
+CASE_ALL_SEARCHED,EVERY AREA SEARCHED,HER BÖLGE ARANDI
+CASE_OPEN_FULL_FILE,Open full case file →,Tüm vaka dosyasını aç →
+CASE_LEAD_CLOSED,This case is closed. The board remembers it.,Bu vaka kapandı. Pano hatırlıyor.
+CASE_LEAD_EMPTY,No lead yet.,Henüz ipucu yok.
+JOURNAL_TITLE,Journal,Günlük
+JOURNAL_TAB_NOTES,Case Notes,Vaka Notları
+JOURNAL_TAB_DISCOVERIES,Discoveries,Bulgular
+JOURNAL_TAB_ECHOES,Echoes,Yankılar
+JOURNAL_NOTES_COUNT,{count} notes written,{count} not yazıldı
+JOURNAL_NOTES_EMPTY,Nothing written down yet. Finish a search and the Marshal will have something to say.,"Henüz not yok. Bir aramayı bitir, Marshal'ın söyleyecek bir şeyi olsun."
+JOURNAL_DISCOVERIES_COUNT,{found} of {total} found,{total} bulgudan {found} tanesi
+JOURNAL_DISCOVERIES_EMPTY,No evidence in hand. It is out there in the grass.,Elinde kanıt yok. Otların arasında duruyor.
+JOURNAL_ECHOES_COUNT,{found} of {total} found,{total} yankıdan {found} tanesi
+HUB_LEAD_LABEL,NEXT LEAD,SIRADAKİ İPUCU
+HUB_LEAD_DONE_LABEL,CASE CLOSED,VAKA KAPANDI

@@ -756,13 +756,104 @@ const DIALOGUE_PORTRAIT_SIZE := Vector2(430, 764)
 ## source art from it, so the two can never drift apart.
 const INTRO_KEN_BURNS_TO := 1.06
 const INTRO_GROUND := Color(0.13, 0.10, 0.08)
+# ---------------------------------------------------------------- UI scale
+## The type scale. Six steps, and every label in the UI uses one of them.
+##
+## Before this there were EIGHTEEN distinct font sizes across the screens —
+## 19, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 52, 54, 76 —
+## chosen one at a time as each screen was written. That is the single loudest
+## reason the UI read as a web dashboard rather than as a game: nothing lined
+## up, so nothing looked deliberate. A scale is not a style preference, it is
+## what makes hierarchy legible without the reader having to work it out.
+##
+## Steps are roughly 1.25x apart, which is wide enough that two adjacent sizes
+## are visibly different rather than accidentally different.
+## Sizes are PIXELS in a 1170x2532 viewport, which is a 3x device scale — so
+## divide by three for points. The first version of this scale ran 18-72px,
+## i.e. 6pt to 24pt, and everything below UI_HEAD landed under Apple's 11pt
+## floor: labels at 7pt and body text at 9pt. It was reported, correctly, as
+## simply too small to read.
+##
+## The band below is anchored to sizes this game already proves are readable —
+## its dialogue box and HUD run 32-52px — so the scale now starts where the
+## rest of the game starts instead of half way beneath it.
+const UI_DISPLAY := 84   ## 28pt. The game's name. One place only.
+const UI_TITLE := 58     ## 19pt. Screen headers.
+const UI_HEAD := 46      ## 15pt. Card titles, primary buttons.
+const UI_BODY := 38      ## 13pt. Ordinary reading text.
+const UI_LABEL := 32     ## 11pt. Section labels, hints, secondary lines.
+const UI_MICRO := 26     ##  9pt. Fine print only — never a full sentence.
+
+## Vertical rhythm. Same argument as the type scale: spacing picked per screen
+## is what makes a layout feel assembled rather than designed.
+const UI_GAP_TIGHT := 8
+const UI_GAP := 16
+const UI_GAP_WIDE := 28
+const UI_GAP_SECTION := 40
+
+## Standard tap target. Apple's HIG floor is 44pt; at this project's 1170-wide
+## portrait viewport that is about 96px, and nothing interactive goes under it.
+const UI_TAP_MIN := 96
+
+# ---------------------------------------------------------------- UI palette
+## Semantic colours. Named for what they MEAN, not for what they look like, so
+## a row that is "done" and a row that is "positive" cannot drift apart.
+##
+## Warmer and more saturated than the near-neutral greys this UI started with.
+## A dark interface built out of pure greys reads as a developer tool; the same
+## interface built out of browns, brass and moss reads as an object from the
+## game's own world. Every surface below carries a little red and yellow, and
+## nothing is a pure grey.
+##
+## Ground: warm charcoal, like unpainted iron rather than black plastic.
+const UI_BG := Color(0.086, 0.078, 0.067)
+## A panel lifted off that ground — one step, not three.
+const UI_SURFACE := Color(0.128, 0.116, 0.098)
+## The panel that carries the primary action.
+const UI_SURFACE_RAISED := Color(0.165, 0.148, 0.122)
+## Hairlines and dividers.
+const UI_LINE := Color(0.42, 0.36, 0.26, 0.42)
+
+## Text. Three weights and no more: anything needing a fourth is really asking
+## for a different size.
+const UI_INK := Color(0.97, 0.95, 0.90)
+const UI_INK_SOFT := Color(0.83, 0.79, 0.71)
+const UI_INK_FAINT := Color(0.62, 0.58, 0.51)
+
+## BRASS — the objective, the thing to do next, the one thing on screen that
+## wants the eye. Deeper and more metallic than the pale gold it replaces.
+const UI_BRASS := Color(0.93, 0.72, 0.28)
+## Used for text as well as for rules and borders — index numbers, section
+## headings, counters — so it is held at 5.7:1 on UI_BG and 5.2:1 on
+## UI_SURFACE. A darker, prettier brass measured 3.8:1 against the panel and
+## failed the 4.5:1 floor.
+const UI_BRASS_DEEP := Color(0.72, 0.53, 0.21)
+## GREEN — done, restored, healthy. A real moss, not a washed mint.
+const UI_GREEN := Color(0.52, 0.76, 0.38)
+const UI_GREEN_DEEP := Color(0.22, 0.38, 0.19)
+## RED — danger, blocked, destructive. Warm brick, never a signal red.
+const UI_RED := Color(0.87, 0.38, 0.30)
+## Text ON a brass fill — the primary button, the harvest tile. Nearly black
+## and slightly warm, so the bright plate reads as painted metal rather than as
+## a web accent colour.
+const UI_ON_BRASS := Color(0.14, 0.10, 0.04)
+
+## These three predate the palette above and are used in about fifty places
+## across eight screens. Rather than edit fifty call sites, they are now
+## ALIASES onto the semantic tokens — they always meant the same three things,
+## so the whole app moves to the new palette at once and cannot drift out of
+## step with it later.
+##
+## The practical effect is that secondary text got brighter: CASE_MUTED sat at
+## 0.72 grey, and every hint and caption in the game was dimmer than it needed
+## to be.
 ## Briefing box and case-note panel ground.
-const CASE_PANEL := Color(0.09, 0.09, 0.08, 0.94)
+const CASE_PANEL := Color(UI_SURFACE, 0.94)
 ## Case title / objective text.
-const CASE_ACCENT := Color(0.95, 0.82, 0.45)
+const CASE_ACCENT := UI_BRASS
 ## The town-page MISSING poster for Ellie (G12.10).
-const POSTER_BG := Color(0.13, 0.12, 0.10)
-const CASE_MUTED := Color(0.72, 0.70, 0.64)
+const POSTER_BG := Color(0.148, 0.132, 0.108)
+const CASE_MUTED := UI_INK_SOFT
 ## Chapters that must be finished before Ellie stops being a poster and becomes
 ## someone you can talk to. Matches her requires_done in data/story.json.
 const ELLIE_FOUND_AFTER := 8

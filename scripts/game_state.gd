@@ -143,6 +143,34 @@ func is_first_run() -> bool:
 ## A random anonymous id, generated once and persisted, so analytics can tell
 ## two sessions from the same install apart from two different installs
 ## without carrying anything that identifies the player.
+## True once the player has any progress worth resuming — a chapter searched,
+## the intro seen. What the main menu's CONTINUE button is enabled on.
+func has_progress() -> bool:
+	if bool(get_setting("story", "intro_seen", false)):
+		return true
+	return ChapterProgress.done_count() > 0
+
+
+## Wipes every stored key except the install id, which identifies this DEVICE
+## for analytics rather than this PLAYTHROUGH and has no gameplay meaning.
+## Everything else — chapters, scrap, restore board, garage, harvest log, echo
+## log, the orientation flag — comes back at its default the moment anything
+## next reads it, because every reader in this codebase already defaults
+## missing keys rather than assuming a section exists.
+func erase_save() -> void:
+	var keep := install_id()
+	# The chosen language survives. It is a preference about how the player
+	# reads the game, not a thing they achieved in it, and dropping them back
+	# into the OS locale would look like a bug rather than a fresh start.
+	var locale := str(get_setting(META, "locale", ""))
+	_config = ConfigFile.new()
+	set_setting(META, "install_id", keep)
+	set_setting(META, "save_version", SAVE_VERSION)
+	if locale != "":
+		set_setting(META, "locale", locale)
+	Analytics.track(AnalyticsEvents.NEW_GAME_STARTED, {})
+
+
 func install_id() -> String:
 	var existing := str(get_setting(META, "install_id", ""))
 	if existing != "":

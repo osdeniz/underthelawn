@@ -235,14 +235,30 @@ func _check_the_door() -> void:
 	hub.queue_free()
 	await settle(0.4)
 
-	# Open: the same card, now a way in.
+	# Open: the counter tile RETIRES and the lead card is the way in.
+	#
+	# The card used to switch to a gold "CASE 02 UNLOCKED" panel here. After the
+	# UI/UX redesign that panel was a third copy of a case name the top bar and
+	# the lead card already show, sitting above the primary action and
+	# outranking it — so it is gone once the case opens, and this asserts the
+	# thing that actually matters: there is still exactly one way in, and it is
+	# the primary action.
 	for project in ["lantern", "swing", "greenhouse"]:
 		GameState.set_setting("restore", project, true)
 	var hub2 := HubScreen.new()
 	add_child(hub2)
 	await settle(1.0)
-	var open := hub2.find_children("CaseTwoTile", "", true, false)
-	ck("acikken vaka 02 karti var", open.size() == 1, str(open.size()))
+	hub2.refresh()
+	await settle(0.6)
+	var counter := hub2.find_children("CaseTwoTile", "", true, false)
+	ck("acikken bekleme sayaci kalkiyor", counter.is_empty(),
+		str(counter.size()))
+	var lead := hub2.find_children("LeadCard", "", true, false)
+	ck("acikken birincil kart iceri goturuyor", lead.size() == 1,
+		str(lead.size()))
+	var go := hub2.find_children("LeadGo", "", true, false)
+	ck("birincil eylem etkin", go.size() == 1
+		and not (go[0] as Button).disabled, "")
 	hub2.queue_free()
 	await settle(0.4)
 
@@ -397,6 +413,9 @@ func _check_every_way_home_unparks_the_town() -> void:
 	GameState.set_setting("story", "intro_seen", true)
 	var root: Node = load("res://scenes/Root.tscn").instantiate()
 	add_child(root)
+	# The main menu is the first thing Root shows now; every test that builds
+	# it directly has to get past it the way a player's CONTINUE tap does.
+	await root.dismiss_main_menu()
 	await settle(2.5)
 	var hub = root.get_node_or_null("HubLayer/Hub")
 	ck("hub acildi", hub != null, "")
@@ -434,6 +453,9 @@ func _check_ending_cards_dismiss(method: String) -> void:
 	GameState.set_setting("story", "intro_seen", true)
 	var root: Node = load("res://scenes/Root.tscn").instantiate()
 	add_child(root)
+	# The main menu is the first thing Root shows now; every test that builds
+	# it directly has to get past it the way a player's CONTINUE tap does.
+	await root.dismiss_main_menu()
 	await settle(2.5)
 	# With a chapter on screen, as it is when a case actually ends.
 	root.set("_pending_variant", "ch01_aldridge")

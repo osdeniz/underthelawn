@@ -87,6 +87,22 @@ var _diorama_tick := 0
 ## Which restore card is being held down, if any (G13.5).
 var _peek_wanted := ""
 var _tiles_page: Control
+## The Case screen's entry view (UI/UX redesign): a summary rather than the
+## raw corkboard — current lead, area progress, discoveries — with the full
+## board one tap deeper for anyone who wants it. Built on first use like the
+## board itself, and for the same reason: it renders an evidence preview per
+## found item, which is not free.
+## The hub's own top-bar case name. Kept, because it was written once at build
+## time from story.json's "case" block and never updated — so a player deep in
+## Case 02 read "KAYIP KIZ" over "VAKA 02 · 9/10", two different cases stacked
+## in three lines of the same header.
+var _journal: JournalScreen
+var _case_name_label: Label
+var _case_summary_page: Control
+var _case_lead_label: Label
+var _case_areas_row: HBoxContainer
+var _case_discoveries_label: Label
+var _case_next_button: Button
 var _board_page: Control
 var _town_page: Control
 var _workshop_page: WorkshopPage
@@ -236,10 +252,10 @@ func _build_top_bar() -> void:
 	identity.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	columns.add_child(identity)
 
-	var title := Label.new()
-	title.text = Story.text("case.title")
-	title.add_theme_font_size_override("font_size", 46)
-	title.add_theme_color_override("font_color", Color(0.96, 0.95, 0.92))
+	_case_name_label = Label.new()
+	var title := _case_name_label
+	title.add_theme_font_size_override("font_size", GameConfig.UI_TITLE)
+	title.add_theme_color_override("font_color", GameConfig.UI_INK)
 	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	title.add_theme_constant_override("shadow_offset_y", 3)
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -247,7 +263,7 @@ func _build_top_bar() -> void:
 
 	_reclaim_label = Label.new()
 	_reclaim_label.add_theme_font_size_override("font_size", 26)
-	_reclaim_label.add_theme_color_override("font_color", Color(0.62, 0.86, 0.54))
+	_reclaim_label.add_theme_color_override("font_color", GameConfig.UI_GREEN)
 	_reclaim_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	_progress_label = Label.new()
@@ -290,7 +306,7 @@ func _build_top_bar() -> void:
 
 	_scrap_label = Label.new()
 	_scrap_label.add_theme_font_size_override("font_size", 40)
-	_scrap_label.add_theme_color_override("font_color", Color(0.62, 0.95, 0.60))
+	_scrap_label.add_theme_color_override("font_color", GameConfig.UI_GREEN)
 	_scrap_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_scrap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wallet_row.add_child(_scrap_label)
@@ -349,6 +365,10 @@ func _refresh_progress() -> void:
 		"case": Story.text(case_id),
 		"done": ChapterProgress.done_in(case_list),
 		"total": case_list.size()})
+	if _case_name_label != null and is_instance_valid(_case_name_label):
+		_case_name_label.text = Story.text(
+			"case_02.title" if ChapterProgress.active_case_is_two()
+			else "case.title")
 	_scrap_label.text = "%d" % GameState.scrap_total()
 	if _reclaim_label != null and is_instance_valid(_reclaim_label):
 		# Deliberately NOT tied to money: this is the measure of work done, and
@@ -401,10 +421,236 @@ func _ensure_board_page() -> Control:
 	return _board_page
 
 
+## Same lazy pattern as the board: nothing here is built until the player
+## actually opens Case.
+func _ensure_case_summary_page() -> Control:
+	if _case_summary_page != null and is_instance_valid(_case_summary_page):
+		return _case_summary_page
+	_case_summary_page = _build_case_summary()
+	_case_summary_page.visible = false
+	add_child(_case_summary_page)
+	return _case_summary_page
+
+
+## The Case screen (UI/UX redesign). Where the old "VAKA PANOSU" tile opened
+## straight onto a wall of eighteen chapter cards, this answers the three
+## questions in order: what do I know, where do I stand, what do I do next.
+## The full corkboard is one tap away for anyone who wants the detail — this
+## is not a replacement for it, it is what used to be missing IN FRONT of it.
+func _build_case_summary() -> Control:
+	var page := _new_page()
+
+	# A panel sized to its CONTENT, not to the screen. The first version used
+	# the shared full-height backdrop and a case with a handful of areas left
+	# two thirds of a lit rectangle empty underneath the last row — the single
+	# most "unfinished" thing in the redesign.
+	var card := PanelContainer.new()
+	card.name = "CaseCard"
+	card.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	card.offset_left = 40
+	card.offset_right = -40
+	card.offset_top = 300
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = Color(0.05, 0.05, 0.045, 0.90)
+	skin.set_corner_radius_all(26)
+	skin.border_color = Color(GameConfig.CASE_ACCENT, 0.22)
+	skin.set_border_width_all(2)
+	skin.set_content_margin_all(GameConfig.UI_GAP_WIDE)
+	skin.shadow_color = Color(0, 0, 0, 0.45)
+	skin.shadow_size = 12
+	card.add_theme_stylebox_override("panel", skin)
+	page.add_child(card)
+
+	var rows := VBoxContainer.new()
+	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rows.add_theme_constant_override("separation", GameConfig.UI_GAP)
+	card.add_child(rows)
+
+	# NO case title here. The hub's top bar names the case two lines above this
+	# card, in the same accent — printing it again made the screen open by
+	# telling the player something they had just read, and pushed the lead (the
+	# reason they opened it) further down.
+	var case_objective := Label.new()
+	case_objective.name = "CaseObjective"
+	case_objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	case_objective.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+	case_objective.add_theme_color_override("font_color", GameConfig.UI_INK)
+	rows.add_child(case_objective)
+
+	rows.add_child(_case_divider())
+
+	rows.add_child(_case_section_label("CASE_LEAD_LABEL"))
+	_case_lead_label = Label.new()
+	_case_lead_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_case_lead_label.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+	_case_lead_label.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+	rows.add_child(_case_lead_label)
+
+	rows.add_child(_case_divider())
+
+	rows.add_child(_case_section_label("CASE_AREAS_LABEL"))
+	_case_areas_row = HBoxContainer.new()
+	_case_areas_row.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
+	var areas_wrap := ScrollContainer.new()
+	areas_wrap.custom_minimum_size = Vector2(0, 60)
+	areas_wrap.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	areas_wrap.add_child(_case_areas_row)
+	rows.add_child(areas_wrap)
+
+	rows.add_child(_case_divider())
+
+	rows.add_child(_case_section_label("CASE_DISCOVERIES_LABEL"))
+	_case_discoveries_label = Label.new()
+	_case_discoveries_label.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+	_case_discoveries_label.add_theme_color_override("font_color",
+		GameConfig.UI_INK_SOFT)
+	rows.add_child(_case_discoveries_label)
+
+	rows.add_child(_case_divider())
+
+	_case_next_button = Button.new()
+	_case_next_button.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
+	_case_next_button.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+	style_primary(_case_next_button)
+	_case_next_button.pressed.connect(func() -> void:
+		Haptics.medium()
+		open_map_at(ChapterProgress.current_variant_id()))
+	rows.add_child(_case_next_button)
+
+	var full_file := Button.new()
+	full_file.text = tr("CASE_OPEN_FULL_FILE")
+	full_file.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
+	full_file.flat = true
+	full_file.add_theme_font_size_override("font_size", GameConfig.UI_BODY)
+	full_file.add_theme_color_override("font_color", GameConfig.CASE_MUTED)
+	full_file.add_theme_color_override("font_hover_color", GameConfig.CASE_ACCENT)
+	full_file.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	full_file.pressed.connect(func() -> void:
+		Haptics.light()
+		open_evidence_board())
+	rows.add_child(full_file)
+
+	page.add_child(_back_button())
+	return page
+
+
+func _case_divider() -> HSeparator:
+	var line := HSeparator.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(GameConfig.CASE_ACCENT, 0.18)
+	style.content_margin_top = 2
+	style.content_margin_bottom = 2
+	line.add_theme_stylebox_override("separator", style)
+	return line
+
+
+func _case_section_label(key: String) -> Label:
+	var label := Label.new()
+	label.text = tr(key)
+	label.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	label.add_theme_color_override("font_color", Color(GameConfig.CASE_ACCENT, 0.9))
+	return label
+
+
+## Rebuilt on every visit — nothing here is cached, so a chapter finished
+## elsewhere in the session always shows current.
+func _refresh_case_summary() -> void:
+	if _case_summary_page == null or not is_instance_valid(_case_summary_page):
+		return
+	var is_two := ChapterProgress.active_case_is_two()
+	var case_path := "case_02" if is_two else "case"
+	var chapters := ChapterProgress.active_case_chapters()
+
+	var objective_label := _case_summary_page.find_child("CaseObjective", true,
+		false) as Label
+	if objective_label != null:
+		objective_label.text = Story.text(case_path + ".objective")
+
+	var next_id := ChapterProgress.current_variant_id()
+	# done_in() against the case's OWN list, not a comparison against
+	# current_variant_id()'s fallback: once every chapter is finished that
+	# fallback returns the FIRST chapter again (so a replay is always on
+	# offer), which made "is the last one done" compare the wrong two ids and
+	# never detect a fully closed case.
+	var all_done := ChapterProgress.done_in(chapters) >= chapters.size() \
+		and not chapters.is_empty()
+	if all_done:
+		_case_lead_label.text = "\"%s\"" % tr("CASE_LEAD_CLOSED")
+	else:
+		var lead := LevelVariant.of(next_id).opening_subline
+		_case_lead_label.text = "\"%s\"" % (tr(lead) if lead != "" else
+			tr("CASE_LEAD_EMPTY"))
+
+	for child in _case_areas_row.get_children():
+		child.queue_free()
+	for chapter: Dictionary in chapters:
+		_case_areas_row.add_child(_case_area_dot(
+			str(chapter.get("variant_id", "")), next_id))
+
+	var found := 0
+	var total := 0
+	for chapter: Dictionary in chapters:
+		var vid := str(chapter.get("variant_id", ""))
+		# Clamped per chapter: evidence_found can briefly exceed a total that
+		# was re-authored after a save recorded a higher count against the old
+		# one. The gameplay number is unaffected; this only keeps the summary
+		# from ever printing a count bigger than the whole it is part of.
+		var chapter_total := ChapterProgress.evidence_total(vid)
+		total += chapter_total
+		found += mini(ChapterProgress.evidence_found(vid), chapter_total)
+	_case_discoveries_label.text = tr("CASE_DISCOVERIES_COUNT").format(
+		{"found": found, "total": total})
+
+	if all_done:
+		_case_next_button.text = tr("CASE_ALL_SEARCHED")
+		_case_next_button.disabled = true
+	else:
+		_case_next_button.disabled = false
+		_case_next_button.text = "%s: %s" % [tr("CASE_CONTINUE"),
+			tr(str(ChapterProgress.entry(next_id).get("name", "")))]
+
+
+## One area: a filled ring for a finished chapter, a pulsing amber ring for the
+## one to go to next, a hollow ring for the rest. Colour never carries the
+## state alone — a done ring also gets a check mark, so the distinction reads
+## for a colour-blind player too.
+func _case_area_dot(variant_id: String, next_id: String) -> Control:
+	var done := ChapterProgress.is_done(variant_id)
+	var is_next := variant_id == next_id
+	var dot := PanelContainer.new()
+	dot.custom_minimum_size = Vector2(60, 60)
+	dot.tooltip_text = tr(str(ChapterProgress.entry(variant_id).get("name", "")))
+	var style := StyleBoxFlat.new()
+	style.set_corner_radius_all(30)
+	style.set_border_width_all(3)
+	if done:
+		style.bg_color = Color(0.30, 0.52, 0.30, 0.9)
+		style.border_color = Color(0.52, 0.78, 0.48)
+	elif is_next:
+		style.bg_color = Color(GameConfig.CASE_ACCENT, 0.34)
+		style.border_color = GameConfig.CASE_ACCENT
+		style.set_border_width_all(5)
+	else:
+		style.bg_color = Color(0.12, 0.12, 0.11, 0.7)
+		style.border_color = Color(0.4, 0.4, 0.38, 0.6)
+	dot.add_theme_stylebox_override("panel", style)
+	var mark := Label.new()
+	mark.text = "✓" if done else ("●" if is_next else "○")
+	mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	mark.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	mark.add_theme_color_override("font_color",
+		Color(0.94, 0.98, 0.92) if done else
+		(GameConfig.CASE_ACCENT if is_next else Color(0.6, 0.6, 0.56)))
+	dot.add_child(mark)
+	return dot
+
+
 func _pages() -> Array:
 	var list: Array = []
-	for candidate in [_tiles_page, _board_page, _town_page, _workshop_page,
-			_restore_page, _echoes_page, _objectives_page]:
+	for candidate in [_tiles_page, _case_summary_page, _board_page, _town_page,
+			_workshop_page, _restore_page, _echoes_page, _objectives_page]:
 		if candidate != null and is_instance_valid(candidate):
 			list.append(candidate)
 	return list
@@ -435,6 +681,13 @@ func _build_tiles() -> Control:
 	column.add_theme_constant_override("separation", 28)
 	scroll.add_child(column)
 
+	# ONE primary action, then a compact list — not five equal cards.
+	#
+	# The hub used to stack every system as a 190px card with an icon and two
+	# lines of copy, which said they all mattered the same amount and answered
+	# none of "what should I be doing". The lead card answers that; everything
+	# else is a place you can go, and places you can go are a list.
+	column.add_child(_build_lead_card())
 	for tile: Dictionary in Story.list("hub.tiles"):
 		column.add_child(_make_tile(tile))
 	page.set_meta("column", column)
@@ -443,15 +696,102 @@ func _build_tiles() -> Control:
 
 	var story := Button.new()
 	story.text = tr("UI_STORY")
-	story.custom_minimum_size = Vector2(0, 110)
-	story.add_theme_font_size_override("font_size", 34)
-	story.add_theme_color_override("font_color", Color(0.8, 0.8, 0.76))
-	_style_card(story, true)
+	story.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
+	story.flat = true
+	story.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	story.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	story.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
+	story.add_theme_color_override("font_hover_color", GameConfig.CASE_ACCENT)
+	story.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	story.pressed.connect(func() -> void:
 		Haptics.light()
 		replay_intro_requested.emit())
 	column.add_child(story)
 	return page
+
+
+## The one thing the hub is for: where the player left off, and the button that
+## resumes it. Everything under this is navigation.
+func _build_lead_card() -> Control:
+	var card := PanelContainer.new()
+	card.name = "LeadCard"
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = Color(0.05, 0.05, 0.045, 0.92)
+	skin.set_corner_radius_all(24)
+	skin.set_content_margin_all(GameConfig.UI_GAP_WIDE)
+	skin.border_color = Color(GameConfig.CASE_ACCENT, 0.45)
+	skin.set_border_width_all(2)
+	skin.shadow_color = Color(0, 0, 0, 0.5)
+	skin.shadow_size = 14
+	card.add_theme_stylebox_override("panel", skin)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
+	card.add_child(rows)
+
+	var eyebrow := Label.new()
+	eyebrow.name = "LeadEyebrow"
+	eyebrow.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	eyebrow.add_theme_color_override("font_color",
+		Color(GameConfig.CASE_ACCENT, 0.9))
+	rows.add_child(eyebrow)
+
+	var place := Label.new()
+	place.name = "LeadPlace"
+	place.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	place.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+	place.add_theme_color_override("font_color", GameConfig.UI_INK)
+	rows.add_child(place)
+
+	var lead := Label.new()
+	lead.name = "LeadLine"
+	lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lead.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	lead.add_theme_color_override("font_color", GameConfig.CASE_MUTED)
+	rows.add_child(lead)
+
+	var go := Button.new()
+	go.name = "LeadGo"
+	go.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
+	go.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+	style_primary(go)
+	go.pressed.connect(func() -> void:
+		Haptics.medium()
+		open_map_at(ChapterProgress.current_variant_id()))
+	rows.add_child(go)
+	return card
+
+
+## Fills the lead card from current progress. Derived on read like everything
+## else on this screen, so a chapter finished in this session is reflected the
+## moment the hub comes back.
+func _refresh_lead_card() -> void:
+	var card := _tiles_page.find_child("LeadCard", true, false) if _tiles_page \
+		else null
+	if card == null or not is_instance_valid(card):
+		return
+	var vid := ChapterProgress.current_variant_id()
+	var case_list := ChapterProgress.active_case_chapters()
+	var all_done := ChapterProgress.done_in(case_list) >= case_list.size() \
+		and not case_list.is_empty()
+	var eyebrow := card.find_child("LeadEyebrow", true, false) as Label
+	var place := card.find_child("LeadPlace", true, false) as Label
+	var lead := card.find_child("LeadLine", true, false) as Label
+	var go := card.find_child("LeadGo", true, false) as Button
+	if all_done:
+		eyebrow.text = tr("HUB_LEAD_DONE_LABEL")
+		place.text = Story.text("case_02.title"
+			if ChapterProgress.active_case_is_two() else "case.title")
+		lead.text = tr("CASE_LEAD_CLOSED")
+		go.text = tr("CASE_ALL_SEARCHED")
+		go.disabled = true
+		return
+	go.disabled = false
+	eyebrow.text = tr("HUB_LEAD_LABEL")
+	place.text = tr(str(ChapterProgress.entry(vid).get("name", "")))
+	var subline := LevelVariant.of(vid).opening_subline
+	lead.text = tr(subline) if subline != "" else tr("CASE_LEAD_EMPTY")
+	go.text = tr("CASE_CONTINUE")
 
 
 ## The harvest's door on the hub itself. Gus's radio card says it once and
@@ -471,7 +811,7 @@ func _add_harvest_tile(column: VBoxContainer) -> void:
 	tile.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tile.add_theme_font_size_override("font_size", 46)
-	tile.add_theme_color_override("font_color", Color(0.16, 0.12, 0.05))
+	tile.add_theme_color_override("font_color", GameConfig.UI_ON_BRASS)
 	tile.text = "%s\n%s" % [tr("HARVEST_TAB"), tr("HARVEST_PLACE")]
 	var skin := StyleBoxFlat.new()
 	skin.bg_color = GameConfig.HARVEST_GOLD
@@ -506,40 +846,33 @@ func _add_case_two_tile(column: VBoxContainer) -> void:
 	if not ChapterProgress.case_one_finished():
 		return
 	var ready := ChapterProgress.case_two_open()
+	# Once the case is OPEN this tile has nothing left to say. The top bar
+	# names the case, the lead card names its next chapter and carries the
+	# button that goes there — a third gold panel repeating the case title
+	# above the primary action just outranked it (UI/UX redesign).
+	#
+	# Locked, it is the opposite: the live "waiting for the town" counter has
+	# no other home, and watching that number move is the whole reason the
+	# restore board earns anything.
+	if ready:
+		return
 	var progress := RestoreBoard.town_ready_progress()
+	# Not a locked sign — a counter. The player can see the number move.
 	var tile := Button.new()
 	tile.name = "CaseTwoTile"
-	tile.custom_minimum_size = Vector2(0, 200)
+	tile.custom_minimum_size = Vector2(0, 170)
 	tile.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	tile.add_theme_font_size_override("font_size", 44)
-	if ready:
-		tile.text = "%s\n%s" % [Story.text("case_02.id"),
-			Story.text("case_02.title")]
-		tile.add_theme_color_override("font_color", Color(0.13, 0.11, 0.06))
-		var skin := StyleBoxFlat.new()
-		skin.bg_color = GameConfig.CASE_ACCENT
-		skin.set_corner_radius_all(20)
-		skin.set_content_margin_all(22)
-		skin.border_color = Color(0.42, 0.32, 0.10)
-		skin.set_border_width_all(3)
-		for state: String in ["normal", "hover", "pressed", "focus"]:
-			tile.add_theme_stylebox_override(state, skin)
-		tile.pressed.connect(func() -> void:
-			Haptics.light()
-			open_map_at(ChapterProgress.current_variant_id()))
-	else:
-		# Not a locked sign — a counter. The player can see the number move.
-		tile.text = "%s · %s\n%s" % [Story.text("case_02.id"),
-			Story.text("case_02.title"),
-			tr("CASE_02_WAITING").format({"done": progress.x,
-				"total": progress.y})]
-		tile.add_theme_color_override("font_color", Color(0.74, 0.72, 0.66))
-		_style_card(tile, true)
-		# Tapping it goes where the counter is moved: the restore board.
-		tile.pressed.connect(func() -> void:
-			Haptics.light()
-			_on_tile("restore", false))
+	tile.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+	tile.text = "%s · %s\n%s" % [Story.text("case_02.id"),
+		Story.text("case_02.title"),
+		tr("CASE_02_WAITING").format({"done": progress.x, "total": progress.y})]
+	tile.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+	_style_nav_row(tile, true)
+	# Tapping it goes where the counter is moved: the restore board.
+	tile.pressed.connect(func() -> void:
+		Haptics.light()
+		_on_tile("restore", false))
 	column.add_child(tile)
 	column.move_child(tile, 0)
 
@@ -567,8 +900,11 @@ func _style_card(button: Button, dim := false) -> void:
 func _make_tile(tile: Dictionary) -> Button:
 	var locked := bool(tile.get("locked", false))
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(0, 190)
-	button.add_theme_font_size_override("font_size", 46)
+	# A row, not a 190px card. These are places you can go; the lead card above
+	# them is the thing you DO, and it can only read as primary if the rest
+	# stop competing with it.
+	button.custom_minimum_size = Vector2(0, 116)
+	button.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# The tile dictionary carries the keys directly, so translate them here.
 	var hint := tr(str(tile.get("hint", ""))) if not locked \
@@ -592,13 +928,35 @@ func _make_tile(tile: Dictionary) -> Button:
 		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 		button.add_theme_constant_override("h_separation", 20)
-	button.text = "%s\n%s" % [label, hint]
+	# The hint line is gone from the row itself. Five rows of "label + sentence"
+	# is what made the hub read as a dashboard; the sentence survives as the
+	# tooltip, where it explains without shouting.
+	button.text = label
+	button.tooltip_text = hint
 	if locked:
-		button.add_theme_color_override("font_color", Color(0.66, 0.66, 0.62))
-	_style_card(button, locked)
+		button.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
+	_style_nav_row(button, locked)
 	var id := str(tile.get("id", ""))
 	button.pressed.connect(_on_tile.bind(id, locked, button))
 	return button
+
+
+## The secondary rows. Flatter and darker than _style_card: no shadow, a
+## hairline border, and a ground that sits back rather than floating.
+func _style_nav_row(button: Button, dim := false) -> void:
+	var base := StyleBoxFlat.new()
+	base.bg_color = Color(0.06, 0.06, 0.055, 0.86 if not dim else 0.62)
+	base.set_corner_radius_all(16)
+	base.set_content_margin_all(GameConfig.UI_GAP_WIDE)
+	base.border_color = Color(GameConfig.CASE_ACCENT, 0.16 if not dim else 0.08)
+	base.set_border_width_all(1)
+	button.add_theme_stylebox_override("normal", base)
+	var pressed := base.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.12, 0.11, 0.09, 0.94)
+	pressed.border_color = Color(GameConfig.CASE_ACCENT, 0.5)
+	for state in ["pressed", "hover"]:
+		button.add_theme_stylebox_override(state, pressed)
+	button.add_theme_stylebox_override("focus", pressed)
 
 
 ## `button` is only used to shake a locked tile, so callers that are not a tile
@@ -614,7 +972,8 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 	Haptics.light()
 	match id:
 		"case_board":
-			_show_page(_ensure_board_page())
+			_show_page(_ensure_case_summary_page())
+			_refresh_case_summary()
 		"town":
 			_rebuild_town()
 			_show_page(_town_page)
@@ -625,8 +984,7 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 			_refresh_restore()
 			_show_page(_restore_page)
 		"echoes":
-			_refresh_echoes()
-			_show_page(_echoes_page)
+			open_journal()
 		_:
 			_shake(button)
 
@@ -675,7 +1033,7 @@ func _refresh_restore() -> void:
 	_restore_note = Label.new()
 	_restore_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_restore_note.add_theme_font_size_override("font_size", 30)
-	_restore_note.add_theme_color_override("font_color", Color(0.78, 0.76, 0.7))
+	_restore_note.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 	_restore_list.add_child(_restore_note)
 	var tier2_shown := false
 	for project: Dictionary in RestoreBoard.projects():
@@ -727,10 +1085,10 @@ func _make_project_row(project: Dictionary) -> Button:
 	button.text = "%s\n%s%s\n%s" % [tr(str(project.get("name", ""))),
 		tr(str(project.get("desc", ""))), extra, tail]
 	if built:
-		button.add_theme_color_override("font_color", Color(0.62, 0.86, 0.56))
+		button.add_theme_color_override("font_color", GameConfig.UI_GREEN)
 		_style_card(button, true)
 	elif locked:
-		button.add_theme_color_override("font_color", Color(0.64, 0.65, 0.61))
+		button.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
 		_style_card(button, true)
 	else:
 		_style_card(button)
@@ -1038,13 +1396,20 @@ func _refresh_objectives() -> void:
 	sub.text = tr("OBJ_HINT")
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sub.add_theme_font_size_override("font_size", 30)
-	sub.add_theme_color_override("font_color", Color(0.76, 0.74, 0.68))
+	sub.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 	_objective_list.add_child(sub)
 
 	var open: Array = []
 	var closed: Array = []
 	for any: Variant in Objectives.all():
 		var spec: Dictionary = any
+		# "case" objectives live in the Case screen now (UI/UX redesign): its
+		# lead/areas/discoveries ARE that content, reframed. This list keeps the
+		# ones that are not about a case — the town and the harvest — which have
+		# nowhere else to be seen yet. Objectives.collect() still pays every
+		# type's reward regardless of what is shown here.
+		if str(spec.get("type", "")) == "case":
+			continue
 		if Objectives.is_paid(str(spec.get("id", ""))):
 			closed.append(spec)
 		else:
@@ -1054,7 +1419,7 @@ func _refresh_objectives() -> void:
 		var none := Label.new()
 		none.text = tr("OBJ_EMPTY")
 		none.add_theme_font_size_override("font_size", 32)
-		none.add_theme_color_override("font_color", Color(0.62, 0.64, 0.60))
+		none.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
 		_objective_list.add_child(none)
 	for spec_any: Variant in open:
 		_objective_list.add_child(_objective_card(spec_any as Dictionary, false))
@@ -1062,7 +1427,7 @@ func _refresh_objectives() -> void:
 		var done_header := Label.new()
 		done_header.text = tr("OBJ_DONE_HEADER")
 		done_header.add_theme_font_size_override("font_size", 32)
-		done_header.add_theme_color_override("font_color", Color(0.58, 0.60, 0.56))
+		done_header.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
 		_objective_list.add_child(done_header)
 		for spec_any2: Variant in closed:
 			_objective_list.add_child(_objective_card(spec_any2 as Dictionary, true))
@@ -1104,7 +1469,7 @@ func _objective_card(spec: Dictionary, dim: bool) -> Control:
 	desc.text = tr(str(spec.get("desc", "")))
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc.add_theme_font_size_override("font_size", 28)
-	desc.add_theme_color_override("font_color", Color(0.72, 0.72, 0.68))
+	desc.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 	rows.add_child(desc)
 
 	for step_any: Variant in state["steps"]:
@@ -1117,7 +1482,7 @@ func _objective_card(spec: Dictionary, dim: bool) -> Control:
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		line.add_theme_font_size_override("font_size", 28)
 		line.add_theme_color_override("font_color",
-			Color(0.62, 0.86, 0.54) if step["done"] else Color(0.78, 0.78, 0.74))
+			GameConfig.UI_GREEN if step["done"] else Color(0.78, 0.78, 0.74))
 		rows.add_child(line)
 
 	var reward := int(spec.get("reward_scrap", 0))
@@ -1125,7 +1490,7 @@ func _objective_card(spec: Dictionary, dim: bool) -> Control:
 		var pay := Label.new()
 		pay.text = "%s: %d" % [tr("OBJ_REWARD"), reward]
 		pay.add_theme_font_size_override("font_size", 26)
-		pay.add_theme_color_override("font_color", Color(0.62, 0.95, 0.60))
+		pay.add_theme_color_override("font_color", GameConfig.UI_GREEN)
 		rows.add_child(pay)
 
 	# The harvest objective is a third door to the same panel the gold tile and
@@ -1158,7 +1523,7 @@ func _refresh_echoes() -> void:
 	sub.text = Story.text("echoes.header")
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sub.add_theme_font_size_override("font_size", 30)
-	sub.add_theme_color_override("font_color", Color(0.76, 0.74, 0.68))
+	sub.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 	_echo_list.add_child(sub)
 
 	if EchoLog.found_count() == 0:
@@ -1166,7 +1531,7 @@ func _refresh_echoes() -> void:
 		empty.text = Story.text("echoes.empty")
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty.add_theme_font_size_override("font_size", 34)
-		empty.add_theme_color_override("font_color", Color(0.66, 0.64, 0.6))
+		empty.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
 		_echo_list.add_child(empty)
 
 	for chapter: Dictionary in ChapterProgress.chapters():
@@ -1184,10 +1549,10 @@ func _refresh_echoes() -> void:
 			# colour-emoji font, 184 MB, for a blank box on iOS (G16).
 			row.text = GlyphGuard.safe("%s  %s\n%s" % [info["emoji"],
 				info["name"], info["line"]])
-			row.add_theme_color_override("font_color", Color(0.92, 0.90, 0.84))
+			row.add_theme_color_override("font_color", GameConfig.UI_INK)
 		else:
 			row.text = "·  ———"
-			row.add_theme_color_override("font_color", Color(0.5, 0.5, 0.46))
+			row.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
 		_echo_list.add_child(row)
 
 
@@ -1325,6 +1690,27 @@ func _show_board_tab(evidence: bool) -> void:
 		_style_tab(_board_tab_evidence, evidence)
 
 
+## Opens the Journal. Replaces the old flat "echoes" page, whose name told the
+## player nothing about what was behind it and which held one undifferentiated
+## list; the Journal names its three kinds of thing (UI/UX redesign).
+##
+## An overlay rather than a hub page, so the main menu can open the same screen
+## without a hub existing at all.
+func open_journal() -> void:
+	if _journal != null and is_instance_valid(_journal):
+		return
+	_journal = JournalScreen.new()
+	add_child(_journal)
+	_journal.closed.connect(func() -> void:
+		_journal.queue_free()
+		_journal = null)
+
+
+## Kept for the main menu, which asks for the Journal by an older name.
+func open_echoes() -> void:
+	open_journal()
+
+
 ## Opens the case board page directly on the corkboard (the case-notes button).
 func open_evidence_board() -> void:
 	_show_page(_ensure_board_page())
@@ -1387,9 +1773,9 @@ func _make_chapter_row(chapter: Dictionary, current: String) -> Button:
 		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 		button.add_theme_constant_override("h_separation", 18)
 	if not playable:
-		button.add_theme_color_override("font_color", Color(0.64, 0.65, 0.61))
+		button.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
 	elif done:
-		button.add_theme_color_override("font_color", Color(0.62, 0.86, 0.56))
+		button.add_theme_color_override("font_color", GameConfig.UI_GREEN)
 	_style_card(button, not playable)
 	button.pressed.connect(_on_chapter.bind(id, playable, button))
 	return button
@@ -1601,6 +1987,7 @@ func _back_button() -> Button:
 ## made in a chapter shows up immediately.
 func refresh() -> void:
 	_refresh_progress()
+	_refresh_lead_card()
 	_refresh_board()
 	_refresh_objectives()
 	_refresh_objectives_badge()
@@ -1653,7 +2040,7 @@ func _objective_toast(spec: Dictionary, delay: float) -> void:
 	card.add_child(rows)
 	for line: Array in [
 			[tr("OBJ_COMPLETED_TOAST"), 26, GameConfig.HARVEST_GOLD],
-			[tr(str(spec.get("title", ""))), 38, Color(0.96, 0.95, 0.92)],
+			[tr(str(spec.get("title", ""))), 38, GameConfig.UI_INK],
 			[tr(str(spec.get("done_dialogue", ""))), 27, Color(0.78, 0.78, 0.74)]]:
 		var label := Label.new()
 		label.text = str(line[0])
@@ -1667,7 +2054,7 @@ func _objective_toast(spec: Dictionary, delay: float) -> void:
 		var pay := Label.new()
 		pay.text = "+%d" % reward
 		pay.add_theme_font_size_override("font_size", 34)
-		pay.add_theme_color_override("font_color", Color(0.62, 0.95, 0.60))
+		pay.add_theme_color_override("font_color", GameConfig.UI_GREEN)
 		pay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		rows.add_child(pay)
 
@@ -1699,7 +2086,7 @@ func _harvest_call() -> void:
 	card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.custom_minimum_size = Vector2(0, 132)
 	card.add_theme_font_size_override("font_size", 30)
-	card.add_theme_color_override("font_color", Color(0.16, 0.12, 0.05))
+	card.add_theme_color_override("font_color", GameConfig.UI_ON_BRASS)
 	var skin := StyleBoxFlat.new()
 	skin.bg_color = GameConfig.HARVEST_GOLD
 	skin.set_corner_radius_all(18)
@@ -1744,7 +2131,7 @@ func _refresh_tiles() -> void:
 	story.text = tr("UI_STORY")
 	story.custom_minimum_size = Vector2(0, 110)
 	story.add_theme_font_size_override("font_size", 34)
-	story.add_theme_color_override("font_color", Color(0.8, 0.8, 0.76))
+	story.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 	_style_card(story, true)
 	story.pressed.connect(func() -> void:
 		Haptics.light()

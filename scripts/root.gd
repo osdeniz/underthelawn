@@ -31,6 +31,9 @@ const WARMED_FOR := "shaders_warmed_for"
 
 
 func _ready() -> void:
+	# Before any screen exists, so the first label already draws in the
+	# player's chosen language rather than flipping after the menu appears.
+	LocaleSupport.restore()
 	_layer = CanvasLayer.new()
 	_layer.layer = 100
 	add_child(_layer)
@@ -39,7 +42,59 @@ func _ready() -> void:
 	_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_layer.add_child(_fade)
+	_fade.color.a = 0.0
+	_show_main_menu()
 
+
+# ---------------------------------------------------------------- main menu
+
+## The app's front door (UI/UX redesign). Nothing used to stand here: the game
+## went straight into the intro cards on every cold launch, with no CONTINUE,
+## no deliberate way to start over, and no home for Settings. This is that
+## screen, shown before anything else, every launch.
+func _show_main_menu() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 45
+	add_child(layer)
+	var menu := MainMenu.new()
+	layer.add_child(menu)
+	menu.continue_pressed.connect(func() -> void:
+		layer.queue_free()
+		_begin_after_menu())
+	menu.new_game_pressed.connect(func() -> void:
+		GameState.erase_save()
+		layer.queue_free()
+		_begin_after_menu())
+	menu.journal_pressed.connect(func() -> void:
+		# Opened over the menu, not through the hub: the Journal reads only
+		# saved progress, so it needs no game flow behind it and the player
+		# keeps their place in the menu when they close it.
+		var journal := JournalScreen.new()
+		layer.add_child(journal)
+		journal.closed.connect(func() -> void: journal.queue_free()))
+	menu.settings_pressed.connect(func() -> void:
+		var settings := SettingsScreen.new()
+		layer.add_child(settings)
+		settings.closed.connect(func() -> void: settings.queue_free()))
+
+
+## Test seam. A test that instantiates Root through code rather than through a
+## tap needs to get past the main menu the same way a player's CONTINUE tap
+## does, without synthesizing input events. Every test that builds Root
+## directly (MemoryCheck, Case2Flow) calls this once, right after add_child.
+func dismiss_main_menu() -> void:
+	for child in get_children():
+		if child is CanvasLayer and (child as CanvasLayer).layer == 45:
+			child.queue_free()
+	await _begin_after_menu()
+
+
+## Everything that used to run unconditionally in _ready, now run once the
+## player has chosen CONTINUE or NEW GAME rather than the instant the app
+## opens.
+func _begin_after_menu(skip_fade_in := false) -> void:
+	if not skip_fade_in:
+		_fade.color.a = 1.0
 	if GameConfig.STORY_ALWAYS_REPLAY_INTRO or not _intro_seen():
 		# Birdsong belongs to the opening cards ONLY (G9.4): under gameplay it
 		# read as an untraceable background noise. The theme carries the rest.
@@ -149,9 +204,18 @@ func _warm_chapter_shaders(announce: bool) -> void:
 		# rather than a medium yard, because until then the two grids matched
 		# by luck (G13).
 		warm.process_mode = Node.PROCESS_MODE_DISABLED
-		var gone := warm.tree_exited
 		warm.queue_free()
-		await gone
+		# Polled with a ceiling, NOT `await warm.tree_exited`. A bare signal
+		# await has no timeout, so any path where the signal does not arrive is
+		# a permanent hang rather than a slow frame — and this one hung
+		# intermittently, taking the whole launch with it. Waiting on the
+		# condition cannot hang; at worst it gives up and the grid is restored
+		# a few frames later than ideal, which is survivable. Nothing else here
+		# is.
+		var waited := 0
+		while waited < 120 and is_instance_valid(warm):
+			await get_tree().process_frame
+			waited += 1
 	LevelVariant.restore(world)
 	if notice != null and is_instance_valid(notice):
 		notice.queue_free()

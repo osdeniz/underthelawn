@@ -55,6 +55,9 @@ func _ready() -> void:
 	GameState.set_setting("story", "intro_seen", true)
 	var root: Node = load("res://scenes/Root.tscn").instantiate()
 	add_child(root)
+	# The main menu is the first thing Root shows now; every test that builds
+	# it directly has to get past it the way a player's CONTINUE tap does.
+	await root.dismiss_main_menu()
 	# The hub keeps building for a while after it appears — the diorama grows
 	# its town over several frames — so sampling too early records a baseline
 	# the rest of the run can only exceed. Waited out rather than guessed at.

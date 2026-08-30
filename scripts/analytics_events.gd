@@ -10,6 +10,8 @@ extends RefCounted
 
 # ---------------------------------------------------------------- session
 const SESSION_STARTED := "session_started"
+const NEW_GAME_STARTED := "new_game_started"
+const MAIN_MENU_CONTINUE := "main_menu_continue"
 const SESSION_ENDED := "session_ended"
 
 # ---------------------------------------------------------------- errors

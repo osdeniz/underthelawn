@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://tests/journal_check.gd" id="1"]
+[node name="JournalCheck" type="Node"]
+script = ExtResource("1")

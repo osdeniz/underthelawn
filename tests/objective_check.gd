@@ -88,9 +88,22 @@ func _ready() -> void:
 	hub.refresh()
 	for _i in 10:
 		await get_tree().process_frame
+	# "case" objectives moved to the Case screen (UI/UX redesign): their lead /
+	# areas / discoveries ARE that content, reframed, so this page shows only
+	# the ones that are not about a case — town and harvest. Objectives.collect()
+	# still pays every type regardless (proven above, before the hub existed),
+	# so the count here is a display filter, not a change to what pays out.
+	var non_case := 0
+	for any: Variant in Objectives.all():
+		if str((any as Dictionary).get("type", "")) != "case":
+			non_case += 1
 	var cards := hub.find_children("Objective_*", "", true, false)
-	ck("ekranda gorev karti var", cards.size() == Objectives.all().size(),
-		"%d kart" % cards.size())
+	ck("ekranda vaka-disi gorev kartlari var", cards.size() == non_case,
+		"%d kart / %d vaka-disi" % [cards.size(), non_case])
+	for card in cards:
+		var id := str(card.name).trim_prefix("Objective_")
+		ck("karttaki gorev vaka tipi degil: %s" % id,
+			str(Objectives.of(id).get("type", "")) != "case", "")
 	ck("rozet butonu var",
 		hub.find_children("ObjectivesButton", "", true, false).size() == 1, "")
 	hub.queue_free()

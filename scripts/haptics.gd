@@ -21,6 +21,13 @@ var enabled := GameConfig.HAPTIC_ENABLED
 var _claimed_frame: int = -1
 
 
+func _ready() -> void:
+	# The player's own choice from Settings, if they made one — the default
+	# above otherwise. GameState loads first (project.godot autoload order), so
+	# its saved value is already on disk by the time this runs.
+	enabled = bool(GameState.get_setting("meta", "haptics_enabled", enabled))
+
+
 func light() -> void:
 	if _claim_frame():
 		Input.vibrate_handheld(LIGHT_MS)

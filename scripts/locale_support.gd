@@ -12,8 +12,10 @@ extends RefCounted
 ##    text runs reversed. That is project.godot's
 ##    rendering/root_node_layout_direction=2 ("based on locale"), already set.
 ##
-## Locale itself is never forced here: Godot picks the OS locale and falls back
-## to `en`, which is the correct behaviour on a phone.
+## Locale starts as the one Godot picks from the OS, which is the right default
+## on a phone. It is no longer the last word, though: a player who wants the
+## other language can choose it in Settings, and `restore()` reapplies that
+## choice on every launch.
 
 ## Checked in order; the first that exists is installed. A single font with wide
 ## coverage (Noto Sans is the usual answer) is enough for all of these.
@@ -23,12 +25,69 @@ const FALLBACK_PATHS: Array[String] = [
 	"res://fonts/i18n_fallback.ttc",
 ]
 
+## The languages this build actually ships, in menu order, each labelled in
+## ITSELF — a player looking for Turkish is looking for "Turkce", not for
+## "Turkish" spelled out in a language they do not read.
+const SHIPPED: Array[Dictionary] = [
+	{"code": "en", "name": "English"},
+	{"code": "tr", "name": "Turkce"},
+]
+
 ## Language codes whose glyphs the default font does NOT cover.
 const NEEDS_EXTENDED_GLYPHS: Array[String] = [
 	"ar", "he", "fa", "ur", "zh", "ja", "ko", "hi", "th", "bn", "ta",
 ]
 
 static var _installed := false
+
+
+## The language in use, reduced to a code this build ships. TranslationServer
+## reports full locales ("tr_TR", "en_GB"), so compare on the language part.
+static func current() -> String:
+	var language := TranslationServer.get_locale().split("_")[0].to_lower()
+	for entry in SHIPPED:
+		if str(entry["code"]) == language:
+			return language
+	return "en"
+
+
+## The self-name of `code`, for display.
+static func name_of(code: String) -> String:
+	for entry in SHIPPED:
+		if str(entry["code"]) == code:
+			return str(entry["name"])
+	return code.to_upper()
+
+
+## The next shipped language after the current one, wrapping. With two
+## languages this is a toggle; with five it is still one predictable tap.
+static func next_of(code: String) -> String:
+	for i in SHIPPED.size():
+		if str(SHIPPED[i]["code"]) == code:
+			return str(SHIPPED[(i + 1) % SHIPPED.size()]["code"])
+	return str(SHIPPED[0]["code"])
+
+
+## Switch language and remember it. Labels already on screen do NOT retranslate
+## themselves — every screen in this game builds its text in _ready and keeps
+## it — so the caller is responsible for rebuilding whatever is visible.
+static func select(code: String) -> void:
+	TranslationServer.set_locale(code)
+	GameState.set_setting("meta", "locale", code)
+	apply()
+
+
+## Reapply the player's saved choice. Called at startup, before the first
+## screen builds its labels; does nothing when they never chose, which leaves
+## the OS locale in charge exactly as before.
+static func restore() -> void:
+	var saved := str(GameState.get_setting("meta", "locale", ""))
+	if saved == "":
+		return
+	for entry in SHIPPED:
+		if str(entry["code"]) == saved:
+			TranslationServer.set_locale(saved)
+			return
 
 
 ## Called once from Hud._ready, before any label draws.
