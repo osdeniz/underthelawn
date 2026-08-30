@@ -1,5 +1,6 @@
 keys,en,tr
 UI_PERCENT_MOWED,{pct}% mowed,%{pct} biçildi
+UI_PERCENT_SHORT,{pct}%,%{pct}
 UI_EVIDENCE_COUNTER,Evidence {found}/{total},Kanıt {found}/{total}
 UI_STATS,{cells} cells searched · {time},{cells} hücre arandı · {time}
 UI_RESTART,RESTART,YENİDEN BAŞLA

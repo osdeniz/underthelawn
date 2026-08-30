@@ -89,6 +89,12 @@ var _pad_origin := Vector2.ZERO
 var _pad_now := Vector2.ZERO
 var _drive_hint: Label
 # Pause overlay (G9.3): the game's first player-initiated stop.
+## How long the scrap chip stays up after it changes.
+const WALLET_HOLD := 2.6
+
+@onready var _wallet_chip: PanelContainer = %WalletChip
+var _wallet_ready := false
+var _wallet_tween: Tween
 var _pause_layer: Control
 var _pause_button: Button
 
@@ -103,6 +109,7 @@ func _ready() -> void:
 	_centre_for_wide_screens.call_deferred()
 	get_viewport().size_changed.connect(_centre_for_wide_screens)
 	# Drawn, not emoji: iOS renders an emoji glyph as a blank box (G12.10).
+	_build_top_scrim()
 	_wallet_icon.texture = UiIcons.money()
 	_evidence_icon.texture = UiIcons.evidence()
 	_complete_panel.visible = false
@@ -137,6 +144,38 @@ func _ready() -> void:
 	set_secret_count(0, GameConfig.SECRET_TOTAL)
 
 
+## What replaces the top bar's slab.
+##
+## The bar used to sit on an opaque rounded panel 1110x212 — a sixth of the
+## screen, painted over the yard, with a hard edge all the way round. It read
+## as a control panel bolted on top of the game, which is the single loudest
+## reason the HUD looked like an application rather than a game.
+##
+## A gradient does the same job without the box: it is strongest where the text
+## is and gone by the time it reaches the grass, so there is no edge to notice.
+## Same technique as the main menu, where the rows over the illustration
+## measured 5-8:1 against the art behind them.
+func _build_top_scrim() -> void:
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0.03, 0.04, 0.03, 0.82))
+	grad.add_point(0.55, Color(0.03, 0.04, 0.03, 0.55))
+	grad.set_color(grad.get_point_count() - 1, Color(0.03, 0.04, 0.03, 0.0))
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill_from = Vector2(0.0, 0.0)
+	tex.fill_to = Vector2(0.0, 1.0)
+	var scrim := TextureRect.new()
+	scrim.name = "TopScrim"
+	scrim.texture = tex
+	scrim.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	scrim.offset_bottom = 400.0
+	add_child(scrim)
+	# Behind every readout, including the ones the scene file already placed.
+	move_child(scrim, 1)
+
+
 # ---------------------------------------------------------------- progress
 
 func set_progress(ratio: float) -> void:
@@ -150,8 +189,12 @@ func _process(delta: float) -> void:
 		_apply_percent()
 
 
+## The bar and the number are one object now, so the number no longer repeats
+## what the bar is measuring — "37%" beside a mowing bar does not need the word
+## "mowed" after it, and the long form was the second of two elements saying
+## one fact.
 func _apply_percent() -> void:
-	_percent_label.text = tr("UI_PERCENT_MOWED").format(
+	_percent_label.text = tr("UI_PERCENT_SHORT").format(
 		{"pct": int(round(_shown_percent))})
 	_progress.value = _shown_percent
 
@@ -702,8 +745,35 @@ func _on_teaser_pressed() -> void:
 
 # ---------------------------------------------------------------- G9 economy
 
+## The scrap total is not something the player acts on while driving — it is
+## paid out at the end of the run, and a five-digit number parked in the corner
+## for the whole chapter is furniture. What matters is the MOMENT it changes,
+## so the chip now appears when it does and leaves again afterwards.
+##
+## The first call comes from setup, before the run starts; that one must not
+## flash the chip, hence _wallet_ready.
 func set_scrap(total: int) -> void:
 	_scrap_label.text = "%d" % total
+	if _wallet_ready:
+		show_wallet()
+	_wallet_ready = true
+
+
+## Brings the chip in, holds it, and takes it away again. Called on every
+## change and by fly_scrap when a pickup lands.
+func show_wallet() -> void:
+	if _wallet_chip == null or not is_instance_valid(_wallet_chip):
+		return
+	if _wallet_tween != null and _wallet_tween.is_valid():
+		_wallet_tween.kill()
+	_wallet_chip.visible = true
+	_wallet_chip.modulate.a = 1.0
+	_wallet_tween = create_tween()
+	_wallet_tween.tween_interval(WALLET_HOLD)
+	_wallet_tween.tween_property(_wallet_chip, "modulate:a", 0.0, 0.5)
+	_wallet_tween.tween_callback(func() -> void:
+		if is_instance_valid(_wallet_chip):
+			_wallet_chip.visible = false)
 
 
 ## A value flies from the pickup's screen position to the counter, so the number
@@ -718,6 +788,9 @@ func fly_scrap(amount: int, from_screen: Vector2) -> void:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(label)
 	label.position = from_screen
+	# The chip has to be on screen before the value can fly to it, or the
+	# target would be the rect of a hidden control.
+	show_wallet()
 	var target := _scrap_label.get_global_rect().get_center()
 	var tw := create_tween()
 	tw.tween_property(label, "position", target, GameConfig.SCRAP_FLY_TIME) \
