@@ -29,6 +29,7 @@ static func for_tile(tile_id: String) -> Texture2D:
 	match tile_id:
 		"case_board": return evidence()
 		"station": return _make("station")
+		"map": return _make("map")
 		"town": return _make("town")
 		"restore": return _make("restore")
 		"workshop": return _make("workshop")
@@ -52,6 +53,16 @@ static func objectives() -> Texture2D:
 	return _make("objectives")
 
 
+## The town's food store: a sack, tied at the neck.
+static func food() -> Texture2D:
+	return _make("food")
+
+
+## How many people live here: two figures, the second set back.
+static func people() -> Texture2D:
+	return _make("people")
+
+
 ## A single house: one finished restoration project.
 static func house() -> Texture2D:
 	return _make("house")
@@ -65,6 +76,7 @@ static func _make(id: String) -> Texture2D:
 	match id:
 		"money": _draw_money(img)
 		"evidence": _draw_evidence(img)
+		"map": _draw_map(img)
 		"town": _draw_town(img)
 		"restore": _draw_restore(img)
 		"workshop": _draw_workshop(img)
@@ -74,6 +86,8 @@ static func _make(id: String) -> Texture2D:
 		"sound_off": _draw_sound(img, false)
 		"lock": _draw_lock(img)
 		"house": _draw_house(img)
+		"food": _draw_food(img)
+		"people": _draw_people(img)
 		"objectives": _draw_objectives(img)
 	var tex := ImageTexture.create_from_image(img)
 	_cache[id] = tex
@@ -135,6 +149,56 @@ static func _draw_evidence(img: Image) -> void:
 
 
 ## Two roofs side by side.
+## A folded paper map with a route crossing it and a pin where the route ends.
+## The fold lines are what stop it reading as a plain sheet: two vertical
+## creases and the panels stepped by a pixel, the way a road map never lies
+## quite flat again once it has been opened.
+static func _draw_map(img: Image) -> void:
+	var paper := Color(0.86, 0.80, 0.66)
+	var shade := Color(0.72, 0.66, 0.52)
+	var crease := Color(0.58, 0.52, 0.40)
+	var road := Color(0.42, 0.36, 0.26)
+	var pin := Color(0.87, 0.38, 0.30)
+	# Three panels, the middle one lifted, the outer two dropped.
+	_rect(img, 4, 14, 19, 38, paper)
+	_rect(img, 23, 11, 18, 38, paper)
+	_rect(img, 41, 14, 19, 38, shade)
+	_rect(img, 22, 11, 2, 41, crease)
+	_rect(img, 40, 11, 2, 41, crease)
+	# The road: down, across, and away.
+	_rect(img, 11, 20, 3, 14, road)
+	_rect(img, 11, 32, 22, 3, road)
+	_rect(img, 30, 22, 3, 13, road)
+	_rect(img, 30, 22, 18, 3, road)
+	# The pin at the far end.
+	_disc(img, 48, 20, 6, pin)
+	_rect(img, 46, 24, 4, 8, pin)
+
+
+## A grain sack. The neck is narrower than the body and tied with a band, which
+## is the whole difference between a sack and a bag of cement.
+static func _draw_food(img: Image) -> void:
+	var cloth := Color(0.80, 0.68, 0.42)
+	var shade := Color(0.62, 0.50, 0.30)
+	var band := Color(0.42, 0.33, 0.20)
+	_rect(img, 24, 10, 16, 8, cloth)
+	_rect(img, 22, 18, 20, 4, band)
+	_rect(img, 16, 22, 32, 32, cloth)
+	_rect(img, 38, 22, 10, 32, shade)
+	_rect(img, 16, 50, 32, 4, shade)
+
+
+## Two people. The one behind is drawn smaller and offset rather than simply
+## overlapped, so at 64px it still reads as two and not as one wide figure.
+static func _draw_people(img: Image) -> void:
+	var near := Color(0.86, 0.82, 0.74)
+	var far := Color(0.58, 0.55, 0.50)
+	_disc(img, 40, 22, 7, far)
+	_rect(img, 33, 32, 15, 20, far)
+	_disc(img, 24, 20, 9, near)
+	_rect(img, 14, 32, 21, 22, near)
+
+
 static func _draw_town(img: Image) -> void:
 	var wall := Color(0.82, 0.78, 0.70)
 	var roof := Color(0.58, 0.30, 0.24)

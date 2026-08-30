@@ -639,6 +639,14 @@ const TIER2_REQUIRES_TIER1 := 2
 ## player who put every last piece of scrap into the garage — which is the
 ## choice the gate exists to notice.
 const TOWN_READY_PROJECTS := 3
+
+## PLACEHOLDERS. The top bar shows the town's food store and how many people
+## live there beside the scrap. Neither is simulated yet — these are the
+## numbers it displays until something produces them, and they are constants
+## rather than magic literals in the HUD so that wiring them up later is one
+## edit in one place.
+const TOWN_FOOD_PLACEHOLDER := 42
+const TOWN_PEOPLE_PLACEHOLDER := 11
 ## Debug only: grants money from the pause menu for balance testing. Ships false.
 const DEV_GRANT_SCRAP := false
 ## Debug only: the wallet a fresh save starts with, so systems downstream of the

@@ -273,7 +273,13 @@ func _build_top_bar() -> void:
 	identity.add_child(_progress_label)
 	identity.add_child(_reclaim_label)
 
-	# The wallet reads as a thing you own, so it gets its own chip.
+	# One chip, three readings: what the town has to spend, to eat, and to feed.
+	#
+	# Three separate chips was the first shape and it pushed the objectives
+	# button off the bar — the scrap number alone runs to five digits. Grouping
+	# them admits what they are: not three unrelated stats but one line about
+	# the state of the place, which is also why they share a border instead of
+	# each having their own.
 	var wallet := PanelContainer.new()
 	wallet.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	wallet.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -310,6 +316,12 @@ func _build_top_bar() -> void:
 	_scrap_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_scrap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wallet_row.add_child(_scrap_label)
+
+	# Food and population. Both are placeholders for now (GameConfig says so);
+	# they are here because the bar is where the player will look for them, and
+	# adding the readout later would move everything else on the row.
+	_add_stat(wallet_row, UiIcons.food(), GameConfig.TOWN_FOOD_PLACEHOLDER)
+	_add_stat(wallet_row, UiIcons.people(), GameConfig.TOWN_PEOPLE_PLACEHOLDER)
 
 	# The objectives door. A chip like the wallet, but pressable, with the
 	# number of open objectives on it (G14.2).
@@ -657,6 +669,37 @@ func _pages() -> Array:
 
 
 ## The three hub cards. A locked card is still shown and still responds, because
+## One reading inside the resource chip: a hairline, an icon, a number.
+##
+## The divider is drawn rather than left as a gap because three numbers spaced
+## evenly apart read as one long number at a glance; a rule between them says
+## where each one stops.
+func _add_stat(row: HBoxContainer, art: Texture2D, value: int) -> void:
+	var rule := ColorRect.new()
+	rule.color = GameConfig.UI_LINE
+	rule.custom_minimum_size = Vector2(2, 34)
+	rule.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(rule)
+
+	var icon := TextureRect.new()
+	icon.texture = art
+	icon.custom_minimum_size = Vector2(34, 34)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
+
+	var label := Label.new()
+	label.text = str(value)
+	label.add_theme_font_size_override("font_size", 36)
+	label.add_theme_color_override("font_color", GameConfig.UI_INK)
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(label)
+
+
 ## a visible locked door tells the player the game is bigger than this screen.
 func _build_tiles() -> Control:
 	var page := _new_page()
@@ -974,6 +1017,8 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 		"case_board":
 			_show_page(_ensure_case_summary_page())
 			_refresh_case_summary()
+		"map":
+			open_map()
 		"town":
 			_rebuild_town()
 			_show_page(_town_page)
@@ -1712,6 +1757,17 @@ func open_echoes() -> void:
 
 
 ## Opens the case board page directly on the corkboard (the case-notes button).
+## The map, straight from the hub menu.
+##
+## It already existed as the first tab of the case board, which put the one
+## screen that answers "where do I mow next" three taps deep behind a door
+## named after a building. Same page, same map, reached directly.
+func open_map() -> void:
+	_show_page(_ensure_board_page())
+	_refresh_board()
+	_show_board_tab(false)
+
+
 func open_evidence_board() -> void:
 	_show_page(_ensure_board_page())
 	_refresh_board()

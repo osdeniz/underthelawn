@@ -1,459 +1,465 @@
 {
-  "_comment": "STRUCTURE ONLY. Every text field below is a TRANSLATION KEY, not a sentence - the sentences live in i18n/strings.csv, one column per language. Adding a language means adding a column there, never editing this file. Image names, emoji and ids are not translated and stay literal here.",
-  "intro": {
-    "cards": [
-      {
-        "image": "intro/intro_1",
-        "lines": [
-          "INTRO_01_L1",
-          "INTRO_01_L2"
-        ]
-      },
-      {
-        "image": "intro/intro_2",
-        "lines": [
-          "INTRO_02_L1",
-          "INTRO_02_L2"
-        ]
-      },
-      {
-        "image": "intro/intro_2b",
-        "fallback_image": "intro/intro_2",
-        "ken_burns": "reverse",
-        "lines": [
-          "INTRO_2B_L1",
-          "INTRO_2B_L2"
-        ]
-      },
-      {
-        "image": "intro/intro_3",
-        "lines": [
-          "INTRO_03_L1",
-          "INTRO_03_L2"
-        ]
-      },
-      {
-        "image": "portraits/ellie",
-        "poster": true,
-        "lines": [
-          "ALERT_TITLE",
-          "ALERT_LINE"
-        ]
-      }
-    ],
-    "skip_hint": "INTRO_SKIP_HINT"
-  },
-  "case": {
-    "id": "CASE_01_ID",
-    "title": "CASE_01_TITLE",
-    "objective": "CASE_01_OBJECTIVE",
-    "hud_line": "CASE_01_HUD_LINE"
-  },
-  "opening": {
-    "headline": "OPENING_01_HEADLINE",
-    "subline": "OPENING_01_SUBLINE"
-  },
-  "evidence": {
-    "card_header": "EVIDENCE_CARD_HEADER",
-    "counter_label": "EVIDENCE_COUNTER_LABEL",
-    "items": [
-      {
-        "emoji": "🧸",
-        "name": "EVIDENCE_TOY_NAME",
-        "line": "EVIDENCE_TOY_LINE"
-      },
-      {
-        "emoji": "📻",
-        "name": "EVIDENCE_RADIO_NAME",
-        "line": "EVIDENCE_RADIO_LINE"
-      }
-    ]
-  },
-  "complete": {
-    "title": "COMPLETE_01_TITLE",
-    "notes_header": "COMPLETE_NOTES_HEADER",
-    "notes_full": "COMPLETE_01_NOTES_FULL",
-    "notes_partial": "COMPLETE_01_NOTES_PARTIAL",
-    "incomplete": "COMPLETE_01_INCOMPLETE",
-    "teaser_title": "COMPLETE_01_TEASER_TITLE",
-    "teaser_line": "COMPLETE_01_TEASER_LINE",
-    "teaser_locked": "COMPLETE_TEASER_LOCKED",
-    "return": "UI_RETURN_TOWN",
-    "case_done": "CASE_01_COMPLETE"
-  },
-  "hub": {
-    "progress": "HUB_PROGRESS",
-    "tiles": [
-      {
-        "id": "case_board",
-        "label": "HUB_CASE_BOARD",
-        "hint": "HUB_CASE_BOARD_HINT",
-        "locked": false
-      },
-      {
-        "id": "town",
-        "label": "HUB_TOWN",
-        "hint": "HUB_TOWN_HINT",
-        "locked": false
-      },
-      {
-        "id": "restore",
-        "label": "HUB_RESTORE",
-        "hint": "HUB_RESTORE_HINT",
-        "locked": false
-      },
-      {
-        "id": "workshop",
-        "label": "HUB_WORKSHOP",
-        "hint": "HUB_WORKSHOP_HINT2",
-        "locked": false
-      },
-      {
-        "id": "echoes",
-        "label": "HUB_ECHOES",
-        "hint": "HUB_ECHOES_HINT",
-        "locked": false
-      }
-    ],
-    "locked_note": "HUB_LOCKED",
-    "background": "hub/town_square"
-  },
-  "case_board": {
-    "title": "CASEBOARD_TITLE",
-    "back": "UI_BACK",
-    "evidence": "CASEBOARD_EVIDENCE",
-    "locked": "CASEBOARD_LOCKED",
-    "active": "CASEBOARD_ACTIVE",
-    "done": "CASEBOARD_DONE"
-  },
-  "chapters": [
-    {
-      "variant_id": "ch01_aldridge",
-      "name": "CH_01_NAME",
-      "brief": "brief_ch01",
-      "debrief_full": "debrief_ch01_full",
-      "debrief_partial": "debrief_ch01_partial",
-      "playable": true
-    },
-    {
-      "variant_id": "ch02_neighbor",
-      "name": "CH_02_NAME",
-      "playable": true,
-      "brief": "brief_ch02_neighbor",
-      "debrief_full": "debrief_ch02_neighbor_full",
-      "debrief_partial": "debrief_ch02_neighbor_partial"
-    },
-    {
-      "variant_id": "ch03_playground",
-      "name": "CH_03_NAME",
-      "playable": true,
-      "brief": "brief_ch03_playground",
-      "debrief_full": "debrief_ch03_playground_full",
-      "debrief_partial": "debrief_ch03_playground_partial"
-    },
-    {
-      "variant_id": "ch04_flooded",
-      "name": "CH_04_NAME",
-      "playable": true,
-      "brief": "brief_ch04_flooded",
-      "debrief_full": "debrief_ch04_flooded_full",
-      "debrief_partial": "debrief_ch04_flooded_partial"
-    },
-    {
-      "variant_id": "ch05_greenhouse",
-      "name": "CH_05_NAME",
-      "playable": true,
-      "brief": "brief_ch05_greenhouse",
-      "debrief_full": "debrief_ch05_greenhouse_full",
-      "debrief_partial": "debrief_ch05_greenhouse_partial"
-    },
-    {
-      "variant_id": "ch06_watertower",
-      "name": "CH_06_NAME",
-      "playable": true,
-      "brief": "brief_ch06_watertower",
-      "debrief_full": "debrief_ch06_watertower_full",
-      "debrief_partial": "debrief_ch06_watertower_partial"
-    },
-    {
-      "variant_id": "ch07_mill",
-      "name": "CH_07_NAME",
-      "playable": true,
-      "brief": "brief_ch07_mill",
-      "debrief_full": "debrief_ch07_mill_full",
-      "debrief_partial": "debrief_ch07_mill_partial"
-    },
-    {
-      "variant_id": "ch08_cellar",
-      "name": "CH_08_NAME",
-      "playable": true,
-      "brief": "brief_ch08_cellar",
-      "debrief_full": "debrief_ch08_cellar_full",
-      "debrief_partial": "debrief_ch08_cellar_partial"
-    }
-  ],
-  "town": {
-    "title": "TOWN_TITLE",
-    "back": "UI_BACK",
-    "people": [
-      {
-        "id": "marshal",
-        "name": "CHAR_MARSHAL",
-        "role": "ROLE_MARSHAL"
-      },
-      {
-        "id": "sarah",
-        "name": "CHAR_SARAH",
-        "role": "ROLE_SARAH"
-      },
-      {
-        "id": "gus",
-        "name": "CHAR_GUS",
-        "role": "ROLE_GUS"
-      },
-      {
-        "id": "cole",
-        "name": "CHAR_COLE",
-        "role": "ROLE_COLE"
-      },
-      {
-        "id": "ellie",
-        "name": "CHAR_ELLIE",
-        "role": "ROLE_ELLIE",
-        "requires_done": 8
-      },
-      {
-        "id": "stranger",
-        "name": "CHAR_STRANGER",
-        "role": "ROLE_STRANGER"
-      }
-    ]
-  },
-  "board": {
-    "hint": "BOARD_HINT",
-    "final_note": "NOTE_FINAL",
-    "pins": [
-      {
-        "chapter": "ch01_aldridge",
-        "x": 0.16,
-        "y": 0.1,
-        "x2": 0.44,
-        "y2": 0.06
-      },
-      {
-        "chapter": "ch02_neighbor",
-        "x": 0.74,
-        "y": 0.09,
-        "x2": 0.88,
-        "y2": 0.22,
-        "note": "NOTE_CH02"
-      },
-      {
-        "chapter": "ch03_playground",
-        "x": 0.2,
-        "y": 0.28,
-        "x2": 0.5,
-        "y2": 0.25,
-        "note": "NOTE_CH03"
-      },
-      {
-        "chapter": "ch04_flooded",
-        "x": 0.8,
-        "y": 0.38,
-        "x2": 0.58,
-        "y2": 0.44,
-        "note": "NOTE_CH04"
-      },
-      {
-        "chapter": "ch05_greenhouse",
-        "x": 0.16,
-        "y": 0.47,
-        "x2": 0.34,
-        "y2": 0.56,
-        "note": "NOTE_CH05"
-      },
-      {
-        "chapter": "ch06_watertower",
-        "x": 0.72,
-        "y": 0.58,
-        "x2": 0.86,
-        "y2": 0.68,
-        "note": "NOTE_CH06"
-      },
-      {
-        "chapter": "ch07_mill",
-        "x": 0.24,
-        "y": 0.7,
-        "x2": 0.48,
-        "y2": 0.76,
-        "note": "NOTE_CH07"
-      },
-      {
-        "chapter": "ch08_cellar",
-        "x": 0.66,
-        "y": 0.84,
-        "x2": 0.34,
-        "y2": 0.88,
-        "note": "NOTE_CH08"
-      }
-    ]
-  },
-  "case_02": {
-    "id": "CASE_02_ID",
-    "title": "CASE_02_TITLE",
-    "objective": "CASE_02_OBJECTIVE",
-    "teaser_image": "hub/case2_teaser",
-    "locked_note": "CASE_02_LOCKED",
-    "chapters": [
-      {
-        "variant_id": "ch09_radio_room",
-        "name": "CH_09_NAME",
-        "brief": "brief_ch09",
-        "debrief_full": "debrief_ch09_full",
-        "debrief_partial": "debrief_ch09_partial",
-        "playable": true
-      },
-      {
-        "variant_id": "ch10_relay_hill",
-        "name": "CH_10_NAME",
-        "brief": "brief_ch10",
-        "debrief_full": "debrief_ch10_full",
-        "debrief_partial": "debrief_ch10_partial",
-        "playable": true
-      },
-      {
-        "variant_id": "ch11_orchard",
-        "name": "CH_11_NAME",
-        "brief": "brief_ch11",
-        "debrief_full": "debrief_ch11_full",
-        "debrief_partial": "debrief_ch11_partial",
-        "playable": true
-      },
-      {
-        "variant_id": "ch12_river_crossing",
-        "name": "CH_12_NAME",
-        "brief": "brief_ch12",
-        "debrief_full": "debrief_ch12_full",
-        "debrief_partial": "debrief_ch12_partial",
-        "playable": true
-      },
-      {
-        "variant_id": "ch13_roadside_camp",
-        "name": "CH_13_NAME",
-        "brief": "brief_ch13",
-        "debrief_full": "debrief_ch13_full",
-        "debrief_partial": "debrief_ch13_partial",
-        "playable": true
-      },
-      {
-        "variant_id": "ch14_listening_post",
-        "name": "CH_14_NAME",
-        "brief": "brief_ch14",
-        "debrief_full": "debrief_ch14_full",
-        "debrief_partial": "debrief_ch14_partial",
-        "playable": true
-      },
-      {
-        "variant_id": "ch15_old_clinic",
-        "name": "CH_15_NAME",
-        "brief": "brief_ch15",
-        "debrief_full": "debrief_ch15_full",
-        "debrief_partial": "debrief_ch15_partial",
-        "playable": true,
-        "quiet_scene": "toll"
-      },
-      {
-        "variant_id": "ch16_meeting_stone",
-        "name": "CH_16_NAME",
-        "brief": "brief_ch16",
-        "debrief_full": "debrief_ch16_full",
-        "debrief_partial": "debrief_ch16_partial",
-        "playable": true
-      },
-      {
-        "variant_id": "ch17_signal_garden",
-        "name": "CH_17_NAME",
-        "brief": "brief_ch17",
-        "debrief_full": "debrief_ch17_full",
-        "debrief_partial": "debrief_ch17_partial",
-        "playable": true
-      },
-      {
-        "variant_id": "ch18_long_road_home",
-        "name": "CH_18_NAME",
-        "brief": "brief_ch18",
-        "debrief_full": "debrief_ch18_full",
-        "debrief_partial": "debrief_ch18_partial",
-        "playable": true
-      }
-    ],
-    "_comment": "Case 02, THREE ACTS. Act 1 (ch09-ch11) is the break from town and plays on the town map's own pins; Act 2 (ch12-ch15) is the road east and plays on the world map; Act 3 (ch16-ch18) is the confrontation. The list grows one act per commit.",
-    "hud_line": "CASE_02_HUD_LINE"
-  },
-  "echoes": {
-    "title": "ECHOES_TITLE",
-    "empty": "ECHOES_EMPTY",
-    "header": "ECHOES_HEADER"
-  },
-  "restore": {
-    "title": "RESTORE_TITLE",
-    "done": "RESTORE_DONE",
-    "buy": "RESTORE_BUY",
-    "confirm": "RESTORE_CONFIRM",
-    "locked_note": "RESTORE_POOR"
-  },
-  "quiet_scenes": {
-    "_comment": "Scenes the player watches rather than plays. The template is scripts/quiet_scene.gd; everything specific to a scene lives here.",
-    "toll": {
-      "dialogue": "quiet_toll",
-      "after_dialogue": "quiet_toll_after",
-      "backdrop": "road_silhouettes",
-      "consequence": "scrap_toll"
-    }
-  },
-  "east_road": {
-    "_comment": "Case 02 Act 2 onward: the chapters are stops on a road east, not pins on the town sheet. x/y are fractions of the world sheet.",
-    "title": "EAST_ROAD_TITLE",
-    "sub": "EAST_ROAD_SUB",
-    "pins": [
-      {
-        "chapter": "ch12_river_crossing",
-        "x": 0.578,
-        "y": 0.47
-      },
-      {
-        "chapter": "ch13_roadside_camp",
-        "x": 0.648,
-        "y": 0.424
-      },
-      {
-        "chapter": "ch14_listening_post",
-        "x": 0.716,
-        "y": 0.484
-      },
-      {
-        "chapter": "ch15_old_clinic",
-        "x": 0.788,
-        "y": 0.428
-      },
-      {
-        "chapter": "ch16_meeting_stone",
-        "x": 0.858,
-        "y": 0.494
-      },
-      {
-        "chapter": "ch17_signal_garden",
-        "x": 0.93,
-        "y": 0.44
-      }
-    ]
-  },
-  "case_03": {
-    "id": "CASE_03_ID",
-    "title": "CASE_03_TITLE",
-    "objective": "CASE_03_OBJECTIVE",
-    "locked_note": "CASE_03_LOCKED",
-    "chapters": [],
-    "_comment": "Skeleton only (G13), the same shape Case 02 was left in by G11: the keys exist so the shape of what follows is visible in the data."
-  }
+	"_comment": "STRUCTURE ONLY. Every text field below is a TRANSLATION KEY, not a sentence - the sentences live in i18n/strings.csv, one column per language. Adding a language means adding a column there, never editing this file. Image names, emoji and ids are not translated and stay literal here.",
+	"intro": {
+		"cards": [
+			{
+				"image": "intro/intro_1",
+				"lines": [
+					"INTRO_01_L1",
+					"INTRO_01_L2"
+				]
+			},
+			{
+				"image": "intro/intro_2",
+				"lines": [
+					"INTRO_02_L1",
+					"INTRO_02_L2"
+				]
+			},
+			{
+				"image": "intro/intro_2b",
+				"fallback_image": "intro/intro_2",
+				"ken_burns": "reverse",
+				"lines": [
+					"INTRO_2B_L1",
+					"INTRO_2B_L2"
+				]
+			},
+			{
+				"image": "intro/intro_3",
+				"lines": [
+					"INTRO_03_L1",
+					"INTRO_03_L2"
+				]
+			},
+			{
+				"image": "portraits/ellie",
+				"poster": true,
+				"lines": [
+					"ALERT_TITLE",
+					"ALERT_LINE"
+				]
+			}
+		],
+		"skip_hint": "INTRO_SKIP_HINT"
+	},
+	"case": {
+		"id": "CASE_01_ID",
+		"title": "CASE_01_TITLE",
+		"objective": "CASE_01_OBJECTIVE",
+		"hud_line": "CASE_01_HUD_LINE"
+	},
+	"opening": {
+		"headline": "OPENING_01_HEADLINE",
+		"subline": "OPENING_01_SUBLINE"
+	},
+	"evidence": {
+		"card_header": "EVIDENCE_CARD_HEADER",
+		"counter_label": "EVIDENCE_COUNTER_LABEL",
+		"items": [
+			{
+				"emoji": "🧸",
+				"name": "EVIDENCE_TOY_NAME",
+				"line": "EVIDENCE_TOY_LINE"
+			},
+			{
+				"emoji": "📻",
+				"name": "EVIDENCE_RADIO_NAME",
+				"line": "EVIDENCE_RADIO_LINE"
+			}
+		]
+	},
+	"complete": {
+		"title": "COMPLETE_01_TITLE",
+		"notes_header": "COMPLETE_NOTES_HEADER",
+		"notes_full": "COMPLETE_01_NOTES_FULL",
+		"notes_partial": "COMPLETE_01_NOTES_PARTIAL",
+		"incomplete": "COMPLETE_01_INCOMPLETE",
+		"teaser_title": "COMPLETE_01_TEASER_TITLE",
+		"teaser_line": "COMPLETE_01_TEASER_LINE",
+		"teaser_locked": "COMPLETE_TEASER_LOCKED",
+		"return": "UI_RETURN_TOWN",
+		"case_done": "CASE_01_COMPLETE"
+	},
+	"hub": {
+		"progress": "HUB_PROGRESS",
+		"tiles": [
+			{
+				"id": "case_board",
+				"label": "HUB_CASE_BOARD",
+				"hint": "HUB_CASE_BOARD_HINT",
+				"locked": false
+			},
+			{
+				"id": "map",
+				"label": "HUB_MAP",
+				"hint": "HUB_MAP_HINT",
+				"locked": false
+			},
+			{
+				"id": "town",
+				"label": "HUB_TOWN",
+				"hint": "HUB_TOWN_HINT",
+				"locked": false
+			},
+			{
+				"id": "restore",
+				"label": "HUB_RESTORE",
+				"hint": "HUB_RESTORE_HINT",
+				"locked": false
+			},
+			{
+				"id": "workshop",
+				"label": "HUB_WORKSHOP",
+				"hint": "HUB_WORKSHOP_HINT2",
+				"locked": false
+			},
+			{
+				"id": "echoes",
+				"label": "HUB_ECHOES",
+				"hint": "HUB_ECHOES_HINT",
+				"locked": false
+			}
+		],
+		"locked_note": "HUB_LOCKED",
+		"background": "hub/town_square"
+	},
+	"case_board": {
+		"title": "CASEBOARD_TITLE",
+		"back": "UI_BACK",
+		"evidence": "CASEBOARD_EVIDENCE",
+		"locked": "CASEBOARD_LOCKED",
+		"active": "CASEBOARD_ACTIVE",
+		"done": "CASEBOARD_DONE"
+	},
+	"chapters": [
+		{
+			"variant_id": "ch01_aldridge",
+			"name": "CH_01_NAME",
+			"brief": "brief_ch01",
+			"debrief_full": "debrief_ch01_full",
+			"debrief_partial": "debrief_ch01_partial",
+			"playable": true
+		},
+		{
+			"variant_id": "ch02_neighbor",
+			"name": "CH_02_NAME",
+			"playable": true,
+			"brief": "brief_ch02_neighbor",
+			"debrief_full": "debrief_ch02_neighbor_full",
+			"debrief_partial": "debrief_ch02_neighbor_partial"
+		},
+		{
+			"variant_id": "ch03_playground",
+			"name": "CH_03_NAME",
+			"playable": true,
+			"brief": "brief_ch03_playground",
+			"debrief_full": "debrief_ch03_playground_full",
+			"debrief_partial": "debrief_ch03_playground_partial"
+		},
+		{
+			"variant_id": "ch04_flooded",
+			"name": "CH_04_NAME",
+			"playable": true,
+			"brief": "brief_ch04_flooded",
+			"debrief_full": "debrief_ch04_flooded_full",
+			"debrief_partial": "debrief_ch04_flooded_partial"
+		},
+		{
+			"variant_id": "ch05_greenhouse",
+			"name": "CH_05_NAME",
+			"playable": true,
+			"brief": "brief_ch05_greenhouse",
+			"debrief_full": "debrief_ch05_greenhouse_full",
+			"debrief_partial": "debrief_ch05_greenhouse_partial"
+		},
+		{
+			"variant_id": "ch06_watertower",
+			"name": "CH_06_NAME",
+			"playable": true,
+			"brief": "brief_ch06_watertower",
+			"debrief_full": "debrief_ch06_watertower_full",
+			"debrief_partial": "debrief_ch06_watertower_partial"
+		},
+		{
+			"variant_id": "ch07_mill",
+			"name": "CH_07_NAME",
+			"playable": true,
+			"brief": "brief_ch07_mill",
+			"debrief_full": "debrief_ch07_mill_full",
+			"debrief_partial": "debrief_ch07_mill_partial"
+		},
+		{
+			"variant_id": "ch08_cellar",
+			"name": "CH_08_NAME",
+			"playable": true,
+			"brief": "brief_ch08_cellar",
+			"debrief_full": "debrief_ch08_cellar_full",
+			"debrief_partial": "debrief_ch08_cellar_partial"
+		}
+	],
+	"town": {
+		"title": "TOWN_TITLE",
+		"back": "UI_BACK",
+		"people": [
+			{
+				"id": "marshal",
+				"name": "CHAR_MARSHAL",
+				"role": "ROLE_MARSHAL"
+			},
+			{
+				"id": "sarah",
+				"name": "CHAR_SARAH",
+				"role": "ROLE_SARAH"
+			},
+			{
+				"id": "gus",
+				"name": "CHAR_GUS",
+				"role": "ROLE_GUS"
+			},
+			{
+				"id": "cole",
+				"name": "CHAR_COLE",
+				"role": "ROLE_COLE"
+			},
+			{
+				"id": "ellie",
+				"name": "CHAR_ELLIE",
+				"role": "ROLE_ELLIE",
+				"requires_done": 8
+			},
+			{
+				"id": "stranger",
+				"name": "CHAR_STRANGER",
+				"role": "ROLE_STRANGER"
+			}
+		]
+	},
+	"board": {
+		"hint": "BOARD_HINT",
+		"final_note": "NOTE_FINAL",
+		"pins": [
+			{
+				"chapter": "ch01_aldridge",
+				"x": 0.16,
+				"y": 0.1,
+				"x2": 0.44,
+				"y2": 0.06
+			},
+			{
+				"chapter": "ch02_neighbor",
+				"x": 0.74,
+				"y": 0.09,
+				"x2": 0.88,
+				"y2": 0.22,
+				"note": "NOTE_CH02"
+			},
+			{
+				"chapter": "ch03_playground",
+				"x": 0.2,
+				"y": 0.28,
+				"x2": 0.5,
+				"y2": 0.25,
+				"note": "NOTE_CH03"
+			},
+			{
+				"chapter": "ch04_flooded",
+				"x": 0.8,
+				"y": 0.38,
+				"x2": 0.58,
+				"y2": 0.44,
+				"note": "NOTE_CH04"
+			},
+			{
+				"chapter": "ch05_greenhouse",
+				"x": 0.16,
+				"y": 0.47,
+				"x2": 0.34,
+				"y2": 0.56,
+				"note": "NOTE_CH05"
+			},
+			{
+				"chapter": "ch06_watertower",
+				"x": 0.72,
+				"y": 0.58,
+				"x2": 0.86,
+				"y2": 0.68,
+				"note": "NOTE_CH06"
+			},
+			{
+				"chapter": "ch07_mill",
+				"x": 0.24,
+				"y": 0.7,
+				"x2": 0.48,
+				"y2": 0.76,
+				"note": "NOTE_CH07"
+			},
+			{
+				"chapter": "ch08_cellar",
+				"x": 0.66,
+				"y": 0.84,
+				"x2": 0.34,
+				"y2": 0.88,
+				"note": "NOTE_CH08"
+			}
+		]
+	},
+	"case_02": {
+		"id": "CASE_02_ID",
+		"title": "CASE_02_TITLE",
+		"objective": "CASE_02_OBJECTIVE",
+		"teaser_image": "hub/case2_teaser",
+		"locked_note": "CASE_02_LOCKED",
+		"chapters": [
+			{
+				"variant_id": "ch09_radio_room",
+				"name": "CH_09_NAME",
+				"brief": "brief_ch09",
+				"debrief_full": "debrief_ch09_full",
+				"debrief_partial": "debrief_ch09_partial",
+				"playable": true
+			},
+			{
+				"variant_id": "ch10_relay_hill",
+				"name": "CH_10_NAME",
+				"brief": "brief_ch10",
+				"debrief_full": "debrief_ch10_full",
+				"debrief_partial": "debrief_ch10_partial",
+				"playable": true
+			},
+			{
+				"variant_id": "ch11_orchard",
+				"name": "CH_11_NAME",
+				"brief": "brief_ch11",
+				"debrief_full": "debrief_ch11_full",
+				"debrief_partial": "debrief_ch11_partial",
+				"playable": true
+			},
+			{
+				"variant_id": "ch12_river_crossing",
+				"name": "CH_12_NAME",
+				"brief": "brief_ch12",
+				"debrief_full": "debrief_ch12_full",
+				"debrief_partial": "debrief_ch12_partial",
+				"playable": true
+			},
+			{
+				"variant_id": "ch13_roadside_camp",
+				"name": "CH_13_NAME",
+				"brief": "brief_ch13",
+				"debrief_full": "debrief_ch13_full",
+				"debrief_partial": "debrief_ch13_partial",
+				"playable": true
+			},
+			{
+				"variant_id": "ch14_listening_post",
+				"name": "CH_14_NAME",
+				"brief": "brief_ch14",
+				"debrief_full": "debrief_ch14_full",
+				"debrief_partial": "debrief_ch14_partial",
+				"playable": true
+			},
+			{
+				"variant_id": "ch15_old_clinic",
+				"name": "CH_15_NAME",
+				"brief": "brief_ch15",
+				"debrief_full": "debrief_ch15_full",
+				"debrief_partial": "debrief_ch15_partial",
+				"playable": true,
+				"quiet_scene": "toll"
+			},
+			{
+				"variant_id": "ch16_meeting_stone",
+				"name": "CH_16_NAME",
+				"brief": "brief_ch16",
+				"debrief_full": "debrief_ch16_full",
+				"debrief_partial": "debrief_ch16_partial",
+				"playable": true
+			},
+			{
+				"variant_id": "ch17_signal_garden",
+				"name": "CH_17_NAME",
+				"brief": "brief_ch17",
+				"debrief_full": "debrief_ch17_full",
+				"debrief_partial": "debrief_ch17_partial",
+				"playable": true
+			},
+			{
+				"variant_id": "ch18_long_road_home",
+				"name": "CH_18_NAME",
+				"brief": "brief_ch18",
+				"debrief_full": "debrief_ch18_full",
+				"debrief_partial": "debrief_ch18_partial",
+				"playable": true
+			}
+		],
+		"_comment": "Case 02, THREE ACTS. Act 1 (ch09-ch11) is the break from town and plays on the town map's own pins; Act 2 (ch12-ch15) is the road east and plays on the world map; Act 3 (ch16-ch18) is the confrontation. The list grows one act per commit.",
+		"hud_line": "CASE_02_HUD_LINE"
+	},
+	"echoes": {
+		"title": "ECHOES_TITLE",
+		"empty": "ECHOES_EMPTY",
+		"header": "ECHOES_HEADER"
+	},
+	"restore": {
+		"title": "RESTORE_TITLE",
+		"done": "RESTORE_DONE",
+		"buy": "RESTORE_BUY",
+		"confirm": "RESTORE_CONFIRM",
+		"locked_note": "RESTORE_POOR"
+	},
+	"quiet_scenes": {
+		"_comment": "Scenes the player watches rather than plays. The template is scripts/quiet_scene.gd; everything specific to a scene lives here.",
+		"toll": {
+			"dialogue": "quiet_toll",
+			"after_dialogue": "quiet_toll_after",
+			"backdrop": "road_silhouettes",
+			"consequence": "scrap_toll"
+		}
+	},
+	"east_road": {
+		"_comment": "Case 02 Act 2 onward: the chapters are stops on a road east, not pins on the town sheet. x/y are fractions of the world sheet.",
+		"title": "EAST_ROAD_TITLE",
+		"sub": "EAST_ROAD_SUB",
+		"pins": [
+			{
+				"chapter": "ch12_river_crossing",
+				"x": 0.578,
+				"y": 0.47
+			},
+			{
+				"chapter": "ch13_roadside_camp",
+				"x": 0.648,
+				"y": 0.424
+			},
+			{
+				"chapter": "ch14_listening_post",
+				"x": 0.716,
+				"y": 0.484
+			},
+			{
+				"chapter": "ch15_old_clinic",
+				"x": 0.788,
+				"y": 0.428
+			},
+			{
+				"chapter": "ch16_meeting_stone",
+				"x": 0.858,
+				"y": 0.494
+			},
+			{
+				"chapter": "ch17_signal_garden",
+				"x": 0.93,
+				"y": 0.44
+			}
+		]
+	},
+	"case_03": {
+		"id": "CASE_03_ID",
+		"title": "CASE_03_TITLE",
+		"objective": "CASE_03_OBJECTIVE",
+		"locked_note": "CASE_03_LOCKED",
+		"chapters": [],
+		"_comment": "Skeleton only (G13), the same shape Case 02 was left in by G11: the keys exist so the shape of what follows is visible in the data."
+	}
 }

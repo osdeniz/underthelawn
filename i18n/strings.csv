@@ -45,6 +45,8 @@ UI_RETURN_TOWN,RETURN TO TOWN,KASABAYA DÖN
 HUB_PROGRESS,{case} · {done}/{total},{case} · {done}/{total}
 HUB_CASE_BOARD,CASE BOARD,VAKA PANOSU
 HUB_CASE_BOARD_HINT,Pick where to search next.,Sıradaki arama yerini seç.
+HUB_MAP,MAP,HARİTA
+HUB_MAP_HINT,Where Ellie went. Pick where to search next.,Ellie nereye gitti. Sonraki aramayı seç.
 HUB_TOWN,TOWN,KASABA
 HUB_TOWN_HINT,See who's still around.,Kimler kalmış bir bak.
 HUB_WORKSHOP,WORKSHOP,ATÖLYE
