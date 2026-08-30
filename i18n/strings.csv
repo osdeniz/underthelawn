@@ -196,6 +196,10 @@ WS_CONFIRM_UNLOCK,Unlock {name} for {cost}?,{name} {cost} karşılığında aç�
 WS_CONFIRM_UPGRADE,Upgrade {name} for {cost}?,{name} {cost} karşılığında geliştirilsin mi?
 WS_EFFECT_SPEED,+{pct}% speed,+%{pct} hız
 WS_EFFECT_BLADE,"Bigger disk, wider cut","Daha büyük disk, daha geniş kesim"
+WS_STAT_SPEED,SPEED,HIZ
+WS_STAT_CUT,CUT WIDTH,KESİM
+WS_STAT_TIER,UPGRADES,GELİŞTİRME
+WS_NOT_ENOUGH,Not enough scrap,Hurda yetmiyor
 WS_BUY,BUY,SATIN AL
 WS_CANCEL,CANCEL,VAZGEÇ
 DLG_WS_GUS_0,"Welcome to the mess. Everything here runs, eventually.","Dağınıklığa hoş geldin. Buradaki her şey çalışır, eninde sonunda."

@@ -145,8 +145,21 @@ static func current_variant_id() -> String:
 	return first_playable
 
 
+## Clears EVERY chapter, in both cases, whether or not Case 02 is currently
+## open.
+##
+## It used to iterate chapters(), which hides Case 02 until Case 01 closes. So
+## resetting while Case 02 was shut left its records standing, and they came
+## back as "done" the moment the case opened — three Case 02 objectives paying
+## out to a player who had not played them. It surfaced as one test in the
+## suite failing only when another test ran before it, which is exactly how a
+## bug like this stays hidden: reset() looked like it worked because the caller
+## usually happened to be looking at Case 01.
+##
+## Reset means no chapter is done. It should not depend on what is on screen.
 static func reset() -> void:
-	for chapter: Dictionary in chapters():
+	for chapter: Dictionary in Story.list("chapters") \
+			+ Story.list("case_02.chapters"):
 		var id := str(chapter.get("variant_id", ""))
 		GameState.set_setting(SECTION, id + "_done", false)
 		GameState.set_setting(SECTION, id + "_evidence", 0)

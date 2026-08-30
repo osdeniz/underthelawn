@@ -191,8 +191,19 @@ func _warm_chapter_shaders(announce: bool) -> void:
 	add_child(warm)
 	# DRAWN, not merely built: compilation happens when the frame is rendered,
 	# so building it and freeing it in the same breath would warm nothing.
+	#
+	# Except where there is nothing to draw with. Under --headless the display
+	# driver is a stub and RenderingServer.frame_post_draw NEVER fires — not
+	# late, not once: never. Awaiting it there is an unconditional deadlock,
+	# and it silently hung every headless test that reached this function.
+	# There are no shaders to warm on a stub renderer anyway, so the frame
+	# counter is both the correct wait and a harmless one.
+	var headless := DisplayServer.get_name() == "headless"
 	for _i in 4:
-		await RenderingServer.frame_post_draw
+		if headless:
+			await get_tree().process_frame
+		else:
+			await RenderingServer.frame_post_draw
 	if is_instance_valid(warm):
 		# STOP it before restoring, and wait for it to actually leave.
 		#

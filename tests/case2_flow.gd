@@ -474,6 +474,31 @@ func _check_ending_cards_dismiss(method: String) -> void:
 	ck("%s bolum sahnesini kapatti" % method,
 		root.get_node_or_null("Main") == null, "")
 
+	# Both cards take their tap in _gui_input, which is correct — that is the
+	# stage a real touch on a device arrives at, and moving them there is what
+	# fixed the bug where the card ignored every tap (G13).
+	#
+	# It also means this assertion cannot run under --headless. With the stub
+	# display driver the viewport's GUI picking stage never runs: a touch from
+	# push_input reaches _unhandled_input and NEVER reaches _gui_input. Probed
+	# directly, a bare Control with MOUSE_FILTER_STOP filling the screen counts
+	# six _unhandled_input events and zero _gui_input ones.
+	#
+	# So headless checks what it honestly can — that the card is a live, opaque
+	# Control with a tap handler and nothing of the chapter left on top of it —
+	# and says out loud that the tap itself went unverified. It does NOT call
+	# _gui_input by hand: driving the handler directly is how this suite talked
+	# itself into believing the card worked the first time round.
+	if DisplayServer.get_name() == "headless":
+		ck("%s karti dokunusa acik" % method,
+			(card as Control).mouse_filter == Control.MOUSE_FILTER_STOP
+				and (card as Control).is_visible_in_tree()
+				and card.has_method("_gui_input"), "")
+		print("  ATLANDI %s dokunus: headless'ta GUI yonlendirmesi yok" % method)
+		root.queue_free()
+		await settle(0.4)
+		return
+
 	# Tap when the card is READY, not on a stopwatch. Both cards ignore input
 	# while a page transition is running — the reunion card fades for 0.4 s and
 	# then locks for another 0.5 — so a fixed interval silently drops taps and

@@ -6,11 +6,24 @@ var _fails := 0
 
 func _ready() -> void:
 	GameState.set_setting("meta", "orientation_done", true)
+	# EVERY input an objective can be built from, not just the three this file
+	# used to clear.
+	#
+	# Objectives resolve against chapter, chapters, restore, garage, projects
+	# and harvest. Clearing only the first three left the rest holding whatever
+	# the previously-run test happened to set, and the suite is a single
+	# process family writing one real save — so run alone this file passed, and
+	# run after its neighbours three objectives were already satisfied and
+	# collect() paid out 2000 scrap the test had not asked for. A test that
+	# depends on running first is not passing, it is being lucky.
 	ChapterProgress.reset()
 	RestoreBoard.reset()
 	Objectives.reset()
+	Garage.reset()
 	GameState.set_setting("harvest", "runs", 0)
 	GameState.set_setting("harvest", "since_chapter", 0)
+	GameState.set_setting("restore", "farm", false)
+	GameState.set_setting("garage", "tractor_unlocked", false)
 
 	# --- the file itself
 	ck("gorevler tanimli", Objectives.all().size() >= 3,

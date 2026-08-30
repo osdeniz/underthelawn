@@ -1036,10 +1036,14 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 
 func _shake(control: Control) -> void:
 	var home := control.position
-	var tw := create_tween()
+	# Owned by the control, so a refresh that rebuilds the row takes the tween
+	# with it rather than leaving it writing to a freed node.
+	var tw := control.create_tween()
 	for offset: float in [16.0, -12.0, 8.0, -4.0, 0.0]:
 		tw.tween_property(control, "position", home + Vector2(offset, 0.0), 0.055)
-	tw.tween_callback(func() -> void: control.position = home)
+	tw.tween_callback(func() -> void:
+		if is_instance_valid(control):
+			control.position = home)
 
 
 # ---------------------------------------------------------------- restore (G12.6)
