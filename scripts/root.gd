@@ -53,6 +53,13 @@ func _ready() -> void:
 ## no deliberate way to start over, and no home for Settings. This is that
 ## screen, shown before anything else, every launch.
 func _show_main_menu() -> void:
+	# The theme starts HERE, on the first thing the player sees, not after they
+	# have chosen something. It used to begin in _begin_after_menu, so the menu
+	# — the screen carrying the cover art — was the one silent screen in the
+	# game. play_theme is idempotent: it returns early if the same stream is
+	# already playing, so the later call on the way into a chapter is a no-op
+	# and the music runs unbroken across the transition.
+	AudioDirector.play_theme()
 	var layer := CanvasLayer.new()
 	layer.layer = 45
 	add_child(layer)
