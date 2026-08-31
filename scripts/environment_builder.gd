@@ -526,6 +526,91 @@ func _build_open_country() -> void:
 		stubble, Vector3(0.0, -0.03, 6.0 + rng.randf_range(-16.0, -26.0)))
 	track.rotation.y = rng.randf_range(-0.05, 0.05)
 
+	_build_neighbour_crop(country, rng)
+
+
+## The next field along, standing uncut.
+##
+## Bare furrows told the player the land was empty; what it should say is that
+## the crop continues and this part is not theirs to cut. So the ring outside
+## the fence grows the SAME plant the yard does — wheat around wheat, corn
+## around corn — from the same cluster mesh the mowable field is built from,
+## which is why it matches without a second source of truth for what wheat
+## looks like.
+##
+## Three things keep it cheap:
+##   - MultiMesh, so the whole ring is one draw call per palette variant.
+##   - NO WIND. The mowable crop sways; this does not. The shader is the same
+##     one with its amplitude at zero, which costs nothing per frame and means
+##     the ring is static geometry the renderer can leave alone.
+##   - A BAND, not a plain. It reaches ten metres past the fence and stops:
+##     from a camera down at mower height that is already the horizon, and
+##     everything beyond it was never visible anyway.
+func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
+	var variants: Array = GameConfig.clump_variants()
+	if variants.is_empty():
+		return
+	var still := ShaderMaterial.new()
+	still.shader = load("res://shaders/grass_clump.gdshader")
+	still.set_shader_parameter("wind_amplitude", 0.0)
+	still.set_shader_parameter("wind_speed", 0.0)
+
+	var spots: Array[Array] = []
+	var meshes: Array[Mesh] = []
+	for v in variants.size():
+		spots.append([])
+		var mesh_rng := RandomNumberGenerator.new()
+		mesh_rng.seed = 4400 + v * 7919
+		meshes.append(TuftField.cluster_mesh(mesh_rng, v))
+
+	# The ring: everything inside the band except the ground the player mows.
+	# Density is bought with SCALE, not with more instances. At one clump per
+	# 1.5 m the furrows showed through and it read as scattered tufts rather
+	# than a standing crop; the clumps are half again as large now and packed a
+	# little tighter, which closes the gaps for the same triangle budget.
+	var band := 9.0
+	var step := 1.2
+	var keep_out_x := GameConfig.HALF_X + 1.6
+	var keep_out_z := GameConfig.HALF_Z + 1.6
+	var x := -(GameConfig.HALF_X + band)
+	while x <= GameConfig.HALF_X + band:
+		var z := -(GameConfig.HALF_Z + band)
+		while z <= GameConfig.HALF_Z + band:
+			if absf(x) > keep_out_x or absf(z) > keep_out_z:
+				# Thin out with distance. From a camera at mower height the far
+				# half of the band is a texture behind the near half, so it is
+				# paid for and never really seen; the near rows stay solid and
+				# the outer ones drop to about a third.
+				var out_by := maxf(absf(x) - keep_out_x, absf(z) - keep_out_z)
+				var keep := 1.0 - 0.68 * clampf(out_by / band, 0.0, 1.0)
+				if rng.randf() > keep:
+					z += step
+					continue
+				var at := Vector3(x + rng.randf_range(-0.4, 0.4), 0.0,
+					z + rng.randf_range(-0.4, 0.4))
+				var basis := Basis(Vector3.UP, rng.randf() * TAU)
+				basis = basis.scaled(Vector3.ONE * rng.randf_range(1.25, 1.65))
+				(spots[rng.randi() % variants.size()] as Array).append(
+					Transform3D(basis, at))
+			z += step
+		x += step
+
+	for v in variants.size():
+		if (spots[v] as Array).is_empty() or meshes[v] == null:
+			continue
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = meshes[v]
+		mm.instance_count = (spots[v] as Array).size()
+		for i in (spots[v] as Array).size():
+			mm.set_instance_transform(i, (spots[v] as Array)[i] as Transform3D)
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "NeighbourCrop%d" % v
+		mmi.multimesh = mm
+		mmi.material_override = still
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		parent.add_child(mmi)
+
 
 # ---------------------------------------------------------------- fence (§12)
 
