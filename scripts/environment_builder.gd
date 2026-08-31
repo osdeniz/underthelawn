@@ -38,9 +38,18 @@ func _ready() -> void:
 	_build_obstacle_props()
 	_build_fence()
 	_build_trees()
-	_build_road()
-	_build_cars()
-	_build_neighbors()
+	# A harvest field stands in farmland, not on a street. The neighbours, the
+	# road and the parked cars belong to a suburb, and around a wheat field they
+	# read as somebody's cul-de-sac with a crop dropped into it. Skipping them
+	# is also the cheapest thing in this file: they are most of the yard's mesh
+	# count and none of them are load-bearing here.
+	var farmland := _variant != null and _variant.is_harvest()
+	if farmland:
+		_build_open_country()
+	else:
+		_build_road()
+		_build_cars()
+		_build_neighbors()
 	_build_smalls()
 	_build_clouds()
 	# G13.1: distant hills and rooftops in EVERY yard, not just the hub's
@@ -60,7 +69,11 @@ func _ready() -> void:
 	# ground on three sides and the horizon fills everything past it.
 	if GameConfig.SKY_HIGH_CLOUDS_ENABLED:
 		_build_high_clouds()
-	_build_driveways()
+	# No driveways on a farm field either: they are the aprons in front of the
+	# neighbours' garages, and with the houses gone they were two pale slabs
+	# lying in the middle of ploughed land.
+	if not farmland:
+		_build_driveways()
 	_build_traces()
 	# G9.4: random bird chirps are gone from gameplay along with the ambient
 	# loop; birdsong lives on the opening cards only.
@@ -459,6 +472,59 @@ func _layout_rect(obstacle_name: String) -> Rect2:
 		if str(ob["name"]) == obstacle_name:
 			return LawnModel.grid_rect_to_world(ob["grid"])
 	return Rect2()
+
+
+## What sits beyond the fence of a harvest field.
+##
+## Open land, but not a flat brown plane — bare ground out to the horizon reads
+## as missing geometry rather than as farmland, which is exactly how the first
+## attempt looked. What sells it is that real farmland is WORKED: ploughed in
+## strips, with a track running through it, and the strips lie at an angle to
+## whatever you happen to be standing in.
+##
+## Everything here is a flat quad lying on the dirt: about a dozen draw calls
+## for the whole countryside, which matters, because the crop border this
+## replaces cost eight thousand.
+##
+## Height is the thing to get right. The yard's dirt apron sits at y = -0.04
+## and the lawn is drawn above that, so these go at -0.035: over the dirt,
+## under the grass. The first version used -0.06 and the strips were buried
+## under the apron — only the two corners that reached past its edge were
+## visible, as a pair of pale slabs sitting in a brown field.
+func _build_open_country() -> void:
+	var country := Node3D.new()
+	country.name = "OpenCountry"
+	add_child(country)
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = (_variant.decor_seed if _variant != null else 4242) + 5150
+	# Tones taken from the DIRT, not from the grass: these are furrows in the
+	# same soil the apron is made of, and a grass-derived tint read as grey
+	# rectangles dropped on brown.
+	var soil := Color(0.38, 0.28, 0.18)
+	var ploughed := _flat("country_dark", soil.darkened(0.26), 1.0)
+	var stubble := _flat("country_light", soil.lightened(0.16), 1.0)
+
+	# Strips run the depth of the apron, angled a few degrees so they do not
+	# line up with the fence and give the trick away.
+	var depth := 88.0
+	var lean := rng.randf_range(0.09, 0.16)
+	var x := -52.0
+	var band := 0
+	while x < 52.0:
+		var width := rng.randf_range(3.4, 7.5)
+		var strip := _ground_quad(country, Vector2(width, depth),
+			ploughed if band % 2 == 0 else stubble,
+			Vector3(x + width * 0.5, -0.035, 6.0))
+		strip.rotation.y = lean
+		x += width
+		band += 1
+
+	# One track across the land: a farm has a way in, and a single lighter line
+	# breaks the corduroy so it stops reading as a rug.
+	var track := _ground_quad(country, Vector2(96.0, 2.6),
+		stubble, Vector3(0.0, -0.03, 6.0 + rng.randf_range(-16.0, -26.0)))
+	track.rotation.y = rng.randf_range(-0.05, 0.05)
 
 
 # ---------------------------------------------------------------- fence (§12)

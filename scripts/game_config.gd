@@ -371,6 +371,15 @@ const PLANT_PROFILES := {
 		## WEST, away from the road the flavour text says they are following.
 		"head": true, "head_radius": 0.30, "head_yaw": PI * 0.5,
 		"head_petal": Color(0.94, 0.72, 0.16), "head_disc": Color(0.30, 0.20, 0.10),
+		## The stalk and leaves are GREEN, whatever the palette says.
+		##
+		## Stalks and leaves normally take the palette's base->tip gradient, and
+		## on the amber field that made a sunflower amber all the way down —
+		## stalk, leaves and head one colour, which read as a dead crop. Only
+		## the head is meant to be gold. These two override the gradient for
+		## stalk-form plants and leave everything else alone.
+		"stalk_root": Color(0.13, 0.26, 0.09),
+		"stalk_tip": Color(0.42, 0.62, 0.22),
 		"sway": 0.5, "cut_sound": "cut_sunflower", "cut_pitch": 0.92,
 		"clipping_scale": 1.8, "clipping": Color(0.92, 0.74, 0.26),
 	},

@@ -106,7 +106,13 @@ static func _make_cluster(rng: RandomNumberGenerator, variant: int) -> ArrayMesh
 		var clump_h := rng.randf_range(band_split, h_max) \
 			if rng.randf() < tall else rng.randf_range(h_min, band_split)
 		if stalks:
-			_add_stalk(st, rng, center, clump_h, root_col, tip_col)
+			# A stalk plant may say what colour its stem and leaves are, so a
+			# sunflower can stand green in an amber field while its head keeps
+			# the gold. Without the override it took the palette gradient the
+			# whole way up and the crop looked dead.
+			_add_stalk(st, rng, center, clump_h,
+				GameConfig.plant("stalk_root", root_col) as Color,
+				GameConfig.plant("stalk_tip", tip_col) as Color)
 		else:
 			_add_clump(st, rng, center, clump_h, root_col, tip_col, spec["flowers"])
 	return st.commit()
