@@ -97,6 +97,12 @@
 				"locked": false
 			},
 			{
+				"id": "objectives",
+				"label": "OBJ_TITLE",
+				"hint": "HUB_OBJECTIVES_HINT",
+				"locked": false
+			},
+			{
 				"id": "town",
 				"label": "HUB_TOWN",
 				"hint": "HUB_TOWN_HINT",

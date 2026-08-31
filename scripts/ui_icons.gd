@@ -30,6 +30,7 @@ static func for_tile(tile_id: String) -> Texture2D:
 		"case_board": return evidence()
 		"station": return _make("station")
 		"map": return _make("map")
+		"objectives": return _make("objectives")
 		"town": return _make("town")
 		"restore": return _make("restore")
 		"workshop": return _make("workshop")

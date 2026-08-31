@@ -78,12 +78,34 @@ var _diorama: TownDiorama
 ## because a zero-sized viewport is an error rather than a saving.
 const DIORAMA_PARKED_SHRINK := 32
 
+## The case board's three tabs.
+const BOARD_MAP := 0
+const BOARD_EVIDENCE := 1
+const BOARD_PEOPLE := 2
+
 var _diorama_view: SubViewport
 ## The container owning that viewport. stretch = true means IT decides the
 ## render size, so releasing the town's framebuffer goes through stretch_shrink
 ## here rather than through _diorama_view.size (G16).
 var _diorama_frame: SubViewportContainer
 var _diorama_tick := 0
+## The town is LIVE only on the town page. Everywhere else the hub shows a
+## still of it, captured the last time it was live.
+##
+## Measured: the model is 733,270 triangles and 375 draw calls per rendered
+## frame, against 3,762 and 48 for the entire rest of the interface. It was
+## drawing continuously for as long as the hub was on screen — behind the
+## workshop, behind the journal, behind every opaque page — which is 99.5% of
+## the renderer's work spent on a picture that was usually covered.
+var _hub_active := false
+var _page_wants_town := true
+var _diorama_still: TextureRect
+var _still_taken := false
+## Frames the town is allowed to draw for on hub entry so there is something to
+## photograph. Without it the first visit of a session would show the bare
+## ground gradient, because a still cannot be taken of a model that has not
+## been rendered yet.
+var _still_warmup := 0
 ## Which restore card is being held down, if any (G13.5).
 var _peek_wanted := ""
 var _tiles_page: Control
@@ -112,6 +134,10 @@ var _board_tab_places: Button
 ## The two-layer case map (G13.5), which replaced the PLACES list.
 var _map: TownMap
 var _board_tab_evidence: Button
+## The witnesses tab and the column it fills.
+var _board_tab_people: Button
+var _board_people: ScrollContainer
+var _board_people_column: VBoxContainer
 var _scrap_label: Label
 var _restore_page: Control
 var _echoes_page: Control
@@ -408,6 +434,8 @@ func _show_page(page: Control) -> void:
 	# whatever came next.
 	for candidate in _pages():
 		candidate.visible = candidate == page
+	_page_wants_town = page == _town_page
+	_apply_diorama()
 	if page != _tiles_page:
 		page.modulate.a = 0.0
 		var tw := create_tween()
@@ -1019,6 +1047,9 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 			_refresh_case_summary()
 		"map":
 			open_map()
+		"objectives":
+			Analytics.track(AnalyticsEvents.OBJECTIVE_VIEWED, {})
+			_show_page(_objectives_page)
 		"town":
 			_rebuild_town()
 			_show_page(_town_page)
@@ -1243,14 +1274,72 @@ func _process(_delta: float) -> void:
 	if _diorama_view == null:
 		return
 	_diorama_tick += 1
-	if _diorama_tick % 2 == 0:
+	# Every third frame, not every second. The town is a still model with slow
+	# ambient drift; at 60 fps this is 20 redraws a second, and each one is the
+	# most expensive thing the hub does by two orders of magnitude. Nothing in
+	# the diorama moves fast enough for the difference to be visible, and it is
+	# a third off the hub's entire GPU bill.
+	if _diorama_tick % 3 == 0:
 		_diorama_view.render_target_update_mode = SubViewport.UPDATE_ONCE
+	if _still_warmup > 0:
+		_still_warmup -= 1
+		if _still_warmup == 0:
+			_capture_still()
+			_apply_diorama()
 
 
 ## Stops the town rendering while a chapter is being played, and starts it again
 ## on the way back. The hub node stays alive (root only hides it), so without
 ## this the diorama would keep drawing behind the yard (G13 §4).
 func set_diorama_active(active: bool) -> void:
+	_hub_active = active
+	_apply_diorama()
+
+
+## Live only when the hub is on screen AND the page asking for it is the town.
+## Both conditions matter: root turns the hub off for a chapter, and the pages
+## turn it off for each other.
+func _apply_diorama() -> void:
+	var live := _hub_active and _page_wants_town
+	if not live and _hub_active and not _still_taken:
+		# Nothing photographed yet. Let it draw for a few frames first; the
+		# warm-up ends in _process, which captures and then calls back here.
+		_still_warmup = 8
+		live = true
+	elif not live and _hub_active:
+		# Leaving the model: keep what it looked like, so the rest of the hub
+		# still has a town behind it for free.
+		_capture_still()
+	if _diorama_still != null and is_instance_valid(_diorama_still):
+		_diorama_still.visible = _still_taken and not live
+	_set_diorama_live(live)
+
+
+## Grabs the rendered town into a plain texture. An 1170x2532 RGBA8 image is
+## about 12 MB and costs nothing per frame, against a 70 MB framebuffer that
+## has to be redrawn; and the model is still, so a still of it is honest.
+func _capture_still() -> void:
+	if _diorama_view == null or not is_instance_valid(_diorama_view):
+		return
+	if _diorama_frame != null and _diorama_frame.stretch_shrink != 1:
+		return  # already parked and shrunk; nothing worth capturing
+	var image := _diorama_view.get_texture().get_image()
+	if image == null or image.is_empty():
+		return
+	if _diorama_still == null or not is_instance_valid(_diorama_still):
+		_diorama_still = TextureRect.new()
+		_diorama_still.name = "TownStill"
+		_diorama_still.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_diorama_still.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_diorama_still.stretch_mode = TextureRect.STRETCH_SCALE
+		_diorama_still.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_diorama_still)
+		move_child(_diorama_still, _diorama_frame.get_index() + 1)
+	_diorama_still.texture = ImageTexture.create_from_image(image)
+	_still_taken = true
+
+
+func _set_diorama_live(active: bool) -> void:
 	set_process(active and _diorama_view != null)
 	# The case map is the hub's other animated surface — a hand-drawn Control
 	# that repaints the whole town every frame for the breathing pin and the
@@ -1287,6 +1376,8 @@ func _settle_reclaim() -> void:
 	for _i in 8:
 		await get_tree().process_frame
 	await _diorama.play_reclaim_step()
+	# The town changed, so the photograph of it is out of date.
+	_still_taken = false
 	_refresh_progress()
 
 
@@ -1669,13 +1760,33 @@ func _build_board() -> Control:
 	_board_tab_places.text = tr("MAP_TAB")
 	_board_tab_evidence = Button.new()
 	_board_tab_evidence.text = tr("BOARD_TAB_EVIDENCE")
-	for tab: Button in [_board_tab_places, _board_tab_evidence]:
+	_board_tab_people = Button.new()
+	_board_tab_people.text = tr("BOARD_TAB_PEOPLE")
+	for tab: Button in [_board_tab_places, _board_tab_evidence, _board_tab_people]:
 		tab.add_theme_font_size_override("font_size", 34)
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab.custom_minimum_size = Vector2(0, 84)
 		tabs.add_child(tab)
-	_board_tab_places.pressed.connect(func() -> void: _show_board_tab(false))
-	_board_tab_evidence.pressed.connect(func() -> void: _show_board_tab(true))
+	_board_tab_places.pressed.connect(func() -> void: _show_board_tab(BOARD_MAP))
+	_board_tab_evidence.pressed.connect(func() -> void: _show_board_tab(BOARD_EVIDENCE))
+	_board_tab_people.pressed.connect(func() -> void: _show_board_tab(BOARD_PEOPLE))
+
+	# The people who live here, moved off the town page (see _build_town).
+	# A case file keeps its witnesses next to its evidence, not in a separate
+	# building, and the town page is now the town itself.
+	_board_people = ScrollContainer.new()
+	_board_people.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_board_people.offset_left = 50
+	_board_people.offset_right = -50
+	_board_people.offset_top = 366
+	_board_people.offset_bottom = -190
+	_board_people.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_board_people.visible = false
+	page.add_child(_board_people)
+	_board_people_column = VBoxContainer.new()
+	_board_people_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_board_people_column.add_theme_constant_override("separation", 20)
+	_board_people.add_child(_board_people_column)
 	# The two-layer map: the case screen's default view.
 	_map = TownMap.new()
 	_map.name = "CaseMap"
@@ -1706,7 +1817,7 @@ func _on_map_place(variant_id: String) -> void:
 ## A restored building on the map is a shortcut to its screen.
 func _on_map_shortcut(page_id: String) -> void:
 	if page_id == "case_board":
-		_show_board_tab(true)
+		_show_board_tab(BOARD_EVIDENCE)
 		return
 	_on_tile(page_id, false)
 
@@ -1715,28 +1826,35 @@ func _on_map_shortcut(page_id: String) -> void:
 ## chapter-end "next" button so a finished search leads back to the journey.
 func open_map_at(variant_id: String) -> void:
 	_show_page(_ensure_board_page())
-	_show_board_tab(false)
+	_show_board_tab(BOARD_MAP)
 	if _map != null and is_instance_valid(_map):
 		_map.focus_place(variant_id)
 
 
 ## Swaps between the chapter list and the corkboard, restyling the tab pair so
 ## the active one reads pressed.
-func _show_board_tab(evidence: bool) -> void:
+## The case file has three faces: where she went, what was found, and who saw
+## it. `which` is one of BOARD_MAP / BOARD_EVIDENCE / BOARD_PEOPLE.
+func _show_board_tab(which: int) -> void:
 	# Same rule as _refresh_board: refresh() calls this on every hub entry.
 	if _board_page == null or not is_instance_valid(_board_page):
 		return
 	Haptics.light()
-	_board_scroll.visible = evidence
+	_board_scroll.visible = which == BOARD_EVIDENCE
+	if _board_people != null and is_instance_valid(_board_people):
+		_board_people.visible = which == BOARD_PEOPLE
+		if which == BOARD_PEOPLE:
+			_rebuild_people()
 	if _map != null and is_instance_valid(_map):
-		_map.visible = not evidence
-		if not evidence:
+		_map.visible = which == BOARD_MAP
+		if which == BOARD_MAP:
 			_map.refresh()
-	if evidence:
+	if which == BOARD_EVIDENCE:
 		_board_view.refresh()
 	if _board_tab_evidence != null:
-		_style_tab(_board_tab_places, not evidence)
-		_style_tab(_board_tab_evidence, evidence)
+		_style_tab(_board_tab_places, which == BOARD_MAP)
+		_style_tab(_board_tab_evidence, which == BOARD_EVIDENCE)
+		_style_tab(_board_tab_people, which == BOARD_PEOPLE)
 
 
 ## Opens the Journal. Replaces the old flat "echoes" page, whose name told the
@@ -1750,9 +1868,15 @@ func open_journal() -> void:
 		return
 	_journal = JournalScreen.new()
 	add_child(_journal)
+	# The Journal is an OPAQUE full-screen page. Measured with it open, the
+	# diorama behind it was still drawing 737,808 triangles and 414 draw calls
+	# a frame for a picture nobody can see — 99.5% of everything the renderer
+	# was doing, spent on a hidden model. Park it while the page is up.
+	set_diorama_active(false)
 	_journal.closed.connect(func() -> void:
 		_journal.queue_free()
-		_journal = null)
+		_journal = null
+		set_diorama_active(true))
 
 
 ## Kept for the main menu, which asks for the Journal by an older name.
@@ -1769,13 +1893,13 @@ func open_echoes() -> void:
 func open_map() -> void:
 	_show_page(_ensure_board_page())
 	_refresh_board()
-	_show_board_tab(false)
+	_show_board_tab(BOARD_MAP)
 
 
 func open_evidence_board() -> void:
 	_show_page(_ensure_board_page())
 	_refresh_board()
-	_show_board_tab(true)
+	_show_board_tab(BOARD_EVIDENCE)
 
 
 ## Rebuilt on every entry, so a chapter finished in this session shows as done
@@ -1851,28 +1975,40 @@ func _on_chapter(variant_id: String, playable: bool, button: Button) -> void:
 
 # ---------------------------------------------------------------- town
 
+## The town. This is the ONE page where the model is drawn live, so it is built
+## to be looked through rather than read: a title, a line, and the buildings
+## themselves, which have always been the thing you tap.
 func _build_town() -> Control:
 	var page := _new_page()
-	page.add_child(_list_backdrop(280.0))
 	var scroll := ScrollContainer.new()
-	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	scroll.offset_left = 50
 	scroll.offset_right = -50
-	scroll.offset_top = 300
-	scroll.offset_bottom = -190
+	# Clear of the top bar, which owns the first 340px of the screen.
+	scroll.offset_top = 360
+	scroll.offset_bottom = 560
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	page.add_child(scroll)
 
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override("separation", 20)
+	column.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	scroll.add_child(column)
 
 	var heading := Label.new()
 	heading.text = Story.text("town.title")
-	heading.add_theme_font_size_override("font_size", 40)
-	heading.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
+	heading.add_theme_font_size_override("font_size", GameConfig.UI_TITLE)
+	heading.add_theme_color_override("font_color", GameConfig.UI_INK)
 	column.add_child(heading)
+
+	var hint := Label.new()
+	hint.text = tr("TOWN_TAP_HINT")
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	hint.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+	column.add_child(hint)
 
 	page.set_meta("column", column)
 	page.add_child(_back_button())
@@ -1882,6 +2018,26 @@ func _build_town() -> Control:
 
 
 ## Rebuilt per visit: who is in town changes as the case moves.
+## The witnesses. Moved here from the town page: a case file keeps the people
+## who saw something next to what was found, and the town page is now the town
+## itself rather than a list of its residents.
+func _rebuild_people() -> void:
+	if _board_people_column == null or not is_instance_valid(_board_people_column):
+		return
+	for child in _board_people_column.get_children():
+		_board_people_column.remove_child(child)
+		child.queue_free()
+	# Ellie heads the page until she is found. She is not someone you can talk
+	# to, so she is a poster rather than a person row — putting a missing child
+	# in the list of neighbours to chat with read wrong (G12.10).
+	if ChapterProgress.done_count() < GameConfig.ELLIE_FOUND_AFTER:
+		_board_people_column.add_child(_make_missing_card())
+	for person: Dictionary in Story.list("town.people"):
+		if ChapterProgress.done_count() < int(person.get("requires_done", 0)):
+			continue
+		_board_people_column.add_child(_make_person_row(person))
+
+
 func _rebuild_town() -> void:
 	if _town_page == null:
 		return
@@ -1889,15 +2045,9 @@ func _rebuild_town() -> void:
 	for child in column.get_children():
 		if child is Button or child is PanelContainer:
 			child.queue_free()
-	# Ellie heads the page until she is found. She is not someone you can talk
-	# to, so she is a poster rather than a person row — putting a missing child
-	# in the list of neighbours to chat with read wrong (G12.10).
-	if ChapterProgress.done_count() < GameConfig.ELLIE_FOUND_AFTER:
-		column.add_child(_make_missing_card())
-	for person: Dictionary in Story.list("town.people"):
-		if ChapterProgress.done_count() < int(person.get("requires_done", 0)):
-			continue
-		column.add_child(_make_person_row(person))
+	# Nothing else. The people are witnesses and live in the case file now
+	# (_rebuild_people); what is left on this page is the town, which is the
+	# only screen where the model is drawn at all.
 
 
 ## The MISSING poster for the town page: portrait, name, and how long she has
@@ -2051,7 +2201,7 @@ func refresh() -> void:
 	_refresh_board()
 	_refresh_objectives()
 	_refresh_objectives_badge()
-	_show_board_tab(false)
+	_show_board_tab(BOARD_MAP)
 	_show_page(_tiles_page)
 	_harvest_call()
 	# Anything finished while the player was out in a yard is paid for here, on
