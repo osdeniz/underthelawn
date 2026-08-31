@@ -44,9 +44,7 @@ func _build() -> void:
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# The opening card's own golden-hour street: quiet, warm, already carries
-	# the game's tone, and reusing it costs no new art.
-	art.texture = TextureLibrary.find("intro/intro_1")
+	art.texture = _cover_art()
 	art.visible = art.texture != null
 	add_child(art)
 
@@ -148,6 +146,35 @@ func _build() -> void:
 	version.add_theme_font_size_override("font_size", GameConfig.UI_MICRO)
 	version.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
 	add_child(version)
+
+
+## The cover, picked for the shape of the screen.
+##
+## Drop either or both of these in and they are used automatically:
+##
+##     textures/menu/cover_portrait.(png|jpg|webp)   phones
+##     textures/menu/cover_wide.(png|jpg|webp)       desktop, Steam
+##
+## The art is drawn STRETCH_KEEP_ASPECT_COVERED, so it always fills the screen
+## and the overflow is cropped rather than letterboxed. That is why the two
+## shapes are worth having: this game's phone viewport is 1170x2532, an aspect
+## of 0.46, and a 4:5 cover is 0.80 — covering that screen scales it to the
+## height and throws away about two fifths of its width, a fifth off each side.
+## Keep anything that must survive — a title, a face — inside the middle three
+## fifths, or supply a taller crop.
+##
+## With neither file present this falls back to the opening card's golden-hour
+## street, which is what the menu shipped with: quiet, warm, already the game's
+## tone, and no new art to make.
+func _cover_art() -> Texture2D:
+	var rect := get_viewport_rect().size
+	var wide := rect.x >= rect.y
+	for name in (["menu/cover_wide", "menu/cover_portrait"] if wide
+			else ["menu/cover_portrait", "menu/cover_wide"]):
+		var found := TextureLibrary.find(name)
+		if found != null:
+			return found
+	return TextureLibrary.find("intro/intro_1")
 
 
 ## A plain-text row, not a card: the menu's whole point is that these five
