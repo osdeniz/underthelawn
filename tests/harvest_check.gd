@@ -45,28 +45,20 @@ func _ready() -> void:
 	add_child(game)
 	for _i in 10:
 		await get_tree().process_frame
-	ck("ekin tarlasi kuruldu",
-		game.find_children("CropField", "", true, false).size() == 1, "")
-	# Count PLANTS, not nodes. The field used to be one node per plant and this
-	# read the child count; the plants are MultiMesh instances now — eight
-	# batches standing in for hundreds of stalks — so counting children counts
-	# batches and says the field is empty when it is full.
-	var plants: Array = game.find_children("CropField", "", true, false)
-	var count := 0
-	if plants.size() > 0:
-		for node in (plants[0] as Node).find_children("*", "MultiMeshInstance3D", true, false):
-			var mm := (node as MultiMeshInstance3D).multimesh
-			if mm != null:
-				count += mm.instance_count
-	ck("tarla devasa", count > 300, "%d bitki" % count)
-	# And the batching itself is the point: a plant per node was 8,620 draw
-	# calls a frame in this level and it stuttered on device.
-	var batches: int = 0
-	if plants.size() > 0:
-		batches = (plants[0] as Node).find_children(
-			"*", "MultiMeshInstance3D", true, false).size()
-	ck("tarla toplu ciziliyor", batches > 0 and batches <= 16,
-		"%d parti" % batches)
+	# NO crop border. Seven rows of corn and sunflowers on three sides was
+	# about seven hundred plants and 8,620 draw calls a frame — the level's
+	# whole stutter — and the land around the fields is open now.
+	ck("ekin serit yok",
+		game.find_children("CropField", "", true, false).is_empty(), "")
+	# (The fence is what keeps the mowable ground legible without the crop, but
+	# it is built as loose meshes under no named parent, so there is nothing
+	# here worth asserting on — a name check would only test my guess at one.)
+	# And a harvest grows a CROP. This one used to be grass wearing a wheat
+	# palette: plant_profile_id was never set, so every field mowed the same
+	# plant in a different colour.
+	ck("bugday tarlasi bugday ekiyor",
+		GameConfig.active_plant_profile == "WILD_WHEAT",
+		GameConfig.active_plant_profile)
 	ck("hasatta kanit gomulmedi", game.model.secret_cells.is_empty(),
 		"%d gizli" % game.model.secret_cells.size())
 
@@ -118,6 +110,29 @@ func _ready() -> void:
 	_check_door_stays_open()
 
 	RestoreBoard.reset()
+	# --- three fields, three crops
+	ck("uc tarla tanimli", GameConfig.HARVEST_VARIANTS.size() == 3,
+		str(GameConfig.HARVEST_VARIANTS.size()))
+	var seen: Array[String] = []
+	for id: String in GameConfig.HARVEST_VARIANTS:
+		var variant := LevelVariant.of(id)
+		ck("tarla var: %s" % id, variant != null, "")
+		if variant == null:
+			continue
+		ck("hasat tipi: %s" % id, variant.is_harvest(), "")
+		var profile := variant.plant_profile_id
+		ck("tarlanin bitkisi tanimli: %s" % id,
+			GameConfig.PLANT_PROFILES.has(profile), profile)
+		# Each field must grow something the others do not, or three fields is
+		# one field painted three ways.
+		ck("bitki benzersiz: %s" % id, not seen.has(profile), profile)
+		seen.append(profile)
+		ck("harita tarlayi taniyor: %s" % id,
+			GameConfig.is_harvest_variant(id), "")
+	ck("her tarlanin adi var",
+		GameConfig.HARVEST_NAMES.size() == GameConfig.HARVEST_VARIANTS.size(),
+		str(GameConfig.HARVEST_NAMES.size()))
+
 	if _fails > 0:
 		push_error("%d HASAT TESTI BASARISIZ" % _fails)
 		print("--- %d HASAT TESTI BASARISIZ ---" % _fails)

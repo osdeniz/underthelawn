@@ -324,11 +324,12 @@
       "decor_seed": 9090,
       "scrap_budget": 22,
       "opening": {
-        "headline": "HARVEST_HEADLINE",
+        "headline": "HARVEST_WHEAT_HEADLINE",
         "subline": "HARVEST_SUBLINE"
       },
       "evidence_defs": [],
-      "time_of_day": "golden"
+      "time_of_day": "golden",
+      "plant_profile_id": "WILD_WHEAT"
     },
     "ch09_radio_room": {
       "palette_id": "GREEN_COOL",
@@ -773,6 +774,40 @@
         0.75
       ],
       "scrap_multiplier": 0.32
+    },
+    "harvest_sunflower": {
+      "level_type": "harvest",
+      "palette_id": "AMBER",
+      "grid_size": "large",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "barn",
+      "decor_seed": 9191,
+      "scrap_budget": 22,
+      "opening": {
+        "headline": "HARVEST_SUN_HEADLINE",
+        "subline": "HARVEST_SUBLINE"
+      },
+      "evidence_defs": [],
+      "time_of_day": "golden",
+      "plant_profile_id": "SUNFLOWER"
+    },
+    "harvest_corn": {
+      "level_type": "harvest",
+      "palette_id": "LUSH",
+      "grid_size": "large",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "barn",
+      "decor_seed": 9292,
+      "scrap_budget": 22,
+      "opening": {
+        "headline": "HARVEST_CORN_HEADLINE",
+        "subline": "HARVEST_SUBLINE"
+      },
+      "evidence_defs": [],
+      "time_of_day": "golden",
+      "plant_profile_id": "CORN"
     }
   }
 }

@@ -1584,7 +1584,24 @@ const FIRST_RUN_HINT_CELLS := 4
 ## The harvest's own colour: the map badge and the radio card, so the bonus
 ## level reads as a different errand from a case pin.
 const HARVEST_GOLD := Color(0.92, 0.76, 0.24)
+## The three fields the farm offers, each growing a different crop: wheat,
+## sunflowers, corn. HARVEST_VARIANT stays as the first of them because the map
+## pin and a handful of older call sites name it directly.
 const HARVEST_VARIANT := "harvest_field"
+const HARVEST_VARIANTS: Array[String] = [
+	"harvest_field", "harvest_sunflower", "harvest_corn",
+]
+## What each field is called on the farm sheet, in the same order.
+const HARVEST_NAMES: Array[String] = [
+	"HARVEST_FIELD_WHEAT", "HARVEST_FIELD_SUN", "HARVEST_FIELD_CORN",
+]
+
+
+## True for any of the three fields. Comparing against HARVEST_VARIANT alone
+## sent the other two down the case-pin path, where they have no route slot and
+## the panel would have talked about a place that does not exist.
+static func is_harvest_variant(variant_id: String) -> bool:
+	return HARVEST_VARIANTS.has(variant_id)
 ## Offered after this many finished searches, once the farm is rebuilt and the
 ## tractor is owned. It then waits indefinitely: an invitation, not a timer.
 const HARVEST_EVERY := 3

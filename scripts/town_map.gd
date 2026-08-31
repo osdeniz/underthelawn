@@ -202,7 +202,7 @@ func focus_place(variant_id: String) -> void:
 		_open_panel(variant_id)
 		return
 	show_layer(Layer.TOWN, _layer == Layer.WORLD)
-	if variant_id == GameConfig.HARVEST_VARIANT:
+	if GameConfig.is_harvest_variant(variant_id):
 		# The harvest is not a case place, so it has no route slot to focus:
 		# pan to the farm and open its own sheet (G13.6).
 		_pan_to(GameConfig.MAP_BUILDINGS["farm"]["at"] as Vector2)
@@ -910,16 +910,26 @@ func _open_harvest_panel() -> void:
 		line.add_theme_font_size_override("font_size", int(spec[1]))
 		line.add_theme_color_override("font_color", spec[2])
 		rows.add_child(line)
-	var go := Button.new()
-	go.text = tr("HARVEST_START")
-	go.custom_minimum_size = Vector2(0, 104)
-	go.add_theme_font_size_override("font_size", 36)
-	HubScreen.style_primary(go)
-	go.pressed.connect(func() -> void:
-		Haptics.medium()
-		Analytics.track(AnalyticsEvents.HARVEST_STARTED, {})
-		place_chosen.emit(GameConfig.HARVEST_VARIANT))
-	rows.add_child(go)
+	# Three fields, not one errand. The farm grows wheat, sunflowers and corn,
+	# and which one you cut is the only choice this sheet offers — so it is a
+	# row of three rather than a button and a hidden default. The first is the
+	# primary, because a player who does not care should still have an obvious
+	# thing to press.
+	for i in GameConfig.HARVEST_VARIANTS.size():
+		var variant_id: String = GameConfig.HARVEST_VARIANTS[i]
+		var go := Button.new()
+		go.text = tr(GameConfig.HARVEST_NAMES[i])
+		go.custom_minimum_size = Vector2(0, 104)
+		go.add_theme_font_size_override("font_size", 34)
+		if i == 0:
+			HubScreen.style_primary(go)
+		else:
+			HubScreen.style_secondary(go)
+		go.pressed.connect(func() -> void:
+			Haptics.medium()
+			Analytics.track(AnalyticsEvents.HARVEST_STARTED, {})
+			place_chosen.emit(variant_id))
+		rows.add_child(go)
 
 
 ## The chapter's display name, from story.json.
