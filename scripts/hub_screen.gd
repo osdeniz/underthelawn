@@ -106,6 +106,7 @@ var _still_taken := false
 ## ground gradient, because a still cannot be taken of a model that has not
 ## been rendered yet.
 var _still_warmup := 0
+var _building_card: Control
 ## Which restore card is being held down, if any (G13.5).
 var _peek_wanted := ""
 var _tiles_page: Control
@@ -1102,6 +1103,18 @@ func _build_restore() -> Control:
 	return page
 
 
+## The restore page's status line, written from places that can run before
+## that page has ever been opened.
+##
+## _restore_note is created by _refresh_restore, so it is null until the player
+## visits the restore screen. Repairing a building from the town card reaches
+## these writes without that ever having happened, and assigning .text on null
+## is a hard error mid-purchase — after the money is spent.
+func _say_restore(text: String) -> void:
+	if _restore_note != null and is_instance_valid(_restore_note):
+		_restore_note.text = text
+
+
 func _refresh_restore() -> void:
 	for child in _restore_list.get_children():
 		child.queue_free()
@@ -1180,23 +1193,191 @@ func _make_project_row(project: Dictionary) -> Button:
 	return button
 
 
+## The building card: what it is, what it does, what tier it belongs to, and
+## the one action available on it.
+##
+## Opened by tapping a plot in the town. Deliberately a card and not a page —
+## you are looking at the town, and the card is an answer about the thing under
+## your thumb, not a place you navigate to.
+func _show_building_card(project_id: String) -> void:
+	if _building_card != null and is_instance_valid(_building_card):
+		_building_card.queue_free()
+	var project := RestoreBoard.of(project_id)
+	if project.is_empty():
+		return
+	var built := RestoreBoard.is_built(project_id)
+	var locked := RestoreBoard.is_locked(project_id)
+	var cost := int(project.get("cost", 0))
+
+	var overlay := ColorRect.new()
+	overlay.name = "BuildingCard"
+	overlay.color = Color(0.02, 0.02, 0.02, 0.72)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_building_card = overlay
+	add_child(overlay)
+	# Tapping the darkness closes it, which is what everyone tries first.
+	var dismiss := Button.new()
+	dismiss.flat = true
+	dismiss.focus_mode = Control.FOCUS_NONE
+	dismiss.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dismiss.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	dismiss.pressed.connect(func() -> void: overlay.queue_free())
+	overlay.add_child(dismiss)
+
+	var card := PanelContainer.new()
+	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	card.offset_left = -470
+	card.offset_right = 470
+	card.offset_top = -430
+	card.offset_bottom = 430
+	var style := StyleBoxFlat.new()
+	style.bg_color = GameConfig.UI_SURFACE
+	style.set_corner_radius_all(20)
+	style.set_content_margin_all(GameConfig.UI_GAP_SECTION)
+	style.border_color = GameConfig.UI_GREEN if built else GameConfig.UI_BRASS
+	style.set_border_width_all(3)
+	card.add_theme_stylebox_override("panel", style)
+	overlay.add_child(card)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", GameConfig.UI_GAP)
+	card.add_child(rows)
+
+	# Head: tier chip and standing/ruined, so the state is legible before the
+	# words are read.
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", GameConfig.UI_GAP)
+	rows.add_child(head)
+	head.add_child(_card_chip(
+		tr("BLD_TIER").format({"n": int(project.get("tier", 1))}),
+		GameConfig.UI_BRASS_DEEP))
+	head.add_child(_card_chip(tr("BLD_STANDING") if built else tr("BLD_RUINED"),
+		GameConfig.UI_GREEN if built else GameConfig.UI_INK_FAINT))
+
+	var title := Label.new()
+	title.text = tr(str(project.get("name", "")))
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.add_theme_font_size_override("font_size", GameConfig.UI_TITLE)
+	title.add_theme_color_override("font_color", GameConfig.UI_INK)
+	rows.add_child(title)
+
+	rows.add_child(_card_section(tr("BLD_WHAT"),
+		tr(str(project.get("desc", "")))))
+	rows.add_child(_card_section(tr("BLD_DOES"), _building_effect(project)))
+
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rows.add_child(spacer)
+
+	if built:
+		var done := Label.new()
+		done.text = tr("RESTORE_DONE")
+		done.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		done.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
+		done.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		done.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+		done.add_theme_color_override("font_color", GameConfig.UI_GREEN)
+		rows.add_child(done)
+	else:
+		var buy := Button.new()
+		buy.text = tr("RESTORE_BUY").format({"cost": cost})
+		buy.icon = UiIcons.money()
+		buy.expand_icon = false
+		buy.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
+		buy.add_theme_constant_override("h_separation", 14)
+		buy.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+		var affordable := not locked and GameState.scrap_total() >= cost
+		if affordable:
+			style_primary(buy)
+		else:
+			style_secondary(buy)
+			buy.modulate = Color(1, 1, 1, 0.7)
+		buy.pressed.connect(func() -> void:
+			_on_project(project_id, false, buy)
+			if RestoreBoard.is_built(project_id):
+				overlay.queue_free()
+				# The town changed shape, so the hub's photograph of it has.
+				_still_taken = false)
+		rows.add_child(buy)
+		if not affordable:
+			var why := Label.new()
+			why.text = RestoreBoard.lock_reason(project_id) if locked \
+				else Story.text("restore.locked_note")
+			why.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			why.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			why.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+			why.add_theme_color_override("font_color", GameConfig.UI_RED)
+			rows.add_child(why)
+
+
+## A small state chip: a word in a coloured outline.
+func _card_chip(text: String, tint: Color) -> Control:
+	var chip := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(tint, 0.14)
+	style.border_color = Color(tint, 0.75)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 7
+	style.content_margin_bottom = 7
+	chip.add_theme_stylebox_override("panel", style)
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	label.add_theme_color_override("font_color", tint)
+	chip.add_child(label)
+	return chip
+
+
+## A labelled paragraph: a rust heading over a line of cream.
+func _card_section(heading: String, body: String) -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
+	var head := Label.new()
+	head.text = heading
+	head.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	head.add_theme_color_override("font_color", GameConfig.UI_BRASS_DEEP)
+	box.add_child(head)
+	var line := Label.new()
+	line.text = body
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	line.add_theme_font_size_override("font_size", GameConfig.UI_BODY)
+	line.add_theme_color_override("font_color", GameConfig.UI_INK)
+	line.add_theme_constant_override("line_spacing", 8)
+	box.add_child(line)
+	return box
+
+
+## What the building buys you. Projects carry the payoff under two different
+## keys and some carry neither, so this is the one place that decides.
+func _building_effect(project: Dictionary) -> String:
+	for key in ["effect_text", "bonus_text"]:
+		var id := str(project.get(key, ""))
+		if id != "":
+			return tr(id)
+	return tr("BLD_NO_EFFECT")
+
+
 func _on_project(project_id: String, built: bool, source: Button) -> void:
 	Haptics.light()
 	if built:
 		return
 	if RestoreBoard.is_locked(project_id):
-		_restore_note.text = RestoreBoard.lock_reason(project_id)
+		_say_restore(RestoreBoard.lock_reason(project_id))
 		_shake(source)
 		return
 	var project := RestoreBoard.of(project_id)
 	if GameState.scrap_total() < int(project.get("cost", 0)):
-		_restore_note.text = Story.text("restore.locked_note")
+		_say_restore(Story.text("restore.locked_note"))
 		_shake(source)
 		return
 	if RestoreBoard.buy(project_id):
 		AudioDirector.play_scrap()
 		Haptics.success()
-		_restore_note.text = tr(str(project.get("crumb", "")))
+		_say_restore(tr(str(project.get("crumb", ""))))
 		if RestoreBoard.tier2_open() and not _tier2_announced:
 			_tier2_announced = true
 			Analytics.track(AnalyticsEvents.RESTORE_TIER2_UNLOCKED, {})
@@ -1399,9 +1580,17 @@ func _log_perf() -> void:
 
 ## A restored building is a shortcut to the screen it stands for (G13 §4).
 func _on_diorama_building(project_id: String) -> void:
-	if not RestoreBoard.is_built(project_id):
+	# Every plot in the model carries a tap collider, ruined or restored, but
+	# this used to return here unless the building already stood — so tapping a
+	# ruin, the one thing on the page a player actually wants to act on, did
+	# nothing at all. It opens the building's card now, and the card is where
+	# the repair happens.
+	if RestoreBoard.of(project_id).is_empty():
 		return
 	Haptics.light()
+	if not RestoreBoard.is_built(project_id):
+		_show_building_card(project_id)
+		return
 	match project_id:
 		"station":
 			open_evidence_board()
@@ -1410,7 +1599,7 @@ func _on_diorama_building(project_id: String) -> void:
 		"watchtower":
 			# What the Marshal sees from up there — the first thread of the
 			# next case (G13.4).
-			_restore_note.text = tr("HUB_TOWER_LINE")
+			_say_restore(tr("HUB_TOWER_LINE"))
 
 
 ## Completed projects add a layer to the hub art; without the art file they add

@@ -47,9 +47,26 @@ func _ready() -> void:
 		await get_tree().process_frame
 	ck("ekin tarlasi kuruldu",
 		game.find_children("CropField", "", true, false).size() == 1, "")
+	# Count PLANTS, not nodes. The field used to be one node per plant and this
+	# read the child count; the plants are MultiMesh instances now — eight
+	# batches standing in for hundreds of stalks — so counting children counts
+	# batches and says the field is empty when it is full.
 	var plants: Array = game.find_children("CropField", "", true, false)
-	var count := (plants[0] as Node).get_child_count() if plants.size() > 0 else 0
+	var count := 0
+	if plants.size() > 0:
+		for node in (plants[0] as Node).find_children("*", "MultiMeshInstance3D", true, false):
+			var mm := (node as MultiMeshInstance3D).multimesh
+			if mm != null:
+				count += mm.instance_count
 	ck("tarla devasa", count > 300, "%d bitki" % count)
+	# And the batching itself is the point: a plant per node was 8,620 draw
+	# calls a frame in this level and it stuttered on device.
+	var batches: int = 0
+	if plants.size() > 0:
+		batches = (plants[0] as Node).find_children(
+			"*", "MultiMeshInstance3D", true, false).size()
+	ck("tarla toplu ciziliyor", batches > 0 and batches <= 16,
+		"%d parti" % batches)
 	ck("hasatta kanit gomulmedi", game.model.secret_cells.is_empty(),
 		"%d gizli" % game.model.secret_cells.size())
 

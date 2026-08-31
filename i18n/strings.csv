@@ -294,6 +294,12 @@ LOC_GRASS,deep in the grass,çimin derinliğinde
 LOC_LAMP,in the lamplight,lamba ışığında
 LOC_BEDS,among the beds,tarhların arasında
 RESTORE_TITLE,TOWN RESTORATION,KASABA ONARIMI
+BLD_TIER,TIER {n},KADEME {n}
+BLD_WHAT,WHAT IT IS,NEDİR
+BLD_DOES,WHAT IT DOES,NE İŞE YARAR
+BLD_STANDING,Standing.,Ayakta.
+BLD_RUINED,In ruins.,Yıkık.
+BLD_NO_EFFECT,It gives the town back a piece of itself.,Kasabaya kendinden bir parça geri veriyor.
 RESTORE_DONE,DONE,YAPILDI
 RESTORE_BUY,BUILD · {cost},YAPTIR · {cost}
 RESTORE_CONFIRM,Build {name} for {cost}?,{name} {cost} karşılığında yapılsın mı?

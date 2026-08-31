@@ -1689,12 +1689,42 @@ func _build_traces() -> void:
 ##
 ## Decor only — nothing here is mowable or collidable. The mowing happens on the
 ## lawn inside; this is what the lawn is standing IN.
+## The crop field around a harvest yard.
+##
+## Every corn stalk and sunflower used to be its own node tree of about
+## nineteen MeshInstance3Ds. Seven rows on three sides of a large yard is
+## roughly seven hundred plants, and the level measured 10,034 mesh nodes and
+## 8,620 draw calls a frame against 807 and 484 for an ordinary chapter. That
+## is what the stutter was: not shading, not the grass, just the CPU submitting
+## eight thousand draws.
+##
+## Same fix the grass already uses. A handful of plants are built once, each
+## baked down to a single mesh, and every copy after that is an instance in a
+## MultiMesh — so the field costs a few draw calls instead of thousands while
+## still looking planted rather than stamped, because the variants keep their
+## own heights, leans and head angles and each instance keeps its own yaw.
+const CROP_VARIANTS := 4
+
+
 func _build_crop_field() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = (_variant.decor_seed if _variant != null else 4242) + 8080
 	var field := Node3D.new()
 	field.name = "CropField"
 	add_child(field)
+
+	# One baked mesh per variant per species, and the transforms that will be
+	# stamped into them.
+	var corn_meshes: Array[ArrayMesh] = []
+	var flower_meshes: Array[ArrayMesh] = []
+	for i in CROP_VARIANTS:
+		corn_meshes.append(_bake_plant(rng, true))
+		flower_meshes.append(_bake_plant(rng, false))
+	var corn_spots: Array[Array] = []
+	var flower_spots: Array[Array] = []
+	for i in CROP_VARIANTS:
+		corn_spots.append([])
+		flower_spots.append([])
 
 	var half_x := GameConfig.HALF_X + 0.7
 	var half_z := GameConfig.HALF_Z + 0.7
@@ -1703,22 +1733,28 @@ func _build_crop_field() -> void:
 		# Corn behind, sunflowers in front: the flowers read at a glance and the
 		# corn gives the mass behind them.
 		var corn := row >= 2
-		_crop_line(field, rng, Vector3(0.0, 0.0, -half_z - out),
-			Vector3(1.0, 0.0, 0.0), half_x + out, corn)
+		var into: Array[Array] = corn_spots if corn else flower_spots
+		_crop_line(into, rng, Vector3(0.0, 0.0, -half_z - out),
+			Vector3(1.0, 0.0, 0.0), half_x + out)
 		# NO south row. The camera sits behind the mower, which starts at the
 		# south fence, so a six-metre sunflower on that edge stands between the
 		# player and their own lawn. Three sides is also the better picture:
 		# looking forward, the field is always ahead of you (G13.6).
-		_crop_line(field, rng, Vector3(-half_x - out, 0.0, 0.0),
-			Vector3(0.0, 0.0, 1.0), half_z + out, corn)
-		_crop_line(field, rng, Vector3(half_x + out, 0.0, 0.0),
-			Vector3(0.0, 0.0, 1.0), half_z + out, corn)
+		_crop_line(into, rng, Vector3(-half_x - out, 0.0, 0.0),
+			Vector3(0.0, 0.0, 1.0), half_z + out)
+		_crop_line(into, rng, Vector3(half_x + out, 0.0, 0.0),
+			Vector3(0.0, 0.0, 1.0), half_z + out)
+
+	for i in CROP_VARIANTS:
+		_plant_batch(field, corn_meshes[i], corn_spots[i], "Corn%d" % i)
+		_plant_batch(field, flower_meshes[i], flower_spots[i], "Flower%d" % i)
 
 
 ## One row of plants along `axis`, centred on `at` and reaching `reach` either
-## way. Spacing is jittered so the rows read as planted, not stamped.
-func _crop_line(parent: Node3D, rng: RandomNumberGenerator, at: Vector3,
-		axis: Vector3, reach: float, corn: bool) -> void:
+## way. Spacing is jittered so the rows read as planted, not stamped. Rather
+## than building anything it files a transform under one of the variants.
+func _crop_line(into: Array[Array], rng: RandomNumberGenerator, at: Vector3,
+		axis: Vector3, reach: float) -> void:
 	var count := int(reach * 2.0 / GameConfig.CROP_SPACING)
 	for i in count:
 		var along := -reach + float(i) * GameConfig.CROP_SPACING \
@@ -1726,10 +1762,92 @@ func _crop_line(parent: Node3D, rng: RandomNumberGenerator, at: Vector3,
 		var spot := at + axis * along
 		spot.x += rng.randf_range(-0.18, 0.18)
 		spot.z += rng.randf_range(-0.18, 0.18)
-		if corn:
-			_build_corn(parent, rng, spot)
-		else:
-			_build_sunflower(parent, rng, spot)
+		var basis := Basis(Vector3.UP, rng.randf() * TAU)
+		basis = basis.scaled(Vector3.ONE * rng.randf_range(0.92, 1.09))
+		into[rng.randi() % CROP_VARIANTS].append(Transform3D(basis, spot))
+
+
+## Stamps one variant's transforms into a MultiMesh. Nothing is added when the
+## variant drew no spots, so an empty batch costs nothing.
+func _plant_batch(parent: Node3D, mesh: ArrayMesh, spots: Array,
+		name_hint: String) -> void:
+	if mesh == null or spots.is_empty():
+		return
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = mesh
+	mm.instance_count = spots.size()
+	for i in spots.size():
+		mm.set_instance_transform(i, spots[i] as Transform3D)
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = name_hint
+	mmi.multimesh = mm
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mmi)
+
+
+## Builds ONE plant with the existing generators, then welds it into a single
+## mesh — one surface per material, so a plant that used nineteen draw calls
+## becomes four, and every copy of it after that becomes none.
+##
+## The plant is built into a throwaway node because the generators speak in
+## nodes; it never enters the scene tree and is freed here.
+func _bake_plant(rng: RandomNumberGenerator, corn: bool) -> ArrayMesh:
+	var holder := Node3D.new()
+	if corn:
+		_build_corn(holder, rng, Vector3.ZERO)
+	else:
+		_build_sunflower(holder, rng, Vector3.ZERO)
+	# The generators wrap the plant in their own node and give it a random yaw;
+	# the yaw belongs to the instance now, so bake from a neutral root.
+	for child in holder.get_children():
+		(child as Node3D).transform = Transform3D.IDENTITY
+	var by_material: Dictionary = {}
+	_collect_surfaces(holder, Transform3D.IDENTITY, by_material)
+	holder.free()
+	if by_material.is_empty():
+		return null
+	var baked := ArrayMesh.new()
+	for material: Variant in by_material:
+		var tool := SurfaceTool.new()
+		tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for entry: Variant in by_material[material]:
+			var pair: Array = entry
+			tool.append_from(pair[0] as Mesh, 0, pair[1] as Transform3D)
+		tool.generate_normals()
+		var surface := tool.commit()
+		if surface == null:
+			continue
+		baked.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,
+			surface.surface_get_arrays(0))
+		baked.surface_set_material(baked.get_surface_count() - 1,
+			material as Material)
+	return baked
+
+
+## Walks a built plant and files every mesh under the material it is drawn
+## with, carrying the transform down so the parts stay where they were put.
+func _collect_surfaces(node: Node, at: Transform3D,
+		by_material: Dictionary) -> void:
+	var here := at
+	var spatial := node as Node3D
+	if spatial != null:
+		here = at * spatial.transform
+	var mesh_node := node as MeshInstance3D
+	if mesh_node != null and mesh_node.mesh != null:
+		# material_override FIRST: _mesh assigns every prop's colour that way,
+		# and reading only the surface material baked the whole crop field
+		# white — primitive meshes carry no surface material of their own.
+		var material: Material = mesh_node.material_override
+		if material == null:
+			material = mesh_node.get_surface_override_material(0)
+		if material == null:
+			material = mesh_node.mesh.surface_get_material(0)
+		if not by_material.has(material):
+			by_material[material] = []
+		(by_material[material] as Array).append([mesh_node.mesh, here])
+	for child in node.get_children():
+		_collect_surfaces(child, here, by_material)
 
 
 ## A sunflower: one tall stalk, two leaves, and a head that turns to face the
