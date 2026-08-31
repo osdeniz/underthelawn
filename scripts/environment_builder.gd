@@ -502,8 +502,18 @@ func _build_open_country() -> void:
 	# same soil the apron is made of, and a grass-derived tint read as grey
 	# rectangles dropped on brown.
 	var soil := Color(0.38, 0.28, 0.18)
-	var ploughed := _flat("country_dark", soil.darkened(0.26), 1.0)
-	var stubble := _flat("country_light", soil.lightened(0.16), 1.0)
+	# Blended toward the crop the level grows. A field seen from mower height is
+	# standing crop nearly all the way out; leaving the distance bare soil made
+	# the land stop at the last row of geometry and become dirt, which is the
+	# one thing it must not do when the crop is supposed to reach the horizon.
+	var crop_variants: Array = GameConfig.clump_variants()
+	var crop_tone: Color = soil
+	if not crop_variants.is_empty():
+		var top: Color = (crop_variants[0] as Dictionary)["tip"]
+		var root: Color = (crop_variants[0] as Dictionary)["base"]
+		crop_tone = soil.lerp(root.lerp(top, 0.55), 0.72)
+	var ploughed := _flat("country_dark", crop_tone.darkened(0.20), 1.0)
+	var stubble := _flat("country_light", crop_tone.lightened(0.12), 1.0)
 
 	# Strips run the depth of the apron, angled a few degrees so they do not
 	# line up with the fence and give the trick away.
@@ -529,23 +539,34 @@ func _build_open_country() -> void:
 	_build_neighbour_crop(country, rng)
 
 
-## The next field along, standing uncut.
+## The next field along, standing uncut, all the way out.
 ##
-## Bare furrows told the player the land was empty; what it should say is that
-## the crop continues and this part is not theirs to cut. So the ring outside
-## the fence grows the SAME plant the yard does — wheat around wheat, corn
-## around corn — from the same cluster mesh the mowable field is built from,
-## which is why it matches without a second source of truth for what wheat
-## looks like.
+## The ring outside the fence grows the SAME plant the yard does — wheat around
+## wheat, corn around corn — from TuftField.cluster_mesh, the very mesh the
+## mowable field is built from. Not an impostor, not a cheaper stand-in: the
+## same clump, so there is no line in the world where the crop changes into
+## something that only resembles it.
 ##
-## Three things keep it cheap:
-##   - MultiMesh, so the whole ring is one draw call per palette variant.
-##   - NO WIND. The mowable crop sways; this does not. The shader is the same
-##     one with its amplitude at zero, which costs nothing per frame and means
-##     the ring is static geometry the renderer can leave alone.
-##   - A BAND, not a plain. It reaches ten metres past the fence and stops:
-##     from a camera down at mower height that is already the horizon, and
-##     everything beyond it was never visible anyway.
+## What makes that affordable to the horizon is DENSITY, not detail. Close to
+## the fence the rows are packed; by sixty metres out perhaps one candidate in
+## twenty is planted, and each of those is nearly three times the size. A clump
+## that far away is a few pixels tall, so what it costs is real and what it
+## shows is a silhouette — thinning is invisible there and it is the whole
+## saving.
+##
+## Two things keep the cost off the CPU entirely:
+##   - MultiMesh: the whole field is one draw call per palette variant, however
+##     many thousand clumps are in it.
+##   - NO WIND. The mowable crop sways; this does not. Same shader with its
+##     amplitude at zero, so it is static geometry with no per-frame work.
+## How far the neighbour's field reaches, and how finely it is sampled. These
+## two are the dial: REACH is how much world there is, STEP is how much of it
+## is paid for. Halving STEP roughly quadruples the clump count, so if a device
+## says no, raise STEP before shortening REACH — the horizon is the point.
+const CROP_REACH := 62.0
+const CROP_STEP := 1.35
+
+
 func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
 	var variants: Array = GameConfig.clump_variants()
 	if variants.is_empty():
@@ -555,46 +576,49 @@ func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
 	still.set_shader_parameter("wind_amplitude", 0.0)
 	still.set_shader_parameter("wind_speed", 0.0)
 
-	var spots: Array[Array] = []
+	# One MultiMesh per palette variant, and no finer than that.
+	#
+	# Splitting the ring into quadrants so the engine could frustum-cull three
+	# of them was worth trying and did not pay: the triangle count did not move
+	# — from a camera this low the far rows of every quadrant are in frame —
+	# and it cost twenty-one extra draw calls. Measured, reverted.
 	var meshes: Array[Mesh] = []
 	for v in variants.size():
-		spots.append([])
 		var mesh_rng := RandomNumberGenerator.new()
 		mesh_rng.seed = 4400 + v * 7919
 		meshes.append(TuftField.cluster_mesh(mesh_rng, v))
+	var spots: Array[Array] = []
+	for v in variants.size():
+		spots.append([])
 
-	# The ring: everything inside the band except the ground the player mows.
-	# Density is bought with SCALE, not with more instances. At one clump per
-	# 1.5 m the furrows showed through and it read as scattered tufts rather
-	# than a standing crop; the clumps are half again as large now and packed a
-	# little tighter, which closes the gaps for the same triangle budget.
-	var band := 9.0
-	var step := 1.2
 	var keep_out_x := GameConfig.HALF_X + 1.6
 	var keep_out_z := GameConfig.HALF_Z + 1.6
-	var x := -(GameConfig.HALF_X + band)
-	while x <= GameConfig.HALF_X + band:
-		var z := -(GameConfig.HALF_Z + band)
-		while z <= GameConfig.HALF_Z + band:
+	var x := -(GameConfig.HALF_X + CROP_REACH)
+	while x <= GameConfig.HALF_X + CROP_REACH:
+		var z := -(GameConfig.HALF_Z + CROP_REACH)
+		while z <= GameConfig.HALF_Z + CROP_REACH:
 			if absf(x) > keep_out_x or absf(z) > keep_out_z:
-				# Thin out with distance. From a camera at mower height the far
-				# half of the band is a texture behind the near half, so it is
-				# paid for and never really seen; the near rows stay solid and
-				# the outer ones drop to about a third.
 				var out_by := maxf(absf(x) - keep_out_x, absf(z) - keep_out_z)
-				var keep := 1.0 - 0.68 * clampf(out_by / band, 0.0, 1.0)
+				var far := clampf(out_by / CROP_REACH, 0.0, 1.0)
+				# Falls away fast, then keeps a thin scatter to the very edge so
+				# the field never ends in a visible line.
+				var keep := pow(1.0 - far, 3.0) * 0.92 + 0.03
 				if rng.randf() > keep:
-					z += step
+					z += CROP_STEP
 					continue
+				# Bigger further out: fewer clumps each covering more ground,
+				# which is what lets the thinning go unnoticed.
+				var grow := 1.3 + far * 2.4
 				var at := Vector3(x + rng.randf_range(-0.4, 0.4), 0.0,
 					z + rng.randf_range(-0.4, 0.4))
 				var basis := Basis(Vector3.UP, rng.randf() * TAU)
-				basis = basis.scaled(Vector3.ONE * rng.randf_range(1.25, 1.65))
+				basis = basis.scaled(Vector3.ONE * grow * rng.randf_range(0.9, 1.15))
 				(spots[rng.randi() % variants.size()] as Array).append(
 					Transform3D(basis, at))
-			z += step
-		x += step
+			z += CROP_STEP
+		x += CROP_STEP
 
+	var planted := 0
 	for v in variants.size():
 		if (spots[v] as Array).is_empty() or meshes[v] == null:
 			continue
@@ -604,12 +628,15 @@ func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
 		mm.instance_count = (spots[v] as Array).size()
 		for i in (spots[v] as Array).size():
 			mm.set_instance_transform(i, (spots[v] as Array)[i] as Transform3D)
+		planted += mm.instance_count
 		var mmi := MultiMeshInstance3D.new()
 		mmi.name = "NeighbourCrop%d" % v
 		mmi.multimesh = mm
 		mmi.material_override = still
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		parent.add_child(mmi)
+	if GameConfig.PERF_LOG:
+		print("[tarla] komsu ekin: %d kume, %d cizim" % [planted, variants.size()])
 
 
 # ---------------------------------------------------------------- fence (§12)
