@@ -565,6 +565,8 @@ func _build_open_country() -> void:
 ## says no, raise STEP before shortening REACH — the horizon is the point.
 const CROP_REACH := 62.0
 const CROP_STEP := 1.35
+## How deep the solid band past the fence is, in metres.
+const CROP_SOLID := 5.0
 
 
 func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
@@ -593,22 +595,42 @@ func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
 
 	var keep_out_x := GameConfig.HALF_X + 1.6
 	var keep_out_z := GameConfig.HALF_Z + 1.6
+	var ix := 0
 	var x := -(GameConfig.HALF_X + CROP_REACH)
 	while x <= GameConfig.HALF_X + CROP_REACH:
+		var iz := 0
 		var z := -(GameConfig.HALF_Z + CROP_REACH)
 		while z <= GameConfig.HALF_Z + CROP_REACH:
 			if absf(x) > keep_out_x or absf(z) > keep_out_z:
 				var out_by := maxf(absf(x) - keep_out_x, absf(z) - keep_out_z)
-				var far := clampf(out_by / CROP_REACH, 0.0, 1.0)
-				# Falls away fast, then keeps a thin scatter to the very edge so
-				# the field never ends in a visible line.
-				var keep := pow(1.0 - far, 3.0) * 0.92 + 0.03
+				# The first few metres are SOLID, whatever the step is.
+				#
+				# Letting the falloff start at the fence thinned the one part of
+				# the field the player actually looks at: at a coarse step there
+				# was bare ground just past the rail, and "the crop continues"
+				# broke exactly where it is read. Everything past this band is
+				# distance, and distance is where the saving is taken.
+				var keep := 1.0
+				if out_by > CROP_SOLID:
+					# Past the solid band the grid itself is read at half
+					# resolution — a checkerboard — before the falloff is even
+					# applied. Doubling the step out here is free in a way that
+					# doubling it everywhere is not, because the near rows keep
+					# their own spacing.
+					if (ix + iz) % 2 == 1:
+						z += CROP_STEP
+						iz += 1
+						continue
+					var far := clampf((out_by - CROP_SOLID)
+						/ (CROP_REACH - CROP_SOLID), 0.0, 1.0)
+					keep = pow(1.0 - far, 2.4) * 0.95 + 0.03
 				if rng.randf() > keep:
 					z += CROP_STEP
+					iz += 1
 					continue
 				# Bigger further out: fewer clumps each covering more ground,
 				# which is what lets the thinning go unnoticed.
-				var grow := 1.3 + far * 2.4
+				var grow := 1.3 + clampf(out_by / CROP_REACH, 0.0, 1.0) * 2.4
 				var at := Vector3(x + rng.randf_range(-0.4, 0.4), 0.0,
 					z + rng.randf_range(-0.4, 0.4))
 				var basis := Basis(Vector3.UP, rng.randf() * TAU)
@@ -616,7 +638,9 @@ func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
 				(spots[rng.randi() % variants.size()] as Array).append(
 					Transform3D(basis, at))
 			z += CROP_STEP
+			iz += 1
 		x += CROP_STEP
+		ix += 1
 
 	var planted := 0
 	for v in variants.size():
