@@ -80,7 +80,11 @@ func _build() -> void:
 	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(scrim)
 
+	# A cover carries its own title — it is the whole point of a cover — so the
+	# menu stops drawing a second one over it. On the fallback street art,
+	# which has no lettering, the drawn title is still the only title there is.
 	var title := Label.new()
+	title.visible = not _has_cover
 	title.text = tr("MENU_TITLE")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -102,6 +106,7 @@ func _build() -> void:
 	sub.offset_top = 340.0
 	sub.offset_bottom = 400.0
 	sub.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	sub.visible = not _has_cover
 	sub.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 	add_child(sub)
 
@@ -166,6 +171,12 @@ func _build() -> void:
 ## With neither file present this falls back to the opening card's golden-hour
 ## street, which is what the menu shipped with: quiet, warm, already the game's
 ## tone, and no new art to make.
+## True once _cover_art has found a real cover rather than the intro fallback.
+## Set before the title is built, which is the only reason the order in _build
+## matters.
+var _has_cover := false
+
+
 func _cover_art() -> Texture2D:
 	var rect := get_viewport_rect().size
 	var wide := rect.x >= rect.y
@@ -173,6 +184,7 @@ func _cover_art() -> Texture2D:
 			else ["menu/cover_portrait", "menu/cover_wide"]):
 		var found := TextureLibrary.find(name)
 		if found != null:
+			_has_cover = true
 			return found
 	return TextureLibrary.find("intro/intro_1")
 
