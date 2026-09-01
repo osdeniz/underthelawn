@@ -26,8 +26,15 @@ func _ready() -> void:
 	for _i in 60:
 		await get_tree().process_frame
 	print("tile var mi: ", hub.find_children("HarvestTile", "", true, false).size())
+	# Scroll the tile column to the end, where the way out lives.
+	for any: Variant in hub.find_children("*", "ScrollContainer", true, false):
+		var scroll := any as ScrollContainer
+		if scroll != null:
+			scroll.scroll_vertical = 100000
+	for _i in 10:
+		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png("res://out/harvest_door.png")
+	get_viewport().get_texture().get_image().save_png("res://out/hub_exit.png")
 	ChapterProgress.reset()
 	GameState.set_setting("restore", "farm", false)
 	get_tree().quit()

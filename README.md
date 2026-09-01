@@ -2518,6 +2518,19 @@ value reads as the mode's own short name rather than repeating the row's title.
 All three drive the same saved setting, which `SettingsCheck` asserts by
 pressing the row and watching the mode move.
 
+### G14.9 — the way back to the front door
+
+CONTINUE frees the main menu, and nothing anywhere led back to it: once you
+were in, the only exits were the ones inside the game. The hub's tile column
+ends with ANA MENÜ under HİKÂYE now, and Root rebuilds the menu rather than
+parking it alive under the whole game — a screen most players visit once is
+cheaper to build twice than to keep rendering behind everything.
+
+Going out hides the hub and stops its town first: a live diorama drawing behind
+a full-screen menu is a framebuffer nobody is looking at. `MenuReturnCheck`
+makes the round trip TWICE, because a way out that works once and then loses
+its own button is not a way out.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

@@ -14,6 +14,9 @@ extends Control
 ## The player picked a chapter to search; the argument is a story.json
 ## chapters[].variant_id.
 signal chapter_chosen(variant_id: String)
+## The way back to the app's front door. The main menu is freed the moment
+## CONTINUE is pressed, and nothing anywhere led back to it (G14.9).
+signal main_menu_requested()
 ## Replay the opening cards (the STORY button moved here from the game HUD).
 signal replay_intro_requested()
 
@@ -779,7 +782,27 @@ func _build_tiles() -> Control:
 		Haptics.light()
 		replay_intro_requested.emit())
 	column.add_child(story)
+	column.add_child(_main_menu_button())
 	return page
+
+
+## The door back to the front door. Styled like the story replay because it is
+## the same kind of thing: a way OUT of the loop, not a move inside it.
+func _main_menu_button() -> Button:
+	var button := Button.new()
+	button.name = "MainMenuButton"
+	button.text = tr("UI_MAIN_MENU")
+	button.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
+	button.flat = true
+	button.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	button.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	button.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
+	button.add_theme_color_override("font_hover_color", GameConfig.CASE_ACCENT)
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	button.pressed.connect(func() -> void:
+		Haptics.light()
+		main_menu_requested.emit())
+	return button
 
 
 ## The one thing the hub is for: where the player left off, and the button that
@@ -2544,3 +2567,4 @@ func _refresh_tiles() -> void:
 		Haptics.light()
 		replay_intro_requested.emit())
 	column.add_child(story)
+	column.add_child(_main_menu_button())

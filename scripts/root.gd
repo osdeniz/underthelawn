@@ -120,6 +120,21 @@ func _begin_after_menu(skip_fade_in := false) -> void:
 		_open_hub()
 
 
+## Back out to the front door. The menu is REBUILT rather than kept alive
+## behind everything: it is freed on CONTINUE, and a screen that only exists at
+## launch is cheaper than one parked under the whole game for a trip that most
+## players make once (G14.9).
+##
+## The hub is hidden and its town stopped first — a live diorama rendering
+## behind a full-screen menu is a framebuffer nobody is looking at.
+func _return_to_main_menu() -> void:
+	_clear_game()
+	if _hub != null and is_instance_valid(_hub):
+		_hub.set_diorama_active(false)
+		_hub.get_parent().visible = false
+	_show_main_menu()
+
+
 # ---------------------------------------------------------------- intro
 
 func _intro_seen() -> bool:
@@ -288,6 +303,7 @@ func _open_hub() -> void:
 		layer.add_child(_hub)
 		_hub.chapter_chosen.connect(_on_chapter_chosen)
 		_hub.replay_intro_requested.connect(_play_intro)
+		_hub.main_menu_requested.connect(_return_to_main_menu)
 	_hub.get_parent().visible = true
 	_hub.set_diorama_active(true)
 	_hub.refresh()
