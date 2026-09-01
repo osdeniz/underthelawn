@@ -42,6 +42,27 @@ func _ready() -> void:
 	# The round trip has to be repeatable, not a one-way door with one spare.
 	var exits2: Array = root._hub.find_children("MainMenuButton", "", true, false)
 	ck("cikis hala orada", exits2.size() >= 1, "%d" % exits2.size())
+	# And the same trip from inside a level: the pause sheet's own row, which
+	# must not need the town as a stop on the way (G14.9).
+	# Straight into the level: _on_chapter_chosen stops at the briefing, which
+	# waits for a tap this test has no way to give.
+	root._pending_variant = "ch01_aldridge"
+	root._start_chapter()
+	for _i in 40:
+		await get_tree().process_frame
+	var game: Node = root._game
+	ck("bolum acildi", game != null and is_instance_valid(game), "")
+	if game != null and is_instance_valid(game):
+		get_tree().paused = false
+		game.hud._open_pause()
+		await get_tree().process_frame
+		game.hud.main_menu_requested.emit()
+		for _i in 24:
+			await get_tree().process_frame
+		ck("duraklattan ana menuye cikildi", _menu_layer(root) != null, "")
+		ck("bolum kapandi",
+			root._game == null or not is_instance_valid(root._game), "")
+	get_tree().paused = false
 	_finish(root)
 
 

@@ -2527,9 +2527,16 @@ parking it alive under the whole game — a screen most players visit once is
 cheaper to build twice than to keep rendering behind everything.
 
 Going out hides the hub and stops its town first: a live diorama drawing behind
-a full-screen menu is a framebuffer nobody is looking at. `MenuReturnCheck`
-makes the round trip TWICE, because a way out that works once and then loses
-its own button is not a way out.
+a full-screen menu is a framebuffer nobody is looking at.
+
+The pause sheet has the same row, between RETURN TO TOWN and RESTART: reaching
+the front door through the town was two taps for a trip that has nothing to do
+with the town. The level asks the flow above by name, the way it already asks
+for the town and for the next chapter.
+
+`MenuReturnCheck` makes the round trip TWICE and then makes it again from
+inside a level, because a way out that works once and then loses its own button
+is not a way out.
 
 ## Not in G1-G9
 

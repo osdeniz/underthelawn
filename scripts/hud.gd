@@ -23,6 +23,9 @@ signal exit_confirmed()
 signal next_chapter_requested()
 ## VIEW CASE BOARD on the case-notes panel (G10).
 signal board_requested()
+## Straight out to the app's front door. Going through the town first was two
+## taps for a trip that has nothing to do with the town (G14.9).
+signal main_menu_requested()
 
 ## Render sizes for the evidence thumbnails on the completion screen (G12.10).
 const SLOT_VIEW := Vector2i(190, 190)
@@ -1090,6 +1093,15 @@ func _build_pause() -> void:
 		Analytics.track("sky_mode", {"mode": SkyTime.mode()}))
 	rows.add_child(sky)
 
+	var menu := Button.new()
+	menu.text = tr("UI_MAIN_MENU")
+	menu.add_theme_font_size_override("font_size", 38)
+	_style_button(menu)
+	menu.pressed.connect(func() -> void:
+		Haptics.light()
+		_close_pause()
+		main_menu_requested.emit())
+
 	var town := Button.new()
 	town.text = tr("UI_RETURN_TOWN")
 	town.add_theme_font_size_override("font_size", 42)
@@ -1098,6 +1110,7 @@ func _build_pause() -> void:
 		_close_pause()
 		return_requested.emit())
 	rows.add_child(town)
+	rows.add_child(menu)
 
 	# Balance testing only: ships disabled, so it costs nothing at runtime.
 	if GameConfig.DEV_GRANT_SCRAP:

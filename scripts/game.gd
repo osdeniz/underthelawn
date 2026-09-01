@@ -131,6 +131,7 @@ func _ready() -> void:
 		hud.apply_harvest_mode()
 
 	hud.return_requested.connect(_return_to_hub)
+	hud.main_menu_requested.connect(_return_to_main_menu)
 	hud.exit_confirmed.connect(_confirm_exit)
 	hud.next_chapter_requested.connect(_next_chapter)
 	hud.board_requested.connect(func() -> void:
@@ -645,6 +646,14 @@ func _restart() -> void:
 
 ## RETURN TO TOWN. Standalone (tests, or running Main.tscn directly) there is no
 ## hub to go back to, so this restarts instead of dead-ending.
+## Out of the level and out of the game, in one tap. The flow above owns the
+## menu, so this only asks (G14.9).
+func _return_to_main_menu() -> void:
+	var root := get_parent()
+	if root != null and root.has_method("return_to_main_menu"):
+		root.return_to_main_menu()
+
+
 func _return_to_hub() -> void:
 	var root := get_parent()
 	if root != null and root.has_method("return_to_hub"):

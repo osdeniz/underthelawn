@@ -127,6 +127,11 @@ func _begin_after_menu(skip_fade_in := false) -> void:
 ##
 ## The hub is hidden and its town stopped first — a live diorama rendering
 ## behind a full-screen menu is a framebuffer nobody is looking at.
+## Public seam for the level's pause sheet, which reaches the flow by name.
+func return_to_main_menu() -> void:
+	_return_to_main_menu()
+
+
 func _return_to_main_menu() -> void:
 	_clear_game()
 	if _hub != null and is_instance_valid(_hub):
