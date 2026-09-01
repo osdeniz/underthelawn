@@ -1160,6 +1160,12 @@ func refresh_sky() -> void:
 		else GameConfig.TIME_OF_DAY_DEFAULT
 	if env != null and sun != null:
 		SkyTime.apply(env, sun, hour)
+	# The fireflies belong to the hour, not to the level, so they follow the
+	# switch rather than waiting for the next chapter (G14.5).
+	for any: Variant in root.find_children("Fireflies", "", true, false):
+		var swarm := any as Fireflies
+		if swarm != null:
+			swarm.refresh()
 
 
 func _close_pause() -> void:

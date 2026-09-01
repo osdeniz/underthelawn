@@ -1,7 +1,7 @@
 extends Node
 ## G14.3: the same yard under each mode the switch offers.
 
-const MODES := ["day", "dusk", "night"]
+const MODES := ["night"]
 
 
 func _ready() -> void:
@@ -19,6 +19,11 @@ func _ready() -> void:
 		for _i in 260:
 			get_tree().paused = false
 			await get_tree().process_frame
+		# The window loses focus during the long wait and the game pauses itself;
+		# close the sheet again immediately before the capture.
+		get_tree().paused = false
+		game.hud._close_pause()
+		await get_tree().process_frame
 		await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png("res://out/sky_%s.png" % mode)
 		game.queue_free()

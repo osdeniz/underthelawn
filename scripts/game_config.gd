@@ -1931,3 +1931,19 @@ const DIORAMA_CLOUD_SIZE := Vector2(9.0, 17.0)
 const DIORAMA_BIRD_DIST := Vector2(46.0, 78.0)
 const DIORAMA_BIRD_DROP := Vector2(19.0, 26.0)
 const DIORAMA_BIRD_SIZE := 0.75
+
+# ---------------------------------------------------------------- fireflies
+
+## Sparks over the lawn once the sun is low (G14.5). One GPU particle system,
+## so the count below costs the same as one node would; what it must NOT do is
+## turn up at noon, where it would read as dust on the lens.
+const FIREFLIES_ENABLED := true
+const FIREFLY_HOURS: Array[String] = ["sunset", "dusk", "night"]
+const FIREFLY_COUNT := 48
+const FIREFLY_LIFETIME := 5.5
+## Height band they stay inside: from `x` up by `y`. Chest to head height —
+## below that the grass eats them, above it they read as stars.
+const FIREFLY_BAND := Vector2(0.8, 2.6)
+const FIREFLY_DRIFT := Vector2(0.12, 0.42)
+const FIREFLY_SIZE := 0.13
+const FIREFLY_COLOUR := Color(1.00, 0.94, 0.52, 0.95)

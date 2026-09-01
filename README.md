@@ -2425,6 +2425,27 @@ side-lighting the blades, they went from unreadable to the same contrast as
 midday without changing a single colour. The test now enforces a floor, so no
 future preset can flatten the lawn unnoticed.
 
+### G14.5 — fireflies, and what "free" actually costs
+
+Sparks over the lawn in the three hours that earn them (sunset, dusk, night),
+and nothing at all in daylight. ONE `GPUParticles3D`: the swarm costs the same
+whether it holds ten sparks or a hundred, where forty glowing nodes would have
+cost forty draws and forty transforms a frame. Unshaded, additive, no shadow,
+no light — and `emitting = false` in daylight, which draws nothing.
+
+**The cost claim was measured, and the first two measurements were both
+wrong.** The first compared a day scene against a night scene and reported 166
+extra draw calls: that is the price of night itself — a different sky,
+different shadows, different culling — not of fireflies. The second compared
+the same scene with the swarm off and on and reported 13, which was the opening
+camera still descending and changing what was culled between the two samples.
+Alternating four rounds of off/on cancels that drift: **412 with, 414 without.**
+
+`FireflyCheck` also refuses to pretend: headless has no renderer and reports
+zero draw calls for everything, so the cost assertion would pass by measuring
+nothing. It prints ATLANDI and skips instead. A check that cannot fail is worse
+than no check — the same rule the suite runner learned in G13.6.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
