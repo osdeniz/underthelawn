@@ -54,6 +54,8 @@ var _peek := false
 var _peek_id := ""
 ## Static subtrees waiting to be welded into one mesh per material (G13.6).
 var _bake_targets: Array = []
+var _life_signs: TownLife
+var _authored: Dictionary = {}
 var _world: WorldEnvironment
 var _sun: DirectionalLight3D
 ## The town's own hour when nothing overrides it: the warm low morning the
@@ -148,6 +150,10 @@ func set_built(project_id: String, built: bool, animated: bool) -> void:
 				node.scale = Vector3.ONE
 
 
+	if _life_signs != null and is_instance_valid(_life_signs):
+		_life_signs.refresh()
+
+
 func has_building(project_id: String) -> bool:
 	return _buildings.has(project_id)
 
@@ -227,9 +233,36 @@ func apply_sky_mode() -> void:
 	# AUTO leaves the hand-tuned lighting completely alone. Writing a preset
 	# over it — even a "morning" one — would replace sky colours, ambient and a
 	# fog curve that the plate's dissolving rim depends on.
+	if _life_signs != null and is_instance_valid(_life_signs):
+		_life_signs.refresh()
+	Horizon.light_windows(self,
+		GameConfig.WINDOW_HOURS.has(SkyTime.resolve(DIORAMA_HOUR)))
 	if SkyTime.mode() == GameConfig.SKY_MODE_AUTO:
+		_restore_authored()
 		return
 	SkyTime.apply(_world, _sun, DIORAMA_HOUR)
+
+
+## Puts the hand-tuned lighting back, exactly as it was built.
+func _restore_authored() -> void:
+	if _authored.is_empty() or _world == null or _world.environment == null:
+		return
+	var env := _world.environment
+	env.ambient_light_source = _authored["ambient_source"]
+	env.ambient_light_color = _authored["ambient_colour"]
+	env.ambient_light_energy = _authored["ambient_energy"]
+	env.fog_light_color = _authored["fog"]
+	var sky_mat := env.sky.sky_material as ProceduralSkyMaterial \
+		if env.sky != null else null
+	if sky_mat != null:
+		sky_mat.sky_top_color = _authored["sky_top"]
+		sky_mat.sky_horizon_color = _authored["sky_horizon"]
+		sky_mat.ground_bottom_color = _authored["ground_bottom"]
+		sky_mat.ground_horizon_color = _authored["ground_horizon"]
+	if _sun != null:
+		_sun.rotation = _authored["sun_rotation"]
+		_sun.light_color = _authored["sun_colour"]
+		_sun.light_energy = _authored["sun_energy"]
 
 
 # ---------------------------------------------------------------- environment
@@ -273,6 +306,22 @@ func _build_environment() -> void:
 	world.name = "DioramaEnvironment"
 	add_child(world)
 	_world = world
+	# Remembered so AUTO can put it back. Forcing a mode WRITES over this
+	# hand-tuned lighting, and without a copy the town stayed lit by whatever
+	# was chosen last even after the switch returned to Story (G14.6).
+	_authored = {
+		"ambient_source": env.ambient_light_source,
+		"ambient_colour": env.ambient_light_color,
+		"ambient_energy": env.ambient_light_energy,
+		"fog": env.fog_light_color,
+		"sky_top": sky_mat.sky_top_color,
+		"sky_horizon": sky_mat.sky_horizon_color,
+		"ground_bottom": sky_mat.ground_bottom_color,
+		"ground_horizon": sky_mat.ground_horizon_color,
+		"sun_rotation": Vector3.ZERO,
+		"sun_colour": Color.WHITE,
+		"sun_energy": 1.0,
+	}
 
 	# Warm low morning sun, same shadow settings as the yard.
 	var sun := DirectionalLight3D.new()
@@ -284,6 +333,9 @@ func _build_environment() -> void:
 	sun.shadow_enabled = true
 	sun.shadow_blur = 3.0
 	sun.directional_shadow_max_distance = 44.0
+	_authored["sun_rotation"] = sun.rotation
+	_authored["sun_colour"] = sun.light_color
+	_authored["sun_energy"] = sun.light_energy
 	add_child(sun)
 	apply_sky_mode()
 
@@ -1471,6 +1523,10 @@ func _build_horizon() -> void:
 	# against five degrees in a yard. Clouds and birds earn their place here
 	# first (G14.2).
 	_build_sky_life()
+	_life_signs = TownLife.new()
+	add_child(_life_signs)
+	_life_signs.setup()
+	_life_signs.refresh()
 	var ring := get_node_or_null("Horizon") as Node3D
 	if ring != null:
 		_bake_targets.append(ring)

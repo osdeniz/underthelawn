@@ -47,6 +47,9 @@ func _build_material() -> void:
 	_material.set_shader_parameter("wind_amplitude",
 		GameConfig.WIND_AMPLITUDE * float(GameConfig.plant("sway", 1.0)))
 	_material.set_shader_parameter("wind_speed", GameConfig.WIND_SPEED)
+	_material.set_shader_parameter("gust_speed", GameConfig.WIND_GUST_SPEED)
+	_material.set_shader_parameter("gust_length", GameConfig.WIND_GUST_LENGTH)
+	_material.set_shader_parameter("gust_strength", GameConfig.WIND_GUST_STRENGTH)
 
 
 func _build_variants(seed_value: int) -> void:

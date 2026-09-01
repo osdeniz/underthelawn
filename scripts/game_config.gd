@@ -1947,3 +1947,72 @@ const FIREFLY_BAND := Vector2(0.8, 2.6)
 const FIREFLY_DRIFT := Vector2(0.12, 0.42)
 const FIREFLY_SIZE := 0.13
 const FIREFLY_COLOUR := Color(1.00, 0.94, 0.52, 0.95)
+
+# ---------------------------------------------------------------- town life
+
+## Which restored buildings have a chimney worth smoking, and where the smoke
+## leaves them (plate space, relative to the building's own position).
+##
+## Smoke ONLY on rebuilt buildings: a ruin with a fire in it would say the
+## opposite of what the diorama is for. This is the shortest sentence the town
+## has for "someone lives here now" (G14.6).
+const DIORAMA_SMOKE := {
+	"homes": Vector3(0.6, 3.4, -0.4),
+	"station": Vector3(-0.8, 3.6, 0.2),
+	"clinic": Vector3(0.4, 3.2, 0.6),
+	"farm": Vector3(-0.6, 3.0, -0.5),
+}
+const SMOKE_COUNT := 14
+const SMOKE_LIFETIME := 4.2
+const SMOKE_RISE := Vector2(0.35, 0.75)
+const SMOKE_SIZE := 0.55
+const SMOKE_COLOUR := Color(0.86, 0.86, 0.84, 0.30)
+
+## Warm windows after dark, on rebuilt buildings only — so a night visit to the
+## hub can be COUNTED: this many lit houses is this much town back.
+const WINDOW_HOURS: Array[String] = ["dusk", "night"]
+const WINDOW_COLOUR := Color(1.00, 0.86, 0.48)
+const WINDOW_SIZE := Vector2(0.42, 0.34)
+## Per building: where its lit windows sit, relative to the building.
+const DIORAMA_WINDOWS := {
+	"homes": [Vector3(-0.9, 1.3, 1.5), Vector3(0.9, 1.3, 1.5)],
+	"station": [Vector3(-1.1, 1.4, 1.6), Vector3(1.1, 1.4, 1.6)],
+	"clinic": [Vector3(0.0, 1.4, 1.6)],
+	"farm": [Vector3(-0.8, 1.2, 1.4), Vector3(0.8, 1.2, 1.4)],
+	"greenhouse": [Vector3(0.0, 1.0, 1.2)],
+	"barn": [Vector3(0.0, 1.6, 1.5)],
+	"watchtower": [Vector3(0.0, 3.4, 0.8)],
+}
+
+## The far silhouettes get windows too, as one merged mesh: a dark ring of
+## rooftops around a lit town reads as abandonment, which is not what the story
+## says by then (G14.6).
+const FAR_WINDOW_CHANCE := 0.55
+const FAR_WINDOW_SIZE := 0.28
+
+## The firefly swarm doubles as the golden hour's dust, which costs nothing:
+## same node, same draw, different colour and speed per hour.
+const MOTE_PROFILES := {
+	"golden": {"colour": Color(1.00, 0.92, 0.72, 0.42), "size": 0.09,
+		"drift": Vector2(0.05, 0.18), "count": 40},
+	"afternoon": {"colour": Color(1.00, 0.96, 0.86, 0.30), "size": 0.08,
+		"drift": Vector2(0.04, 0.14), "count": 30},
+	"sunset": {"colour": Color(1.00, 0.88, 0.52, 0.85), "size": 0.12,
+		"drift": Vector2(0.10, 0.36), "count": 44},
+	"dusk": {"colour": Color(1.00, 0.94, 0.56, 0.95), "size": 0.13,
+		"drift": Vector2(0.12, 0.42), "count": 48},
+	"night": {"colour": Color(1.00, 0.94, 0.52, 0.95), "size": 0.13,
+		"drift": Vector2(0.12, 0.42), "count": 48},
+}
+
+## Cut grass at night is not grass-coloured: what comes up out of the blades in
+## the dark reads as moths. Same particle system, second profile (G14.6).
+const NIGHT_CLIP_HOURS: Array[String] = ["night"]
+const NIGHT_CLIP_COLOUR := Color(0.92, 0.90, 0.78, 0.85)
+const NIGHT_CLIP_SCALE := 1.8
+
+## A gust crossing the field, on top of the per-blade sway that was already
+## there. Zero extra draws: it is three terms in the vertex shader.
+const WIND_GUST_SPEED := 0.42
+const WIND_GUST_LENGTH := 0.055
+const WIND_GUST_STRENGTH := 0.85

@@ -76,6 +76,11 @@ static func _write(env_host: WorldEnvironment, sun: DirectionalLight3D,
 		sky_material.sky_horizon_color = spec["sky_horizon"]
 		sky_material.ground_horizon_color = spec["sky_horizon"]
 		sky_material.ground_bottom_color = spec["ground"]
+	# The preset's ambient is a COLOUR, so the environment has to be reading its
+	# ambient from a colour. The diorama's takes it from the SKY instead, and a
+	# night sky is nearly black — forcing night on it turned the whole town off
+	# and the ambient value here was simply ignored (G14.6).
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = spec["ambient"]
 	env.ambient_light_energy = float(spec["ambient_energy"])
 	env.fog_light_color = spec["fog"]

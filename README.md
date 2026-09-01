@@ -2446,6 +2446,39 @@ zero draw calls for everything, so the cost assertion would pass by measuring
 nothing. It prints ATLANDI and skips instead. A check that cannot fail is worse
 than no check — the same rule the suite runner learned in G13.6.
 
+## Sprint G14.6 — the town shows what you rebuilt
+
+Five additions, all on the same rule the fireflies were built to: one system,
+one draw, and nothing at all in the hours that do not want it.
+
+* **Chimney smoke on rebuilt buildings.** A ruin never smokes. Four plumes at
+  most, one GPU particle system each, switched rather than rebuilt.
+* **Lit windows after dark, on rebuilt buildings only** — every window in the
+  town is ONE merged mesh, rebuilt when a building lands rather than toggled
+  per quad. A night visit to the hub can now be counted: this many lit houses
+  is this much town back.
+* **Windows in the far silhouettes too**, same trick, one mesh. A dark ring of
+  rooftops around a lit town reads as abandonment, which is not what the story
+  says by then.
+* **The firefly swarm doubles as the golden hour's dust** — same node, same
+  draw, a different colour, size and drift per hour.
+* **Moths instead of clippings at night**, as a second profile on the particle
+  system the mower already had.
+* **A gust crossing the field**, three terms in the grass vertex shader on top
+  of the per-blade sway that was already there. No extra draw at all.
+
+**Two real bugs came out of it.** The diorama takes its ambient light from the
+SKY, so forcing night on it — a sky that is nearly black — turned the whole
+town off, and the preset's ambient colour was being silently ignored. And
+returning the switch to Story left the town lit by whatever had been chosen
+last, because forcing a mode WRITES over the hand-tuned lighting; the authored
+values are copied at build time and restored now.
+
+**A screenshot lied, twice.** The hub photographs black at night because the
+hub parks its town behind a captured still to save the framebuffer — the still
+was the picture, not the lighting. Shots of the town come from the diorama
+scene directly now, and the hub throws its still away when the light changes.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

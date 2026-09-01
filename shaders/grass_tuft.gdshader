@@ -21,10 +21,29 @@ uniform float edge_fade = 0.03;
 // the same value range as the TALL ground tint.
 uniform vec3 tuft_tint : source_color = vec3(0.60, 0.82, 0.44);
 
+// A gust travelling across the field, on top of the per-blade sway. It is a
+// band of extra amplitude sliding along the wind direction, so the lawn breathes
+// in waves instead of vibrating uniformly — three terms, no extra draw (G14.6).
+uniform float gust_speed = 0.42;
+uniform float gust_length = 0.055;
+uniform float gust_strength = 0.85;
+
+// 0 where the gust is not, up to gust_strength where its crest is.
+float gust_at(vec3 world_root, float t) {
+	float along = (world_root.x + world_root.z) * gust_length - t * gust_speed;
+	// sin() lifted and sharpened: long calm stretches, short strong crests.
+	float wave = sin(along * 6.2831853) * 0.5 + 0.5;
+	return pow(wave, 3.0) * gust_strength;
+}
+
 void vertex() {
 	vec3 pos = VERTEX;
+	float gust = gust_at(MODEL_MATRIX[3].xyz, TIME);
 	VERTEX.x += sin(TIME * wind_speed + pos.x * 4.0 + pos.z * 5.0)
-		* max(pos.y, 0.0) * wind_amplitude;
+		* max(pos.y, 0.0) * wind_amplitude * (1.0 + gust * 2.4);
+	// A gust also LEANS the blade, not just shakes it; without this the wave
+	// reads as a change in vibration speed rather than as moving air.
+	VERTEX.z += gust * max(pos.y, 0.0) * wind_amplitude * 1.6;
 	NORMAL = vec3(0.0, 1.0, 0.0);
 }
 

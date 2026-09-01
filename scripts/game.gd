@@ -142,6 +142,9 @@ func _ready() -> void:
 	# The chapter's hour, before the first frame is drawn (G14.2).
 	SkyTime.apply($WorldEnvironment as WorldEnvironment,
 		$Sun as DirectionalLight3D, variant.time_of_day)
+	# The swarm and the far windows belong to the hour too, and the HUD is what
+	# knows how to reach them (G14.6).
+	hud.refresh_sky()
 	_activate(GameConfig.MOWER_PUSH, true)
 	# G9.4: no birds in play — the theme runs instead (RootFlow keeps it going).
 	# Standalone (tests, direct scene run) start it here so the scene sounds

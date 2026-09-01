@@ -2385,6 +2385,14 @@ func _back_button() -> Button:
 ## Called by the flow controller when the hub becomes visible again, so progress
 ## made in a chapter shows up immediately.
 func refresh() -> void:
+	# The parked still was photographed under whatever light was on at the
+	# time; coming back from a level with the switch moved, it is a picture of
+	# the wrong town (G14.6).
+	_still_taken = false
+	for any: Variant in find_children("*", "TownDiorama", true, false):
+		var town := any as TownDiorama
+		if town != null:
+			town.apply_sky_mode()
 	_refresh_progress()
 	_refresh_lead_card()
 	_refresh_board()

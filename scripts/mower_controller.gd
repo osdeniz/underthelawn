@@ -363,7 +363,14 @@ func _mow(delta: float) -> void:
 	if mown > 0 and _clippings:
 		var pm := _clippings.process_material as ParticleProcessMaterial
 		if pm:
-			pm.color = clip_tint
+			# After dark what comes up out of the blades is not grass-coloured:
+			# pale, bigger and slower, it reads as moths going up (G14.6). Same
+			# particle system, second profile, no extra draw.
+			var night := GameConfig.NIGHT_CLIP_HOURS.has(_hour())
+			pm.color = GameConfig.NIGHT_CLIP_COLOUR if night else clip_tint
+			pm.scale_max = GameConfig.NIGHT_CLIP_SCALE if night else 1.0
+			pm.gravity = Vector3(0.0,
+				GameConfig.CLIP_GRAVITY * (0.35 if night else 1.0), 0.0)
 	_update_clippings(delta, mown)
 
 	if mown > 0:
@@ -372,6 +379,12 @@ func _mow(delta: float) -> void:
 		cells_mown.emit(mown)
 	for cell in revealed:
 		secret_uncovered.emit(cell.x, cell.y)
+
+
+## The hour the level is actually being lit by, switch included.
+func _hour() -> String:
+	return SkyTime.resolve(LevelVariant.current.time_of_day \
+		if LevelVariant.current != null else GameConfig.TIME_OF_DAY_DEFAULT)
 
 
 ## Leaf clippings spray from the right side only while cells are actually

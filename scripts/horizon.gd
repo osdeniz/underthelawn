@@ -77,6 +77,7 @@ static func build(parent: Node3D, radius: float, seed_value: int,
 
 	# A scatter of rooftops on the nearest band: the rest of the town, still out
 	# there, still nobody's.
+	var far_windows: Array = []
 	var roof_mat := _unshaded("far_roof", ROOF_COLOUR)
 	var wall_mat := _unshaded("far_wall", WALL_COLOUR)
 	for i in 22:
@@ -106,11 +107,59 @@ static func build(parent: Node3D, radius: float, seed_value: int,
 		roof.position = wall.position + Vector3(0.0, h * 0.5 + 0.45, 0.0)
 		roof.rotation.y = wall.rotation.y
 		root.add_child(roof)
+		if rng.randf() < GameConfig.FAR_WINDOW_CHANCE:
+			far_windows.append(wall.position
+				+ Vector3(0.0, -h * 0.1, 0.0)
+				+ Vector3(0.0, 0.0, -w * 0.42).rotated(Vector3.UP,
+					wall.rotation.y))
+
+	# Windows in the far houses, as ONE mesh rather than one node each. A dark
+	# ring of rooftops around a lit town reads as abandonment, which is not what
+	# the story says by the time the player is looking at a rebuilt square
+	# (G14.6). Hidden by default; the hour decides.
+	if not far_windows.is_empty():
+		var lights := MeshInstance3D.new()
+		lights.name = "FarWindows"
+		lights.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		lights.set_meta("no_bake", true)
+		var tool := SurfaceTool.new()
+		tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var half := GameConfig.FAR_WINDOW_SIZE * 0.5
+		for any: Variant in far_windows:
+			var at: Vector3 = any
+			# Facing the middle of the plate, which is where the camera is.
+			var to_middle := Vector3(-at.x, 0.0, -at.z).normalized()
+			var side := to_middle.cross(Vector3.UP) * half
+			var up := Vector3(0.0, half, 0.0)
+			var corners := [at - side - up, at + side - up, at + side + up,
+				at - side + up]
+			for triangle: Array in [[0, 1, 2], [0, 2, 3]]:
+				for index: int in triangle:
+					tool.set_normal(to_middle)
+					tool.set_uv(Vector2.ZERO)
+					tool.add_vertex(corners[index])
+		lights.mesh = tool.commit()
+		var glow := StandardMaterial3D.new()
+		glow.albedo_color = GameConfig.WINDOW_COLOUR
+		glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		glow.disable_receive_shadows = true
+		lights.material_override = glow
+		lights.visible = false
+		root.add_child(lights)
 
 
 ## Grass out to the hills, with trees standing in it. Everything here is
 ## unshaded and shadowless: at this distance a lit surface only shows the sun as
 ## a flat wash, and the cost has to stay near nothing.
+## Turns the far windows on for the dark hours. Called by whatever owns the
+## scene's light, since the horizon has no idea what time it is.
+static func light_windows(parent: Node3D, lit: bool) -> void:
+	for any: Variant in parent.find_children("FarWindows", "", true, false):
+		var node := any as MeshInstance3D
+		if node != null:
+			node.visible = lit
+
+
 static func _build_country(root: Node3D, radius: float,
 		rng: RandomNumberGenerator, tint: Color) -> void:
 	var ground := MeshInstance3D.new()

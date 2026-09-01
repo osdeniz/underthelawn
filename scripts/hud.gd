@@ -1166,6 +1166,7 @@ func refresh_sky() -> void:
 		var swarm := any as Fireflies
 		if swarm != null:
 			swarm.refresh()
+	Horizon.light_windows(root, GameConfig.WINDOW_HOURS.has(SkyTime.resolve(hour)))
 
 
 func _close_pause() -> void:

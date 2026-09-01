@@ -8,11 +8,17 @@ extends GPUParticles3D
 ## whether there are ten of them or a hundred, which is the whole reason it is
 ## built this way.
 ##
-## They exist only in the hours that earn them. In daylight the node is still
-## there but `emitting` is false, and a stopped GPUParticles3D draws nothing —
-## so the switch costs nothing to flip either.
+## The same swarm is the golden hour's dust and the night's fireflies: one node,
+## one draw, a different colour and speed per hour (G14.6). At noon it stops
+## emitting entirely, and a stopped GPUParticles3D draws nothing — so the switch
+## costs nothing to flip either.
 
 ## Builds the swarm over `parent`, centred on the lawn.
+var _process_material: ParticleProcessMaterial
+var _material: StandardMaterial3D
+var _quad: QuadMesh
+
+
 static func build(parent: Node3D) -> Fireflies:
 	if not GameConfig.FIREFLIES_ENABLED:
 		return null
@@ -36,6 +42,7 @@ func _setup() -> void:
 	pm.spread = 180.0
 	pm.initial_velocity_min = GameConfig.FIREFLY_DRIFT.x
 	pm.initial_velocity_max = GameConfig.FIREFLY_DRIFT.y
+	_process_material = pm
 	pm.gravity = Vector3.ZERO
 	# Turbulence is what makes them read as alive rather than as falling dust,
 	# and it is free: the GPU already walks every particle.
@@ -73,6 +80,8 @@ func _setup() -> void:
 	mat.disable_receive_shadows = true
 	quad.material = mat
 	draw_pass_1 = quad
+	_quad = quad
+	_material = mat
 
 	amount = GameConfig.FIREFLY_COUNT
 	lifetime = GameConfig.FIREFLY_LIFETIME
@@ -93,8 +102,18 @@ func _setup() -> void:
 func refresh() -> void:
 	var hour := SkyTime.resolve(LevelVariant.current.time_of_day \
 		if LevelVariant.current != null else GameConfig.TIME_OF_DAY_DEFAULT)
-	var wanted: bool = GameConfig.FIREFLY_HOURS.has(hour)
-	if wanted == emitting:
-		return
-	emitting = wanted
+	var profile: Dictionary = GameConfig.MOTE_PROFILES.get(hour, {})
+	var wanted := not profile.is_empty()
 	visible = wanted
+	emitting = wanted
+	if not wanted:
+		return
+	# Retuning is cheaper than rebuilding, and it is what makes one node able to
+	# be two different things: dust hangs almost still and pale, fireflies drift
+	# and burn.
+	_material.albedo_color = profile["colour"]
+	_quad.size = Vector2(float(profile["size"]), float(profile["size"]))
+	var drift: Vector2 = profile["drift"]
+	_process_material.initial_velocity_min = drift.x
+	_process_material.initial_velocity_max = drift.y
+	amount = int(profile["count"])
