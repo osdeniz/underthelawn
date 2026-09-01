@@ -183,6 +183,13 @@ static func _add_stalk(st: SurfaceTool, rng: RandomNumberGenerator,
 ## A sunflower head. Every one of them faces the SAME way, which is the single
 ## detail that makes the field read as alive rather than as scattered props.
 static func _add_head(st: SurfaceTool, at: Vector3, rng: RandomNumberGenerator) -> void:
+	# Two shapes. The default is a ROSETTE — petals radiating from a disc, which
+	# is a sunflower and a cotton boll. A pumpkin is not that: built as a
+	# rosette at gourd size it came out a spiky orange star, because the petals
+	# fan outward and never close. "globe" builds a squat round body instead.
+	if str(GameConfig.plant("head_shape", "rosette")) == "globe":
+		_add_globe_head(st, at, rng)
+		return
 	var radius := float(GameConfig.plant("head_radius", 0.28))
 	var yaw := float(GameConfig.plant("head_yaw", 0.0))
 	var petal: Color = GameConfig.plant("head_petal", Color(0.94, 0.72, 0.16))
@@ -212,6 +219,58 @@ static func _add_head(st: SurfaceTool, at: Vector3, rng: RandomNumberGenerator) 
 			centre + (right * cos(a0) + up * sin(a0)) * r,
 			centre + (right * cos(a1) + up * sin(a1)) * r,
 			disc.lightened(0.1), disc, disc, 1.0, 1.0)
+
+
+## A gourd: a ribbed ball sitting on the ground, with a short stub on top.
+## Rings of quads around a vertical axis, squashed so it is wider than it is
+## tall — a pumpkin read from the mower is a shape and a colour, and this is
+## both at about sixty triangles.
+static func _add_globe_head(st: SurfaceTool, at: Vector3,
+		rng: RandomNumberGenerator) -> void:
+	var radius := float(GameConfig.plant("head_radius", 0.34))
+	var body: Color = GameConfig.plant("head_petal", Color(0.88, 0.44, 0.10))
+	var deep: Color = GameConfig.plant("head_disc", Color(0.72, 0.34, 0.07))
+	var squash := 0.72
+	var centre := at + Vector3(0.0, radius * squash, 0.0)
+	var rings := 4
+	var segs := 8
+	var spin := rng.randf() * TAU
+	for r in rings:
+		var t0 := PI * float(r) / float(rings)
+		var t1 := PI * float(r + 1) / float(rings)
+		var y0 := cos(t0)
+		var y1 := cos(t1)
+		var r0 := sin(t0)
+		var r1 := sin(t1)
+		for i in segs:
+			# Every other segment pulled in a little: that is the ribbing, and
+			# it is what stops it reading as a beach ball.
+			var rib := 0.90 if i % 2 == 0 else 1.0
+			var a0 := TAU * float(i) / float(segs) + spin
+			var a1 := TAU * float(i + 1) / float(segs) + spin
+			var p00 := centre + Vector3(cos(a0) * r0 * rib, y0 * squash,
+				sin(a0) * r0 * rib) * radius
+			var p10 := centre + Vector3(cos(a1) * r0 * rib, y0 * squash,
+				sin(a1) * r0 * rib) * radius
+			var p01 := centre + Vector3(cos(a0) * r1 * rib, y1 * squash,
+				sin(a0) * r1 * rib) * radius
+			var p11 := centre + Vector3(cos(a1) * r1 * rib, y1 * squash,
+				sin(a1) * r1 * rib) * radius
+			var shade := body.lerp(deep, float(r) / float(rings))
+			_vtri(st, p00, p10, p11, shade, shade, shade.darkened(0.08), 1.0, 1.0)
+			_vtri(st, p00, p11, p01, shade, shade.darkened(0.08), shade,
+				1.0, 1.0)
+	# The stub, so it is a pumpkin and not an orange.
+	var stem: Color = Color(0.28, 0.30, 0.14)
+	var top := centre + Vector3(0.0, radius * squash * 0.96, 0.0)
+	for i in 4:
+		var a0 := TAU * float(i) / 4.0
+		var a1 := TAU * float(i + 1) / 4.0
+		var w := radius * 0.13
+		_vtri(st, top + Vector3(cos(a0) * w, 0.0, sin(a0) * w),
+			top + Vector3(cos(a1) * w, 0.0, sin(a1) * w),
+			top + Vector3(0.0, radius * 0.36, 0.0), stem, stem,
+			stem.lightened(0.15), 1.0, 1.0)
 
 
 static func _add_clump(st: SurfaceTool, rng: RandomNumberGenerator, center: Vector3,

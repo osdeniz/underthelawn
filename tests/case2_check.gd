@@ -186,20 +186,34 @@ func _check_plants() -> void:
 		ck("profil boyu artan: %s" % id,
 			float(GameConfig.plant("height_max", 0.0))
 				> float(GameConfig.plant("height_min", 0.0)), id)
-		if bool(GameConfig.plant("head", false)):
+		# Facing is a SUNFLOWER rule, not a rule about heads. The flavour text
+		# says its heads follow the road, so the geometry has to agree with the
+		# sentence (G13) — but a pumpkin's gourd and a cotton boll have no
+		# front, and asserting it of every headed plant only recorded that the
+		# sunflower was once the only one.
+		if id == "SUNFLOWER":
 			# East is +X, and _add_head faces Vector3(sin(yaw), .., cos(yaw)).
-			# The flavour text says the heads follow the ROAD, so the geometry
-			# has to agree with the sentence (G13).
 			var yaw := float(GameConfig.plant("head_yaw", 0.0))
-			ck("ayciceği basi doguya bakiyor: %s" % id,
+			ck("ayciceği basi doguya bakiyor",
 				is_equal_approx(sin(yaw), 1.0) and absf(cos(yaw)) < 0.001,
 				"yaw=%.3f -> (%.2f, %.2f)" % [yaw, sin(yaw), cos(yaw)])
+		if bool(GameConfig.plant("head", false)):
+			ck("bas yaricapi var: %s" % id,
+				float(GameConfig.plant("head_radius", 0.0)) > 0.0, id)
+			ck("bas bicimi taniniyor: %s" % id,
+				str(GameConfig.plant("head_shape", "rosette"))
+					in ["rosette", "globe"],
+				str(GameConfig.plant("head_shape", "rosette")))
 		if form == "stalk":
 			ck("govde genisligi var: %s" % id,
 				float(GameConfig.plant("stalk_width", 0.0)) > 0.0, id)
-			# The whole point of corn is that it is taller than the machine.
-			ck("govde makineden yuksek: %s" % id,
-				float(GameConfig.plant("height_min", 0.0)) > 1.2, id)
+			# Height is per crop, not per form. Corn and sunflowers stand over
+			# the machine and that is the point of them; a pumpkin is ankle
+			# high and that is the point of IT — after four fields that close
+			# over your head, an open one is the change.
+			if id in ["CORN", "SUNFLOWER"]:
+				ck("govde makineden yuksek: %s" % id,
+					float(GameConfig.plant("height_min", 0.0)) > 1.2, id)
 		GameConfig.active_plant_profile = was
 
 

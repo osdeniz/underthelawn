@@ -21,6 +21,11 @@ const GRID_SIZES := {
 	"medium": Vector2i(16, 24),
 	"large": Vector2i(20, 30),
 	"cellar": Vector2i(10, 14),
+	## Harvest fields. Half again the cells of a "large" yard, because a harvest
+	## is the paying job and should feel like a day's work rather than another
+	## search — and because the crop now runs to the horizon, a small square of
+	## it in the middle of all that land read as a sample plot.
+	"harvest": Vector2i(26, 38),
 	## The road home (G13): narrow and long, so the shape of the level is the
 	## shape of a walk rather than of a yard. Low plant density carries the
 	## rest — B18 is a conversation with mowing under it, not a search.
@@ -207,6 +212,51 @@ const GRASS_PALETTES := {
 	# Harvest levels (G13.6). AMBER pushed all the way into grain: the tips are
 	# nearly white-gold, the base is dry straw, and nothing flowers — this is a
 	# crop standing too long, not a lawn.
+	"LAVENDER": {
+		"cluster_base": Color(0.18, 0.13, 0.26),
+		"cluster_tip": Color(0.72, 0.52, 0.90),
+		"accents": [
+			{ "base": Color(0.22, 0.15, 0.30), "tip": Color(0.84, 0.62, 0.98),
+				"weight": 0.24, "flowers": true },
+			{ "base": Color(0.15, 0.14, 0.22), "tip": Color(0.58, 0.46, 0.76),
+				"weight": 0.12, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.40, 0.33, 0.28), Color(0.35, 0.29, 0.25),
+			Color(0.29, 0.24, 0.22), Color(0.33, 0.27, 0.24),
+		],
+		"clipping": Color(0.76, 0.56, 0.92),
+	},
+	"PUMPKIN": {
+		"cluster_base": Color(0.13, 0.24, 0.09),
+		"cluster_tip": Color(0.44, 0.62, 0.22),
+		"accents": [
+			{ "base": Color(0.16, 0.28, 0.11), "tip": Color(0.54, 0.70, 0.26),
+				"weight": 0.20, "flowers": false },
+			{ "base": Color(0.11, 0.20, 0.08), "tip": Color(0.36, 0.52, 0.18),
+				"weight": 0.12, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.44, 0.34, 0.20), Color(0.38, 0.29, 0.17),
+			Color(0.31, 0.24, 0.14), Color(0.35, 0.27, 0.16),
+		],
+		"clipping": Color(0.90, 0.50, 0.14),
+	},
+	"COTTON": {
+		"cluster_base": Color(0.20, 0.17, 0.11),
+		"cluster_tip": Color(0.58, 0.55, 0.38),
+		"accents": [
+			{ "base": Color(0.23, 0.19, 0.12), "tip": Color(0.68, 0.65, 0.46),
+				"weight": 0.22, "flowers": true },
+			{ "base": Color(0.17, 0.15, 0.10), "tip": Color(0.48, 0.46, 0.32),
+				"weight": 0.10, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.52, 0.46, 0.34), Color(0.46, 0.40, 0.29),
+			Color(0.38, 0.33, 0.24), Color(0.42, 0.37, 0.27),
+		],
+		"clipping": Color(0.94, 0.93, 0.88),
+	},
 	"WHEAT": {
 		"cluster_base": Color(0.34, 0.24, 0.08),
 		"cluster_tip": Color(0.96, 0.82, 0.40),
@@ -384,6 +434,46 @@ const PLANT_PROFILES := {
 		"clipping_scale": 1.8, "clipping": Color(0.92, 0.74, 0.26),
 	},
 	## The harvest field's crop, grown thinner and shorter for the roadside.
+	## Knee high, wiry, and violet to the root. It moves more than anything else
+	## in the game — a lavender row is mostly motion — and the cut is a dry
+	## snap rather than a tear.
+	"LAVENDER": {
+		"form": "blade", "per_cell": 8, "blades": 6,
+		"height_min": 0.70, "height_max": 1.15, "tall_chance": 0.40,
+		"base_min": 0.26, "base_max": 0.36,
+		"width_scale": 0.50, "lean_scale": 0.70, "spread": 0.38,
+		"sway": 1.7, "cut_sound": "cut_reed", "cut_pitch": 1.26,
+		"clipping_scale": 0.8, "clipping": Color(0.72, 0.52, 0.86),
+	},
+	## The odd one out, and the point of it. Ankle high with a fat orange globe
+	## sitting on almost no stalk, so a pumpkin patch is the only harvest you
+	## can see straight across — after four fields that close over your head,
+	## an open one is a change of weather.
+	"PUMPKIN": {
+		"form": "stalk", "per_cell": 2, "leaves": 5,
+		"height_min": 0.34, "height_max": 0.52, "tall_chance": 0.3,
+		"stalk_width": 0.070, "leaf_length": 0.78, "spread": 0.52,
+		"head": true, "head_shape": "globe", "head_radius": 0.38,
+		"head_yaw": 0.0,
+		"head_petal": Color(0.90, 0.46, 0.10), "head_disc": Color(0.62, 0.26, 0.05),
+		"stalk_root": Color(0.16, 0.28, 0.10),
+		"stalk_tip": Color(0.38, 0.56, 0.20),
+		"sway": 0.30, "cut_sound": "cut_corn", "cut_pitch": 0.70,
+		"clipping_scale": 2.4, "clipping": Color(0.92, 0.52, 0.14),
+	},
+	## Waist high, dark stems, and a white boll on every one. The bolls are what
+	## you see — a cotton field at dusk is a field of small pale lights.
+	"COTTON": {
+		"form": "stalk", "per_cell": 4, "leaves": 4,
+		"height_min": 0.95, "height_max": 1.35, "tall_chance": 0.45,
+		"stalk_width": 0.040, "leaf_length": 0.40, "spread": 0.40,
+		"head": true, "head_radius": 0.15, "head_yaw": 0.0,
+		"head_petal": Color(0.96, 0.95, 0.92), "head_disc": Color(0.88, 0.86, 0.82),
+		"stalk_root": Color(0.20, 0.16, 0.10),
+		"stalk_tip": Color(0.42, 0.40, 0.26),
+		"sway": 0.75, "cut_sound": "cut_sunflower", "cut_pitch": 1.10,
+		"clipping_scale": 1.2, "clipping": Color(0.94, 0.93, 0.88),
+	},
 	"WILD_WHEAT": {
 		"form": "blade", "per_cell": 8, "blades": 7,
 		"height_min": 0.80, "height_max": 1.15, "tall_chance": 0.40,
@@ -1599,10 +1689,12 @@ const HARVEST_GOLD := Color(0.92, 0.76, 0.24)
 const HARVEST_VARIANT := "harvest_field"
 const HARVEST_VARIANTS: Array[String] = [
 	"harvest_field", "harvest_sunflower", "harvest_corn",
+	"harvest_lavender", "harvest_pumpkin", "harvest_cotton",
 ]
 ## What each field is called on the farm sheet, in the same order.
 const HARVEST_NAMES: Array[String] = [
 	"HARVEST_FIELD_WHEAT", "HARVEST_FIELD_SUN", "HARVEST_FIELD_CORN",
+	"HARVEST_FIELD_LAVENDER", "HARVEST_FIELD_PUMPKIN", "HARVEST_FIELD_COTTON",
 ]
 
 

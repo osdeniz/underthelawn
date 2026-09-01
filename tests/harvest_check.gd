@@ -19,7 +19,14 @@ func _ready() -> void:
 		"%d kanit" % harvest.evidence_count())
 	ck("echo yok", harvest.echo_def.is_empty(), "")
 	ck("bugday paleti", harvest.palette_id == "WHEAT", harvest.palette_id)
-	ck("buyuk grid", harvest.grid_size == "large", harvest.grid_size)
+	# A harvest is BIGGER than an ordinary yard. Naming the size id pinned the
+	# test to one constant and broke the moment the fields grew their own;
+	# what matters is the comparison, so compare.
+	var yard: Vector2i = GameConfig.GRID_SIZES["large"]
+	var field: Vector2i = GameConfig.GRID_SIZES[harvest.grid_size]
+	ck("hasat tarlasi normal bahceden buyuk",
+		field.x * field.y > yard.x * yard.y,
+		"%dx%d vs %dx%d" % [field.x, field.y, yard.x, yard.y])
 	# A search must not accidentally become one.
 	ck("normal bolum hasat degil", not LevelVariant.of("ch01_aldridge").is_harvest(), "")
 
@@ -111,7 +118,7 @@ func _ready() -> void:
 
 	RestoreBoard.reset()
 	# --- three fields, three crops
-	ck("uc tarla tanimli", GameConfig.HARVEST_VARIANTS.size() == 3,
+	ck("en az uc tarla tanimli", GameConfig.HARVEST_VARIANTS.size() >= 3,
 		str(GameConfig.HARVEST_VARIANTS.size()))
 	var seen: Array[String] = []
 	for id: String in GameConfig.HARVEST_VARIANTS:

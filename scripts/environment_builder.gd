@@ -511,7 +511,11 @@ func _build_open_country() -> void:
 	if not crop_variants.is_empty():
 		var top: Color = (crop_variants[0] as Dictionary)["tip"]
 		var root: Color = (crop_variants[0] as Dictionary)["base"]
-		crop_tone = soil.lerp(root.lerp(top, 0.55), 0.72)
+		# A TINT, not a repaint. At 0.72 the furrows took the crop's hue almost
+		# whole, which is fine under wheat — wheat is the colour of dry earth
+		# anyway — and turned the ground pink under lavender. Earth stays earth
+		# and only leans toward what is growing in it.
+		crop_tone = soil.lerp(root.lerp(top, 0.55), 0.42)
 	var ploughed := _flat("country_dark", crop_tone.darkened(0.20), 1.0)
 	var stubble := _flat("country_light", crop_tone.lightened(0.12), 1.0)
 

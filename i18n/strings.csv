@@ -418,6 +418,12 @@ HARVEST_CRUMB_1,First winter's store is in.,İlk kışın stoğu tamam.
 HARVEST_CRUMB_2,Barn's full — the cat approves.,Ambar doldu — kedi memnun.
 HARVEST_CRUMB_3,Nobody's gone hungry here in three years. Keep it that way.,Üç yıldır burada kimse aç kalmadı. Öyle kalsın.
 HARVEST_CRUMB_4,Sarah wants half of it for seed. She can have it.,Sarah yarısını tohumluk istiyor. Alabilir.
+HARVEST_FIELD_LAVENDER,Lavender Field,Lavanta Tarlası
+HARVEST_FIELD_PUMPKIN,Pumpkin Patch,Balkabağı Tarlası
+HARVEST_FIELD_COTTON,Cotton Field,Pamuk Tarlası
+HARVEST_LAV_HEADLINE,THE LAVENDER IS READY,LAVANTA HAZIR
+HARVEST_PUM_HEADLINE,THE PUMPKINS ARE READY,BALKABAKLARI HAZIR
+HARVEST_COT_HEADLINE,THE COTTON IS READY,PAMUK HAZIR
 HARVEST_FIELD_WHEAT,Wheat Field,Buğday Tarlası
 HARVEST_FIELD_SUN,Sunflower Field,Ayçiçeği Tarlası
 HARVEST_FIELD_CORN,Corn Field,Mısır Tarlası

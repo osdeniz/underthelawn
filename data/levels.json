@@ -317,7 +317,7 @@
     "harvest_field": {
       "level_type": "harvest",
       "palette_id": "WHEAT",
-      "grid_size": "large",
+      "grid_size": "harvest",
       "obstacle_layout_id": "stones",
       "house_variant": "house_none",
       "landmark_id": "barn",
@@ -778,7 +778,7 @@
     "harvest_sunflower": {
       "level_type": "harvest",
       "palette_id": "AMBER",
-      "grid_size": "large",
+      "grid_size": "harvest",
       "obstacle_layout_id": "stones",
       "house_variant": "house_none",
       "landmark_id": "barn",
@@ -795,7 +795,7 @@
     "harvest_corn": {
       "level_type": "harvest",
       "palette_id": "LUSH",
-      "grid_size": "large",
+      "grid_size": "harvest",
       "obstacle_layout_id": "stones",
       "house_variant": "house_none",
       "landmark_id": "barn",
@@ -808,6 +808,57 @@
       "evidence_defs": [],
       "time_of_day": "golden",
       "plant_profile_id": "CORN"
+    },
+    "harvest_lavender": {
+      "level_type": "harvest",
+      "palette_id": "LAVENDER",
+      "grid_size": "harvest",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "barn",
+      "decor_seed": 9393,
+      "scrap_budget": 22,
+      "opening": {
+        "headline": "HARVEST_LAV_HEADLINE",
+        "subline": "HARVEST_SUBLINE"
+      },
+      "evidence_defs": [],
+      "time_of_day": "golden",
+      "plant_profile_id": "LAVENDER"
+    },
+    "harvest_pumpkin": {
+      "level_type": "harvest",
+      "palette_id": "PUMPKIN",
+      "grid_size": "harvest",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "barn",
+      "decor_seed": 9494,
+      "scrap_budget": 22,
+      "opening": {
+        "headline": "HARVEST_PUM_HEADLINE",
+        "subline": "HARVEST_SUBLINE"
+      },
+      "evidence_defs": [],
+      "time_of_day": "golden",
+      "plant_profile_id": "PUMPKIN"
+    },
+    "harvest_cotton": {
+      "level_type": "harvest",
+      "palette_id": "COTTON",
+      "grid_size": "harvest",
+      "obstacle_layout_id": "stones",
+      "house_variant": "house_none",
+      "landmark_id": "barn",
+      "decor_seed": 9595,
+      "scrap_budget": 22,
+      "opening": {
+        "headline": "HARVEST_COT_HEADLINE",
+        "subline": "HARVEST_SUBLINE"
+      },
+      "evidence_defs": [],
+      "time_of_day": "golden",
+      "plant_profile_id": "COTTON"
     }
   }
 }
