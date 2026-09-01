@@ -1,7 +1,7 @@
 extends Node
 ## G14.3: the same yard under each mode the switch offers.
 
-const MODES := ["night"]
+const MODES := ["auto"]
 
 
 func _ready() -> void:
@@ -25,7 +25,7 @@ func _ready() -> void:
 		game.hud._close_pause()
 		await get_tree().process_frame
 		await RenderingServer.frame_post_draw
-		get_viewport().get_texture().get_image().save_png("res://out/sky_%s.png" % mode)
+		get_viewport().get_texture().get_image().save_png("res://out/rain.png")
 		game.queue_free()
 		for _i in 6:
 			await get_tree().process_frame

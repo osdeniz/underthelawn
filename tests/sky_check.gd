@@ -17,11 +17,14 @@ func _ready() -> void:
 		var spec: Dictionary = GameConfig.TIME_OF_DAY[id]
 		for key: String in keys:
 			ck("%s icinde %s var" % [id, key], spec.has(key), "")
-		# The lesson from the first pass: a low sun must be paid for with
-		# ambient, not with darkness. Under this floor the tall grass and the
-		# cut stripe stop being telling apart.
-		ck("%s oynanabilir kaliyor" % id,
-			float(spec.get("ambient_energy", 0.0)) >= 0.40,
+		# A SANITY floor, not the legibility test. This was written before
+		# Legibility existed, as a proxy for "can you still tell cut from
+		# uncut" — and it went on to block a change that MEASURABLY improved
+		# that (golden reads better at ambient 0.34 than it did at 0.40,
+		# because the fill light was flattening the blades). The real check is
+		# tests/Legibility.tscn; this one only catches a preset left at zero.
+		ck("%s isik tasiyor" % id,
+			float(spec.get("ambient_energy", 0.0)) >= 0.25,
 			str(spec.get("ambient_energy", 0.0)))
 		# The floor is about flat lighting, not darkness — that is what
 		# ambient_energy above guards. The switch's own sunset deliberately

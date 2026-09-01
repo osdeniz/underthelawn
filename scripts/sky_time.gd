@@ -84,3 +84,18 @@ static func _write(env_host: WorldEnvironment, sun: DirectionalLight3D,
 	env.ambient_light_color = spec["ambient"]
 	env.ambient_light_energy = float(spec["ambient_energy"])
 	env.fog_light_color = spec["fog"]
+
+	# Rain takes the edge off the light rather than replacing it: the hour is
+	# still readable underneath, and the cut line survives (measured, G14.7).
+	if Rain.is_wet():
+		var dark: bool = GameConfig.RAIN_DARK_HOURS.has(id)
+		if sun != null:
+			sun.light_energy *= GameConfig.RAIN_DARK_SUN_ENERGY if dark \
+				else GameConfig.RAIN_SUN_ENERGY
+		# Note the direction: after dark the ambient goes DOWN, not up. An
+		# overcast sky lifts the fill light, which is right at noon and fatal
+		# at dusk — it flattens away the last of the directional contrast.
+		env.ambient_light_energy *= GameConfig.RAIN_DARK_AMBIENT_ENERGY \
+			if dark else GameConfig.RAIN_AMBIENT_ENERGY
+		env.fog_light_color = (spec["fog"] as Color).lerp(GameConfig.RAIN_FOG,
+			GameConfig.RAIN_DARK_FOG_MIX if dark else GameConfig.RAIN_FOG_MIX)

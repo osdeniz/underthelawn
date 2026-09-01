@@ -61,6 +61,9 @@ var reclaim_line := ""
 ## Which GameConfig.TIME_OF_DAY preset lights this chapter. The eight chapters
 ## run from dawn to dusk across one day (G14.2).
 var time_of_day := "midday"
+## "clear" (the default) or "rain" (G14.7). Weather belongs to the chapter, not
+## to a cycle: the flooded lot is wet because that is what it is.
+var weather := "clear"
 ## "search" (the default) or "harvest" (G13.6). A harvest carries no evidence
 ## and no echo, pays more scrap, and stands in a field of crop.
 var level_type := "search"
@@ -113,6 +116,7 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.level_type = str(spec.get("level_type", "search"))
 	variant.time_of_day = str(spec.get("time_of_day",
 		GameConfig.TIME_OF_DAY_DEFAULT))
+	variant.weather = str(spec.get("weather", GameConfig.WEATHER_CLEAR))
 	var echo: Variant = spec.get("echo_def", {})
 	if echo is Dictionary:
 		variant.echo_def = echo

@@ -1795,11 +1795,11 @@ const TIME_OF_DAY := {
 	# stopped reading at all. A higher sun and a quieter ambient give the blades
 	# their own shadow back (G14.4).
 	"golden": {
-		"elev": 26.0, "azim": -72.0,
-		"sun": Color(1.00, 0.82, 0.58), "sun_energy": 1.30,
+		"elev": 34.0, "azim": -72.0,
+		"sun": Color(1.00, 0.82, 0.58), "sun_energy": 1.42,
 		"sky_top": Color(0.36, 0.52, 0.82), "sky_horizon": Color(1.00, 0.78, 0.52),
 		"ground": Color(0.62, 0.58, 0.46),
-		"ambient": Color(0.64, 0.58, 0.54), "ambient_energy": 0.40,
+		"ambient": Color(0.64, 0.58, 0.54), "ambient_energy": 0.34,
 		"fog": Color(0.95, 0.80, 0.62),
 	},
 	# The light switch's own sunset (G14.3), and the only preset no chapter
@@ -2016,3 +2016,53 @@ const NIGHT_CLIP_SCALE := 1.8
 const WIND_GUST_SPEED := 0.42
 const WIND_GUST_LENGTH := 0.055
 const WIND_GUST_STRENGTH := 0.85
+
+# ---------------------------------------------------------------- weather
+
+## Rain is a property of the CHAPTER, not of the clock: it is set in
+## data/levels.json next to the hour, and a yard either has it or does not
+## (G14.7). No cycle, no timer, nothing to keep in sync.
+const WEATHER_CLEAR := "clear"
+const WEATHER_RAIN := "rain"
+
+## One GPU particle system, like every other bit of weather-and-life in this
+## project: the count below costs what one node costs.
+const RAIN_COUNT := 340
+const RAIN_LIFETIME := 1.15
+## Fall speed, and how far above the lawn the column starts.
+const RAIN_SPEED := Vector2(16.0, 22.0)
+const RAIN_HEIGHT := 12.0
+## Drops are drawn as thin vertical slivers; a square would read as snow.
+const RAIN_DROP := Vector2(0.022, 0.62)
+const RAIN_COLOUR := Color(0.80, 0.88, 0.98, 0.58)
+## A little slant, so it is weather rather than a shower head.
+const RAIN_SLANT := Vector3(1.6, 0.0, 0.9)
+
+## What rain does to the light. Measured against the legibility floor before
+## being kept: a storm that hides the cut line would break the only thing the
+## player reads.
+const RAIN_SUN_ENERGY := 0.74
+const RAIN_AMBIENT_ENERGY := 1.18
+const RAIN_FOG := Color(0.62, 0.68, 0.76)
+const RAIN_FOG_MIX := 0.62
+
+## Rain has to be GENTLER after dark, and the measurement is the reason. Lifting
+## the ambient is what an overcast sky does and it looks right at noon — but in
+## an hour that is already dim, raising the fill light drowns the only
+## directional contrast left, and the cut line disappears. With the daytime
+## values the three dark hours measured 0.002, 0.004 and 0.022 against a 0.030
+## floor: unplayable (G14.7).
+const RAIN_DARK_HOURS: Array[String] = ["sunset"]
+
+## The hours it does not rain in, and the reason is measured rather than
+## artistic. On one yard with rain as the ONLY variable, a downpour at night
+## flattened cut against standing grass to 0.000 against a 0.030 floor — the
+## drops veil the frame to a single value when there is no sun to separate the
+## two. Thinning them to 120 at a fifth of the alpha, and damping the light not
+## at all, still only reached 0.027 and 0.021. At that point the honest answer
+## is a rule, not another tuning pass: no rain in the last two hours of the
+## day. A chapter that asks for both simply plays dry.
+const RAIN_FORBIDDEN_HOURS: Array[String] = ["dusk", "night"]
+const RAIN_DARK_SUN_ENERGY := 0.94
+const RAIN_DARK_AMBIENT_ENERGY := 0.92
+const RAIN_DARK_FOG_MIX := 0.22

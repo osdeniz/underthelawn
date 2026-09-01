@@ -77,7 +77,8 @@
         "flavor_text": "ECHO_CH02_LINE"
       },
       "reclaim_line": "RECLAIM_CH02",
-      "time_of_day": "morning"
+      "time_of_day": "morning",
+      "weather": "rain"
     },
     "ch03_playground": {
       "palette_id": "DRY_GOLD",
@@ -155,7 +156,8 @@
         "flavor_text": "ECHO_CH04_LINE"
       },
       "reclaim_line": "RECLAIM_CH04",
-      "time_of_day": "afternoon"
+      "time_of_day": "afternoon",
+      "weather": "rain"
     },
     "ch05_greenhouse": {
       "palette_id": "LUSH",

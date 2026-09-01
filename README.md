@@ -2479,6 +2479,36 @@ hub parks its town behind a captured still to save the framebuffer — the still
 was the picture, not the lighting. Shots of the town come from the diorama
 scene directly now, and the hub throws its still away when the light changes.
 
+## Sprint G14.7 — rain, and a measurement that was measuring the wrong thing
+
+Rain belongs to the CHAPTER, not to a cycle: `weather: "rain"` next to the hour
+in `data/levels.json`, two chapters wet, no timer and nothing to keep in sync.
+One GPU particle system, same rule as the fireflies and the smoke.
+
+**It was measured, and the first four measurements were all wrong.**
+
+* Rain at sunset, dusk and night read 0.002, 0.022 and 0.004 against a 0.030
+  floor. Damping the light more gently did not move them.
+* Switching the drops off entirely did not move them either — so it was not
+  the rain.
+* It was the TEST. The wet pass ran on the flooded chapter and the dry pass on
+  Aldridge, so it was comparing two LAYOUTS: the flooded yard's pool sits under
+  the sample bands and reported 0.001 at night with no rain at all.
+* And one edit that was supposed to fix that silently never wrote to disk, so
+  two more runs measured the old thing while I read them as the new one.
+
+On one yard with weather as the only variable, the answer was clear: rain is
+fine everywhere except the last two hours of the day, where thinning the drops
+to a fifth of their alpha still only reached 0.027. **So the game refuses to
+rain in dusk and night** — a rule, not another tuning pass. The mill was the
+dusk chapter and lost its downpour to the neighbour's yard.
+
+**A guard that had gone stale.** `SkyCheck` enforced `ambient_energy >= 0.40`
+as a PROXY for legibility, written before the real measurement existed. It then
+blocked golden's fix — which reads better at 0.34, because the fill light was
+flattening the blades. The proxy is now a sanity floor at 0.25 with a pointer
+to the test that actually measures the thing.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

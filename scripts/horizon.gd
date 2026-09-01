@@ -153,7 +153,9 @@ static func build(parent: Node3D, radius: float, seed_value: int,
 ## a flat wash, and the cost has to stay near nothing.
 ## Turns the far windows on for the dark hours. Called by whatever owns the
 ## scene's light, since the horizon has no idea what time it is.
-static func light_windows(parent: Node3D, lit: bool) -> void:
+## Takes any Node, not a Node3D: the caller passes the scene root, and a scene
+## root is not always 3D (a test's root is a plain Node, and this threw).
+static func light_windows(parent: Node, lit: bool) -> void:
 	for any: Variant in parent.find_children("FarWindows", "", true, false):
 		var node := any as MeshInstance3D
 		if node != null:

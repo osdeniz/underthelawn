@@ -59,6 +59,7 @@ func _ready() -> void:
 	Horizon.build(self, GameConfig.HORIZON_RADIUS, _rng.randi(), true,
 		_country_tint())
 	Fireflies.build(self)
+	Rain.build(self)
 	# NO crop border around a harvest. Seven rows of corn and sunflowers on
 	# three sides came to about seven hundred plants, each its own tree of
 	# nineteen meshes: 10,034 mesh nodes and 8,620 draw calls a frame against
