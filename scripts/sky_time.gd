@@ -11,10 +11,46 @@ extends RefCounted
 ##
 ## The numbers live in GameConfig.TIME_OF_DAY. This file is only the wiring.
 
+const SECTION := "display"
+const KEY := "sky_mode"
+
 
 ## Applies `id` to the scene's sun and environment. An unknown id falls back to
 ## midday, which is the lighting everything else in the game was balanced to.
+## The mode the player has chosen, or AUTO. Stored rather than derived because
+## it is a preference, not a fact about the world.
+static func mode() -> String:
+	var value := str(GameState.get_setting(SECTION, KEY, GameConfig.SKY_MODE_AUTO))
+	return value if GameConfig.SKY_MODES.has(value) else GameConfig.SKY_MODE_AUTO
+
+
+static func set_mode(value: String) -> void:
+	if not GameConfig.SKY_MODES.has(value):
+		return
+	GameState.set_setting(SECTION, KEY, value)
+
+
+## The next mode in the cycle, for a button that has one job.
+static func next_mode() -> String:
+	var at := GameConfig.SKY_MODES.find(mode())
+	return GameConfig.SKY_MODES[(at + 1) % GameConfig.SKY_MODES.size()]
+
+
+## Which preset actually lights a level whose own hour is `hour`. AUTO keeps
+## the chapter's hour; the other two override it everywhere.
+static func resolve(hour: String) -> String:
+	var chosen := mode()
+	if chosen == GameConfig.SKY_MODE_AUTO:
+		return hour
+	return str(GameConfig.SKY_MODE_PRESET.get(chosen, hour))
+
+
 static func apply(env_host: WorldEnvironment, sun: DirectionalLight3D,
+		id: String) -> void:
+	_write(env_host, sun, resolve(id))
+
+
+static func _write(env_host: WorldEnvironment, sun: DirectionalLight3D,
 		id: String) -> void:
 	if env_host == null or env_host.environment == null:
 		return

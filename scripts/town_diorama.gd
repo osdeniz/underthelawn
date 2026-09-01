@@ -54,6 +54,11 @@ var _peek := false
 var _peek_id := ""
 ## Static subtrees waiting to be welded into one mesh per material (G13.6).
 var _bake_targets: Array = []
+var _world: WorldEnvironment
+var _sun: DirectionalLight3D
+## The town's own hour when nothing overrides it: the warm low morning the
+## diorama was lit and balanced against.
+const DIORAMA_HOUR := "morning"
 ## Which subtrees have already been welded; baking is one-way.
 var _baked: Dictionary = {}
 ## The reclaimed weed band (G13.4): its own MultiMesh, never baked, because it
@@ -213,6 +218,20 @@ func _sky_spot(rng: RandomNumberGenerator, dist: Vector2,
 		eye.z + sin(a) * out)
 
 
+## The hub honours the same switch the yards do (G14.3). Its own hour is dusk
+## when the player has chosen dusk, and its hand-tuned morning otherwise —
+## the town has no chapter, so AUTO means "leave it as it was built".
+func apply_sky_mode() -> void:
+	if _world == null or _sun == null:
+		return
+	# AUTO leaves the hand-tuned lighting completely alone. Writing a preset
+	# over it — even a "morning" one — would replace sky colours, ambient and a
+	# fog curve that the plate's dissolving rim depends on.
+	if SkyTime.mode() == GameConfig.SKY_MODE_AUTO:
+		return
+	SkyTime.apply(_world, _sun, DIORAMA_HOUR)
+
+
 # ---------------------------------------------------------------- environment
 
 func _build_environment() -> void:
@@ -251,11 +270,14 @@ func _build_environment() -> void:
 	# Without this the sky is fog too, and the whole backdrop goes flat cream.
 	env.fog_sky_affect = 0.15
 	world.environment = env
+	world.name = "DioramaEnvironment"
 	add_child(world)
+	_world = world
 
 	# Warm low morning sun, same shadow settings as the yard.
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
+	_sun = sun
 	sun.rotation = Vector3(deg_to_rad(-38.0), deg_to_rad(38.0), 0.0)
 	sun.light_color = Color(1.0, 0.94, 0.83)
 	sun.light_energy = 1.15
@@ -263,6 +285,7 @@ func _build_environment() -> void:
 	sun.shadow_blur = 3.0
 	sun.directional_shadow_max_distance = 44.0
 	add_child(sun)
+	apply_sky_mode()
 
 	camera = Camera3D.new()
 	camera.name = "DioramaCamera"

@@ -1,7 +1,8 @@
 extends Node
 ## G14.2: the eight chapters are one day, and every hour of it stays playable.
 
-const ORDER := ["dawn", "morning", "midday", "afternoon", "golden", "dusk"]
+const ORDER := ["dawn", "morning", "midday", "afternoon", "golden", "sunset",
+	"dusk", "night"]
 const CHAPTERS := ["ch01_aldridge", "ch02_neighbor", "ch03_playground",
 	"ch04_flooded", "ch05_greenhouse", "ch06_watertower", "ch07_mill",
 	"ch08_cellar"]
@@ -22,10 +23,15 @@ func _ready() -> void:
 		ck("%s oynanabilir kaliyor" % id,
 			float(spec.get("ambient_energy", 0.0)) >= 0.40,
 			str(spec.get("ambient_energy", 0.0)))
+		# The floor is about flat lighting, not darkness — that is what
+		# ambient_energy above guards. The switch's own sunset deliberately
+		# sits at 9 degrees: the long raking shadow is the whole effect.
 		ck("%s gunes acisi ufkun uzerinde" % id,
-			float(spec.get("elev", 0.0)) >= 10.0, str(spec.get("elev", 0.0)))
-	ck("her saat tanimli", ORDER.size() == GameConfig.TIME_OF_DAY.size(),
-		"%d / %d" % [ORDER.size(), GameConfig.TIME_OF_DAY.size()])
+			float(spec.get("elev", 0.0)) >= 8.0, str(spec.get("elev", 0.0)))
+	# Every hour of the day exists. Presets that are NOT part of the day (the
+	# light switch's own sunset) are allowed and checked above like the rest.
+	for id: String in ORDER:
+		ck("gunun saati tanimli: %s" % id, GameConfig.TIME_OF_DAY.has(id), id)
 
 	# The day only runs forwards.
 	var clock := -1
@@ -41,8 +47,8 @@ func _ready() -> void:
 		used[variant.time_of_day] = true
 	ck("gun sabah baslar", LevelVariant.of(CHAPTERS[0]).time_of_day == "dawn",
 		LevelVariant.of(CHAPTERS[0]).time_of_day)
-	ck("gun aksam biter",
-		LevelVariant.of(CHAPTERS[7]).time_of_day == "dusk",
+	ck("gun gece biter",
+		LevelVariant.of(CHAPTERS[7]).time_of_day == "night",
 		LevelVariant.of(CHAPTERS[7]).time_of_day)
 	# Four hours or more, or the day reads as one flat afternoon.
 	ck("gun gercekten geciyor", used.size() >= 4, "%d saat" % used.size())

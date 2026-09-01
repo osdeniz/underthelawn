@@ -1778,37 +1778,97 @@ const TIME_OF_DAY := {
 		"ambient": Color(0.55, 0.62, 0.70), "ambient_energy": 0.42,
 		"fog": Color(0.80, 0.88, 0.95),
 	},
+	# Azimuth is the lever nobody expects: the camera looks north, so a sun near
+	# azimuth 0 shines from behind it and flattens the lawn into one tone. This
+	# used to sit at 8 degrees and measured 0.020 between cut and standing
+	# grass, against 0.056 for the side-lit morning (G14.4).
 	"afternoon": {
-		"elev": 38.0, "azim": 8.0,
+		"elev": 38.0, "azim": -58.0,
 		"sun": Color(1.00, 0.94, 0.82), "sun_energy": 1.00,
 		"sky_top": Color(0.31, 0.57, 0.90), "sky_horizon": Color(0.96, 0.88, 0.74),
 		"ground": Color(0.64, 0.66, 0.56),
 		"ambient": Color(0.58, 0.60, 0.66), "ambient_energy": 0.42,
 		"fog": Color(0.86, 0.88, 0.90),
 	},
+	# Measured, not eyeballed: at elev 16 with ambient 0.48 the cut stripe and
+	# the standing grass came out 0.001 apart in mean brightness — the lawn had
+	# stopped reading at all. A higher sun and a quieter ambient give the blades
+	# their own shadow back (G14.4).
 	"golden": {
-		"elev": 16.0, "azim": -22.0,
-		"sun": Color(1.00, 0.82, 0.58), "sun_energy": 1.15,
+		"elev": 26.0, "azim": -72.0,
+		"sun": Color(1.00, 0.82, 0.58), "sun_energy": 1.30,
 		"sky_top": Color(0.36, 0.52, 0.82), "sky_horizon": Color(1.00, 0.78, 0.52),
 		"ground": Color(0.62, 0.58, 0.46),
-		"ambient": Color(0.64, 0.58, 0.54), "ambient_energy": 0.48,
+		"ambient": Color(0.64, 0.58, 0.54), "ambient_energy": 0.40,
 		"fog": Color(0.95, 0.80, 0.62),
+	},
+	# The light switch's own sunset (G14.3), and the only preset no chapter
+	# uses. B8's "dusk" is the story's evening and is deliberately subdued;
+	# this one is the LOOK a player picks on purpose, so it is warmer, brighter
+	# and more saturated than the hour it is named after. Tried and rejected
+	# first: reusing "dusk" (read as dim rather than as sunset) and reusing
+	# "golden" (read as a hazy afternoon, no sunset signature at all).
+	"sunset": {
+		# Low sun first, colour second: the long raking shadow is what says
+		# "sunset" from a camera that is looking at the ground. Warmed twice on
+		# request — the sun is nearly orange now and the ambient carries the
+		# same fire rather than cooling it back down.
+		"elev": 9.0, "azim": -34.0,
+		"sun": Color(1.00, 0.56, 0.24), "sun_energy": 1.55,
+		"sky_top": Color(0.32, 0.34, 0.60), "sky_horizon": Color(1.00, 0.48, 0.24),
+		"ground": Color(0.58, 0.42, 0.32),
+		"ambient": Color(0.86, 0.58, 0.44), "ambient_energy": 0.72,
+		"fog": Color(1.00, 0.58, 0.34),
+	},
+	# Night, and the hardest preset in the file to get right: the whole game is
+	# reading which grass is cut, and darkness is exactly what takes that away.
+	# So this is a MOONLIT night, not a dark one — the key light is high enough
+	# to keep the blades separated, the ambient is far above anything realistic,
+	# and the colour does the work of saying "night" instead of the exposure.
+	"night": {
+		"elev": 52.0, "azim": 24.0,
+		"sun": Color(0.60, 0.72, 1.00), "sun_energy": 0.52,
+		"sky_top": Color(0.03, 0.04, 0.12), "sky_horizon": Color(0.09, 0.12, 0.26),
+		"ground": Color(0.08, 0.10, 0.16),
+		"ambient": Color(0.30, 0.42, 0.80), "ambient_energy": 0.42,
+		"fog": Color(0.10, 0.14, 0.30),
 	},
 	# Same rule as dawn, harder: this is the chapter Ellie is found in, and it
 	# must not be the chapter nobody can see. Colour carries the hour; ambient
 	# keeps the lawn legible.
 	"dusk": {
-		"elev": 14.0, "azim": -40.0,
-		"sun": Color(1.00, 0.72, 0.52), "sun_energy": 1.00,
+		"elev": 24.0, "azim": -68.0,
+		"sun": Color(1.00, 0.72, 0.52), "sun_energy": 1.18,
 		"sky_top": Color(0.28, 0.38, 0.66), "sky_horizon": Color(0.96, 0.66, 0.50),
 		"ground": Color(0.52, 0.50, 0.48),
-		"ambient": Color(0.60, 0.58, 0.70), "ambient_energy": 0.62,
+		"ambient": Color(0.60, 0.58, 0.70), "ambient_energy": 0.48,
 		"fog": Color(0.84, 0.70, 0.68),
 	},
 }
 
 ## The one a level falls back to. Everything looked like this before G14.2.
 const TIME_OF_DAY_DEFAULT := "midday"
+
+## The player's own light switch (G14.3). AUTO leaves the chapter's own hour
+## alone — the eight chapters are one day and that is the story — while the
+## other two override every level.
+##
+## Night is moonlit rather than dark, for the same reason every other preset
+## has a floor under it: the game is read by telling cut grass from uncut, and
+## an honest night would end that. The sun does not move within a level either;
+## nothing here ever looks up at the sky.
+const SKY_MODE_AUTO := "auto"
+const SKY_MODE_DAY := "day"
+const SKY_MODE_DUSK := "dusk"
+const SKY_MODE_NIGHT := "night"
+const SKY_MODES: Array[String] = [SKY_MODE_AUTO, SKY_MODE_DAY, SKY_MODE_DUSK,
+	SKY_MODE_NIGHT]
+## Which TIME_OF_DAY preset each forced mode uses.
+const SKY_MODE_PRESET := {
+	SKY_MODE_DAY: "midday",
+	SKY_MODE_DUSK: "sunset",
+	SKY_MODE_NIGHT: "night",
+}
 
 # ---------------------------------------------------------------- open country
 

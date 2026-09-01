@@ -2360,6 +2360,71 @@ The chip was also too narrow at 104 px for an icon and a count together, so
 even a working icon would have been squeezed out. It is 150x86 now, icon left,
 count right.
 
+## Sprint G14.3 — the light switch
+
+One button on the bar, three positions, and no night.
+
+* **Story (default)** leaves the chapter's own hour alone — the eight chapters
+  are one day and that is the plot, so the default must not overwrite it.
+* **Day** and **Sunset** override every level.
+
+"Sunset" is not the same preset B8 uses. B8's dusk is the story's evening and
+is deliberately subdued; the switch's sunset is a look a player picks on
+purpose, so it is warmer, lower and brighter — sun at 9 degrees for a long
+raking shadow, which is what says "sunset" from a camera that is pointed at the
+ground. Reusing B8's dusk read as dim rather than as sunset, and reusing the
+golden-hour preset read as a hazy afternoon with no sunset signature at all;
+both were rendered and rejected before the third was written.
+
+There is no night mode. This is a game about seeing which grass is cut, and
+darkness takes that away. `SkyCheck`'s ambient floor applies to the switch's
+presets too.
+
+The switch lives in two places on purpose: an icon on the top bar for players
+who already know what it does, and a spelled-out row in the pause sheet for the
+ones who do not. Both relight the yard immediately — making someone restart a
+level to see a look they just chose would be the wrong kind of honest. The hub
+honours it too, and in Story mode leaves its hand-tuned lighting completely
+alone rather than writing a preset over it.
+
+**A test was asking the wrong question.** `FullFlow` asserted that every
+chapter was done by comparing against `ChapterProgress.count()` — which grows
+to include Case 2's ten chapters the moment the town is ready, and that test
+makes the town ready itself four projects earlier. It compares against Case 1's
+own list now. It had been passing on luck.
+
+## Sprint G14.4 — night, and the measurement that changed the plan
+
+Case 1 now runs a whole day into the dark: eight chapters, eight hours. B1
+dawn, B2 morning, B3 midday, B4 afternoon, B5 golden, B6 sunset, B7 dusk, B8
+night — and B8 being night is the one Ellie is found in, which is why the
+reunion card can open on nine candles under the square's lantern. The switch
+gained a fourth position to match: Story, Day, Sunset, Night.
+
+**Night was the wrong thing to worry about.** I had argued against it on
+legibility grounds. `Legibility` mows a band in front of the camera and
+measures the mean brightness of cut grass against standing grass under every
+preset, and the numbers said the opposite of what I expected:
+
+| preset | before | after |
+|---|---|---|
+| golden | 0.001 | 0.053 |
+| dusk | 0.004 | 0.043 |
+| afternoon | 0.030 | 0.051 |
+| night | 0.030 | 0.050 |
+
+Night measured the same as afternoon. The two presets where the lawn had
+genuinely stopped reading were `golden` and `dusk` — both of which I had
+written in G14.2, shipped, and never measured. Under those two hours cut and
+uncut grass were within 0.4% of each other in brightness.
+
+**And the fix was not brightness — it was azimuth.** The camera looks north,
+so a sun near azimuth 0 shines from behind it and flattens the lawn into one
+tone. `golden` sat at -22 degrees and `afternoon` at 8. Moved to -72 and -58,
+side-lighting the blades, they went from unreadable to the same contrast as
+midday without changing a single colour. The test now enforces a floor, so no
+future preset can flatten the lawn unnoticed.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

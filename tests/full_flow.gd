@@ -72,9 +72,13 @@ func _ready() -> void:
 		ChapterProgress.record(str((chapter_any as Dictionary).get("variant_id", "")), 2, 2)
 	hub.refresh()
 	await get_tree().process_frame
-	ck("vaka tamamlandi",
-		ChapterProgress.done_count() == ChapterProgress.count(),
-		"%d/%d" % [ChapterProgress.done_count(), ChapterProgress.count()])
+	# CASE 1 is what this run finished. ChapterProgress.count() grows to include
+	# Case 2's ten chapters the moment the town is ready — and this test makes
+	# the town ready itself, four projects earlier — so comparing against it
+	# asks a different question than the one this line means.
+	var case_one: int = Story.list("chapters").size()
+	ck("vaka tamamlandi", ChapterProgress.done_count() == case_one,
+		"%d/%d" % [ChapterProgress.done_count(), case_one])
 	hub._show_board_tab(true)
 	await get_tree().process_frame
 	hub._show_board_tab(false)

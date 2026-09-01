@@ -97,6 +97,7 @@ var _wallet_ready := false
 var _wallet_tween: Tween
 var _pause_layer: Control
 var _pause_button: Button
+var _sky_button: Button
 
 
 func _ready() -> void:
@@ -981,6 +982,27 @@ func _build_pause() -> void:
 	_pause_button.pressed.connect(_open_pause)
 	add_child(_pause_button)
 
+	# The light switch, on the bar where a web page would put it (G14.3). One
+	# tap cycles auto -> day -> dusk and the yard relights immediately: this is
+	# a look the player is choosing, so making them restart to see it would be
+	# the wrong kind of honest.
+	_sky_button = Button.new()
+	_sky_button.name = "SkyButton"
+	_sky_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_sky_button.set_meta("hug_right", true)
+	_sky_button.offset_left = -404
+	_sky_button.offset_right = -300
+	_sky_button.offset_top = 94
+	_sky_button.offset_bottom = 178
+	_style_button(_sky_button)
+	_sky_button.pressed.connect(func() -> void:
+		Haptics.light()
+		SkyTime.set_mode(SkyTime.next_mode())
+		refresh_sky()
+		Analytics.track("sky_mode", {"mode": SkyTime.mode()}))
+	add_child(_sky_button)
+	refresh_sky()
+
 	# Going back to town was buried one tap inside the pause sheet, so players
 	# reported there was no way out at all. This is that exit, on the bar.
 	var home := Button.new()
@@ -1050,6 +1072,24 @@ func _build_pause() -> void:
 		_refresh_mute_label())
 	rows.add_child(sound)
 
+	# The same switch as the one on the bar, spelled out: the bar's icon is for
+	# players who already know what it does, this row is for the ones who do not.
+	var sky := Button.new()
+	sky.add_theme_font_size_override("font_size", 36)
+	_style_button(sky)
+	var refresh_sky_row := func() -> void:
+		sky.text = tr("SKY_MODE_" + SkyTime.mode().to_upper())
+		sky.icon = UiIcons.sky(SkyTime.mode())
+		sky.expand_icon = false
+	refresh_sky_row.call()
+	sky.pressed.connect(func() -> void:
+		Haptics.light()
+		SkyTime.set_mode(SkyTime.next_mode())
+		refresh_sky_row.call()
+		refresh_sky()
+		Analytics.track("sky_mode", {"mode": SkyTime.mode()}))
+	rows.add_child(sky)
+
 	var town := Button.new()
 	town.text = tr("UI_RETURN_TOWN")
 	town.add_theme_font_size_override("font_size", 42)
@@ -1102,6 +1142,24 @@ func _open_pause() -> void:
 	Haptics.light()
 	_pause_layer.visible = true
 	get_tree().paused = true
+
+
+## Repaints the switch and relights the level under it. Safe to call at any
+## time; the scene is found by name so the HUD does not have to be handed one.
+func refresh_sky() -> void:
+	if _sky_button != null and is_instance_valid(_sky_button):
+		_sky_button.icon = UiIcons.sky(SkyTime.mode())
+		_sky_button.expand_icon = false
+		_sky_button.tooltip_text = tr("SKY_MODE_" + SkyTime.mode().to_upper())
+	var root := get_tree().current_scene
+	if root == null:
+		return
+	var env := root.find_child("WorldEnvironment", true, false) as WorldEnvironment
+	var sun := root.find_child("Sun", true, false) as DirectionalLight3D
+	var hour := LevelVariant.current.time_of_day if LevelVariant.current != null \
+		else GameConfig.TIME_OF_DAY_DEFAULT
+	if env != null and sun != null:
+		SkyTime.apply(env, sun, hour)
 
 
 func _close_pause() -> void:

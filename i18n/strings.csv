@@ -916,3 +916,7 @@ JOURNAL_DISCOVERIES_EMPTY,No evidence in hand. It is out there in the grass.,Eli
 JOURNAL_ECHOES_COUNT,{found} of {total} found,{total} yankıdan {found} tanesi
 HUB_LEAD_LABEL,NEXT LEAD,SIRADAKİ İPUCU
 HUB_LEAD_DONE_LABEL,CASE CLOSED,VAKA KAPANDI
+SKY_MODE_AUTO,Light: story,Işık: hikâye
+SKY_MODE_DAY,Light: day,Işık: gündüz
+SKY_MODE_DUSK,Light: sunset,Işık: gün batımı
+SKY_MODE_NIGHT,Light: night,Işık: gece

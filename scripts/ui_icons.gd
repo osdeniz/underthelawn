@@ -48,6 +48,12 @@ static func lock() -> Texture2D:
 	return _make("lock")
 
 
+## The light switch: a full sun for day, a half sun on a horizon line for dusk,
+## and the two split down the middle for auto (G14.3).
+static func sky(mode: String) -> Texture2D:
+	return _make("sky_" + mode)
+
+
 ## A checklist: the objectives door. Two ticked lines and one empty box, which
 ## is the whole idea of the screen in one 64px picture.
 static func objectives() -> Texture2D:
@@ -90,6 +96,10 @@ static func _make(id: String) -> Texture2D:
 		"food": _draw_food(img)
 		"people": _draw_people(img)
 		"objectives": _draw_objectives(img)
+		"sky_auto": _draw_sky(img, "auto")
+		"sky_day": _draw_sky(img, "day")
+		"sky_dusk": _draw_sky(img, "dusk")
+		"sky_night": _draw_sky(img, "night")
 	var tex := ImageTexture.create_from_image(img)
 	_cache[id] = tex
 	return tex
@@ -262,6 +272,49 @@ static func _draw_station(img: Image) -> void:
 	_rect(img, 26, 38, 12, 18, dark)
 	_disc(img, 18, 38, 4, lamp)
 	_disc(img, 46, 38, 4, lamp)
+
+
+## `mode` is "day", "dusk" or "auto".
+static func _draw_sky(img: Image, mode: String) -> void:
+	var sun := Color(1.00, 0.86, 0.35)
+	var low := Color(1.00, 0.62, 0.32)
+	var line := Color(0.86, 0.88, 0.92)
+	if mode == "day":
+		_disc(img, 32, 32, 14, sun)
+		# Eight rays, drawn as short bars around the disc.
+		for i in 8:
+			var a := TAU * float(i) / 8.0
+			_rect(img, 32 + int(cos(a) * 22.0) - 2, 32 + int(sin(a) * 22.0) - 2,
+				5, 5, sun)
+		return
+	if mode == "dusk":
+		# Half a sun sitting on the horizon, with the ground line under it.
+		for py in range(18, 39):
+			for px in range(10, 55):
+				if Vector2(px - 32, py - 39).length() <= 15.0:
+					img.set_pixel(px, py, low)
+		_rect(img, 6, 40, 52, 4, line)
+		_rect(img, 12, 48, 14, 3, low)
+		_rect(img, 38, 48, 14, 3, low)
+		return
+	if mode == "night":
+		# A crescent: a disc with a second disc bitten out of it, plus two stars.
+		var moon := Color(0.86, 0.90, 1.00)
+		_disc(img, 30, 32, 16, moon)
+		_disc(img, 40, 27, 15, Color(0, 0, 0, 0))
+		_rect(img, 48, 46, 4, 4, moon)
+		_rect(img, 12, 14, 4, 4, moon)
+		return
+	# Auto: day on the left, dusk on the right, split down the middle.
+	for py in range(17, 48):
+		for px in range(6, 32):
+			if Vector2(px - 32, py - 32).length() <= 15.0:
+				img.set_pixel(px, py, sun)
+	for py in range(17, 40):
+		for px in range(32, 58):
+			if Vector2(px - 32, py - 39).length() <= 15.0:
+				img.set_pixel(px, py, low)
+	_rect(img, 32, 40, 26, 4, line)
 
 
 ## Two ticked rows and one empty one.
