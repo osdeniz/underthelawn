@@ -88,6 +88,16 @@ func _ready() -> void:
 			GameState.set_setting("meta", "haptics_enabled", on))
 
 	_add_section(tr("SETTINGS_GROUP_GAME"))
+	# The same switch as the one on the game's top bar, in the place a player
+	# goes looking for it (G14.8). Cycles the four positions in order, and the
+	# value shown is the name of the one in force — Story included, which is
+	# the only one that leaves each chapter's own hour alone.
+	_add_choice_row(tr("SETTINGS_LIGHT"),
+		tr("SKY_VALUE_" + SkyTime.mode().to_upper()),
+		func() -> void:
+			SkyTime.set_mode(SkyTime.next_mode())
+			_rebuild())
+	_add_divider()
 	_add_choice_row(tr("SETTINGS_LANGUAGE"),
 		LocaleSupport.name_of(LocaleSupport.current()),
 		func() -> void:

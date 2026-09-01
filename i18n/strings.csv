@@ -920,3 +920,8 @@ SKY_MODE_AUTO,Light: story,Işık: hikâye
 SKY_MODE_DAY,Light: day,Işık: gündüz
 SKY_MODE_DUSK,Light: sunset,Işık: gün batımı
 SKY_MODE_NIGHT,Light: night,Işık: gece
+SETTINGS_LIGHT,Light,Işık
+SKY_VALUE_AUTO,Story,Hikâye
+SKY_VALUE_DAY,Day,Gündüz
+SKY_VALUE_DUSK,Sunset,Gün batımı
+SKY_VALUE_NIGHT,Night,Gece

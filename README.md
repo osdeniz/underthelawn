@@ -2509,6 +2509,15 @@ blocked golden's fix — which reads better at 0.34, because the fill light was
 flattening the blades. The proxy is now a sanity floor at 0.25 with a pointer
 to the test that actually measures the thing.
 
+### G14.8 — the light switch, in the settings screen
+
+The switch already had two homes: an icon on the game's top bar and a spelled
+out row in the pause sheet. It now has the one a player actually goes looking
+for. Same row shape as Language, cycling Story / Day / Sunset / Night, and the
+value reads as the mode's own short name rather than repeating the row's title.
+All three drive the same saved setting, which `SettingsCheck` asserts by
+pressing the row and watching the mode move.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
