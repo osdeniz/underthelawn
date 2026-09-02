@@ -2126,3 +2126,22 @@ const RAIN_FORBIDDEN_HOURS: Array[String] = ["dusk", "night"]
 const RAIN_DARK_SUN_ENERGY := 0.94
 const RAIN_DARK_AMBIENT_ENERGY := 0.92
 const RAIN_DARK_FOG_MIX := 0.22
+
+# ---------------------------------------------------------------- on foot
+
+## Getting off the machine (G14.16). The player can step down and walk the
+## yard: nothing is cut on foot, which is the point — it is for looking, for
+## reaching a crate the tractor cannot turn into, and for being in the place
+## rather than driving over it.
+##
+## The robot and the blade already have their driver standing at the edge
+## watching; for those two "step down" means taking control of the person who
+## was already there, and the machine carries on by itself.
+const WALK_SPEED := 3.1
+const WALK_TURN := 7.5
+## How close you have to be to climb back on.
+const WALK_REMOUNT := 2.2
+## The walker's own camera, in the same (back, height, look_ahead) shape every
+## machine uses. Closer and lower than any of them: on foot the yard should
+## feel bigger and the grass taller.
+const WALK_CAMERA := Vector3(4.0, 3.3, 1.4)

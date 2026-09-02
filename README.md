@@ -2675,6 +2675,39 @@ Making the panel taller to fit them exposed the same overflow this project has
 now hit three times: at its old height the last two fields sat under the BACK
 button with no way to reach them. It scrolls now.
 
+## Sprint G14.16 — getting off the machine
+
+There is a STEP DOWN button on the bar now, and the player can walk the yard on
+foot. **Nothing is cut on foot**, which is the point: walking is for reaching a
+crate the tractor cannot turn into, and for being in the place rather than
+driving over it.
+
+The two autonomous machines behave differently, and they had to. The robot and
+the blade were already doing the work themselves with their driver standing at
+the edge watching — so stepping down there hands control to the person who was
+always there and the machine carries on cutting. Only a DRIVEN machine parks.
+
+`Walker` is deliberately not a `MowerController` subclass. It shares the input —
+the same `_pad_stick` the pad and WASD both fill, read camera-relative — and
+none of the driving model: no throttle curve, no turn limit, no reverse, no
+cutting. Inheriting all that in order to switch it off would have left a mower
+pretending to be a person.
+
+**Three things only came out by running it:**
+
+* `set_active(false)` also hides the mower — which is what switching machines
+  wants. Reusing it here made the tractor VANISH the moment the player got
+  down from it. `set_parked()` stops the simulation and leaves it standing.
+* `CameraRig.target` was typed `MowerController`, so the rig could not follow
+  a person at all.
+* The camera does not swing round behind a walking figure. Turning on the spot
+  would spin the whole yard — and since the stick is camera-relative, a
+  chasing yaw would change what "forward" means while the player was holding
+  it.
+
+Out of reach, the button refuses and says so rather than teleporting anyone
+into a seat on the far side of the yard.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

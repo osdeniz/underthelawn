@@ -11,7 +11,10 @@ extends Camera3D
 ## the road needs to show (§ sprint G3 item 5).
 var look_ahead_speed_gain: float = 0.0
 
-var target: MowerController
+## Whatever the camera is following. Typed as Node3D rather than
+## MowerController because the player can step off and walk (G14.16), and the
+## rig only ever reads a position, a yaw and a speed fraction off it.
+var target: Node3D
 ## Camera yaw in spec space — the mower reads this so drag steering stays
 ## camera-relative (§18 trap 2).
 var yaw: float = 0.0

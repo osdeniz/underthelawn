@@ -26,6 +26,8 @@ signal board_requested()
 ## Straight out to the app's front door. Going through the town first was two
 ## taps for a trip that has nothing to do with the town (G14.9).
 signal main_menu_requested()
+## Step off the machine, or climb back on (G14.16).
+signal walk_toggled()
 
 ## Render sizes for the evidence thumbnails on the completion screen (G12.10).
 const SLOT_VIEW := Vector2i(190, 190)
@@ -103,6 +105,9 @@ var _wallet_tween: Tween
 var _pause_layer: Control
 var _pause_button: Button
 var _sky_button: Button
+var _walk_button: Button
+var _joystick_wanted := false
+var _walking := false
 
 
 func _ready() -> void:
@@ -274,7 +279,10 @@ func show_secret_card(emoji: String, item_name: String, line: String,
 ## The joystick only exists for the tractor (§7); the selector hides once the
 ## lawn is finished (§16).
 func set_joystick_visible(value: bool) -> void:
-	joystick.visible = value
+	# Remembered, because walking hides the stick and putting it back has to
+	# restore what the MACHINE wanted, not what walking wanted (G14.16).
+	_joystick_wanted = value
+	joystick.visible = value and not _walking
 
 
 func set_selector_visible(value: bool) -> void:
@@ -1054,6 +1062,24 @@ func _build_pause() -> void:
 	add_child(_sky_button)
 	refresh_sky()
 
+	# Step down / climb on (G14.16). Bottom-left, in the thumb's reach and clear
+	# of the mower selector on the right: it is a thing you do WHILE playing,
+	# not a setting.
+	_walk_button = Button.new()
+	_walk_button.name = "WalkButton"
+	_walk_button.text = tr("UI_DISMOUNT")
+	_walk_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	_walk_button.offset_left = 40
+	_walk_button.offset_right = 300
+	_walk_button.offset_top = -300
+	_walk_button.offset_bottom = -196
+	_walk_button.add_theme_font_size_override("font_size", 32)
+	_style_button(_walk_button)
+	_walk_button.pressed.connect(func() -> void:
+		Haptics.light()
+		walk_toggled.emit())
+	add_child(_walk_button)
+
 	# Going back to town was buried one tap inside the pause sheet, so players
 	# reported there was no way out at all. This is that exit, on the bar.
 	var home := Button.new()
@@ -1228,6 +1254,56 @@ func refresh_sky() -> void:
 		if swarm != null:
 			swarm.refresh()
 	Horizon.light_windows(root, GameConfig.WINDOW_HOURS.has(SkyTime.resolve(hour)))
+
+
+# ---------------------------------------------------------------- on foot
+
+## The step-down button, and what it says once you are down (G14.16). The robot
+## and the blade keep working while you walk, so the label has to distinguish
+## "your machine is parked" from "your machine is still cutting".
+func set_walking(on: bool, autonomous: bool) -> void:
+	if _walk_button == null or not is_instance_valid(_walk_button):
+		return
+	_walking = on
+	_walk_button.text = tr("UI_MOUNT") if on else tr("UI_DISMOUNT")
+	if on and autonomous:
+		_walk_button.text = tr("UI_MOUNT_WORKING")
+	set_joystick_visible(not on and _joystick_wanted)
+
+
+## One line, centre screen, gone in a second and a half. Used for the small
+## refusals that do not deserve a panel.
+func _flash_hint(text: String) -> void:
+	var label := Label.new()
+	label.text = text
+	label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	label.offset_top = 620
+	label.offset_left = -400
+	label.offset_right = 400
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 40)
+	label.add_theme_color_override("font_color", Color(0.98, 0.92, 0.72))
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	label.add_theme_constant_override("shadow_offset_y", 4)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(label)
+	var tw := create_tween()
+	tw.tween_interval(1.1)
+	tw.tween_property(label, "modulate:a", 0.0, 0.45)
+	tw.tween_callback(label.queue_free)
+
+
+## The machine is out of reach: say so where the thumb already is rather than
+## teleporting the player into a seat on the far side of the yard.
+func nudge_remount() -> void:
+	if _walk_button == null or not is_instance_valid(_walk_button):
+		return
+	Haptics.light()
+	var start := _walk_button.position.x
+	var tw := create_tween()
+	for step: float in [-12.0, 10.0, -6.0, 0.0]:
+		tw.tween_property(_walk_button, "position:x", start + step, 0.05)
+	_flash_hint(tr("UI_TOO_FAR"))
 
 
 func _close_pause() -> void:

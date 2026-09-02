@@ -126,6 +126,24 @@ func right() -> Vector3:
 	return Vector3(cos(yaw), 0.0, sin(yaw))
 
 
+## Stopped but still THERE (G14.16). Stepping off the machine must leave it
+## standing in the yard to walk back to — set_active(false) also hides it,
+## because that is what switching machines wants, and reusing it here made the
+## tractor vanish the moment the player got down from it.
+func set_parked(value: bool) -> void:
+	is_active = not value
+	set_physics_process(not value)
+	if value:
+		speed = 0.0
+		omega = 0.0
+		throttle = 0.0
+		desired_omega = 0.0
+		_pad_index = -1
+		_pad_stick = Vector2.ZERO
+		if _clippings:
+			_clippings.emitting = false
+
+
 ## Only the active mower is visible and simulated.
 func set_active(value: bool) -> void:
 	is_active = value

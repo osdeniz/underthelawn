@@ -16,6 +16,8 @@ enum Mode { PUSH, TRACTOR, SIT }
 var mode: Mode = Mode.PUSH
 ## Active mower, for speed and steering; null while sitting.
 var controller: MowerController
+## Set by Walker when there is no machine: 0..1, how fast the person is going.
+var walk_speed := 0.0
 
 var _torso: Node3D
 var _head: Node3D
@@ -82,8 +84,11 @@ func _process(delta: float) -> void:
 ## Walking behind the mower (§8): legs swing in opposite phase, knees fold only
 ## on the back swing, the torso rolls and bobs. Idle recovers and breathes.
 func _update_push(delta: float) -> void:
-	var sf := controller.speed_fraction() if controller else 0.0
-	_torso.rotation.x = -GameConfig.CHAR_PUSH_LEAN
+	# With no controller the walk is driven directly (G14.16): on foot there is
+	# no machine to read a speed off, and the arms are not on a handlebar.
+	var sf := controller.speed_fraction() if controller else walk_speed
+	_torso.rotation.x = -GameConfig.CHAR_PUSH_LEAN if controller != null \
+		else -GameConfig.CHAR_PUSH_LEAN * 0.35
 
 	if sf > GameConfig.WALK_MIN_SPEED:
 		_phase += delta * (GameConfig.WALK_PHASE_BASE + GameConfig.WALK_PHASE_GAIN * sf)
@@ -95,6 +100,10 @@ func _update_push(delta: float) -> void:
 		_knee_r.rotation.x = -maxf(0.0, s) * GameConfig.WALK_KNEE_BEND
 		_torso.rotation.z = s * GameConfig.WALK_TORSO_ROLL
 		_torso.position.y = absf(s) * GameConfig.WALK_BOB
+		# Free arms swing opposite the legs; on the handlebar they do not.
+		if controller == null:
+			_shoulder_l.rotation.x = -s * GameConfig.WALK_LEG_SWING * 0.7
+			_shoulder_r.rotation.x = s * GameConfig.WALK_LEG_SWING * 0.7
 	else:
 		var w := minf(1.0, GameConfig.IDLE_RECOVER_RATE * delta)
 		_hip_l.rotation.x = lerpf(_hip_l.rotation.x, 0.0, w)
@@ -134,6 +143,15 @@ func _update_sit(delta: float) -> void:
 # ---------------------------------------------------------------- poses
 
 func _pose_push() -> void:
+	# On foot there is no handlebar, so the arms hang and the lean comes off
+	# (G14.16). Same mode, because the leg cycle is the same walk.
+	if controller == null:
+		_torso.rotation.x = -GameConfig.CHAR_PUSH_LEAN * 0.35
+		_shoulder_l.rotation.x = 0.0
+		_shoulder_r.rotation.x = 0.0
+		_shoulder_l.rotation.z = GameConfig.CHAR_PUSH_ARM_INWARD * 0.4
+		_shoulder_r.rotation.z = -GameConfig.CHAR_PUSH_ARM_INWARD * 0.4
+		return
 	_torso.rotation.x = -GameConfig.CHAR_PUSH_LEAN
 	# Arms forward-down to the handle, slightly inward.
 	_shoulder_l.rotation.x = GameConfig.CHAR_PUSH_ARM_X

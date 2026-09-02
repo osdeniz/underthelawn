@@ -967,3 +967,7 @@ HARVEST_LONG,A long day,Uzun bir gün
 HARVEST_ROUGH,Rough ground,Engebeli
 HARVEST_BALANCED,Steady work,Dengeli iş
 HARVEST_SOME_FOOD,Some food,Biraz gıda
+UI_DISMOUNT,STEP DOWN,İN
+UI_MOUNT,GET ON,BİN
+UI_MOUNT_WORKING,GET BACK ON,GERİ BİN
+UI_TOO_FAR,Too far from the machine,Makineden çok uzaktasın

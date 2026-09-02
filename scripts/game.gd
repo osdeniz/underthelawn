@@ -53,6 +53,7 @@ var _scrap_banked := 0
 var _food_banked := 0
 ## Seconds actually spent searching, which is what the town is billed for.
 var _search_seconds := 0.0
+var _walker: Walker
 ## Set once both pieces of evidence are in hand and the player chose to keep
 ## mowing, so the "Continue" badge stays available.
 var _exit_offered := false
@@ -136,6 +137,7 @@ func _ready() -> void:
 
 	hud.return_requested.connect(_return_to_hub)
 	hud.main_menu_requested.connect(_return_to_main_menu)
+	hud.walk_toggled.connect(toggle_walk)
 	hud.exit_confirmed.connect(_confirm_exit)
 	hud.next_chapter_requested.connect(_next_chapter)
 	hud.board_requested.connect(func() -> void:
@@ -176,8 +178,11 @@ func _process(delta: float) -> void:
 		hud.set_pad_state(mower.pad_engaged(), mower._pad_origin, mower._pad_now)
 	if mower == null:
 		return
-	# Steering and swipes are camera-relative, so every mower needs the yaw.
+	# Steering and swipes are camera-relative, so every mower needs the yaw —
+	# and so does the walker, which reads the same stick (G14.16).
 	mower.camera_yaw = cam.yaw
+	if _walker != null and is_instance_valid(_walker):
+		_walker.camera_yaw = cam.yaw
 	mower.camera = cam
 	var turn := clampf(absf(mower.omega) / mower.max_turn(), 0.0, 1.0)
 	AudioDirector.set_engine_state(mower.speed_fraction(), turn)
@@ -372,6 +377,13 @@ func select_mower(index: int) -> void:
 
 
 func _activate(index: int, initial: bool) -> void:
+	# Changing machine while on foot would leave the walker holding a mower
+	# that is no longer the one being driven.
+	if _walker != null and is_instance_valid(_walker):
+		_walker.queue_free()
+		_walker = null
+		hud.set_walking(false, false)
+		cam.target = null
 	if index >= _mowers.size() or _mowers[index].type_index() != index:
 		push_warning("Game: mower %d sahnede yok, secim yok sayildi" % index)
 		return
@@ -403,6 +415,73 @@ func _activate(index: int, initial: bool) -> void:
 	hud.set_joystick_visible(index == GameConfig.MOWER_TRACTOR)
 	hud.selector.set_current(index)
 	_place_character(index)
+
+
+# ---------------------------------------------------------------- on foot
+
+## Step down and walk (G14.16).
+##
+## For the push mower and the tractor the machine stops where it is: nothing is
+## cut on foot, and that is the point — walking is for reaching a crate the
+## tractor cannot turn into and for being in the yard rather than driving over
+## it. For the robot and the blade the machine KEEPS WORKING, because both were
+## already doing it themselves and the driver was already standing at the edge
+## watching; stepping down there just moves the camera to the person who was
+## always there.
+func toggle_walk() -> void:
+	if _walker != null and is_instance_valid(_walker):
+		_remount()
+		return
+	_dismount()
+
+
+func walking() -> bool:
+	return _walker != null and is_instance_valid(_walker)
+
+
+func _dismount() -> void:
+	if mower == null or _complete_shown:
+		return
+	var autonomous := _active_index == GameConfig.MOWER_ROBOT \
+		or _active_index == GameConfig.MOWER_BLADE
+	# Only a driven machine stops — and it PARKS rather than deactivating, so it
+	# is still standing in the yard to walk back to.
+	if not autonomous:
+		mower.set_parked(true)
+	_walker = Walker.new()
+	_walker.name = "Walker"
+	add_child(_walker)
+	# Step off to the side of the machine, not into it.
+	var beside := mower.position + Vector3(cos(mower.yaw + PI * 0.5), 0.0,
+		sin(mower.yaw + PI * 0.5)) * 1.1
+	_walker.setup(mower, character, beside)
+	_walker.camera_yaw = cam.yaw
+	cam.target = _walker
+	cam.set_preset(GameConfig.WALK_CAMERA, 0.0)
+	hud.set_walking(true, autonomous)
+	if not autonomous:
+		AudioDirector.stop_engine()
+	Analytics.track("walk_started", {"mower": _active_index})
+
+
+func _remount() -> void:
+	if _walker == null or not is_instance_valid(_walker):
+		return
+	# Too far from the machine and the button says so rather than teleporting
+	# the player back into a seat across the yard.
+	if not _walker.in_reach():
+		hud.nudge_remount()
+		return
+	_walker.queue_free()
+	_walker = null
+	cam.target = mower
+	var gain := GameConfig.TRACTOR_LOOKAHEAD_GAIN \
+		if _active_index == GameConfig.MOWER_TRACTOR else 0.0
+	cam.set_preset(GameConfig.MOWER_CAMERA[_active_index], gain)
+	mower.set_parked(false)
+	AudioDirector.set_engine_profile(_active_index)
+	_place_character(_active_index)
+	hud.set_walking(false, false)
 
 
 ## §8 integration: the driver follows the mower choice.
