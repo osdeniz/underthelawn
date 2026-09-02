@@ -2538,6 +2538,19 @@ for the town and for the next chapter.
 inside a level, because a way out that works once and then loses its own button
 is not a way out.
 
+### G14.10 — the card that opened a door and shut it
+
+The closing card's Case 2 page has two branches, and the UNLOCKED one printed
+the LOCKED line: under the words CASE 02 UNLOCKED it said "To be continued."
+The card announced a case and withdrew it in the same breath. It reads the
+objective now — "Find the one who grew the garden" — which is the same promise
+the locked branch makes, minus the price.
+
+Nothing was failing. No test asked what the card SAID, only that it appeared;
+the two strings sit next to each other in the same match and the wrong one had
+been copied. `ReunionCheck` reads both branches as a player would, and was
+confirmed to fail against the old line before being kept.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

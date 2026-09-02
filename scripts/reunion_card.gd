@@ -152,7 +152,11 @@ func _apply() -> void:
 		# which is the same promise with the price attached.
 		if ChapterProgress.case_two_open():
 			_title.text = "%s\n%s" % [tr("CASE_02_UNLOCKED"), tr("CASE_02_TITLE")]
-			_line.text = tr("CASE_02_LOCKED")
+			# The OBJECTIVE, not the locked line. This branch is the one where
+			# the door has just opened, and it was printing "To be continued"
+			# underneath the word UNLOCKED — the card announced a case and
+			# withdrew it in the same breath (G14.10).
+			_line.text = tr("CASE_02_OBJECTIVE")
 		else:
 			var progress := RestoreBoard.town_ready_progress()
 			_title.text = "%s\n%s" % [tr("CASE_02_ID"), tr("CASE_02_TITLE")]
