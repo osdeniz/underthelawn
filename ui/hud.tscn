@@ -213,6 +213,23 @@ vertical_alignment = 1
 theme_override_colors/font_color = Color(0.62, 0.95, 0.6, 1)
 theme_override_font_sizes/font_size = 40
 mouse_filter = 2
+
+[node name="FoodIcon" type="TextureRect" parent="TopBar/WalletChip/WalletRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(38, 38)
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="FoodLabel" type="Label" parent="TopBar/WalletChip/WalletRow"]
+unique_name_in_owner = true
+text = "0"
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.92, 0.78, 0.42, 1)
+theme_override_font_sizes/font_size = 40
+mouse_filter = 2
+
 [node name="Progress" type="ProgressBar" parent="TopBar"]
 unique_name_in_owner = true
 anchor_right = 1.0

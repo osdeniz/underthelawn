@@ -147,6 +147,8 @@ var _restore_page: Control
 var _echoes_page: Control
 var _objectives_page: Control
 var _objectives_button: Button
+var _food_label: Label
+var _people_label: Label
 var _objective_list: VBoxContainer
 var _restore_list: VBoxContainer
 var _echo_list: VBoxContainer
@@ -347,11 +349,11 @@ func _build_top_bar() -> void:
 	_scrap_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wallet_row.add_child(_scrap_label)
 
-	# Food and population. Both are placeholders for now (GameConfig says so);
-	# they are here because the bar is where the player will look for them, and
-	# adding the readout later would move everything else on the row.
-	_add_stat(wallet_row, UiIcons.food(), GameConfig.TOWN_FOOD_PLACEHOLDER)
-	_add_stat(wallet_row, UiIcons.people(), GameConfig.TOWN_PEOPLE_PLACEHOLDER)
+	# Food and population, both REAL now (G14.12). They were the constants 42
+	# and 11 for a while: numbers nothing produced and nothing spent, which a
+	# player reads as state and then watches never move.
+	_food_label = _add_stat(wallet_row, UiIcons.food(), TownStats.food())
+	_people_label = _add_stat(wallet_row, UiIcons.people(), TownStats.people())
 
 	# The objectives door. A chip like the wallet, but pressable, with the
 	# number of open objectives on it (G14.2).
@@ -394,6 +396,18 @@ func _refresh_objectives_badge() -> void:
 		return
 	var open := Objectives.active_count()
 	_objectives_button.text = "" if open <= 0 else str(open)
+
+
+## The two town numbers, repainted whenever anything that feeds them changes.
+func _refresh_town_stats() -> void:
+	if _food_label != null and is_instance_valid(_food_label):
+		_food_label.text = str(TownStats.food())
+		# The bar itself carries the warning: a number going red is read before
+		# any sentence is (G14.12).
+		_food_label.add_theme_color_override("font_color",
+			GameConfig.UI_RED if TownStats.is_low() else GameConfig.UI_INK)
+	if _people_label != null and is_instance_valid(_people_label):
+		_people_label.text = str(TownStats.people())
 
 
 func _refresh_progress() -> void:
@@ -706,7 +720,7 @@ func _pages() -> Array:
 ## The divider is drawn rather than left as a gap because three numbers spaced
 ## evenly apart read as one long number at a glance; a rule between them says
 ## where each one stops.
-func _add_stat(row: HBoxContainer, art: Texture2D, value: int) -> void:
+func _add_stat(row: HBoxContainer, art: Texture2D, value: int) -> Label:
 	var rule := ColorRect.new()
 	rule.color = GameConfig.UI_LINE
 	rule.custom_minimum_size = Vector2(2, 34)
@@ -730,6 +744,7 @@ func _add_stat(row: HBoxContainer, art: Texture2D, value: int) -> void:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(label)
+	return label
 
 
 ## a visible locked door tells the player the game is bigger than this screen.
@@ -2417,6 +2432,7 @@ func refresh() -> void:
 		if town != null:
 			town.apply_sky_mode()
 	_refresh_progress()
+	_refresh_town_stats()
 	_refresh_lead_card()
 	_refresh_board()
 	_refresh_objectives()
@@ -2424,6 +2440,7 @@ func refresh() -> void:
 	_show_board_tab(BOARD_MAP)
 	_show_page(_tiles_page)
 	_harvest_call()
+	_food_warning()
 	# Anything finished while the player was out in a yard is paid for here, on
 	# the way back in — the hub is the only screen that can afford a toast.
 	_announce_objectives(Objectives.collect())
@@ -2445,6 +2462,66 @@ func _announce_objectives(earned: Array) -> void:
 		var spec: Dictionary = any
 		_objective_toast(spec, float(index) * 0.35)
 		index += 1
+
+
+## Said once per crossing, not once per visit: a warning that reappears every
+## time you walk in stops being read (G14.12). The threshold it was last shown
+## for is remembered, so recovering and dropping again warns again.
+func _food_warning() -> void:
+	var key := TownStats.warning_key()
+	var shown := str(GameState.get_setting("economy", "food_warned", ""))
+	if key == "":
+		if shown != "":
+			GameState.set_setting("economy", "food_warned", "")
+		return
+	if key == shown:
+		return
+	GameState.set_setting("economy", "food_warned", key)
+	_food_toast(tr("FOOD_WARNING_TITLE"), tr(key))
+
+
+## The same shape as the objective toast, in the warning's colour. A separate
+## function rather than a parameter on that one: they say opposite things and
+## are going to drift apart, not together.
+func _food_toast(title: String, line: String) -> void:
+	var card := PanelContainer.new()
+	card.name = "FoodToast"
+	card.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	card.offset_left = 40
+	card.offset_right = -40
+	card.offset_top = 250
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = Color(0.16, 0.09, 0.07, 0.96)
+	skin.set_corner_radius_all(20)
+	skin.set_content_margin_all(22)
+	skin.border_color = GameConfig.UI_RED
+	skin.set_border_width_all(3)
+	card.add_theme_stylebox_override("panel", skin)
+	add_child(card)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 6)
+	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(rows)
+	for spec: Array in [[title, 30, GameConfig.UI_RED],
+			[line, 30, Color(0.90, 0.88, 0.84)]]:
+		var label := Label.new()
+		label.text = str(spec[0])
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", int(spec[1]))
+		label.add_theme_color_override("font_color", spec[2])
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rows.add_child(label)
+
+	card.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_property(card, "modulate:a", 1.0, 0.3)
+	tween.tween_interval(5.0)
+	tween.tween_property(card, "modulate:a", 0.0, 0.7)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(card):
+			card.queue_free())
 
 
 func _objective_toast(spec: Dictionary, delay: float) -> void:

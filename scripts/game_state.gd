@@ -86,6 +86,12 @@ func get_setting(section: String, key: String, default: Variant) -> Variant:
 	return _config.get_value(section, key, default)
 
 
+## Whether a key has ever been written. Needed to tell "never set" from "set to
+## zero", which is the difference between a fresh larder and an empty one.
+func has_setting(section: String, key: String) -> bool:
+	return _config.has_section_key(section, key)
+
+
 func set_setting(section: String, key: String, value: Variant) -> void:
 	_config.set_value(section, key, value)
 	var err := _config.save(SETTINGS_PATH)

@@ -2581,6 +2581,36 @@ does not collapse relative to the size of its yards. It runs through
 `ScrapField.payout` and the real config rather than restating the arithmetic,
 so it cannot drift from the formulas it guards.
 
+## Sprint G14.12 — the two numbers on the bar became real
+
+Food and population sat on the hub's top bar as the constants 42 and 11:
+numbers nothing produced and nothing spent, which a player reads as state and
+then watches never move.
+
+**Population is derived, never stored** — the named townsfolk who are actually
+here, plus one returning resident per rebuilt project. Both halves are
+checkable against the diorama, which is the point: a number nobody can verify
+is decoration.
+
+**Food is a real resource with two directions.** Yards hide crates of produce
+alongside the money, uncovered the same way and banked until the chapter ends.
+The town eats FOUR per finished chapter — and per chapter, never by the clock.
+A real-time drain would punish a player for not opening the game, which is the
+opposite of what this one is for. A harvest feeds the town and costs it
+nothing, which is the field's whole argument for existing.
+
+The warning is said once per crossing rather than once per visit: the threshold
+it was last shown for is remembered, so recovering and dropping again warns
+again. The counter on the bar goes red at the same moment, because a number
+changing colour is read before any sentence is.
+
+**And the money stopped looking like a green brick.** Three things make paper
+money read at gameplay distance, and the first version had none of them: the
+RATIO of a note (2.35:1, not 1.47:1), the stepped edges of separate sheets, and
+a printed face on the top one. The face then had to be made SMALL — at play
+distance a wide pale face turned the bundle into a white card with green edges,
+and the silhouette has to stay green.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

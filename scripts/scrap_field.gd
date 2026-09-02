@@ -8,12 +8,20 @@ extends Node3D
 ## a reroll.
 
 signal collected(amount: int)
+## A crate of produce, uncovered the same way (G14.12). Kept in this field
+## rather than a second one: the placement rules, the spacing and the "which
+## cells are still hiding something" question are all identical, and two fields
+## would have had to agree with each other forever.
+signal food_collected(amount: int)
 
 var _model: LawnModel
 var _points := {}          # cell index -> value
 var _rng := RandomNumberGenerator.new()
 var _ground_total := 0
 var _props := {}          # cell index -> MoneyProp
+var _food := {}           # cell index -> value
+var _food_props := {}     # cell index -> FoodProp
+var _food_total := 0
 
 
 ## `budget` is how many pickups to bury; scaled by nothing else, since the
@@ -48,6 +56,35 @@ func setup(model: LawnModel, budget: int, seed_value: int) -> void:
 	if placed.size() < budget:
 		print("[Scrap] %d/%d nokta yerlestirildi (%d deneme)"
 			% [placed.size(), budget, tries])
+
+	# Food, on cells of its own, chosen after the scrap so the two never share
+	# one cell — a cut that paid twice would read as a bug even though it is
+	# not.
+	var crates := _rng.randi_range(GameConfig.FOOD_PICKUPS.x,
+		GameConfig.FOOD_PICKUPS.y)
+	var food_cells: Array[Vector2i] = []
+	tries = 0
+	while food_cells.size() < crates and tries < GameConfig.SCRAP_PLACEMENT_TRIES:
+		tries += 1
+		var fcol := _rng.randi_range(1, GameConfig.GRID_COLS - 2)
+		var frow := _rng.randi_range(1, GameConfig.GRID_ROWS - 2)
+		if not model.is_mowable(fcol, frow):
+			continue
+		var fkey := LawnModel.index_of(fcol, frow)
+		if _points.has(fkey) or _food.has(fkey):
+			continue
+		var fcell := Vector2i(fcol, frow)
+		var crowded := false
+		for other2 in placed + food_cells:
+			if absi(other2.x - fcol) + absi(other2.y - frow) \
+					< GameConfig.SCRAP_MIN_SEPARATION:
+				crowded = true
+				break
+		if crowded:
+			continue
+		food_cells.append(fcell)
+		_food[fkey] = _rng.randi_range(GameConfig.FOOD_VALUE.x,
+			GameConfig.FOOD_VALUE.y)
 	# Visible cash bundles (G9.4): the money is a goal on the lawn, not a
 	# surprise under it. Only when the field lives in a scene — the placement
 	# tests run it detached.
@@ -55,6 +92,9 @@ func setup(model: LawnModel, budget: int, seed_value: int) -> void:
 		for cell in placed:
 			_props[LawnModel.index_of(cell.x, cell.y)] = MoneyProp.spawn(
 				self, LawnModel.cell_center(cell.x, cell.y))
+		for fcell2 in food_cells:
+			_food_props[LawnModel.index_of(fcell2.x, fcell2.y)] = FoodProp.spawn(
+				self, LawnModel.cell_center(fcell2.x, fcell2.y))
 
 
 ## Called for every cell the deck cuts. Returns the value if this cell held
@@ -71,6 +111,30 @@ func take(col: int, row: int) -> int:
 	_ground_total += value
 	collected.emit(value)
 	return value
+
+
+## The same question for food. Separate from take() because the two are banked
+## into different pockets and shown by different counters.
+func take_food(col: int, row: int) -> int:
+	var key := LawnModel.index_of(col, row)
+	if not _food.has(key):
+		return 0
+	var value: int = _food[key]
+	_food.erase(key)
+	if _food_props.has(key):
+		(_food_props[key] as FoodProp).collect()
+		_food_props.erase(key)
+	_food_total += value
+	food_collected.emit(value)
+	return value
+
+
+func food_total() -> int:
+	return _food_total
+
+
+func food_remaining() -> int:
+	return _food.size()
 
 
 func remaining() -> int:

@@ -744,8 +744,37 @@ const TOWN_READY_PROJECTS := 3
 ## numbers it displays until something produces them, and they are constants
 ## rather than magic literals in the HUD so that wiring them up later is one
 ## edit in one place.
-const TOWN_FOOD_PLACEHOLDER := 42
-const TOWN_PEOPLE_PLACEHOLDER := 11
+# ---------------------------------------------------------------- food (G14.12)
+
+## Food is the town's OTHER currency and it only ever goes two ways: up when
+## you bring some back from a yard, down when the town eats while you search.
+## It was a hardcoded 42 on the top bar for a while — a number nothing produced
+## and nothing spent, which a player reads as state and then watches never move.
+##
+## It drains PER FINISHED CHAPTER, never by the clock. A real-time drain would
+## punish a player for not opening the game, which is the opposite of what this
+## one is for.
+const FOOD_START := 24
+const FOOD_PER_CHAPTER := 4
+## How many baskets a yard hides, and what each is worth.
+const FOOD_PICKUPS := Vector2i(2, 4)
+const FOOD_VALUE := Vector2i(3, 6)
+## Below this the town is told, once, on the way back in.
+const FOOD_LOW := 10
+## And below this it is not a warning any more.
+const FOOD_CRITICAL := 4
+## The basket prop.
+const FOOD_CRATE := Color(0.52, 0.36, 0.20)
+const FOOD_CRATE_DARK := Color(0.38, 0.26, 0.14)
+const FOOD_PRODUCE := [Color(0.86, 0.32, 0.22), Color(0.92, 0.62, 0.18),
+	Color(0.44, 0.62, 0.24)]
+const FOOD_SIZE := Vector3(0.46, 0.30, 0.40)
+
+## The population is DERIVED, never stored: the named townsfolk who are
+## actually here, plus one returning resident per rebuilt project. A number the
+## player can check against the diorama is worth more than a number they have
+## to trust.
+const TOWN_BASE_PEOPLE := 5
 ## Debug only: grants money from the pause menu for balance testing. Ships false.
 const DEV_GRANT_SCRAP := false
 ## Debug only: the wallet a fresh save starts with, so systems downstream of the
@@ -811,10 +840,25 @@ const SEARCH_SCRAP_MULTIPLIER := 1.7
 ## Money bundle prop: the genre-classic green cash stack, VISIBLE above the
 ## grass before it is collected — hidden pickups read as luck, visible ones as
 ## goals to steer toward.
-const MONEY_BILL := Color(0.07, 0.45, 0.16)
+## Deeper than the first pass: at 0.45 green the stack read as painted plastic.
+const MONEY_BILL := Color(0.06, 0.34, 0.15)
 const MONEY_BILL_TOP := Color(0.16, 0.62, 0.26)
-const MONEY_BAND := Color(0.96, 0.86, 0.42)
-const MONEY_SIZE := Vector3(0.56, 0.20, 0.38)
+## A paper strap, not a plastic clip: pale and thin. The first pass was a fat
+## saturated yellow band that stood proud of the stack.
+const MONEY_BAND := Color(0.93, 0.88, 0.70)
+## A US note is about 2.35 times as long as it is wide, and that ratio is most
+## of what makes a stack read as CASH rather than as a green brick. It was
+## 1.47:1 and looked like a box with a stripe painted on it (G14.12).
+const MONEY_SIZE := Vector3(0.66, 0.20, 0.28)
+## Individual notes in the bundle. The stack used to be one box with a stripe,
+## which read as a green brick; the stepped edges are what say "paper".
+const MONEY_SHEETS := 5
+## The printed mark on the top note.
+const MONEY_INK := Color(0.08, 0.22, 0.13)
+## The printed FACE of the top note. Banknote paper is pale and greyish; the
+## saturated green belongs to the edges of the stack, which is all you see of
+## the notes underneath.
+const MONEY_FACE := Color(0.66, 0.78, 0.58)
 ## Soft self-glow so the stack pops against sunlit grass, ad-game style.
 const MONEY_GLOW := 0.35
 const MONEY_HOVER := 0.55

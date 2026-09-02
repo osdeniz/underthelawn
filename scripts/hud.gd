@@ -66,6 +66,8 @@ var _poster: Control
 @onready var _teaser_locked: Label = %TeaserLocked
 @onready var _return_button: Button = %ReturnButton
 @onready var _scrap_label: Label = %ScrapLabel
+@onready var _food_label: Label = %FoodLabel
+@onready var _food_icon: TextureRect = %FoodIcon
 @onready var _wallet_icon: TextureRect = %WalletIcon
 @onready var _evidence_icon: TextureRect = %EvidenceIcon
 @onready var _evidence_chip: HBoxContainer = %EvidenceChip
@@ -115,6 +117,8 @@ func _ready() -> void:
 	# Drawn, not emoji: iOS renders an emoji glyph as a blank box (G12.10).
 	_build_top_scrim()
 	_wallet_icon.texture = UiIcons.money()
+	_food_icon.texture = UiIcons.food()
+	set_food(TownStats.food())
 	_evidence_icon.texture = UiIcons.evidence()
 	_complete_panel.visible = false
 	_secret_card.visible = false
@@ -782,6 +786,41 @@ func show_wallet() -> void:
 
 ## A value flies from the pickup's screen position to the counter, so the number
 ## going up is visibly caused by the thing on the ground.
+## The food counter, beside the money. Both are "what you are carrying out of
+## this yard", so they read as a pair (G14.12).
+func set_food(value: int) -> void:
+	if _food_label != null and is_instance_valid(_food_label):
+		_food_label.text = str(value)
+		_food_label.add_theme_color_override("font_color",
+			GameConfig.UI_RED if value <= GameConfig.FOOD_LOW
+			else Color(0.92, 0.78, 0.42))
+
+
+## Same arc as the money label, in the crate's colour, flying to the food chip.
+func fly_food(amount: int, from_screen: Vector2) -> void:
+	if _food_label == null or not is_instance_valid(_food_label):
+		return
+	var label := Label.new()
+	label.text = "+%d" % amount
+	label.add_theme_font_size_override("font_size", 46)
+	label.add_theme_color_override("font_color", Color(0.94, 0.80, 0.44))
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	label.add_theme_constant_override("shadow_offset_y", 4)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(label)
+	label.position = from_screen
+	show_wallet()
+	var target := _food_label.get_global_rect().get_center()
+	var tw := create_tween()
+	tw.tween_property(label, "position", target, GameConfig.SCRAP_FLY_TIME) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(label, "scale", Vector2(0.6, 0.6),
+		GameConfig.SCRAP_FLY_TIME)
+	tw.parallel().tween_property(label, "modulate:a", 0.0,
+		GameConfig.SCRAP_FLY_TIME * 0.5).set_delay(GameConfig.SCRAP_FLY_TIME * 0.5)
+	tw.tween_callback(label.queue_free)
+
+
 func fly_scrap(amount: int, from_screen: Vector2) -> void:
 	var label := Label.new()
 	label.text = "+%d" % amount
@@ -868,6 +907,15 @@ func _build_payout(payout: Dictionary) -> void:
 			{"pct": int(round(GameConfig.SCRAP_THOROUGH_BONUS * 100.0))}),
 			int(payout.get("thorough", 0)), true])
 	rows.append([tr("PAYOUT_TOTAL"), int(payout.get("total", 0)), true])
+	# Food is its own ledger, under the money one: what the yard gave and what
+	# the town ate while you were in it (G14.12).
+	if payout.has("food_left"):
+		rows.append([tr("PAYOUT_FOOD"), int(payout.get("food", 0)), false])
+		if int(payout.get("food_eaten", 0)) > 0:
+			rows.append([tr("PAYOUT_FOOD_EATEN"),
+				-int(payout.get("food_eaten", 0)), false])
+		rows.append([tr("PAYOUT_FOOD_LEFT"), int(payout.get("food_left", 0)),
+			true])
 	for row: Array in rows:
 		var line := HBoxContainer.new()
 		var name_label := Label.new()

@@ -50,6 +50,7 @@ var variant: LevelVariant
 ## This chapter's buried salvage, and the running ground haul.
 var scrap_field: ScrapField
 var _scrap_banked := 0
+var _food_banked := 0
 ## Set once both pieces of evidence are in hand and the player chose to keep
 ## mowing, so the "Continue" badge stays available.
 var _exit_offered := false
@@ -99,6 +100,7 @@ func _ready() -> void:
 		controller.tuft_field = lawn.tuft_field
 		controller.cells_mown.connect(_on_cells_mown)
 		controller.scrap_found.connect(_on_scrap_found)
+		controller.food_found.connect(_on_food_found)
 		controller.scrap_field = scrap_field
 		controller.set_active(false)
 		_mowers.append(controller)
@@ -211,6 +213,7 @@ func _ensure_all_mowers() -> void:
 		# lines a code-spawned mower drives over money and nothing happens —
 		# which was every mower except the push one.
 		built.scrap_found.connect(_on_scrap_found)
+		built.food_found.connect(_on_food_found)
 		built.scrap_field = scrap_field
 		built.set_active(false)
 		_mowers.insert(i, built)
@@ -607,6 +610,19 @@ func _on_completed() -> void:
 		var payout := _payout()
 		GameState.add_scrap(int(payout["total"]))
 		hud.set_scrap(GameState.scrap_total())
+		# Food is banked and the town's share is eaten in the same breath, so
+		# the panel can show both and the arithmetic is never split across two
+		# screens (G14.12). A harvest FEEDS the town and does not cost it a
+		# day's meals — that is the whole point of the field.
+		TownStats.add_food(_food_banked)
+		var eaten := 0
+		if variant == null or not variant.is_harvest():
+			eaten = GameConfig.FOOD_PER_CHAPTER
+			TownStats.eat()
+		payout["food"] = _food_banked
+		payout["food_eaten"] = eaten
+		payout["food_left"] = TownStats.food()
+		hud.set_food(TownStats.food())
 		search_finished.emit(_collected.size(), _evidence_total())
 		if variant != null and variant.is_harvest():
 			HarvestLog.record()
@@ -706,6 +722,18 @@ func _on_scrap_found(col: int, row: int, value: int) -> void:
 	var at := LawnModel.cell_center(col, row)
 	hud.fly_scrap(value, cam.unproject_position(at + Vector3.UP * 0.6))
 	hud.set_scrap(GameState.scrap_total() + _scrap_banked)
+	AudioDirector.play_scrap()
+	Haptics.light()
+
+
+## Food comes out of the grass the same way money does, and is banked the same
+## way: held until the chapter ends, so quitting a level mid-run cannot farm it
+## (G14.12).
+func _on_food_found(col: int, row: int, value: int) -> void:
+	_food_banked += value
+	var at := LawnModel.cell_center(col, row)
+	hud.fly_food(value, cam.unproject_position(at + Vector3.UP * 0.6))
+	hud.set_food(TownStats.food() + _food_banked)
 	AudioDirector.play_scrap()
 	Haptics.light()
 

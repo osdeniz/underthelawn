@@ -15,6 +15,8 @@ signal cells_mown(count: int)
 signal secret_uncovered(col: int, row: int)
 ## A cut cell held scrap (G9): (col, row, value).
 signal scrap_found(col: int, row: int, value: int)
+## A crate of produce under the grass (G14.12), banked separately from money.
+signal food_found(col: int, row: int, value: int)
 
 ## Index into GameConfig.MOWER_TYPES; set by _type_index() in each subclass.
 var params: Dictionary = {}
@@ -355,6 +357,9 @@ func _mow(delta: float) -> void:
 				var scrap := scrap_field.take(col, row)
 				if scrap > 0:
 					scrap_found.emit(col, row, scrap)
+				var food := scrap_field.take_food(col, row)
+				if food > 0:
+					food_found.emit(col, row, food)
 			if tuft_field:
 				tuft_field.cut_cell(col, row, rotation.y)
 			if result == LawnModel.MowResult.SECRET_REVEALED:

@@ -926,3 +926,9 @@ SKY_VALUE_DAY,Day,Gündüz
 SKY_VALUE_DUSK,Sunset,Gün batımı
 SKY_VALUE_NIGHT,Night,Gece
 UI_MAIN_MENU,MAIN MENU,ANA MENÜ
+PAYOUT_FOOD,Food brought back,Getirilen gıda
+PAYOUT_FOOD_EATEN,The town ate,Kasaba yedi
+PAYOUT_FOOD_LEFT,Food left,Kalan gıda
+FOOD_LOW_LINE,The larder is getting light. There is food in the long grass.,Kiler azalıyor. Uzun otların arasında yiyecek var.
+FOOD_CRITICAL_LINE,Cole is rationing. Bring something back from the next yard.,Cole tayına başladı. Sonraki bahçeden bir şeyler getir.
+FOOD_WARNING_TITLE,LOW ON FOOD,GIDA AZALIYOR
