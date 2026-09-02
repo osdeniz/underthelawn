@@ -208,6 +208,24 @@ func _mat(key: String, color: Color, roughness := 0.85) -> StandardMaterial3D:
 	return m
 
 
+## A tapered prism, for the one form on this figure that is not a limb.
+func _taper(parent: Node3D, top_radius: float, bottom_radius: float,
+		height: float, mat: Material, pos: Vector3) -> void:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = top_radius
+	mesh.bottom_radius = bottom_radius
+	mesh.height = height
+	mesh.radial_segments = GameConfig.CHAR_TORSO_SIDES
+	mesh.rings = 1
+	var node := MeshInstance3D.new()
+	node.mesh = mesh
+	node.material_override = mat
+	node.position = pos
+	# Turned an eighth so a flat face points at the camera rather than a corner.
+	node.rotation.y = PI / float(GameConfig.CHAR_TORSO_SIDES)
+	parent.add_child(node)
+
+
 func _box(parent: Node3D, size: Vector3, mat: StandardMaterial3D,
 		pos: Vector3) -> MeshInstance3D:
 	var mesh := BoxMesh.new()
@@ -275,10 +293,10 @@ func _build() -> void:
 	# Torso pivots at the waist; the box sits above it.
 	_torso = _pivot(self, "Torso", Vector3.ZERO)
 	var ts := GameConfig.CHAR_TORSO_SIZE
-	_box(_torso, ts, shirt, Vector3(0.0, ts.y * 0.5, 0.0))
-	# A yoke across the shoulders, so the shirt has shoulders in it.
-	var ys := GameConfig.CHAR_YOKE_SIZE
-	_box(_torso, ys, shirt, Vector3(0.0, ts.y - ys.y * 0.35, 0.0))
+	# One tapered prism: shoulders wider than hips, eight sides so the silhouette
+	# has shape without going round. See CHAR_CHEST_RADIUS for what this replaced.
+	_taper(_torso, GameConfig.CHAR_CHEST_RADIUS, GameConfig.CHAR_WAIST_RADIUS,
+		ts.y, shirt, Vector3(0.0, ts.y * 0.5, 0.0))
 	# And a neck, so the head is attached to something.
 	var ns := GameConfig.CHAR_NECK_SIZE
 	_box(_torso, ns, skin, Vector3(0.0, ts.y + ns.y * 0.4, 0.0))

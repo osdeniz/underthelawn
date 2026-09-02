@@ -2775,6 +2775,42 @@ code it reported 0.00 units.
 Arrow keys were never the problem: they have been bound alongside WASD since
 G14, and `InputMapCheck` says so.
 
+### G14.18 — the figure, measured before it was changed
+
+Asked to make the man look better, the first useful thing was to MEASURE him
+rather than start moving numbers:
+
+| | measured | stylised target |
+|---|---|---|
+| head to height | 1 : 5.8 | 1 : 5.5-6 |
+| arm to leg | 0.66 | ~0.72 |
+| torso | 0.35 x 0.21, one box | — |
+
+So the head was already right, and touching it would have made things worse.
+The two real faults were a short arm and a torso that was a crate.
+
+The arms went to 0.71 of leg length, which put the hands beside the hips
+instead of above them. The torso took two attempts: splitting it into a chest
+over a waist was WORSE — the step between the boxes, plus the shoulder yoke
+added the day before, made a stepped T. It is now ONE tapered eight-sided
+prism, wider at the shoulders than at the hips, and the yoke is gone. A single
+form with a taper in it is what says "body", and it costs one draw instead of
+three.
+
+Leg length was deliberately not touched: every riding and sitting pose sets an
+absolute waist height derived from it, so changing it would have lifted the
+driver off the tractor seat. Both riding poses were rendered afterwards to
+confirm the longer arms still meet the handlebar and the wheel.
+
+**On buying a rigged humanoid instead:** turned down, for reasons that are not
+taste. Everything else in this game is primitives — ten buildings, four
+machines, the trees, the crops — so a realistic figure would make its
+neighbours look unfinished rather than looking good itself. The walk cycle is
+also wired to gameplay (phase from mower speed, torso yaw from steering, a
+sitting pose for the robot) and would have to be re-authored against a
+skeleton. In this art style the premium look comes from proportion and
+silhouette, which is what this patch spent its effort on.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

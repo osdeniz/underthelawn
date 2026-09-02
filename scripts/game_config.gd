@@ -1341,13 +1341,23 @@ const CHAR_BOOT := Color(0.20, 0.15, 0.11)
 ## which reads as a short body on long legs; a person is closer to even. The
 ## head was small enough that the hat did the work of finding the face.
 const CHAR_TORSO_SIZE := Vector3(0.35, 0.50, 0.21)
+## The torso is ONE tapered eight-sided prism, not a box and not a stack of
+## boxes (G14.18). A box read as a crate with a head on it; splitting it into a
+## chest over a waist read worse — the step between them plus the shoulder yoke
+## made a T. A single form that is wider at the shoulders than at the hips is
+## what says "body", and it is also one draw instead of three.
+const CHAR_CHEST_RADIUS := 0.185
+const CHAR_WAIST_RADIUS := 0.150
+const CHAR_TORSO_SIDES := 8
 const CHAR_HEAD_RADIUS := 0.125
 const CHAR_BAND_SIZE := Vector2(0.16, 0.035)
 const CHAR_HAT_BRIM_RADIUS := 0.175
 const CHAR_HAT_TOP_RADIUS := 0.10
 const CHAR_SHOULDER := Vector2(0.195, 0.46)    # +/-x, y — on the torso
-const CHAR_UPPER_ARM := 0.24
-const CHAR_LOWER_ARM := 0.22
+## Arm to leg was 0.66 against a human's ~0.72: measurably short, and it read
+## as short — the hands sat above the hips instead of beside them.
+const CHAR_UPPER_ARM := 0.26
+const CHAR_LOWER_ARM := 0.24
 const CHAR_HIP_X := 0.09
 const CHAR_UPPER_LEG := 0.36
 const CHAR_LOWER_LEG := 0.34
