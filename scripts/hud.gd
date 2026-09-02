@@ -106,6 +106,7 @@ var _pause_layer: Control
 var _pause_button: Button
 var _sky_button: Button
 var _walk_button: Button
+var _tip: PanelContainer
 var _joystick_wanted := false
 var _walking := false
 
@@ -1254,6 +1255,54 @@ func refresh_sky() -> void:
 		if swarm != null:
 			swarm.refresh()
 	Horizon.light_windows(root, GameConfig.WINDOW_HOURS.has(SkyTime.resolve(hour)))
+
+
+## A one-time card explaining a resource the first time it is picked up
+## (G14.23): what it is and what it is FOR. Shown for money and for food,
+## once each, ever — and NOT pausing the game, which is the mistake the
+## first-run sheet made. The mower keeps rolling behind it.
+func show_resource_tip(title: String, line: String) -> void:
+	if _tip != null and is_instance_valid(_tip):
+		return
+	var card := PanelContainer.new()
+	card.name = "ResourceTip"
+	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	card.offset_left = -430
+	card.offset_right = 430
+	card.offset_top = -230
+	card.offset_bottom = 230
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = GameConfig.CASE_PANEL
+	skin.set_corner_radius_all(24)
+	skin.set_content_margin_all(36)
+	skin.border_color = Color(GameConfig.CASE_ACCENT, 0.5)
+	skin.set_border_width_all(3)
+	card.add_theme_stylebox_override("panel", skin)
+	add_child(card)
+	_tip = card
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 20)
+	card.add_child(rows)
+	for spec: Array in [[title, 44, GameConfig.CASE_ACCENT],
+			[line, 32, Color(0.90, 0.89, 0.85)]]:
+		var label := Label.new()
+		label.text = str(spec[0])
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", int(spec[1]))
+		label.add_theme_color_override("font_color", spec[2])
+		rows.add_child(label)
+	var ok := Button.new()
+	ok.text = tr("TIP_OK")
+	ok.custom_minimum_size = Vector2(0, 104)
+	ok.add_theme_font_size_override("font_size", 36)
+	_style_primary(ok)
+	ok.pressed.connect(func() -> void:
+		Haptics.light()
+		if is_instance_valid(card):
+			card.queue_free()
+		_tip = null)
+	rows.add_child(ok)
 
 
 # ---------------------------------------------------------------- on foot

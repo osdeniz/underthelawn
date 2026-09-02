@@ -10,6 +10,7 @@ var model: LawnModel
 var tuft_field: TuftField
 
 var _tint_image: Image
+var _hinted := 0
 var _tint_texture: ImageTexture
 var _ground_material: ShaderMaterial
 var _tint_dirty := false
@@ -122,9 +123,17 @@ func _on_cell_tint_changed(col: int, row: int) -> void:
 ## so the area reads as worth working without the find itself being marked.
 ## Deliberately weak — if a player can spot this from a still frame it has
 ## become a waypoint, which is the thing the brief says not to build.
+## How many cells have been hinted so far. Only a counter, for the first-run
+## test: the hint itself is a tint in an image, which nothing can otherwise
+## ask a question about (G14.23).
+func hint_count() -> int:
+	return _hinted
+
+
 func tint_hint(cell: Vector2i, radius: int) -> void:
 	if _tint_image == null:
 		return
+	_hinted += 1
 	for row in range(cell.y - radius, cell.y + radius + 1):
 		for col in range(cell.x - radius, cell.x + radius + 1):
 			if col < 0 or row < 0 or col >= GameConfig.GRID_COLS \

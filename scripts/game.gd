@@ -168,6 +168,17 @@ func _ready() -> void:
 		_begin_search()
 
 
+## The first time a resource is ever picked up, say what it is for (G14.23).
+## Once per resource, ever, recorded in the save — and it does not pause the
+## game: the mower keeps rolling behind the card.
+func _first_pickup_tip(key: String, title: String, line: String) -> void:
+	if bool(GameState.get_setting("tips", key, false)):
+		return
+	GameState.set_setting("tips", key, true)
+	hud.show_resource_tip(tr(title), tr(line))
+	Analytics.track("resource_tip", {"kind": key})
+
+
 ## What the driver has noticed, refreshed a few times a second rather than
 ## every frame: the nearest thing still lying in the grass, and nothing at all
 ## when there is none in range (G14.22). Held for a moment once chosen, or the
@@ -262,8 +273,14 @@ func _ensure_all_mowers() -> void:
 		_mowers.insert(i, built)
 
 
-## Counts down to the orientation sheet on a first run, then stops. Driven from
-## _process rather than a timer so pausing the game pauses the countdown too.
+## Counts down to the first-run hint, then stops. Driven from _process rather
+## than a timer so pausing the game pauses the countdown too.
+##
+## G14.23: the SHEET is gone. It paused the tree four seconds into a player's
+## very first lawn — the exact moment they had just started mowing — and read
+## as an interruption rather than as help. What it was actually for (a first-run
+## player knowing what "search" means) is done by the half that never blocked:
+## the two buried finds are marked, once, and the Marshal still speaks early.
 func _tick_orientation(delta: float) -> void:
 	if _orientation_due <= 0.0:
 		return
@@ -273,7 +290,7 @@ func _tick_orientation(delta: float) -> void:
 	_orientation_due = 0.0
 	GameState.mark_orientation_done()
 	Analytics.track(AnalyticsEvents.ORIENTATION_SHOWN, {"chapter": variant_id})
-	hud.show_orientation(_on_orientation_closed)
+	_on_orientation_closed()
 
 
 ## Closing the sheet marks BOTH buried finds, once. This is the only place in
@@ -838,6 +855,7 @@ func _evidence_total() -> int:
 
 func _on_scrap_found(col: int, row: int, value: int) -> void:
 	_scrap_banked += value
+	_first_pickup_tip("money", "TIP_MONEY_TITLE", "TIP_MONEY_LINE")
 	if carry != null:
 		carry.add_money()
 	var at := LawnModel.cell_center(col, row)
@@ -852,6 +870,7 @@ func _on_scrap_found(col: int, row: int, value: int) -> void:
 ## (G14.12).
 func _on_food_found(col: int, row: int, value: int) -> void:
 	_food_banked += value
+	_first_pickup_tip("food", "TIP_FOOD_TITLE", "TIP_FOOD_LINE")
 	var at := LawnModel.cell_center(col, row)
 	hud.fly_food(value, cam.unproject_position(at + Vector3.UP * 0.6))
 	hud.set_food(TownStats.food() + _food_banked)

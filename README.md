@@ -2930,6 +2930,40 @@ other object in this game is primitives, so a photoreal figure would not look
 good next to a box tractor, it would make the tractor look broken. At 460px the
 return is in how the figure behaves, which is where this patch went.
 
+### G14.23 — the interruption removed, and two cards that earn their place
+
+**The first-run sheet is gone.** G15 built it and this removes it, on the
+player's own report: it paused the tree four seconds into a first lawn — the
+exact moment they had started mowing — and read as an interruption rather than
+as help. What it was actually for survives in the half that never blocked: the
+two buried finds are still marked once, the Marshal still speaks at 8% instead
+of 30%, and the poster still pulses. `FirstRunCheck` now waits for the
+countdown to LAND and checks its two lasting effects rather than a sheet.
+
+**And in its place, two cards that do not block.** The first time money is
+picked up, and the first time food is, a card says what it is and what it is
+FOR — salvage buys the roofs on the restore board, crates keep the larder while
+you are out working. Once each, ever, recorded in the save, and the mower keeps
+rolling behind them. That is the difference from the sheet: the same
+information, arriving when the player has just done the thing it explains, and
+never taking the game away from them.
+
+**Dialogue got bigger**, on request: the portrait from 430x764 to 560x940 —
+48% of a phone's width — and the text from 44 to 52pt, with the bubble grown to
+match and lifted so the taller text has somewhere to go. The portrait stands on
+the bubble's top edge with a 60px overlap. Measured after the fact, because the
+first screenshot was taken in a 1531-wide test window and made the portrait
+look smaller than it is.
+
+**On voice acting: I cannot record or generate speech, and I will not pretend
+to.** What is built instead is the hook, so a voice pass needs audio and no
+code: the dialogue box asks for each line's translation key as it prints it,
+and `AudioDirector.play_voice()` plays `audio/voice/<KEY>.ogg` if it exists —
+with `audio/voice/<locale>/<KEY>.ogg` winning when a localised take is there.
+A missing file is silence, not a warning, so the game plays exactly as it does
+today until real recordings arrive. The convention is written down in
+`audio/voice/README.md`.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

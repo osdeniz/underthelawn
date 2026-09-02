@@ -971,3 +971,8 @@ UI_DISMOUNT,STEP DOWN,İN
 UI_MOUNT,GET ON,BİN
 UI_MOUNT_WORKING,GET BACK ON,GERİ BİN
 UI_TOO_FAR,Too far from the machine,Makineden çok uzaktasın
+TIP_MONEY_TITLE,THAT'S SALVAGE,BU HURDA PARASI
+TIP_MONEY_LINE,"Cash in the grass, left where people dropped it. It pays for the town: every rebuilt roof on the RESTORE board is bought with this.",Çimenlerin arasında kalmış para. Kasabayı bu ödüyor: ONARIM panosundaki her çatı bununla satın alınıyor.
+TIP_FOOD_TITLE,THAT'S FOOD,BU YİYECEK
+TIP_FOOD_LINE,Crates the yards kept. The town eats a little every day you are out working — bring some back and the larder holds.,Bahçelerin sakladığı sandıklar. Sen çalışırken kasaba her gün biraz yiyor — getirdiğin kadar kiler dayanır.
+TIP_OK,GOT IT,ANLADIM

@@ -913,7 +913,13 @@ const PORTRAIT_FACES: Dictionary = {
 ## Square face thumbnail size in pixels.
 const PORTRAIT_FACE_PX := 320
 ## Dialogue portrait card, in viewport pixels (9:16).
-const DIALOGUE_PORTRAIT_SIZE := Vector2(430, 764)
+## Bigger on request (G14.23): the speaker should carry the screen during a
+## conversation, and at 430x764 the portrait was a stamp beside a box. The
+## bubble grew with it, or a bigger head would only have crowded the same text.
+const DIALOGUE_PORTRAIT_SIZE := Vector2(560, 940)
+## How far above the screen's bottom the bubble's top edge sits; the portrait
+## stands on that line, so both move together.
+const DIALOGUE_PANEL_LIFT := 700.0
 
 
 # ---------------------------------------------------------------- G7 story

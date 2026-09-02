@@ -40,6 +40,7 @@ var _engine_player: AudioStreamPlayer
 var _engine_off := false
 var _ambient_player: AudioStreamPlayer
 var _one_shot: AudioStreamPlayer
+var _voice: AudioStreamPlayer
 var _cut_players: Array[AudioStreamPlayer] = []
 var _cut_index := 0
 ## B14's two-layer signal (G13): a static loop that thins out and a clear tone
@@ -327,6 +328,52 @@ func play_pin() -> void:
 	_one_shot.stream = _streams["pin"]
 	_one_shot.pitch_scale = randf_range(0.96, 1.05)
 	_one_shot.play()
+
+
+# ---------------------------------------------------------------- voice
+
+## One recorded line, looked up by its TRANSLATION KEY: audio/voice/<KEY>.ogg,
+## and per language when a localised recording exists —
+## audio/voice/<locale>/<KEY>.ogg wins over the shared one (G14.23).
+##
+## Nothing here generates speech. A missing file is silence and not a warning,
+## because for now every file is missing and the game is meant to play exactly
+## as it does today.
+func play_voice(text_key: String) -> void:
+	var locale := TranslationServer.get_locale().substr(0, 2)
+	var stream: AudioStream = null
+	for base: String in ["res://audio/voice/%s/%s" % [locale, text_key],
+			"res://audio/voice/%s" % text_key]:
+		for ext: String in AUDIO_EXTENSIONS:
+			if ResourceLoader.exists(base + ext):
+				stream = load(base + ext) as AudioStream
+				break
+		if stream != null:
+			break
+	if stream == null:
+		return
+	if _voice == null or not is_instance_valid(_voice):
+		_voice = AudioStreamPlayer.new()
+		_voice.bus = "Master"
+		add_child(_voice)
+	_voice.stream = stream
+	_voice.play()
+
+
+## Cuts the current line short, for when the player taps through.
+func stop_voice() -> void:
+	if _voice != null and is_instance_valid(_voice):
+		_voice.stop()
+
+
+## Whether a recording exists for a key — used by the test that proves the
+## lookup is wired without shipping any audio.
+func has_voice(text_key: String) -> bool:
+	for base: String in ["res://audio/voice/%s" % text_key]:
+		for ext: String in AUDIO_EXTENSIONS:
+			if ResourceLoader.exists(base + ext):
+				return true
+	return false
 
 
 func play_discovery() -> void:

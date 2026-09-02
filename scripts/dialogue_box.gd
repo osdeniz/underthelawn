@@ -83,8 +83,9 @@ func _build() -> void:
 	_portrait_frame.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	_portrait_frame.offset_left = 56
 	_portrait_frame.offset_right = 56 + GameConfig.DIALOGUE_PORTRAIT_SIZE.x
-	_portrait_frame.offset_top = -GameConfig.DIALOGUE_PORTRAIT_SIZE.y - 620
-	_portrait_frame.offset_bottom = -620
+	_portrait_frame.offset_top = -GameConfig.DIALOGUE_PORTRAIT_SIZE.y \
+		- GameConfig.DIALOGUE_PANEL_LIFT
+	_portrait_frame.offset_bottom = -GameConfig.DIALOGUE_PANEL_LIFT
 	_portrait_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Godot does not clip children to a parent's rounded StyleBox unless asked,
 	# so without this the image draws as a hard square over the frame.
@@ -108,14 +109,16 @@ func _build() -> void:
 	_portrait_initial.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_portrait_initial.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_portrait_initial.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_portrait_initial.add_theme_font_size_override("font_size", 150)
+	_portrait_initial.add_theme_font_size_override("font_size", 190)
 	_portrait_initial.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_portrait_initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_portrait_frame.add_child(_portrait_initial)
 
 	_panel = PanelContainer.new()
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	_panel.anchor_top = 0.74
+	# Taller: the bubble starts higher up the screen so the bigger text has
+	# somewhere to go (G14.23).
+	_panel.anchor_top = 0.70
 	_panel.offset_top = 0
 	_panel.offset_left = 40
 	_panel.offset_right = -40
@@ -136,7 +139,7 @@ func _build() -> void:
 	_panel.add_child(rows)
 
 	_name_label = Label.new()
-	_name_label.add_theme_font_size_override("font_size", 46)
+	_name_label.add_theme_font_size_override("font_size", 54)
 	_name_label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(_name_label)
@@ -146,8 +149,8 @@ func _build() -> void:
 	# Three lines of headroom, so a long line does not resize the panel mid-read.
 	# Four lines of headroom: Case 1 has lines that wrap to three, and a box
 	# that grows mid-read pushes the text under the reader's thumb.
-	_text_label.custom_minimum_size = Vector2(0, 250)
-	_text_label.add_theme_font_size_override("font_size", 44)
+	_text_label.custom_minimum_size = Vector2(0, 300)
+	_text_label.add_theme_font_size_override("font_size", 52)
 	_text_label.add_theme_color_override("font_color", Color(0.94, 0.94, 0.91))
 	_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(_text_label)
@@ -231,6 +234,22 @@ func _show_line(entry: Dictionary) -> void:
 	_typing = true
 	_hint.visible = false
 	_text_label.text = ""
+	_speak(str(entry.get("text", "")))
+
+
+## Plays a recorded line if one has been dropped in, and does nothing at all if
+## not (G14.23).
+##
+## There is no generated speech here and there will not be: this project's rule
+## is no runtime audio synthesis, and a recorded performance is not something
+## the build can invent. What it CAN do is agree on where the files live, so a
+## voice pass is a matter of adding audio and touching no code — one .ogg per
+## translation key, under audio/voice/, named for the key.
+func _speak(text_key: String) -> void:
+	AudioDirector.stop_voice()
+	if text_key == "":
+		return
+	AudioDirector.play_voice(text_key)
 
 
 ## Speaker id -> the name key the town screen also uses, so a character is named
