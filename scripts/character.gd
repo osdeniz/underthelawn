@@ -74,6 +74,10 @@ func set_mode(new_mode: Mode, mower: MowerController, anchor: Node3D = null) -> 
 # ---------------------------------------------------------------- animation
 
 func _process(delta: float) -> void:
+	# Cleared before the pose runs; a pose that wants the head somewhere sets
+	# these and _update_look adds the look on top.
+	_look_base_yaw = 0.0
+	_look_base_pitch = 0.0
 	match mode:
 		Mode.PUSH:
 			_update_push(delta)
@@ -81,6 +85,78 @@ func _process(delta: float) -> void:
 			_update_tractor(delta)
 		Mode.SIT:
 			_update_sit(delta)
+	# Last, and additive: the poses above own the head's BASE rotation (the
+	# tractor's follows the steering), so the look is applied on top of
+	# whatever they left rather than fighting them for the same property.
+	_update_look(delta)
+
+
+# ---------------------------------------------------------------- life
+
+## Something worth looking at, in world space, or `false` in "has" if there is
+## nothing. Set from outside — Game knows what has just been uncovered and what
+## is still lying in the grass; the figure only knows how to turn its head.
+var look_target := Vector3.ZERO
+var look_has := false
+var _look_yaw := 0.0
+var _look_pitch := 0.0
+var _look_base_yaw := 0.0
+var _look_base_pitch := 0.0
+var _roll := 0.0
+var _shift := 0.0
+var _shift_side := 1.0
+var _shift_timer := 0.0
+
+
+## Points the head at `look_target` when there is one, and back to neutral when
+## there is not (G14.22). What makes a figure this size read as alive is not
+## detail, it is that it NOTICES things.
+func _update_look(delta: float) -> void:
+	if _head == null:
+		return
+	var want_yaw := 0.0
+	var want_pitch := 0.0
+	if look_has:
+		# Into the head's own space, so the numbers are "how far to turn from
+		# where the body already faces".
+		# Measured against the TORSO, not the head: aiming off a transform this
+		# function itself rotates is a feedback loop, and the head would chase
+		# its own offset.
+		var local := _torso.global_transform.affine_inverse() * look_target
+		var flat := Vector2(local.x, -local.z)
+		if flat.length() > 0.001:
+			want_yaw = clampf(atan2(local.x, -local.z),
+				-GameConfig.LOOK_YAW_MAX, GameConfig.LOOK_YAW_MAX)
+			want_pitch = clampf(atan2(local.y, flat.length()),
+				-GameConfig.LOOK_PITCH_MAX, GameConfig.LOOK_PITCH_MAX)
+	var w := minf(1.0, GameConfig.LOOK_LERP * delta)
+	_look_yaw = lerpf(_look_yaw, want_yaw, w)
+	_look_pitch = lerpf(_look_pitch, want_pitch, w)
+	# ASSIGNED, not added. Adding integrated the offset every frame: the head
+	# wound past five radians in under two seconds, which is four full turns
+	# of a neck (G14.22). The pose declares a base and this is the only place
+	# that writes the head's rotation.
+	_head.rotation.y = _look_base_yaw + _look_yaw
+	_head.rotation.x = _look_base_pitch + _look_pitch
+
+
+## Weight onto one leg, swapping every few seconds. Three joints, a few degrees
+## each: a figure standing perfectly level on both feet reads as a mannequin.
+func _update_idle_shift(delta: float) -> void:
+	_shift_timer += delta
+	if _shift_timer >= GameConfig.IDLE_SHIFT_PERIOD:
+		_shift_timer = 0.0
+		_shift_side = -_shift_side
+	var w := minf(1.0, GameConfig.IDLE_SHIFT_LERP * delta)
+	_shift = lerpf(_shift, _shift_side, w)
+	# The loaded hip rises, the free one drops, and the torso leans over the
+	# leg that is carrying — which is what the shift actually looks like.
+	_hip_l.position.y = -_shift * GameConfig.IDLE_HIP_DROP
+	_hip_r.position.y = _shift * GameConfig.IDLE_HIP_DROP
+	# Assigned from the pose's own value plus the shift, never added to what is
+	# already on the node.
+	_torso.rotation.z = _roll + _shift * GameConfig.IDLE_TORSO_ROLL
+	_torso.rotation.y = _shift * GameConfig.IDLE_TORSO_YAW
 
 
 ## Walking behind the mower (§8): legs swing in opposite phase, knees fold only
@@ -100,7 +176,8 @@ func _update_push(delta: float) -> void:
 		# Knees fold only while that leg swings back.
 		_knee_l.rotation.x = -maxf(0.0, -s) * GameConfig.WALK_KNEE_BEND
 		_knee_r.rotation.x = -maxf(0.0, s) * GameConfig.WALK_KNEE_BEND
-		_torso.rotation.z = s * GameConfig.WALK_TORSO_ROLL
+		_roll = s * GameConfig.WALK_TORSO_ROLL
+		_torso.rotation.z = _roll
 		_torso.position.y = absf(s) * GameConfig.WALK_BOB
 		# Free arms swing opposite the legs; on the handlebar they do not.
 		if controller == null:
@@ -112,9 +189,16 @@ func _update_push(delta: float) -> void:
 		_hip_r.rotation.x = lerpf(_hip_r.rotation.x, 0.0, w)
 		_knee_l.rotation.x = lerpf(_knee_l.rotation.x, 0.0, w)
 		_knee_r.rotation.x = lerpf(_knee_r.rotation.x, 0.0, w)
-		_torso.rotation.z = lerpf(_torso.rotation.z, 0.0, w)
+		# The roll decays in its OWN variable. Reading it back off the node and
+		# then adding the weight shift to it every frame amplified a 3 degree
+		# lean into a 30 degree one — the same trap the head fell into: a
+		# constant added to a value that only decays by a fraction settles at
+		# constant/fraction (G14.22).
+		_roll = lerpf(_roll, 0.0, w)
+		_torso.rotation.z = _roll
 		_breath += delta
 		_torso.position.y = sin(_breath * GameConfig.BREATH_FREQ) * GameConfig.BREATH_AMP
+		_update_idle_shift(delta)
 
 
 ## Riding the tractor (§8): the body answers the steering — torso yaw lags the
@@ -128,7 +212,7 @@ func _update_tractor(delta: float) -> void:
 	var target := -steer * GameConfig.STEER_TORSO_YAW
 	_torso.rotation.y = lerpf(_torso.rotation.y, target,
 		minf(1.0, GameConfig.STEER_TORSO_LERP * delta))
-	_head.rotation.y = _torso.rotation.y * GameConfig.STEER_HEAD_FACTOR
+	_look_base_yaw = _torso.rotation.y * GameConfig.STEER_HEAD_FACTOR
 
 	_pose_tractor(steer, _torso.rotation.y)
 
@@ -208,8 +292,8 @@ func _build_hair(r: float, hair: StandardMaterial3D) -> void:
 	var mid := r * 0.6
 	# Back of the head: a squashed ball pushed back and down out of the face.
 	_sphere(_head, GameConfig.CHAR_HAIR_BACK, hair,
-		Vector3(0.0, mid + r * 0.10, r * 0.20),
-		Vector3(1.0, 0.86, 0.92))
+		Vector3(0.0, mid + r * 0.02, r * 0.18),
+		Vector3(1.02, 0.94, 0.96))
 	for side: float in [-1.0, 1.0]:
 		_sphere(_head, GameConfig.CHAR_HAIR_TUFT, hair,
 			Vector3(side * r * 0.80, mid + r * 0.26, r * 0.04),
@@ -365,8 +449,9 @@ func _build() -> void:
 	var ts := GameConfig.CHAR_TORSO_SIZE
 	# One tapered prism: shoulders wider than hips, eight sides so the silhouette
 	# has shape without going round. See CHAR_CHEST_RADIUS for what this replaced.
+	var lift := GameConfig.CHAR_SHIRT_LIFT
 	_taper(_torso, GameConfig.CHAR_CHEST_RADIUS, GameConfig.CHAR_WAIST_RADIUS,
-		ts.y, shirt, Vector3(0.0, ts.y * 0.5, 0.0),
+		ts.y - lift, shirt, Vector3(0.0, lift + (ts.y - lift) * 0.5, 0.0),
 		GameConfig.CHAR_TORSO_SIDES, GameConfig.CHAR_TORSO_DEPTH)
 	# And a neck, so the head is attached to something.
 	var ns := GameConfig.CHAR_NECK_SIZE

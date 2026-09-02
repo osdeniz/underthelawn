@@ -2896,6 +2896,40 @@ matched the first identical block. `--headless --editor --quit` did not surface
 it; only running the scene did. **Check that the render actually rewrote the
 file before believing what is in it.**
 
+### G14.22 — behaviour, not polygons
+
+Measured first: the driver is **18% of screen height** — about 460px on a
+phone, with a face around 75px. At that size a pore is sub-pixel and a head
+that TURNS is not, so the two things added here are behaviour.
+
+**The head follows what he has noticed.** Game picks the nearest thing still
+lying in the grass within seven and a half units and holds the choice for a
+beat — without the hold the head snapped between two equidistant crates every
+frame. The turn is clamped to a human neck (66 degrees of yaw, 24 of pitch) and
+comes back to level when there is nothing out there.
+
+**Standing still is not standing level.** The weight goes onto one leg and
+swaps every five seconds: the loaded hip rises, the free one drops, the torso
+leans over the leg that is carrying. Three joints, a few degrees each.
+
+**The same bug caught both of them, and it is worth naming.** Adding an offset
+to a rotation every frame, when that rotation only decays by a FRACTION each
+frame, settles at offset ÷ fraction — not at offset. The head wound past five
+radians in under two seconds (four full turns of a neck), and a 3 degree lean
+came out as 30. Both are assignments now: the pose declares a base, and one
+place writes the joint. `LifeCheck` asserts the head stays inside a human range
+and the lean inside twice its intended size, and both assertions were confirmed
+to fail against the old code.
+
+**On making it look like The Last of Us:** turned down, with numbers. That
+fidelity is a sculpted 30-100k mesh with a 4K PBR set per character (60-90 MB,
+against this whole game's 13 MB texture budget), a 60-150 bone skeleton with
+skinning, and a facial rig of 50+ blendshapes — replacing a pose system driven
+by mower speed and steering angle. And the blocker is not the character: every
+other object in this game is primitives, so a photoreal figure would not look
+good next to a box tractor, it would make the tractor look broken. At 460px the
+return is in how the figure behaves, which is where this patch went.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

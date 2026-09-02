@@ -54,6 +54,7 @@ var _food_banked := 0
 ## Seconds actually spent searching, which is what the town is billed for.
 var _search_seconds := 0.0
 var _walker: Walker
+var _look_hold := 0.0
 ## Set once both pieces of evidence are in hand and the player chose to keep
 ## mowing, so the "Continue" badge stays available.
 var _exit_offered := false
@@ -167,11 +168,42 @@ func _ready() -> void:
 		_begin_search()
 
 
+## What the driver has noticed, refreshed a few times a second rather than
+## every frame: the nearest thing still lying in the grass, and nothing at all
+## when there is none in range (G14.22). Held for a moment once chosen, or the
+## head snaps between two equidistant crates every frame.
+func _update_look_target(delta: float) -> void:
+	if character == null or not is_instance_valid(character):
+		return
+	_look_hold = maxf(_look_hold - delta, 0.0)
+	if _look_hold > 0.0:
+		return
+	var eye := character.global_position
+	var best := Vector3.ZERO
+	var best_distance := GameConfig.LOOK_RANGE
+	var found := false
+	if scrap_field != null and is_instance_valid(scrap_field):
+		for any: Variant in scrap_field.pending_cells():
+			var cell: Vector2i = any
+			var at := LawnModel.cell_center(cell.x, cell.y)
+			var d := eye.distance_to(at)
+			if d < GameConfig.LOOK_MIN or d >= best_distance:
+				continue
+			best_distance = d
+			best = at + Vector3.UP * 0.5
+			found = true
+	character.look_has = found
+	if found:
+		character.look_target = best
+	_look_hold = GameConfig.LOOK_HOLD
+
+
 func _process(delta: float) -> void:
 	# The town's clock runs while the search does — not while the app is open,
 	# and not while it is closed (G14.13).
 	if not _complete_shown:
 		_search_seconds += delta
+	_update_look_target(delta)
 	_tick_orientation(delta)
 	_check_pickups()
 	if mower != null and hud != null:

@@ -1406,6 +1406,10 @@ const CHAR_TORSO_DEPTH := 0.62
 ## How much narrower the pelvis is than the shirt's waist. At 1.0 the two
 ## surfaces were coincident and the pelvis showed THROUGH the shirt.
 const CHAR_PELVIS_INSET := 0.88
+## How far above the hip line the shirt ends. At zero its bottom rim sat exactly
+## where the thighs begin and the two intersected: the hem showed as a row of
+## red teeth over the jeans (G14.22). The pelvis covers the gap.
+const CHAR_SHIRT_LIFT := 0.055
 ## Limbs are tapered prisms too (G14.20). A square-section arm or leg is the
 ## loudest remaining thing that says "built out of bricks", and a real limb
 ## narrows along its length: thigh to knee, knee to ankle, shoulder to wrist.
@@ -2249,3 +2253,31 @@ const WALK_REMOUNT := 2.2
 ## machine uses. Closer and lower than any of them: on foot the yard should
 ## feel bigger and the grass taller.
 const WALK_CAMERA := Vector3(4.0, 3.3, 1.4)
+
+# ---------------------------------------------------------------- life (G14.22)
+
+## What sells a person at the size this one is drawn — measured at 18% of the
+## screen's height, so about 460px on a phone and 75px of face — is BEHAVIOUR,
+## not geometry. At that size a pore is sub-pixel; a head that turns is not.
+
+## The head follows what the driver has noticed. Clamped to a human range: past
+## these the neck reads as broken rather than as attentive.
+const LOOK_YAW_MAX := 1.15          # ~66 degrees either side
+const LOOK_PITCH_MAX := 0.42        # ~24 degrees up or down
+## How fast the head swings onto a new target, and how far it can see one.
+const LOOK_LERP := 5.0
+const LOOK_RANGE := 7.5
+## Anything nearer than this is behind the shoulder and not worth turning for.
+const LOOK_MIN := 0.9
+## How long the head stays on one thing before it is allowed to be re-chosen.
+## Without it the head snaps between two equidistant crates every frame.
+const LOOK_HOLD := 1.4
+
+## Standing still, the weight goes onto one leg and swaps every few seconds.
+## A figure that stands perfectly level on both feet reads as a mannequin, and
+## the shift is three joints moving a few degrees.
+const IDLE_SHIFT_PERIOD := 5.2
+const IDLE_HIP_DROP := 0.035
+const IDLE_TORSO_ROLL := 0.055
+const IDLE_TORSO_YAW := 0.045
+const IDLE_SHIFT_LERP := 1.6

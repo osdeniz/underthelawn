@@ -133,6 +133,19 @@ func take_food(col: int, row: int) -> int:
 	return value
 
 
+## Cells that still hide something, money or food. Used by the driver's head
+## to decide what he has noticed (G14.22).
+func pending_cells() -> Array:
+	var out: Array = []
+	for key: int in _points:
+		out.append(Vector2i(key % GameConfig.GRID_COLS,
+			key / GameConfig.GRID_COLS))
+	for fkey: int in _food:
+		out.append(Vector2i(fkey % GameConfig.GRID_COLS,
+			fkey / GameConfig.GRID_COLS))
+	return out
+
+
 func food_total() -> int:
 	return _food_total
 
