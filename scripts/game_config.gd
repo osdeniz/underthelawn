@@ -1382,9 +1382,24 @@ const CHAR_TORSO_SIZE := Vector3(0.35, 0.50, 0.21)
 ## chest over a waist read worse — the step between them plus the shoulder yoke
 ## made a T. A single form that is wider at the shoulders than at the hips is
 ## what says "body", and it is also one draw instead of three.
-const CHAR_CHEST_RADIUS := 0.185
-const CHAR_WAIST_RADIUS := 0.150
+const CHAR_CHEST_RADIUS := 0.168
+const CHAR_WAIST_RADIUS := 0.138
 const CHAR_TORSO_SIDES := 8
+## How deep the torso is against how broad. A chest is about half as deep as it
+## is wide; a CylinderMesh is circular, so without this the body came out a
+## barrel (G14.20).
+const CHAR_TORSO_DEPTH := 0.62
+## Limbs are tapered prisms too (G14.20). A square-section arm or leg is the
+## loudest remaining thing that says "built out of bricks", and a real limb
+## narrows along its length: thigh to knee, knee to ankle, shoulder to wrist.
+## Six sides is enough at this size and cheaper than eight.
+const CHAR_LIMB_SIDES := 6
+const CHAR_ARM_TOP := 0.052
+const CHAR_ARM_MID := 0.040
+const CHAR_ARM_WRIST := 0.033
+const CHAR_LEG_TOP := 0.072
+const CHAR_LEG_KNEE := 0.056
+const CHAR_LEG_ANKLE := 0.046
 const CHAR_HEAD_RADIUS := 0.125
 const CHAR_BAND_SIZE := Vector2(0.16, 0.035)
 const CHAR_HAT_BRIM_RADIUS := 0.175

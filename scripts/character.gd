@@ -240,20 +240,26 @@ func _mat(key: String, color: Color, roughness := 0.85) -> StandardMaterial3D:
 
 
 ## A tapered prism, for the one form on this figure that is not a limb.
+## `depth` squashes the prism along Z. A CylinderMesh is circular, so without
+## it the torso came out as a BARREL — as deep as it was wide — where a chest is
+## roughly half as deep as it is broad (G14.20).
 func _taper(parent: Node3D, top_radius: float, bottom_radius: float,
-		height: float, mat: Material, pos: Vector3) -> void:
+		height: float, mat: Material, pos: Vector3, sides := 0,
+		depth := 1.0) -> void:
 	var mesh := CylinderMesh.new()
 	mesh.top_radius = top_radius
 	mesh.bottom_radius = bottom_radius
 	mesh.height = height
-	mesh.radial_segments = GameConfig.CHAR_TORSO_SIDES
+	mesh.radial_segments = sides if sides > 0 else GameConfig.CHAR_TORSO_SIDES
 	mesh.rings = 1
 	var node := MeshInstance3D.new()
 	node.mesh = mesh
 	node.material_override = mat
 	node.position = pos
 	# Turned an eighth so a flat face points at the camera rather than a corner.
-	node.rotation.y = PI / float(GameConfig.CHAR_TORSO_SIDES)
+	node.rotation.y = PI / float(mesh.radial_segments)
+	if not is_equal_approx(depth, 1.0):
+		node.scale = Vector3(1.0, 1.0, depth)
 	parent.add_child(node)
 
 
@@ -324,7 +330,9 @@ func _build() -> void:
 	# The pelvis is on the ROOT, not the torso: it belongs to the legs, and a
 	# torso roll must not take the hips with it.
 	var ps := GameConfig.CHAR_PELVIS_SIZE
-	_box(self, ps, jeans, Vector3(0.0, ps.y * 0.1, 0.0))
+	_taper(self, GameConfig.CHAR_WAIST_RADIUS, GameConfig.CHAR_LEG_TOP * 1.9,
+		ps.y, jeans, Vector3(0.0, ps.y * 0.1, 0.0),
+		GameConfig.CHAR_TORSO_SIDES, GameConfig.CHAR_TORSO_DEPTH)
 
 	# Torso pivots at the waist; the box sits above it.
 	_torso = _pivot(self, "Torso", Vector3.ZERO)
@@ -332,7 +340,8 @@ func _build() -> void:
 	# One tapered prism: shoulders wider than hips, eight sides so the silhouette
 	# has shape without going round. See CHAR_CHEST_RADIUS for what this replaced.
 	_taper(_torso, GameConfig.CHAR_CHEST_RADIUS, GameConfig.CHAR_WAIST_RADIUS,
-		ts.y, shirt, Vector3(0.0, ts.y * 0.5, 0.0))
+		ts.y, shirt, Vector3(0.0, ts.y * 0.5, 0.0),
+		GameConfig.CHAR_TORSO_SIDES, GameConfig.CHAR_TORSO_DEPTH)
 	# And a neck, so the head is attached to something.
 	var ns := GameConfig.CHAR_NECK_SIZE
 	_box(_torso, ns, skin, Vector3(0.0, ts.y + ns.y * 0.4, 0.0))
@@ -358,11 +367,27 @@ func _build() -> void:
 	for side in [-1.0, 1.0]:
 		var shoulder := _pivot(_torso, "Shoulder%s" % ("L" if side < 0 else "R"),
 			Vector3(side * GameConfig.CHAR_SHOULDER.x, GameConfig.CHAR_SHOULDER.y, 0.0))
-		_box(shoulder, Vector3(0.08, GameConfig.CHAR_UPPER_ARM, 0.08), shirt,
-			Vector3(0.0, -GameConfig.CHAR_UPPER_ARM * 0.5, 0.0))
+		# A shoulder, so the arm grows out of the body instead of floating
+		# beside it.
+		_sphere(_torso, GameConfig.CHAR_ARM_TOP * 0.98, shirt,
+			Vector3(side * GameConfig.CHAR_SHOULDER.x * 0.92,
+				GameConfig.CHAR_SHOULDER.y, 0.0))
+		# Tapered, not boxed (G14.20): a square-section limb is the single
+		# loudest thing that says "made of bricks", and the arm narrows from
+		# shoulder to wrist on a real one.
+		_taper(shoulder, GameConfig.CHAR_ARM_TOP, GameConfig.CHAR_ARM_MID,
+			GameConfig.CHAR_UPPER_ARM, shirt,
+			Vector3(0.0, -GameConfig.CHAR_UPPER_ARM * 0.5, 0.0),
+			GameConfig.CHAR_LIMB_SIDES)
 		var elbow := _pivot(shoulder, "Elbow", Vector3(0.0, -GameConfig.CHAR_UPPER_ARM, 0.0))
-		_box(elbow, Vector3(0.07, GameConfig.CHAR_LOWER_ARM, 0.07), skin,
-			Vector3(0.0, -GameConfig.CHAR_LOWER_ARM * 0.5, 0.0))
+		# A ball in the joint, so the two halves meet in an elbow rather than
+		# in a corner.
+		_sphere(shoulder, GameConfig.CHAR_ARM_MID * 1.02, skin,
+			Vector3(0.0, -GameConfig.CHAR_UPPER_ARM, 0.0))
+		_taper(elbow, GameConfig.CHAR_ARM_MID, GameConfig.CHAR_ARM_WRIST,
+			GameConfig.CHAR_LOWER_ARM, skin,
+			Vector3(0.0, -GameConfig.CHAR_LOWER_ARM * 0.5, 0.0),
+			GameConfig.CHAR_LIMB_SIDES)
 		# A hand, not a bare stump: a box reads as a fist at this size, and the
 		# sphere alone read as a bead on the end of a stick.
 		var hs := GameConfig.CHAR_HAND_SIZE
@@ -378,11 +403,17 @@ func _build() -> void:
 	for side in [-1.0, 1.0]:
 		var hip := _pivot(self, "Hip%s" % ("L" if side < 0 else "R"),
 			Vector3(side * GameConfig.CHAR_HIP_X, 0.0, 0.0))
-		_box(hip, Vector3(0.11, GameConfig.CHAR_UPPER_LEG, 0.12), jeans,
-			Vector3(0.0, -GameConfig.CHAR_UPPER_LEG * 0.5, 0.0))
+		_taper(hip, GameConfig.CHAR_LEG_TOP, GameConfig.CHAR_LEG_KNEE,
+			GameConfig.CHAR_UPPER_LEG, jeans,
+			Vector3(0.0, -GameConfig.CHAR_UPPER_LEG * 0.5, 0.0),
+			GameConfig.CHAR_LIMB_SIDES)
 		var knee := _pivot(hip, "Knee", Vector3(0.0, -GameConfig.CHAR_UPPER_LEG, 0.0))
-		_box(knee, Vector3(0.10, GameConfig.CHAR_LOWER_LEG, 0.10), jeans,
-			Vector3(0.0, -GameConfig.CHAR_LOWER_LEG * 0.5, 0.0))
+		_sphere(hip, GameConfig.CHAR_LEG_KNEE * 1.02, jeans,
+			Vector3(0.0, -GameConfig.CHAR_UPPER_LEG, 0.0))
+		_taper(knee, GameConfig.CHAR_LEG_KNEE, GameConfig.CHAR_LEG_ANKLE, 
+			GameConfig.CHAR_LOWER_LEG, jeans,
+			Vector3(0.0, -GameConfig.CHAR_LOWER_LEG * 0.5, 0.0),
+			GameConfig.CHAR_LIMB_SIDES)
 		# The foot: an upper that meets the shin, a sole that meets the ground,
 		# and a toe box in front of both. The old single box sat inside the
 		# bottom of the leg and disappeared at play distance.

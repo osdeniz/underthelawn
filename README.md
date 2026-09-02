@@ -2844,6 +2844,28 @@ skeleton while Case 2's three objectives sat in the main list. The skeleton is
 gone and the test now checks for the objectives themselves rather than for the
 dead section.
 
+### G14.20 — the limbs stopped being bricks
+
+The torso had been tapered; the arms and legs were still square-section boxes,
+and that is the loudest remaining thing that says "built out of bricks". Both
+are tapered six-sided prisms now — thigh to knee, knee to ankle, shoulder to
+wrist, each narrowing along its length the way a limb does — with a ball in the
+elbow, the knee and the shoulder so the halves meet in a JOINT instead of a
+corner.
+
+Two things had to be corrected on the way, both found by looking at the render:
+
+* A `CylinderMesh` is circular, so the tapered torso came out a BARREL — as
+  deep as it was broad. A chest is about half as deep as it is wide, and the
+  prism is squashed on Z now.
+* The first shoulder balls were 1.25x the arm's radius and read as shoulder
+  pads. At 0.98x they read as shoulders.
+
+The pivots were not touched, so every pose and the whole walk cycle are
+unaffected — and both riding poses were rendered afterwards at play distance to
+prove it, which is the distance that actually decides whether any of this
+worked.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
