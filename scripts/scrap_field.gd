@@ -63,6 +63,8 @@ func setup(model: LawnModel, budget: int, seed_value: int) -> void:
 	# not.
 	var crates := _rng.randi_range(GameConfig.FOOD_PICKUPS.x,
 		GameConfig.FOOD_PICKUPS.y)
+	if LevelVariant.current != null and LevelVariant.current.food_budget >= 0:
+		crates = LevelVariant.current.food_budget
 	var food_cells: Array[Vector2i] = []
 	tries = 0
 	while food_cells.size() < crates and tries < GameConfig.SCRAP_PLACEMENT_TRIES:

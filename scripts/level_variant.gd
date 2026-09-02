@@ -64,6 +64,10 @@ var time_of_day := "midday"
 ## "clear" (the default) or "rain" (G14.7). Weather belongs to the chapter, not
 ## to a cycle: the flooded lot is wet because that is what it is.
 var weather := "clear"
+## How many crates of produce this level hides. -1 means "whatever a yard
+## normally hides"; a harvest field sets it, because what a field GIVES is the
+## whole reason to choose that field over the one beside it (G14.14).
+var food_budget := -1
 ## "search" (the default) or "harvest" (G13.6). A harvest carries no evidence
 ## and no echo, pays more scrap, and stands in a field of crop.
 var level_type := "search"
@@ -117,6 +121,7 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.time_of_day = str(spec.get("time_of_day",
 		GameConfig.TIME_OF_DAY_DEFAULT))
 	variant.weather = str(spec.get("weather", GameConfig.WEATHER_CLEAR))
+	variant.food_budget = int(spec.get("food_budget", -1))
 	var echo: Variant = spec.get("echo_def", {})
 	if echo is Dictionary:
 		variant.echo_def = echo

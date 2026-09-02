@@ -2644,6 +2644,37 @@ a project's raw `cost` straight out of the data. They all call
 `RestoreBoard.price()` now, so the number shown and the number taken cannot
 disagree.
 
+### G14.14 — six fields became six days
+
+The six harvest fields shared a grid, an obstacle layout and a budget. They
+differed by PALETTE and seed — six buttons offering a colour, dressed as a
+choice. With food now being a resource, each one can be a different day
+instead:
+
+| field | shape | ground | money | food |
+|---|---|---|---|---|
+| wheat | harvest | stones | 22 | 4 |
+| sunflower | small | open | 14 | 6 |
+| corn | harvest | beds | 20 | 9 |
+| lavender | small | stones | 26 | 1 |
+| pumpkin | harvest | pool | 12 | 14 |
+| cotton | big | open | 32 | 2 |
+
+The one that pays most is not the one that feeds most, and the quick ones pay
+for being quick. `HarvestFieldsCheck` holds that: three distinct shapes, three
+grounds, a 2x spread in money, a 4x spread in food, and the richest field
+never also the most filling.
+
+**And the sheet says it.** Six buttons that differ only by crop name are one
+button with a colour picker, so each carries a line read off its own variant —
+"fills the larder", "in before dark", "rough ground". The balanced field says
+"steady work" rather than nothing: an empty line under a name reads as missing
+data, not as an absence of opinion.
+
+Making the panel taller to fit them exposed the same overflow this project has
+now hit three times: at its old height the last two fields sat under the BACK
+button with no way to reach them. It scrolls now.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

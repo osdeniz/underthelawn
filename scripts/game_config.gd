@@ -26,6 +26,11 @@ const GRID_SIZES := {
 	## search — and because the crop now runs to the horizon, a small square of
 	## it in the middle of all that land read as a sample plot.
 	"harvest": Vector2i(26, 38),
+	## Two more harvest shapes, so the six fields are six different DAYS rather
+	## than one day in six colours (G14.14): a quick strip you can bring in
+	## before dark, and a long haul that pays for it.
+	"harvest_small": Vector2i(20, 28),
+	"harvest_big": Vector2i(30, 44),
 	## The road home (G13): narrow and long, so the shape of the level is the
 	## shape of a walk rather than of a yard. Low plant density carries the
 	## rest — B18 is a conversation with mowing under it, not a search.

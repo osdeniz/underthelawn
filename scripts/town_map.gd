@@ -895,13 +895,22 @@ func _open_harvest_panel() -> void:
 	_panel.offset_left = 40.0
 	_panel.offset_right = -40.0
 	# Same clearance as the place panel: the BACK button owns the bottom band.
-	_panel.offset_top = -560.0
+	# Taller than the place panel, because six fields and their notes do not fit
+	# in one: at -560 the last two ran under the BACK button with no way to
+	# reach them (G14.14).
+	_panel.offset_top = -1180.0
 	_panel.offset_bottom = -184.0
 	add_child(_panel)
 
+	# And it scrolls, so adding a seventh field cannot repeat the same bug.
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_panel.add_child(scroll)
+
 	var rows := VBoxContainer.new()
+	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rows.add_theme_constant_override("separation", 16)
-	_panel.add_child(rows)
+	scroll.add_child(rows)
 	for spec: Array in [["HARVEST_PLACE", 44, Color(0.96, 0.94, 0.88)],
 			["HARVEST_CALL", 30, GameConfig.CASE_MUTED]]:
 		var line := Label.new()
@@ -910,16 +919,20 @@ func _open_harvest_panel() -> void:
 		line.add_theme_font_size_override("font_size", int(spec[1]))
 		line.add_theme_color_override("font_color", spec[2])
 		rows.add_child(line)
-	# Three fields, not one errand. The farm grows wheat, sunflowers and corn,
-	# and which one you cut is the only choice this sheet offers — so it is a
-	# row of three rather than a button and a hidden default. The first is the
-	# primary, because a player who does not care should still have an obvious
-	# thing to press.
+	# Six fields, and which one you cut is the only choice this sheet offers —
+	# so each says what it is FOR. The first is the primary, because a player
+	# who does not care should still have an obvious thing to press.
 	for i in GameConfig.HARVEST_VARIANTS.size():
 		var variant_id: String = GameConfig.HARVEST_VARIANTS[i]
 		var go := Button.new()
-		go.text = tr(GameConfig.HARVEST_NAMES[i])
-		go.custom_minimum_size = Vector2(0, 104)
+		# The name AND what the field is for. Six buttons that differ only by
+		# crop name are one button with a colour picker: the player has to be
+		# able to see that the pumpkin patch feeds the town and the cotton pays
+		# for it (G14.14).
+		go.text = "%s\n%s" % [tr(GameConfig.HARVEST_NAMES[i]),
+			_field_note(variant_id)]
+		go.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		go.custom_minimum_size = Vector2(0, 128)
 		go.add_theme_font_size_override("font_size", 34)
 		if i == 0:
 			HubScreen.style_primary(go)
@@ -930,6 +943,32 @@ func _open_harvest_panel() -> void:
 			Analytics.track(AnalyticsEvents.HARVEST_STARTED, {})
 			place_chosen.emit(variant_id))
 		rows.add_child(go)
+
+
+## Two words about what this field costs and gives, read from the variant so
+## the sheet and the level can never disagree.
+func _field_note(variant_id: String) -> String:
+	var variant := LevelVariant.of(variant_id)
+	var parts: Array = []
+	# Tiered, so the two food fields do not describe themselves identically:
+	# the pumpkin patch fills the larder, the corn only helps.
+	if variant.food_budget >= 12:
+		parts.append(tr("HARVEST_PAYS_FOOD"))
+	elif variant.food_budget >= 8:
+		parts.append(tr("HARVEST_SOME_FOOD"))
+	if variant.scrap_budget >= 24:
+		parts.append(tr("HARVEST_PAYS_MONEY"))
+	if variant.grid_size == "harvest_small":
+		parts.append(tr("HARVEST_QUICK"))
+	elif variant.grid_size == "harvest_big":
+		parts.append(tr("HARVEST_LONG"))
+	if variant.obstacle_layout_id in ["pool", "beds"]:
+		parts.append(tr("HARVEST_ROUGH"))
+	# The balanced field says so rather than saying nothing: an empty line under
+	# a name reads as missing data, not as "no strong opinion".
+	if parts.is_empty():
+		parts.append(tr("HARVEST_BALANCED"))
+	return " · ".join(parts)
 
 
 ## The chapter's display name, from story.json.

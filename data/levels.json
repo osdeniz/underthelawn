@@ -331,7 +331,8 @@
       },
       "evidence_defs": [],
       "time_of_day": "golden",
-      "plant_profile_id": "WILD_WHEAT"
+      "plant_profile_id": "WILD_WHEAT",
+      "food_budget": 4
     },
     "ch09_radio_room": {
       "palette_id": "GREEN_COOL",
@@ -780,87 +781,92 @@
     "harvest_sunflower": {
       "level_type": "harvest",
       "palette_id": "AMBER",
-      "grid_size": "harvest",
-      "obstacle_layout_id": "stones",
+      "grid_size": "harvest_small",
+      "obstacle_layout_id": "open",
       "house_variant": "house_none",
       "landmark_id": "barn",
       "decor_seed": 9191,
-      "scrap_budget": 22,
+      "scrap_budget": 14,
       "opening": {
         "headline": "HARVEST_SUN_HEADLINE",
         "subline": "HARVEST_SUBLINE"
       },
       "evidence_defs": [],
       "time_of_day": "golden",
-      "plant_profile_id": "SUNFLOWER"
+      "plant_profile_id": "SUNFLOWER",
+      "food_budget": 6
     },
     "harvest_corn": {
       "level_type": "harvest",
       "palette_id": "LUSH",
       "grid_size": "harvest",
-      "obstacle_layout_id": "stones",
+      "obstacle_layout_id": "beds",
       "house_variant": "house_none",
       "landmark_id": "barn",
       "decor_seed": 9292,
-      "scrap_budget": 22,
+      "scrap_budget": 20,
       "opening": {
         "headline": "HARVEST_CORN_HEADLINE",
         "subline": "HARVEST_SUBLINE"
       },
       "evidence_defs": [],
       "time_of_day": "golden",
-      "plant_profile_id": "CORN"
+      "plant_profile_id": "CORN",
+      "food_budget": 9
     },
     "harvest_lavender": {
       "level_type": "harvest",
       "palette_id": "LAVENDER",
-      "grid_size": "harvest",
+      "grid_size": "harvest_small",
       "obstacle_layout_id": "stones",
       "house_variant": "house_none",
       "landmark_id": "barn",
       "decor_seed": 9393,
-      "scrap_budget": 22,
+      "scrap_budget": 26,
       "opening": {
         "headline": "HARVEST_LAV_HEADLINE",
         "subline": "HARVEST_SUBLINE"
       },
       "evidence_defs": [],
       "time_of_day": "golden",
-      "plant_profile_id": "LAVENDER"
+      "plant_profile_id": "LAVENDER",
+      "food_budget": 1
     },
     "harvest_pumpkin": {
       "level_type": "harvest",
       "palette_id": "PUMPKIN",
       "grid_size": "harvest",
-      "obstacle_layout_id": "stones",
+      "obstacle_layout_id": "pool",
       "house_variant": "house_none",
       "landmark_id": "barn",
       "decor_seed": 9494,
-      "scrap_budget": 22,
+      "scrap_budget": 12,
       "opening": {
         "headline": "HARVEST_PUM_HEADLINE",
         "subline": "HARVEST_SUBLINE"
       },
       "evidence_defs": [],
       "time_of_day": "golden",
-      "plant_profile_id": "PUMPKIN"
+      "plant_profile_id": "PUMPKIN",
+      "food_budget": 14
     },
     "harvest_cotton": {
       "level_type": "harvest",
       "palette_id": "COTTON",
-      "grid_size": "harvest",
-      "obstacle_layout_id": "stones",
+      "grid_size": "harvest_big",
+      "obstacle_layout_id": "open",
       "house_variant": "house_none",
       "landmark_id": "barn",
       "decor_seed": 9595,
-      "scrap_budget": 22,
+      "scrap_budget": 32,
       "opening": {
         "headline": "HARVEST_COT_HEADLINE",
         "subline": "HARVEST_SUBLINE"
       },
       "evidence_defs": [],
       "time_of_day": "golden",
-      "plant_profile_id": "COTTON"
+      "plant_profile_id": "COTTON",
+      "food_budget": 2
     }
   }
 }

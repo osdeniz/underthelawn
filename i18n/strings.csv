@@ -960,3 +960,10 @@ SHOP_FOOD,Sack of food,Bir çuval gıda
 SHOP_FOOD_HINT,{n} food. The larder does not fill itself.,{n} gıda. Kiler kendi kendine dolmuyor.
 SHOP_BUY,BUY,AL
 SHOP_POOR,Not enough money,Para yetmiyor
+HARVEST_PAYS_MONEY,Pays well,İyi para eder
+HARVEST_PAYS_FOOD,Fills the larder,Kileri doldurur
+HARVEST_QUICK,In before dark,Akşama biter
+HARVEST_LONG,A long day,Uzun bir gün
+HARVEST_ROUGH,Rough ground,Engebeli
+HARVEST_BALANCED,Steady work,Dengeli iş
+HARVEST_SOME_FOOD,Some food,Biraz gıda
