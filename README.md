@@ -2964,6 +2964,34 @@ A missing file is silence, not a warning, so the game plays exactly as it does
 today until real recordings arrive. The convention is written down in
 `audio/voice/README.md`.
 
+### G14.24 — the shade gradation, half of which did not work
+
+One flat colour per part is what reads as "toy": a real form is darker where
+another form sits against it. Four seams were tried as thin translucent black
+rings — under the hat brim, under the chin, at the shirt's hem, at the top of
+the boot.
+
+**Two worked and two did not, and the difference is the reason to record it.**
+
+The BOOT and the HEM work: there the ring and the surface it shades are
+near-identical cylinders, so the ring hugs the form and reads as a seam. The
+boot's dark band across the upper, where the trouser ends, was right the first
+time.
+
+The BRIM and the CHIN do not, and no amount of tuning fixed them. A translucent
+plate near a CURVED surface always shows its own silhouette: at the brim's own
+radius (0.175 against a 0.125 head) the disc stood out past the skull into open
+air; hugged to the head it still read as a scrim with hard edges across the
+forehead; on the chest's flat top cap it read as a grey square under the chin.
+All three were rendered and all three were wrong, so both were removed rather
+than shipped dim. **The brim's shadow is the sun's job, and the sun already
+casts it.**
+
+Geometry cannot fake contact shading on a sphere. Doing that properly means
+vertex colours or a shader term on the body materials, which is a different
+piece of work than this one — and it is not free on a figure that is 460px
+tall.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

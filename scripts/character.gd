@@ -102,6 +102,7 @@ var _look_yaw := 0.0
 var _look_pitch := 0.0
 var _look_base_yaw := 0.0
 var _look_base_pitch := 0.0
+var _shade_mat: StandardMaterial3D
 var _roll := 0.0
 var _shift := 0.0
 var _shift_side := 1.0
@@ -284,6 +285,40 @@ func _reset_joints() -> void:
 
 # ---------------------------------------------------------------- build (§8)
 
+## A translucent black form, for shading a seam. Unshaded so the light cannot
+## brighten it back out, and never written into _materials by colour key —
+## every shade shares one material (G14.24).
+func _shade(parent: Node3D, radius: float, height: float, pos: Vector3,
+		colour: Color, squash := Vector3.ONE) -> void:
+	if _shade_mat == null:
+		_shade_mat = StandardMaterial3D.new()
+		_shade_mat.albedo_color = colour
+		_shade_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_shade_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_shade_mat.disable_receive_shadows = true
+	var mat := _shade_mat
+	if not is_equal_approx(colour.a, _shade_mat.albedo_color.a):
+		mat = StandardMaterial3D.new()
+		mat.albedo_color = colour
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.disable_receive_shadows = true
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = radius
+	mesh.bottom_radius = radius
+	mesh.height = height
+	mesh.radial_segments = 10
+	mesh.rings = 1
+	var node := MeshInstance3D.new()
+	node.mesh = mesh
+	node.material_override = mat
+	node.position = pos
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if not squash.is_equal_approx(Vector3.ONE):
+		node.scale = squash
+	parent.add_child(node)
+
+
 ## Hair under the hat (G14.21): a cap on the back of the skull and a tuft at
 ## each temple, all of it BEHIND the face and BELOW the brim. A sphere the size
 ## of the head would have covered the eyes, and hair drawn above the brim line
@@ -439,6 +474,11 @@ func _build() -> void:
 	# waist the two surfaces were coincident, and one facet of the pelvis won
 	# the depth test on the back — a crisp grey rectangle in the middle of the
 	# shirt, which took a full-resolution crop to identify (G14.21).
+	# The hem's own shadow on the jeans below it.
+	_shade(self, GameConfig.CHAR_WAIST_RADIUS * 0.98,
+		GameConfig.CHAR_SHADE_THIN,
+		Vector3(0.0, GameConfig.CHAR_SHIRT_LIFT - 0.012, 0.0),
+		GameConfig.CHAR_SHADE, Vector3(1.0, 1.0, GameConfig.CHAR_TORSO_DEPTH))
 	_taper(self, GameConfig.CHAR_WAIST_RADIUS * GameConfig.CHAR_PELVIS_INSET,
 		GameConfig.CHAR_LEG_TOP * 1.9, ps.y, jeans,
 		Vector3(0.0, ps.y * 0.1, 0.0),
@@ -456,6 +496,8 @@ func _build() -> void:
 	# And a neck, so the head is attached to something.
 	var ns := GameConfig.CHAR_NECK_SIZE
 	_box(_torso, ns, skin, Vector3(0.0, ts.y + ns.y * 0.4, 0.0))
+	# Nor under the chin, for the same reason: the chest's top is a flat cap
+	# and a disc on it reads as a grey square, not as shade.
 
 	# Head on top of the torso: sphere + brow band + sun hat.
 	_head = _pivot(_torso, "Head", Vector3(0.0, ts.y + 0.06, 0.0))
@@ -463,6 +505,15 @@ func _build() -> void:
 	_sphere(_head, r, skin, Vector3(0.0, r * 0.6, 0.0))
 	_build_face(r)
 	_build_hair(r, hair)
+	# NO fake shade under the brim, and this is the finding rather than an
+	# omission (G14.24): a translucent plate near a CURVED surface always shows
+	# its own silhouette. At the brim's radius it stood out past the skull into
+	# open air; hugged to the head it still read as a scrim with edges across
+	# the forehead. Both were rendered and both were wrong.
+	#
+	# The seam shades that DO work are the ones on limbs, where the ring and
+	# the surface are near-identical cylinders. The brim's shadow is the sun's
+	# job, and the sun already casts it.
 	# The band belongs to the HAT, around the crown just under the brim. It used
 	# to sit at 0.75r on the front of the head — straight across the eyes — so
 	# every figure in the game appeared to be wearing sunglasses, and adding a
@@ -537,6 +588,10 @@ func _build() -> void:
 		var bs := GameConfig.CHAR_BOOT_SIZE
 		var ss := GameConfig.CHAR_BOOT_SOLE
 		var ankle := -GameConfig.CHAR_LOWER_LEG
+		# Where the trouser ends on the boot.
+		_shade(knee, GameConfig.CHAR_LEG_ANKLE * 1.10,
+			GameConfig.CHAR_SHADE_THIN, Vector3(0.0, ankle + 0.010, 0.0),
+			GameConfig.CHAR_SHADE)
 		_box(knee, bs, boot,
 			Vector3(0.0, ankle - bs.y * 0.5, -bs.z * 0.16))
 		_box(knee, ss, boot,

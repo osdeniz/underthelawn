@@ -2287,3 +2287,17 @@ const IDLE_HIP_DROP := 0.035
 const IDLE_TORSO_ROLL := 0.055
 const IDLE_TORSO_YAW := 0.045
 const IDLE_SHIFT_LERP := 1.6
+
+# ---------------------------------------------------------------- shading
+
+## Contact shade at the seams (G14.24). One flat colour per part is what reads
+## as "toy": a real form is darker where another form sits against it — under
+## the hat brim, under the chin, at the shirt's hem, at the top of the boot.
+##
+## Translucent BLACK, never a darker version of the garment: the same shade has
+## to sit correctly over an orange shirt, a red one and a green one, so it
+## darkens what is behind it rather than replacing it.
+const CHAR_SHADE := Color(0.0, 0.0, 0.0, 0.30)
+## A little stronger under the brim, which is a real overhang.
+const CHAR_SHADE_BRIM := Color(0.0, 0.0, 0.0, 0.42)
+const CHAR_SHADE_THIN := 0.022
