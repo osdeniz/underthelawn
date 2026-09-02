@@ -23,6 +23,9 @@ static func people() -> int:
 	for any: Variant in RestoreBoard.projects():
 		if RestoreBoard.is_built(str((any as Dictionary).get("id", ""))):
 			total += 1
+	# And everyone the player took in (G14.13). They eat, which is the price of
+	# what they do.
+	total += Settlers.accepted().size()
 	return total
 
 
@@ -41,10 +44,16 @@ static func add_food(amount: int) -> int:
 	return total
 
 
-## The town eats while you are out. Called once when a chapter is finished —
-## never on a timer, so putting the game down costs nothing.
-static func eat() -> int:
-	return add_food(-GameConfig.FOOD_PER_CHAPTER)
+## What the town eats in a day: one per resident, less whatever a cook saves.
+static func daily_cost() -> int:
+	var cost := people() * GameConfig.FOOD_PER_PERSON
+	return maxi(cost - Settlers.upkeep_saved(), 1)
+
+
+## The town eats while you are OUT WORKING. `days` is fractional, so a level is
+## charged for exactly as long as it took.
+static func eat(days := 1.0) -> int:
+	return add_food(-int(round(float(daily_cost()) * days)))
 
 
 static func is_low() -> bool:

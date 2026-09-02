@@ -1,0 +1,50 @@
+{
+  "_comment": "STRUCTURE ONLY. Names, roles and lines are TRANSLATION KEYS. A settler is a decision, not a reward: everyone taken in eats every day, and pays for it by changing ONE number the game already had. `trade` must name an effect Settlers._bonus knows; adding a new one means adding a branch there, not a new field shape. `after` is how many chapters must be finished before they turn up.",
+  "settlers": [
+    {
+      "id": "wren",
+      "name": "SET_WREN_NAME",
+      "role": "SET_WREN_ROLE",
+      "line": "SET_WREN_LINE",
+      "after": 2,
+      "trade": "food_yield",
+      "value": 0.35
+    },
+    {
+      "id": "abel",
+      "name": "SET_ABEL_NAME",
+      "role": "SET_ABEL_ROLE",
+      "line": "SET_ABEL_LINE",
+      "after": 3,
+      "trade": "scrap_yield",
+      "value": 0.20
+    },
+    {
+      "id": "noor",
+      "name": "SET_NOOR_NAME",
+      "role": "SET_NOOR_ROLE",
+      "line": "SET_NOOR_LINE",
+      "after": 5,
+      "trade": "upkeep",
+      "value": 2
+    },
+    {
+      "id": "tomas",
+      "name": "SET_TOMAS_NAME",
+      "role": "SET_TOMAS_ROLE",
+      "line": "SET_TOMAS_LINE",
+      "after": 6,
+      "trade": "build_discount",
+      "value": 0.15
+    },
+    {
+      "id": "mira",
+      "name": "SET_MIRA_NAME",
+      "role": "SET_MIRA_ROLE",
+      "line": "SET_MIRA_LINE",
+      "after": 9,
+      "trade": "food_yield",
+      "value": 0.30
+    }
+  ]
+}

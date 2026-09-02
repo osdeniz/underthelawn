@@ -51,8 +51,9 @@ func setup(model: LawnModel, budget: int, seed_value: int) -> void:
 		if too_close:
 			continue
 		placed.append(cell)
-		_points[LawnModel.index_of(col, row)] = _rng.randi_range(
-			GameConfig.SCRAP_PICKUP_MIN, GameConfig.SCRAP_PICKUP_MAX)
+		_points[LawnModel.index_of(col, row)] = int(round(
+			float(_rng.randi_range(GameConfig.SCRAP_PICKUP_MIN,
+				GameConfig.SCRAP_PICKUP_MAX)) * Settlers.scrap_yield()))
 	if placed.size() < budget:
 		print("[Scrap] %d/%d nokta yerlestirildi (%d deneme)"
 			% [placed.size(), budget, tries])
@@ -83,8 +84,9 @@ func setup(model: LawnModel, budget: int, seed_value: int) -> void:
 		if crowded:
 			continue
 		food_cells.append(fcell)
-		_food[fkey] = _rng.randi_range(GameConfig.FOOD_VALUE.x,
-			GameConfig.FOOD_VALUE.y)
+		# A forager in the town finds more in the same yard (G14.13).
+		_food[fkey] = int(round(float(_rng.randi_range(GameConfig.FOOD_VALUE.x,
+			GameConfig.FOOD_VALUE.y)) * Settlers.food_yield()))
 	# Visible cash bundles (G9.4): the money is a goal on the lawn, not a
 	# surprise under it. Only when the field lives in a scene — the placement
 	# tests run it detached.

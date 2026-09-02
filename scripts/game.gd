@@ -51,6 +51,8 @@ var variant: LevelVariant
 var scrap_field: ScrapField
 var _scrap_banked := 0
 var _food_banked := 0
+## Seconds actually spent searching, which is what the town is billed for.
+var _search_seconds := 0.0
 ## Set once both pieces of evidence are in hand and the player chose to keep
 ## mowing, so the "Continue" badge stays available.
 var _exit_offered := false
@@ -164,6 +166,10 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# The town's clock runs while the search does — not while the app is open,
+	# and not while it is closed (G14.13).
+	if not _complete_shown:
+		_search_seconds += delta
 	_tick_orientation(delta)
 	_check_pickups()
 	if mower != null and hud != null:
@@ -615,10 +621,14 @@ func _on_completed() -> void:
 		# screens (G14.12). A harvest FEEDS the town and does not cost it a
 		# day's meals — that is the whole point of the field.
 		TownStats.add_food(_food_banked)
+		# The town ate for as long as this search actually took (G14.13), which
+		# is why the clock is the LEVEL's, not the wall's: a player reading the
+		# case board is not costing anyone a meal.
 		var eaten := 0
 		if variant == null or not variant.is_harvest():
-			eaten = GameConfig.FOOD_PER_CHAPTER
-			TownStats.eat()
+			var before := TownStats.food()
+			TownStats.eat(_days_elapsed())
+			eaten = before - TownStats.food()
 		payout["food"] = _food_banked
 		payout["food_eaten"] = eaten
 		payout["food_left"] = TownStats.food()
@@ -736,6 +746,12 @@ func _on_food_found(col: int, row: int, value: int) -> void:
 	hud.set_food(TownStats.food() + _food_banked)
 	AudioDirector.play_scrap()
 	Haptics.light()
+
+
+## How many town-days this search took. Fractional on purpose: a fast run is
+## cheaper than a slow one, which is the only pressure this resource applies.
+func _days_elapsed() -> float:
+	return maxf(_search_seconds / GameConfig.FOOD_DAY_SECONDS, 0.25)
 
 
 ## The end-of-chapter scrap breakdown.

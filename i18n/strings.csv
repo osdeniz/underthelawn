@@ -932,3 +932,31 @@ PAYOUT_FOOD_LEFT,Food left,Kalan gıda
 FOOD_LOW_LINE,The larder is getting light. There is food in the long grass.,Kiler azalıyor. Uzun otların arasında yiyecek var.
 FOOD_CRITICAL_LINE,Cole is rationing. Bring something back from the next yard.,Cole tayına başladı. Sonraki bahçeden bir şeyler getir.
 FOOD_WARNING_TITLE,LOW ON FOOD,GIDA AZALIYOR
+SET_TITLE,SOMEONE AT THE EDGE OF TOWN,KASABANIN KIYISINDA BİRİ VAR
+SET_ACCEPT,TAKE THEM IN,İÇERİ AL
+SET_REJECT,SEND THEM ON,YOLUNA GÖNDER
+SET_UPKEEP,Eats {n}/day,Günde {n} yer
+SET_EFFECT_FOOD,Finds {pct}% more food in a yard,Bahçelerde %{pct} daha çok gıda buluyor
+SET_EFFECT_SCRAP,Finds {pct}% more money in a yard,Bahçelerde %{pct} daha çok para buluyor
+SET_EFFECT_UPKEEP,Feeds the town on {n} less a day,Kasabayı günde {n} eksiğe doyuruyor
+SET_EFFECT_BUILD,Restorations cost {pct}% less,Onarımlar %{pct} ucuza geliyor
+SET_WREN_NAME,Wren,Wren
+SET_WREN_ROLE,Forager,Toplayıcı
+SET_WREN_LINE,"I know which of those weeds you can eat. Most of them, as it happens.","O otların hangisi yenir bilirim. Çoğu, aslında."
+SET_ABEL_NAME,Abel,Abel
+SET_ABEL_ROLE,Scavenger,Hurdacı
+SET_ABEL_LINE,Nothing's ever really lost. It's just under something.,Hiçbir şey gerçekten kaybolmaz. Sadece bir şeyin altındadır.
+SET_NOOR_NAME,Noor,Noor
+SET_NOOR_ROLE,Cook,Aşçı
+SET_NOOR_LINE,Give me the same food and I'll make it last longer. That's the whole trick.,"Aynı yiyeceği bana ver, daha uzun süre yetsin. Bütün marifet bu."
+SET_TOMAS_NAME,Tomas,Tomas
+SET_TOMAS_ROLE,Carpenter,Marangoz
+SET_TOMAS_LINE,Gus has the machines. Nobody's had the timber.,Makineler Gus'ta. Kerestesi olan yoktu.
+SET_MIRA_NAME,Mira,Mira
+SET_MIRA_ROLE,Grower,Yetiştirici
+SET_MIRA_LINE,Seeds keep. People forget that. I didn't.,Tohum bekler. İnsanlar unutur. Ben unutmadım.
+HUB_DAILY,{n}/day,Günde {n}
+SHOP_FOOD,Sack of food,Bir çuval gıda
+SHOP_FOOD_HINT,{n} food. The larder does not fill itself.,{n} gıda. Kiler kendi kendine dolmuyor.
+SHOP_BUY,BUY,AL
+SHOP_POOR,Not enough money,Para yetmiyor

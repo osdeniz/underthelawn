@@ -2611,6 +2611,39 @@ a printed face on the top one. The face then had to be made SMALL — at play
 distance a wide pale face turned the bundle into a white card with green edges,
 and the silhouette has to stay green.
 
+### G14.13 — food became a decision, and the town started asking
+
+Food now has a RATE, not just a total: the bar shows what the town eats a day
+under the number it has left. A resource that only ever shows a total tells the
+player where they are; the rate tells them where they are going, which is the
+number a decision gets made against.
+
+**The clock is the search's.** It drains while a level is being played, priced
+in fractional days, so a fast run is cheaper than a slow one. Not while the app
+is open — that would tax reading the case board — and not while it is closed,
+which would tax putting the phone down.
+
+**Food is buyable.** A sack in the workshop, for money. Without that, one bad
+run with an empty larder is a dead end, and money is the resource the player
+has most of.
+
+**And people turn up.** Every few chapters someone is waiting at the edge of
+town with a name, a trade and one line, and the player takes them in or sends
+them on. Everyone taken in eats every day for the rest of the game and pays for
+it by changing ONE number that already existed: the forager finds 35% more food
+in a yard, the scavenger 20% more money, the cook feeds the town on two less a
+day, the carpenter takes 15% off every restoration. Taking everyone is a choice
+to run a bigger, hungrier, more productive town. Turning them away is a choice
+to stay small. Neither is the correct answer.
+
+It is a card that must be answered rather than a toast that fades: a permanent
+bill is the wrong thing to let someone miss.
+
+The carpenter's discount forced one useful cleanup — three screens were reading
+a project's raw `cost` straight out of the data. They all call
+`RestoreBoard.price()` now, so the number shown and the number taken cannot
+disagree.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

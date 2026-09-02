@@ -754,13 +754,24 @@ const TOWN_READY_PROJECTS := 3
 ## It drains PER FINISHED CHAPTER, never by the clock. A real-time drain would
 ## punish a player for not opening the game, which is the opposite of what this
 ## one is for.
-const FOOD_START := 24
-const FOOD_PER_CHAPTER := 4
+const FOOD_START := 40
+## What ONE resident eats in a day. The town's daily bill is this times the
+## population, which is what makes taking someone in a decision (G14.13).
+const FOOD_PER_PERSON := 1
+## A day passes while you are OUT WORKING, not while the app is open. Draining
+## in the menus would tax reading the case board; draining in real time would
+## tax putting the phone down. This is how many seconds of mowing make a day.
+const FOOD_DAY_SECONDS := 45.0
 ## How many baskets a yard hides, and what each is worth.
 const FOOD_PICKUPS := Vector2i(2, 4)
 const FOOD_VALUE := Vector2i(3, 6)
+## Bought from the workshop, in sacks. Food has to be BUYABLE or a bad run
+## becomes a dead end, and money is the only thing the player has a lot of.
+const FOOD_SACK := 12
+const FOOD_SACK_COST := 220
+
 ## Below this the town is told, once, on the way back in.
-const FOOD_LOW := 10
+const FOOD_LOW := 12
 ## And below this it is not a warning any more.
 const FOOD_CRITICAL := 4
 ## The basket prop.

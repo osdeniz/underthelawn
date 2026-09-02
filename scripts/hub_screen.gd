@@ -148,6 +148,7 @@ var _echoes_page: Control
 var _objectives_page: Control
 var _objectives_button: Button
 var _food_label: Label
+var _food_rate_label: Label
 var _people_label: Label
 var _objective_list: VBoxContainer
 var _restore_list: VBoxContainer
@@ -352,7 +353,7 @@ func _build_top_bar() -> void:
 	# Food and population, both REAL now (G14.12). They were the constants 42
 	# and 11 for a while: numbers nothing produced and nothing spent, which a
 	# player reads as state and then watches never move.
-	_food_label = _add_stat(wallet_row, UiIcons.food(), TownStats.food())
+	_food_label = _add_stat(wallet_row, UiIcons.food(), TownStats.food(), true)
 	_people_label = _add_stat(wallet_row, UiIcons.people(), TownStats.people())
 
 	# The objectives door. A chip like the wallet, but pressable, with the
@@ -406,6 +407,9 @@ func _refresh_town_stats() -> void:
 		# any sentence is (G14.12).
 		_food_label.add_theme_color_override("font_color",
 			GameConfig.UI_RED if TownStats.is_low() else GameConfig.UI_INK)
+	if _food_rate_label != null and is_instance_valid(_food_rate_label):
+		_food_rate_label.text = tr("HUB_DAILY").format(
+			{"n": -TownStats.daily_cost()})
 	if _people_label != null and is_instance_valid(_people_label):
 		_people_label.text = str(TownStats.people())
 
@@ -720,7 +724,11 @@ func _pages() -> Array:
 ## The divider is drawn rather than left as a gap because three numbers spaced
 ## evenly apart read as one long number at a glance; a rule between them says
 ## where each one stops.
-func _add_stat(row: HBoxContainer, art: Texture2D, value: int) -> Label:
+## `rate` adds the small "-n/day" under the number. A resource that only ever
+## shows a total tells the player where they are; the rate tells them where
+## they are GOING, which is the number a decision is made against (G14.13).
+func _add_stat(row: HBoxContainer, art: Texture2D, value: int,
+		rate := false) -> Label:
 	var rule := ColorRect.new()
 	rule.color = GameConfig.UI_LINE
 	rule.custom_minimum_size = Vector2(2, 34)
@@ -743,7 +751,23 @@ func _add_stat(row: HBoxContainer, art: Texture2D, value: int) -> Label:
 	label.add_theme_color_override("font_color", GameConfig.UI_INK)
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(label)
+	if rate:
+		# Number and rate stack, so the pair reads as one readout rather than
+		# as two separate stats on the bar.
+		var stack := VBoxContainer.new()
+		stack.add_theme_constant_override("separation", -2)
+		stack.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(stack)
+		stack.add_child(label)
+		_food_rate_label = Label.new()
+		_food_rate_label.add_theme_font_size_override("font_size", 20)
+		_food_rate_label.add_theme_color_override("font_color",
+			GameConfig.UI_INK_FAINT)
+		_food_rate_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		stack.add_child(_food_rate_label)
+	else:
+		row.add_child(label)
 	return label
 
 
@@ -1104,6 +1128,15 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 			_shake(button)
 
 
+## The refusal wobble, as a static so any screen can use it. The workshop's
+## larder needed the same "no" the locked tiles give.
+static func shake(control: Control) -> void:
+	var start := control.position.x
+	var tween := control.create_tween()
+	for step: float in [-14.0, 12.0, -8.0, 5.0, 0.0]:
+		tween.tween_property(control, "position:x", start + step, 0.05)
+
+
 func _shake(control: Control) -> void:
 	var home := control.position
 	# Owned by the control, so a refresh that rebuilds the row takes the tween
@@ -1183,7 +1216,7 @@ func _make_project_row(project: Dictionary) -> Button:
 	var id := str(project.get("id", ""))
 	var built := RestoreBoard.is_built(id)
 	var locked := RestoreBoard.is_locked(id)
-	var cost := int(project.get("cost", 0))
+	var cost := RestoreBoard.price(str(project.get("id", "")))
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(0, 190)
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -1245,7 +1278,7 @@ func _show_building_card(project_id: String) -> void:
 		return
 	var built := RestoreBoard.is_built(project_id)
 	var locked := RestoreBoard.is_locked(project_id)
-	var cost := int(project.get("cost", 0))
+	var cost := RestoreBoard.price(str(project.get("id", "")))
 
 	var overlay := ColorRect.new()
 	overlay.name = "BuildingCard"
@@ -1408,7 +1441,7 @@ func _on_project(project_id: String, built: bool, source: Button) -> void:
 		_shake(source)
 		return
 	var project := RestoreBoard.of(project_id)
-	if GameState.scrap_total() < int(project.get("cost", 0)):
+	if GameState.scrap_total() < RestoreBoard.price(str(project.get("id", ""))):
 		_say_restore(Story.text("restore.locked_note"))
 		_shake(source)
 		return
@@ -2441,6 +2474,7 @@ func refresh() -> void:
 	_show_page(_tiles_page)
 	_harvest_call()
 	_food_warning()
+	_settler_call()
 	# Anything finished while the player was out in a yard is paid for here, on
 	# the way back in — the hub is the only screen that can afford a toast.
 	_announce_objectives(Objectives.collect())
@@ -2462,6 +2496,98 @@ func _announce_objectives(earned: Array) -> void:
 		var spec: Dictionary = any
 		_objective_toast(spec, float(index) * 0.35)
 		index += 1
+
+
+## Somebody is waiting at the edge of town. Shown as a card that must be
+## answered rather than a toast that fades: this is a decision with a permanent
+## bill attached, and a notification the player can miss is the wrong shape for
+## one (G14.13).
+func _settler_call() -> void:
+	var spec := Settlers.pending()
+	if spec.is_empty():
+		return
+	if find_children("SettlerCard", "", true, false).size() > 0:
+		return
+
+	var scrim := Control.new()
+	scrim.name = "SettlerCard"
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(scrim)
+	var shade := ColorRect.new()
+	shade.color = Color(0, 0, 0, 0.62)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scrim.add_child(shade)
+
+	var card := PanelContainer.new()
+	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	card.offset_left = -430
+	card.offset_right = 430
+	card.offset_top = -400
+	card.offset_bottom = 400
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = GameConfig.CASE_PANEL
+	skin.set_corner_radius_all(26)
+	skin.set_content_margin_all(38)
+	skin.border_color = Color(GameConfig.CASE_ACCENT, 0.45)
+	skin.set_border_width_all(3)
+	card.add_theme_stylebox_override("panel", skin)
+	scrim.add_child(card)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 18)
+	card.add_child(rows)
+
+	for line: Array in [
+			[tr("SET_TITLE"), 28, GameConfig.CASE_ACCENT],
+			[tr(str(spec.get("name", ""))), 52, Color(0.96, 0.95, 0.92)],
+			[tr(str(spec.get("role", ""))), 30, Color(0.78, 0.76, 0.70)],
+			[tr(str(spec.get("line", ""))), 30, Color(0.88, 0.86, 0.82)]]:
+		var label := Label.new()
+		label.text = str(line[0])
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", int(line[1]))
+		label.add_theme_color_override("font_color", line[2])
+		rows.add_child(label)
+
+	# What they give, and what they cost, on two lines side by side — the whole
+	# decision, in the place the decision is made.
+	var gain := Label.new()
+	gain.text = "+ " + Settlers.effect_line(spec)
+	gain.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	gain.add_theme_font_size_override("font_size", 30)
+	gain.add_theme_color_override("font_color", Color(0.62, 0.86, 0.54))
+	rows.add_child(gain)
+	var cost := Label.new()
+	cost.text = "− " + tr("SET_UPKEEP").format({"n": GameConfig.FOOD_PER_PERSON})
+	cost.add_theme_font_size_override("font_size", 30)
+	cost.add_theme_color_override("font_color", GameConfig.UI_RED)
+	rows.add_child(cost)
+
+	var take := Button.new()
+	take.text = tr("SET_ACCEPT")
+	take.custom_minimum_size = Vector2(0, 104)
+	take.add_theme_font_size_override("font_size", 36)
+	HubScreen.style_primary(take)
+	take.pressed.connect(func() -> void:
+		Haptics.medium()
+		Settlers.accept(str(spec.get("id", "")))
+		scrim.queue_free()
+		_refresh_town_stats()
+		_refresh_restore())
+	rows.add_child(take)
+
+	var send := Button.new()
+	send.text = tr("SET_REJECT")
+	send.custom_minimum_size = Vector2(0, 92)
+	send.add_theme_font_size_override("font_size", 32)
+	HubScreen.style_secondary(send)
+	send.pressed.connect(func() -> void:
+		Haptics.light()
+		Settlers.reject(str(spec.get("id", "")))
+		scrim.queue_free()
+		_refresh_town_stats())
+	rows.add_child(send)
 
 
 ## Said once per crossing, not once per visit: a warning that reappears every

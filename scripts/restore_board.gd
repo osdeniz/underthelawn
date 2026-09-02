@@ -138,11 +138,20 @@ static func scrap_bonus() -> int:
 	return bonus
 
 
+## What a project actually costs, after the carpenter's discount (G14.13).
+## Every screen that shows a price and the code that takes the money must agree,
+## so both ask this rather than reading the raw number.
+static func price(project_id: String) -> int:
+	var project := of(project_id)
+	var cost := int(project.get("cost", 0))
+	return int(round(float(cost) * (1.0 - Settlers.build_discount())))
+
+
 static func buy(project_id: String) -> bool:
 	var project := of(project_id)
 	if project.is_empty() or is_built(project_id) or is_locked(project_id):
 		return false
-	var cost := int(project.get("cost", 0))
+	var cost := price(project_id)
 	if GameState.scrap_total() < cost:
 		return false
 	GameState.spend_scrap(cost)

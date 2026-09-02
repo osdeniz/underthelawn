@@ -32,6 +32,7 @@ const HERO_ART := 260.0
 var _gus_line: Label
 var _hero: PanelContainer
 var _chips: HBoxContainer
+var _larder: Button
 var _selected := 0
 var _confirm: PanelContainer
 var _confirm_text: Label
@@ -98,8 +99,47 @@ func _build() -> void:
 	_chips.offset_bottom = -200.0
 	_chips.add_theme_constant_override("separation", 14)
 	add_child(_chips)
+	_build_larder()
 
 	_build_confirm()
+
+
+## A sack of food, for sale, in the one screen that already sells things
+## (G14.13). Food had to be buyable: a bad run with an empty larder is
+## otherwise a dead end, and money is the resource the player has most of.
+func _build_larder() -> void:
+	_larder = Button.new()
+	_larder.name = "BuyFood"
+	_larder.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_larder.offset_left = 50
+	_larder.offset_right = -50
+	_larder.offset_top = -560.0
+	_larder.offset_bottom = -412.0
+	_larder.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_larder.add_theme_font_size_override("font_size", 30)
+	HubScreen.style_secondary(_larder)
+	_larder.pressed.connect(func() -> void:
+		Haptics.light()
+		if GameState.scrap_total() < GameConfig.FOOD_SACK_COST:
+			HubScreen.shake(_larder)
+			return
+		GameState.spend_scrap(GameConfig.FOOD_SACK_COST)
+		TownStats.add_food(GameConfig.FOOD_SACK)
+		Analytics.track("food_bought", {"cost": GameConfig.FOOD_SACK_COST})
+		purchased.emit()
+		_refresh_larder())
+	add_child(_larder)
+	_refresh_larder()
+
+
+func _refresh_larder() -> void:
+	if _larder == null or not is_instance_valid(_larder):
+		return
+	var afford := GameState.scrap_total() >= GameConfig.FOOD_SACK_COST
+	_larder.text = "%s  ·  %d\n%s" % [tr("SHOP_FOOD"), GameConfig.FOOD_SACK_COST,
+		tr("SHOP_FOOD_HINT").format({"n": GameConfig.FOOD_SACK}) if afford
+		else tr("SHOP_POOR")]
+	_larder.modulate.a = 1.0 if afford else 0.6
 
 
 func _build_confirm() -> void:
@@ -146,6 +186,7 @@ func _build_confirm() -> void:
 
 ## Rebuilt on every hub visit, so purchases show immediately.
 func refresh() -> void:
+	_refresh_larder()
 	var done := ChapterProgress.done_count()
 	var line := "DLG_WS_GUS_0"
 	for variant: Dictionary in Dialogue.data().get("workshop", []):
