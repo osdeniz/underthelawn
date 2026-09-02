@@ -8,7 +8,7 @@ extends Node
 func _ready() -> void:
 	GameState.set_setting("meta", "orientation_done", true)
 	SkyTime.set_mode(GameConfig.SKY_MODE_DAY)
-	for index: int in [GameConfig.MOWER_PUSH, GameConfig.MOWER_TRACTOR]:
+	for index: int in [GameConfig.MOWER_TRACTOR]:
 		var game: Node = load("res://scenes/Main.tscn").instantiate()
 		game.variant_id = "ch01_aldridge"
 		add_child(game)

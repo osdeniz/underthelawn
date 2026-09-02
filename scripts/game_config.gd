@@ -1337,18 +1337,19 @@ const CHAR_SHIRT := Color(0.92, 0.50, 0.18)
 ## the same clothes every time you look at them.
 const CHAR_OUTFITS: Array[Dictionary] = [
 	{"shirt": Color(0.92, 0.50, 0.18), "jeans": Color(0.28, 0.36, 0.52),
-		"hat": Color(0.55, 0.52, 0.34)},
+		"hat": Color(0.55, 0.52, 0.34), "hair": Color(0.24, 0.16, 0.11)},
 	{"shirt": Color(0.36, 0.52, 0.62), "jeans": Color(0.30, 0.28, 0.26),
-		"hat": Color(0.42, 0.40, 0.32)},
+		"hat": Color(0.42, 0.40, 0.32), "hair": Color(0.14, 0.12, 0.11)},
 	{"shirt": Color(0.72, 0.30, 0.32), "jeans": Color(0.34, 0.32, 0.38),
-		"hat": Color(0.60, 0.50, 0.30)},
+		"hat": Color(0.60, 0.50, 0.30), "hair": Color(0.42, 0.26, 0.13)},
 	{"shirt": Color(0.52, 0.56, 0.34), "jeans": Color(0.24, 0.30, 0.42),
-		"hat": Color(0.36, 0.34, 0.28)},
+		"hat": Color(0.36, 0.34, 0.28), "hair": Color(0.30, 0.22, 0.16)},
 	{"shirt": Color(0.86, 0.78, 0.52), "jeans": Color(0.32, 0.34, 0.40),
-		"hat": Color(0.48, 0.44, 0.34)},
+		"hat": Color(0.48, 0.44, 0.34), "hair": Color(0.56, 0.44, 0.24)},
 	{"shirt": Color(0.44, 0.36, 0.56), "jeans": Color(0.26, 0.26, 0.30),
-		"hat": Color(0.52, 0.48, 0.36)},
+		"hat": Color(0.52, 0.48, 0.36), "hair": Color(0.20, 0.18, 0.18)},
 ]
+
 
 ## The face (G14.19). Two eyes, a brow line and a mouth, all flat boxes on the
 ## front of the head: at the distance this game is played at anything more is
@@ -1363,6 +1364,19 @@ const CHAR_BROW_SIZE := Vector3(0.026, 0.007, 0.009)
 const CHAR_BROW_Y := 0.058
 const CHAR_MOUTH_SIZE := Vector3(0.030, 0.009, 0.009)
 const CHAR_MOUTH_Y := -0.038
+## Hair (G14.21). It has to live UNDER the hat brim and behind the face: a
+## sphere the size of the head would swallow the eyes, so this is a back cap
+## plus two temple tufts, each sitting in the gap between the brim and the jaw.
+const CHAR_HAIR_BACK := 0.118
+const CHAR_HAIR_TUFT := 0.052
+const CHAR_HAIR := Color(0.26, 0.18, 0.12)
+
+## The hand: a flattened palm with a thumb on the inside edge. A cube read as
+## a fist-shaped brick, and the thumb is the one detail that says which way a
+## hand is facing.
+const CHAR_PALM := Vector3(0.062, 0.078, 0.046)
+const CHAR_THUMB := Vector3(0.024, 0.042, 0.024)
+
 const CHAR_EYE := Color(0.14, 0.12, 0.11)
 const CHAR_BROW := Color(0.26, 0.19, 0.13)
 const CHAR_MOUTH := Color(0.58, 0.36, 0.32)
@@ -1389,6 +1403,9 @@ const CHAR_TORSO_SIDES := 8
 ## is wide; a CylinderMesh is circular, so without this the body came out a
 ## barrel (G14.20).
 const CHAR_TORSO_DEPTH := 0.62
+## How much narrower the pelvis is than the shirt's waist. At 1.0 the two
+## surfaces were coincident and the pelvis showed THROUGH the shirt.
+const CHAR_PELVIS_INSET := 0.88
 ## Limbs are tapered prisms too (G14.20). A square-section arm or leg is the
 ## loudest remaining thing that says "built out of bricks", and a real limb
 ## narrows along its length: thigh to knee, knee to ankle, shoulder to wrist.

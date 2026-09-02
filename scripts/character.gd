@@ -200,6 +200,22 @@ func _reset_joints() -> void:
 
 # ---------------------------------------------------------------- build (§8)
 
+## Hair under the hat (G14.21): a cap on the back of the skull and a tuft at
+## each temple, all of it BEHIND the face and BELOW the brim. A sphere the size
+## of the head would have covered the eyes, and hair drawn above the brim line
+## would have been inside the hat.
+func _build_hair(r: float, hair: StandardMaterial3D) -> void:
+	var mid := r * 0.6
+	# Back of the head: a squashed ball pushed back and down out of the face.
+	_sphere(_head, GameConfig.CHAR_HAIR_BACK, hair,
+		Vector3(0.0, mid + r * 0.10, r * 0.20),
+		Vector3(1.0, 0.86, 0.92))
+	for side: float in [-1.0, 1.0]:
+		_sphere(_head, GameConfig.CHAR_HAIR_TUFT, hair,
+			Vector3(side * r * 0.80, mid + r * 0.26, r * 0.04),
+			Vector3(0.7, 1.0, 1.0))
+
+
 ## Eyes, brows and a mouth, as flat boxes on the front of the head (G14.19).
 ##
 ## Sunk slightly INTO the sphere rather than floating on it, and kept tiny: at
@@ -275,8 +291,10 @@ func _box(parent: Node3D, size: Vector3, mat: StandardMaterial3D,
 	return mi
 
 
+## `squash` lets one sphere be a skull cap or a temple tuft rather than a ball
+## (G14.21): hair is not spherical, and neither is anything else on a person.
 func _sphere(parent: Node3D, radius: float, mat: StandardMaterial3D,
-		pos: Vector3) -> MeshInstance3D:
+		pos: Vector3, squash := Vector3.ONE) -> MeshInstance3D:
 	var mesh := SphereMesh.new()
 	mesh.radius = radius
 	mesh.height = radius * 2.0
@@ -286,6 +304,8 @@ func _sphere(parent: Node3D, radius: float, mat: StandardMaterial3D,
 	mi.mesh = mesh
 	mi.material_override = mat
 	mi.position = pos
+	if not squash.is_equal_approx(Vector3.ONE):
+		mi.scale = squash
 	parent.add_child(mi)
 	return mi
 
@@ -319,7 +339,8 @@ func _build() -> void:
 	# findable in a yard at a glance. Everyone else is dressed from the table.
 	var kit: Dictionary = GameConfig.CHAR_OUTFITS[_outfit] if _outfit >= 0 \
 		else {"shirt": GameConfig.CHAR_SHIRT, "jeans": GameConfig.CHAR_JEANS,
-			"hat": GameConfig.CHAR_HAT}
+			"hat": GameConfig.CHAR_HAT, "hair": GameConfig.CHAR_HAIR}
+	var hair := _mat("hair", kit.get("hair", GameConfig.CHAR_HAIR), 0.95)
 	var shirt := _mat("shirt", kit["shirt"])
 	var skin := _mat("skin", GameConfig.CHAR_SKIN)
 	var jeans := _mat("jeans", kit["jeans"])
@@ -330,8 +351,13 @@ func _build() -> void:
 	# The pelvis is on the ROOT, not the torso: it belongs to the legs, and a
 	# torso roll must not take the hips with it.
 	var ps := GameConfig.CHAR_PELVIS_SIZE
-	_taper(self, GameConfig.CHAR_WAIST_RADIUS, GameConfig.CHAR_LEG_TOP * 1.9,
-		ps.y, jeans, Vector3(0.0, ps.y * 0.1, 0.0),
+	# INSIDE the shirt, not level with it. At the same radius as the torso's
+	# waist the two surfaces were coincident, and one facet of the pelvis won
+	# the depth test on the back — a crisp grey rectangle in the middle of the
+	# shirt, which took a full-resolution crop to identify (G14.21).
+	_taper(self, GameConfig.CHAR_WAIST_RADIUS * GameConfig.CHAR_PELVIS_INSET,
+		GameConfig.CHAR_LEG_TOP * 1.9, ps.y, jeans,
+		Vector3(0.0, ps.y * 0.1, 0.0),
 		GameConfig.CHAR_TORSO_SIDES, GameConfig.CHAR_TORSO_DEPTH)
 
 	# Torso pivots at the waist; the box sits above it.
@@ -351,6 +377,7 @@ func _build() -> void:
 	var r := GameConfig.CHAR_HEAD_RADIUS
 	_sphere(_head, r, skin, Vector3(0.0, r * 0.6, 0.0))
 	_build_face(r)
+	_build_hair(r, hair)
 	# The band belongs to the HAT, around the crown just under the brim. It used
 	# to sit at 0.75r on the front of the head — straight across the eyes — so
 	# every figure in the game appeared to be wearing sunglasses, and adding a
@@ -388,11 +415,16 @@ func _build() -> void:
 			GameConfig.CHAR_LOWER_ARM, skin,
 			Vector3(0.0, -GameConfig.CHAR_LOWER_ARM * 0.5, 0.0),
 			GameConfig.CHAR_LIMB_SIDES)
-		# A hand, not a bare stump: a box reads as a fist at this size, and the
-		# sphere alone read as a bead on the end of a stick.
-		var hs := GameConfig.CHAR_HAND_SIZE
-		_box(elbow, hs, skin,
-			Vector3(0.0, -GameConfig.CHAR_LOWER_ARM - hs.y * 0.4, 0.0))
+		# A hand: a flattened palm with a thumb on the inside edge (G14.21).
+		# The cube it replaced read as a brick on a stick, and the thumb is the
+		# one detail at this size that says which way a hand faces.
+		var palm := GameConfig.CHAR_PALM
+		var wrist := -GameConfig.CHAR_LOWER_ARM
+		_box(elbow, palm, skin, Vector3(0.0, wrist - palm.y * 0.45, 0.0))
+		var th := GameConfig.CHAR_THUMB
+		_box(elbow, th, skin,
+			Vector3(-side * (palm.x * 0.5 + th.x * 0.35),
+				wrist - palm.y * 0.30, palm.z * 0.10))
 		if side < 0:
 			_shoulder_l = shoulder
 		else:

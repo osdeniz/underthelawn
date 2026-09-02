@@ -2866,6 +2866,36 @@ unaffected — and both riding poses were rendered afterwards at play distance t
 prove it, which is the distance that actually decides whether any of this
 worked.
 
+### G14.21 — hair, hands, and a grey rectangle nobody could explain
+
+**Hair**, under the hat and behind the face: a cap on the back of the skull and
+a tuft at each temple. A sphere the size of the head would have swallowed the
+eyes, and anything above the brim line would have been inside the hat. It is
+the right place for another reason — the driver is seen from BEHIND in play, so
+the back of the head is the view that matters, and it was bare.
+
+**Hands**: a flattened palm with a thumb on the inside edge, replacing a cube
+that read as a brick on a stick. At this size the thumb is the only detail that
+says which way a hand is facing. Hair colour joined the wardrobe, so the six
+outfits now dress the head too.
+
+**And then a grey rectangle appeared on one figure's back.** Three wrong
+guesses (the brow band, a shadow, the neck), then a probe that listed every
+dark mesh in the figure — all of them on the head and the boots — then a probe
+that listed every child of the torso, which found nothing either. It took a
+full-resolution CROP of the render to see what it was: the pelvis showing
+THROUGH the shirt. Its top radius was exactly the torso's waist radius, so the
+two surfaces were coincident and one facet of the pelvis won the depth test.
+The pelvis is inset to 0.88 of the waist now.
+
+**A process failure worth recording:** three renders in a row were read off a
+45-minute-old PNG, because the shot was failing silently and I was looking at
+the stale file. The fault under it was a parse error — a `squash` parameter
+added to `_sphere` whose body went into `_box` instead, since the replace
+matched the first identical block. `--headless --editor --quit` did not surface
+it; only running the scene did. **Check that the render actually rewrote the
+file before believing what is in it.**
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

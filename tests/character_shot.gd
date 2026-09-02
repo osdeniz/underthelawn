@@ -28,7 +28,9 @@ func _ready() -> void:
 
 	# The Marshal, then four townsfolk in their own clothes. Turned to face the
 	# camera, because the whole point of this shot is the front of the head.
-	var specs: Array = [[-0.90, -1], [-0.45, 1], [0.0, 2], [0.45, 3], [0.90, 4]]
+	# One facing us for the face, one turned away for the hair — which is the
+	# view the player actually has of the driver (G14.21).
+	var specs: Array = [[-0.32, -1], [0.32, 2]]
 	for spec: Array in specs:
 		var who := Character.new()
 		if int(spec[1]) >= 0:
@@ -37,12 +39,14 @@ func _ready() -> void:
 		who.set_mode(Character.Mode.PUSH, null, self)
 		who.position = Vector3(float(spec[0]), GameConfig.CHAR_WALK_WAIST_Y, 0.0)
 		who.walk_speed = 0.0
-		who.rotation.y = PI
+		# Two of the five turned away, because the driver is seen from BEHIND in
+		# play and the hair lives on the back of the head (G14.21).
+		who.rotation.y = PI if float(spec[0]) < 0.0 else 0.0
 
 	var cam := Camera3D.new()
-	cam.position = Vector3(0.0, 1.00, 3.4)
+	cam.position = Vector3(0.0, 0.95, 4.0)
 	cam.rotation_degrees = Vector3(-6, 0, 0)
-	cam.fov = 40
+	cam.fov = 32
 	cam.current = true
 	add_child(cam)
 
