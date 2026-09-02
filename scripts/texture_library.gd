@@ -114,6 +114,31 @@ static func leaf_particle() -> Texture2D:
 
 
 ## Radial black gradient used for every fake contact shadow (§13).
+## A round glow, bright in the middle and gone at the rim (G14.15).
+##
+## The fireflies and the golden hour's dust were untextured quads, which is to
+## say little SQUARES: at 0.13 units the shape is the whole read, and a square
+## spark reads as a rendering artefact rather than as light. Two stops matter —
+## a small hot core and a long soft falloff — because a single linear fade
+## looks like a smudge and a hard edge looks like a dot.
+static func glow(size: int = 64) -> Texture2D:
+	if _cache.has("__glow_generated"):
+		return _cache["__glow_generated"]
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var half := float(size) * 0.5
+	for y in size:
+		for x in size:
+			var d := Vector2(float(x) - half, float(y) - half).length() / half
+			# Core, then halo. Additive blending sums them into a bloom.
+			var core := clampf(1.0 - smoothstep(0.0, 0.22, d), 0.0, 1.0)
+			var halo := clampf(1.0 - smoothstep(0.12, 1.0, d), 0.0, 1.0)
+			img.set_pixel(x, y, Color(1.0, 1.0, 1.0,
+				clampf(core + halo * 0.55, 0.0, 1.0)))
+	var tex := ImageTexture.create_from_image(img)
+	_cache["__glow_generated"] = tex
+	return tex
+
+
 static func ao_radial(size: int = 128) -> Texture2D:
 	var found := find("ao_radial")
 	if found != null:

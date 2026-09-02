@@ -70,6 +70,9 @@ func _setup() -> void:
 	var quad := QuadMesh.new()
 	quad.size = Vector2(GameConfig.FIREFLY_SIZE, GameConfig.FIREFLY_SIZE)
 	var mat := StandardMaterial3D.new()
+	# A round glow, not a bare quad: untextured, these were 0.13-unit SQUARES
+	# and read as rendering artefacts rather than as light (G14.15).
+	mat.albedo_texture = TextureLibrary.glow()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	# Additive, so two of them overlapping read as brighter rather than as a
