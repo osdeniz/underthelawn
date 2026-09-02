@@ -2040,7 +2040,12 @@ func _build_figures() -> void:
 		if id == "cat":
 			_cat_body(body, spec["colour"])
 		else:
-			_person_body(body, spec["colour"])
+			# Dressed from the same wardrobe the driver uses (G14.19), so the
+			# town's people belong to the same world as the man in the yard —
+			# and so the outfit table has a real consumer rather than sitting
+			# in the config unused. Keyed off the id, so a townsperson wears
+			# the same clothes every time you look at them.
+			_person_body(body, spec["colour"], _outfit_for(id))
 		body.visible = false
 		_figures.append({"id": id, "node": body, "needs": str(spec["needs"]),
 			"from": spec["from"], "to": spec["to"],
@@ -2051,12 +2056,28 @@ func _build_figures() -> void:
 
 ## A person at diorama scale is a coat, a head and two legs — at this camera
 ## distance anything more is invisible, and anything less reads as a post.
-func _person_body(root: Node3D, colour: Color) -> void:
-	var coat := _flat("figure_%s" % colour.to_html(false), colour, 1.0)
+## `outfit` is an index into GameConfig.CHAR_OUTFITS, or -1 to keep the
+## figure's own colour (the cat, and anyone the data dresses deliberately).
+func _person_body(root: Node3D, colour: Color, outfit := -1) -> void:
+	var shirt_colour := colour
+	var leg_colour := Color(0.22, 0.20, 0.22)
+	var hat_colour := Color(0.46, 0.42, 0.32)
+	if outfit >= 0:
+		var kit: Dictionary = GameConfig.CHAR_OUTFITS[
+			outfit % GameConfig.CHAR_OUTFITS.size()]
+		shirt_colour = kit["shirt"]
+		leg_colour = kit["jeans"]
+		hat_colour = kit["hat"]
+	var coat := _flat("figure_%s" % shirt_colour.to_html(false), shirt_colour, 1.0)
 	var skin := _flat("figure_skin", Color(0.78, 0.62, 0.50), 1.0)
-	var dark := _flat("figure_dark", Color(0.22, 0.20, 0.22), 1.0)
+	var dark := _flat("figure_legs_%s" % leg_colour.to_html(false), leg_colour, 1.0)
 	_box(root, Vector3(0.34, 0.46, 0.24), coat, Vector3(0.0, 0.60, 0.0))
 	_ball(root, 0.13, skin, Vector3(0.0, 0.92, 0.0))
+	# A hat, at diorama scale: one flat disc. It is what tells two figures of
+	# the same height apart from above.
+	_cyl(root, 0.145, 0.145, 0.03,
+		_flat("figure_hat_%s" % hat_colour.to_html(false), hat_colour, 1.0),
+		Vector3(0.0, 1.02, 0.0))
 	# Legs are separate so they can scissor as the figure walks.
 	for side: float in [-1.0, 1.0]:
 		var leg := Node3D.new()
@@ -2064,6 +2085,11 @@ func _person_body(root: Node3D, colour: Color) -> void:
 		leg.position = Vector3(side * 0.09, 0.37, 0.0)
 		root.add_child(leg)
 		_box(leg, Vector3(0.11, 0.38, 0.11), dark, Vector3(0.0, -0.19, 0.0))
+
+
+## Which outfit a townsperson wears: stable per id, spread across the table.
+func _outfit_for(id: String) -> int:
+	return absi(id.hash()) % GameConfig.CHAR_OUTFITS.size()
 
 
 ## The barn cat: a low body, a head and a tail that stands up.

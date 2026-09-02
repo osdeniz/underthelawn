@@ -31,6 +31,8 @@ var _knee_r: Node3D
 var _phase := 0.0
 var _breath := 0.0
 var _materials := {}
+## -1 = the Marshal's own orange. Anything else indexes CHAR_OUTFITS.
+var _outfit := -1
 var _ao: MeshInstance3D
 
 
@@ -198,6 +200,35 @@ func _reset_joints() -> void:
 
 # ---------------------------------------------------------------- build (§8)
 
+## Eyes, brows and a mouth, as flat boxes on the front of the head (G14.19).
+##
+## Sunk slightly INTO the sphere rather than floating on it, and kept tiny: at
+## the distance the game is played at the face is a handful of pixels, so what
+## matters is that the head has a FRONT. A blank ball under a hat reads as a
+## mannequin from any distance at all.
+func _build_face(r: float) -> void:
+	var eye := _mat("eye", GameConfig.CHAR_EYE, 0.6)
+	var brow := _mat("brow", GameConfig.CHAR_BROW, 0.9)
+	var mouth := _mat("mouth", GameConfig.CHAR_MOUTH, 0.8)
+	var front := -r * 0.94
+	var mid := r * 0.6
+	for side: float in [-1.0, 1.0]:
+		_box(_head, GameConfig.CHAR_EYE_SIZE, eye,
+			Vector3(side * GameConfig.CHAR_EYE_GAP,
+				mid + GameConfig.CHAR_EYE_Y, front))
+		_box(_head, GameConfig.CHAR_BROW_SIZE, brow,
+			Vector3(side * GameConfig.CHAR_EYE_GAP,
+				mid + GameConfig.CHAR_BROW_Y, front))
+	_box(_head, GameConfig.CHAR_MOUTH_SIZE, mouth,
+		Vector3(0.0, mid + GameConfig.CHAR_MOUTH_Y, front))
+
+
+## Dresses this figure from CHAR_OUTFITS. Call BEFORE the body is built; the
+## Marshal leaves it alone and keeps the orange shirt.
+func wear(outfit_index: int) -> void:
+	_outfit = outfit_index % GameConfig.CHAR_OUTFITS.size()
+
+
 func _mat(key: String, color: Color, roughness := 0.85) -> StandardMaterial3D:
 	if _materials.has(key):
 		return _materials[key]
@@ -278,10 +309,15 @@ func _pivot(parent: Node3D, pivot_name: String, pos: Vector3) -> Node3D:
 
 
 func _build() -> void:
-	var shirt := _mat("shirt", GameConfig.CHAR_SHIRT)
+	# The Marshal (_outfit < 0) keeps the orange shirt: the player has to be
+	# findable in a yard at a glance. Everyone else is dressed from the table.
+	var kit: Dictionary = GameConfig.CHAR_OUTFITS[_outfit] if _outfit >= 0 \
+		else {"shirt": GameConfig.CHAR_SHIRT, "jeans": GameConfig.CHAR_JEANS,
+			"hat": GameConfig.CHAR_HAT}
+	var shirt := _mat("shirt", kit["shirt"])
 	var skin := _mat("skin", GameConfig.CHAR_SKIN)
-	var jeans := _mat("jeans", GameConfig.CHAR_JEANS)
-	var hat := _mat("hat", GameConfig.CHAR_HAT)
+	var jeans := _mat("jeans", kit["jeans"])
+	var hat := _mat("hat", kit["hat"])
 	var band := _mat("band", GameConfig.CHAR_BAND)
 	var boot := _mat("boot", GameConfig.CHAR_BOOT, 0.82)
 
@@ -305,8 +341,14 @@ func _build() -> void:
 	_head = _pivot(_torso, "Head", Vector3(0.0, ts.y + 0.06, 0.0))
 	var r := GameConfig.CHAR_HEAD_RADIUS
 	_sphere(_head, r, skin, Vector3(0.0, r * 0.6, 0.0))
-	_box(_head, Vector3(GameConfig.CHAR_BAND_SIZE.x, GameConfig.CHAR_BAND_SIZE.y, 0.02),
-		band, Vector3(0.0, r * 0.75, -r * 0.92))
+	_build_face(r)
+	# The band belongs to the HAT, around the crown just under the brim. It used
+	# to sit at 0.75r on the front of the head — straight across the eyes — so
+	# every figure in the game appeared to be wearing sunglasses, and adding a
+	# real face only made that read louder (G14.19).
+	_cylinder(_head, GameConfig.CHAR_HAT_TOP_RADIUS * 1.06,
+		GameConfig.CHAR_BAND_SIZE.y, band,
+		Vector3(0.0, r * 1.35 + GameConfig.CHAR_BAND_SIZE.y * 0.7, 0.0))
 	_cylinder(_head, GameConfig.CHAR_HAT_BRIM_RADIUS, 0.02, hat,
 		Vector3(0.0, r * 1.35, 0.0))
 	_cylinder(_head, GameConfig.CHAR_HAT_TOP_RADIUS, 0.09, hat,

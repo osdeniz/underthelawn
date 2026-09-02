@@ -2811,6 +2811,39 @@ sitting pose for the robot) and would have to be re-authored against a
 skeleton. In this art style the premium look comes from proportion and
 silhouette, which is what this patch spent its effort on.
 
+### G14.19 — a face, a wardrobe, and one item that was already fixed
+
+**The figure has a face.** Two eyes, brows and a mouth, as flat boxes sunk into
+the front of the head. Tiny on purpose: at play distance a face is a handful of
+pixels, and what matters is only that the head HAS a front — a blank ball under
+a hat reads as a mannequin from any distance.
+
+The first attempt read as sunglasses, and the cause was not the face. A 0.16
+wide black "brow band" had been sitting across the front of the head since §8,
+at 0.75 of the head radius — straight over the eyes. Adding a real face just
+made it louder. It is the hat's band now, around the crown under the brim,
+which is what the name meant all along.
+
+**And a wardrobe.** `CHAR_OUTFITS` holds six shirt/jeans/hat combinations. The
+Marshal keeps the orange shirt — the player has to be findable in a yard at a
+glance — and everyone else is dressed from the table, keyed off their id so a
+townsperson wears the same clothes every time you look at them. The diorama's
+figures read from the same table and gained a hat disc, which is what tells two
+figures of the same height apart from above; without a consumer the wardrobe
+would have been six dictionaries of dead config.
+
+**Item 5 of my own review was void.** I had reported that the KASABA tile and
+the case board's people tab were two doors to the same list. Checking before
+deleting anything: the people had ALREADY been moved to the case file, and the
+town tile is now the town model itself — "tap a building to see what it needs".
+Not duplication, and not something to remove.
+
+**Item 6 was real and is done.** The harvest comments still said "three fields"
+after the expansion to six, and `objectives.json` carried an empty `case_02`
+skeleton while Case 2's three objectives sat in the main list. The skeleton is
+gone and the test now checks for the objectives themselves rather than for the
+dead section.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

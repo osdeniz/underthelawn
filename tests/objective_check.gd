@@ -43,8 +43,14 @@ func _ready() -> void:
 			ck("%s kontrolu cozumleniyor: %s" % [id, check],
 				check.split(":")[0] in ["chapter", "chapters", "restore",
 					"garage", "projects", "harvest"], check)
-	# V2 lands in the same list, so the skeleton has to exist and be empty.
-	ck("vaka 2 iskeleti var", Objectives.data().has("case_02"), "")
+	# Case 2's objectives are in the SAME list, so there is no separate section
+	# to check for — the empty `case_02` skeleton was dead weight and is gone
+	# (G14.19). What matters is that they are actually there.
+	var ids: Array = []
+	for any2: Variant in Objectives.all():
+		ids.append(str((any2 as Dictionary).get("id", "")))
+	ck("vaka 2 gorevleri listede", ids.has("the_east_road")
+		and ids.has("what_ellie_saw"), ", ".join(ids))
 
 	# --- nothing invented: the case objective mirrors the chapter list
 	var ellie := Objectives.of("find_ellie")

@@ -26,20 +26,23 @@ func _ready() -> void:
 	env.environment = e
 	add_child(env)
 
-	# Two of them: standing, and mid-stride.
-	for spec: Array in [[-0.42, 0.0], [0.42, 1.6]]:
+	# The Marshal, then four townsfolk in their own clothes. Turned to face the
+	# camera, because the whole point of this shot is the front of the head.
+	var specs: Array = [[-0.90, -1], [-0.45, 1], [0.0, 2], [0.45, 3], [0.90, 4]]
+	for spec: Array in specs:
 		var who := Character.new()
+		if int(spec[1]) >= 0:
+			who.wear(int(spec[1]))
 		add_child(who)
 		who.set_mode(Character.Mode.PUSH, null, self)
 		who.position = Vector3(float(spec[0]), GameConfig.CHAR_WALK_WAIST_Y, 0.0)
-		who.walk_speed = 0.9
-		who._phase = float(spec[1])
-		who.rotation.y = 0.35
+		who.walk_speed = 0.0
+		who.rotation.y = PI
 
 	var cam := Camera3D.new()
-	cam.position = Vector3(0.0, 0.95, 5.2)
-	cam.rotation_degrees = Vector3(-4, 0, 0)
-	cam.fov = 26
+	cam.position = Vector3(0.0, 1.00, 3.4)
+	cam.rotation_degrees = Vector3(-6, 0, 0)
+	cam.fov = 40
 	cam.current = true
 	add_child(cam)
 

@@ -1,5 +1,5 @@
 {
-  "_comment": "STRUCTURE ONLY. Every title/desc/text is a TRANSLATION KEY; the sentences live in i18n/strings.csv. This file NEVER invents a goal - every objective here is something the game already asks of the player, written down so it can be seen. A condition's `check` is resolved by Objectives._passes(); adding a new kind of check means adding a branch there, not a new field shape. `reward_scrap` values are PLACEHOLDERS awaiting calibration - including Case 02's three (G13).",
+  "_comment": "STRUCTURE ONLY. Every title/desc/text is a TRANSLATION KEY; the sentences live in i18n/strings.csv. This file NEVER invents a goal - every objective here is something the game already asks of the player, written down so it can be seen. A condition's `check` is resolved by Objectives._passes(); adding a new kind of check means adding a branch there, not a new field shape. `reward_scrap` values are PLACEHOLDERS awaiting calibration - including Case 02's three (G13). Case 2's objectives live in this same list (there is no separate section): break_from_town, the_east_road, what_ellie_saw.",
   "objectives": [
     {
       "id": "find_ellie",
@@ -154,9 +154,5 @@
         }
       ]
     }
-  ],
-  "case_02": {
-    "_comment": "Skeleton only. Case 2's objectives land in a later sprint and sit in this same list; the shape is already the one above, so nothing here needs a new system.",
-    "objectives": []
-  }
+  ]
 }

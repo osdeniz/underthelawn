@@ -1330,6 +1330,42 @@ const CLOUD_PERIOD := 30.0
 ## No skeleton: joints are separate Node3D pivots, animation is sine/lerp.
 ## Height ~1.55, head/height ~1/7. Root pivot sits at the waist.
 const CHAR_SHIRT := Color(0.92, 0.50, 0.18)
+## Outfits (G14.19). The Marshal is always the orange shirt — he is the player
+## and has to be findable in a yard at a glance — but every OTHER figure in the
+## town takes one of these, so the diorama stops being a crowd of identical
+## men. Picked by a seed, never at random on the frame, so a townsperson wears
+## the same clothes every time you look at them.
+const CHAR_OUTFITS: Array[Dictionary] = [
+	{"shirt": Color(0.92, 0.50, 0.18), "jeans": Color(0.28, 0.36, 0.52),
+		"hat": Color(0.55, 0.52, 0.34)},
+	{"shirt": Color(0.36, 0.52, 0.62), "jeans": Color(0.30, 0.28, 0.26),
+		"hat": Color(0.42, 0.40, 0.32)},
+	{"shirt": Color(0.72, 0.30, 0.32), "jeans": Color(0.34, 0.32, 0.38),
+		"hat": Color(0.60, 0.50, 0.30)},
+	{"shirt": Color(0.52, 0.56, 0.34), "jeans": Color(0.24, 0.30, 0.42),
+		"hat": Color(0.36, 0.34, 0.28)},
+	{"shirt": Color(0.86, 0.78, 0.52), "jeans": Color(0.32, 0.34, 0.40),
+		"hat": Color(0.48, 0.44, 0.34)},
+	{"shirt": Color(0.44, 0.36, 0.56), "jeans": Color(0.26, 0.26, 0.30),
+		"hat": Color(0.52, 0.48, 0.36)},
+]
+
+## The face (G14.19). Two eyes, a brow line and a mouth, all flat boxes on the
+## front of the head: at the distance this game is played at anything more is
+## invisible, and anything less leaves a blank ball under a hat.
+## Smaller and further apart than the first pass, which put a 0.024-tall eye
+## 0.030 below a brow and merged the two into one dark band across the face —
+## it read as sunglasses (G14.19).
+const CHAR_EYE_SIZE := Vector3(0.019, 0.016, 0.010)
+const CHAR_EYE_GAP := 0.044
+const CHAR_EYE_Y := 0.022
+const CHAR_BROW_SIZE := Vector3(0.026, 0.007, 0.009)
+const CHAR_BROW_Y := 0.058
+const CHAR_MOUTH_SIZE := Vector3(0.030, 0.009, 0.009)
+const CHAR_MOUTH_Y := -0.038
+const CHAR_EYE := Color(0.14, 0.12, 0.11)
+const CHAR_BROW := Color(0.26, 0.19, 0.13)
+const CHAR_MOUTH := Color(0.58, 0.36, 0.32)
 const CHAR_SKIN := Color(0.87, 0.67, 0.52)
 const CHAR_JEANS := Color(0.28, 0.36, 0.52)
 ## "Haki" hat and the dark brow band have no numeric colours in §8.
@@ -1776,9 +1812,10 @@ const FIRST_RUN_HINT_CELLS := 4
 ## The harvest's own colour: the map badge and the radio card, so the bonus
 ## level reads as a different errand from a case pin.
 const HARVEST_GOLD := Color(0.92, 0.76, 0.24)
-## The three fields the farm offers, each growing a different crop: wheat,
-## sunflowers, corn. HARVEST_VARIANT stays as the first of them because the map
-## pin and a handful of older call sites name it directly.
+## The six fields the farm offers, each growing a different crop: wheat,
+## sunflowers, corn, lavender, pumpkin and cotton. HARVEST_VARIANT stays as the
+## first of them because the map pin and a handful of older call sites name it
+## directly.
 const HARVEST_VARIANT := "harvest_field"
 const HARVEST_VARIANTS: Array[String] = [
 	"harvest_field", "harvest_sunflower", "harvest_corn",
@@ -1791,11 +1828,13 @@ const HARVEST_NAMES: Array[String] = [
 ]
 
 
-## True for any of the three fields. Comparing against HARVEST_VARIANT alone
-## sent the other two down the case-pin path, where they have no route slot and
+## True for any of the fields. Comparing against HARVEST_VARIANT alone
+## sent the rest down the case-pin path, where they have no route slot and
 ## the panel would have talked about a place that does not exist.
 static func is_harvest_variant(variant_id: String) -> bool:
 	return HARVEST_VARIANTS.has(variant_id)
+
+
 ## Offered after this many finished searches, once the farm is rebuilt and the
 ## tractor is owned. It then waits indefinitely: an invitation, not a timer.
 const HARVEST_EVERY := 3
