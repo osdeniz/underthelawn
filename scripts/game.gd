@@ -723,9 +723,17 @@ func _payout() -> Dictionary:
 	if variant != null and variant.is_harvest():
 		multiplier = GameConfig.HARVEST_SCRAP_MULTIPLIER
 	# And the chapter's own weighting on top (G13). Case 02 buries as much as
-	# Case 01 does — the yards would feel empty otherwise — but the economy it
-	# lands in has no new sinks, so what it pays is scaled rather than what it
-	# hides.
+	# Case 01 does — the yards would feel empty otherwise — but what it PAYS is
+	# scaled rather than what it hides.
+	#
+	# That scale was 0.32, on the belief that Case 02 lands in an economy with
+	# nothing left to buy. Measured, the opposite was true: 14 410 of sinks
+	# against 10 779 of income, with 5 560 of workshop upgrades that nothing
+	# else funds. Ten bigger yards were the poorest hours in the game and full
+	# completion quietly required farming two harvests. It is 0.68 now, which
+	# puts the eighteen chapters at 1.04x of everything the game sells — see
+	# tests/EconomyCheck.tscn, which measures this through these same
+	# functions rather than restating them.
 	if variant != null:
 		multiplier *= variant.scrap_multiplier
 	for key: String in payout:

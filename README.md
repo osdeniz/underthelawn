@@ -2551,6 +2551,36 @@ the two strings sit next to each other in the same match and the wrong one had
 been copied. `ReunionCheck` reads both branches as a player would, and was
 confirmed to fail against the old line before being kept.
 
+### G14.11 — the economy, and a review finding that was backwards
+
+I reviewed the game and reported that money stops meaning anything: 8 850 of
+sinks against eighteen chapters and an unlimited harvest. **Both halves of that
+were wrong.** I had missed the 5 560 in workshop upgrades entirely, and I had
+never measured the income at all — the 116 050 in the save I was looking at was
+a dev wallet, not the shipped curve.
+
+Measured, through the shipping functions:
+
+| | |
+|---|---|
+| income, all 18 chapters at 100% | 10 779 |
+| sinks (10 projects + 3 unlocks + 12 upgrade tiers) | 14 410 |
+| coverage | **0.76x** |
+
+The economy was TIGHT, not loose — and the gap was being closed by farming the
+harvest, which the game presents as an invitation with no pressure attached.
+
+The cause was one number. Case 2's chapters paid `scrap_multiplier: 0.32`, set
+on the same belief I had arrived at independently: that Case 2 lands in an
+economy with nothing left to buy. So the ten BIGGEST yards were the poorest
+hours in the game. At 0.68 the eighteen chapters cover everything the game
+sells at 1.04x, and the harvest goes back to being the bonus it is written as.
+
+`EconomyCheck` asserts the coverage stays inside 1.0-1.6x and that a case's pay
+does not collapse relative to the size of its yards. It runs through
+`ScrapField.payout` and the real config rather than restating the arithmetic,
+so it cannot drift from the formulas it guards.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

@@ -373,7 +373,7 @@
       },
       "reclaim_line": "RECLAIM_CH09",
       "time_of_day": "morning",
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch10_relay_hill": {
       "palette_id": "AMBER",
@@ -415,7 +415,7 @@
       },
       "reclaim_line": "RECLAIM_CH10",
       "time_of_day": "midday",
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch11_orchard": {
       "palette_id": "LUSH",
@@ -457,7 +457,7 @@
       },
       "reclaim_line": "RECLAIM_CH11",
       "time_of_day": "afternoon",
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch12_river_crossing": {
       "palette_id": "MARSH",
@@ -502,7 +502,7 @@
       "time_of_day": "morning",
       "evidence_zone": "far",
       "mid_chat": "chat_ch12",
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch13_roadside_camp": {
       "palette_id": "DRY_GOLD",
@@ -546,7 +546,7 @@
       "reclaim_line": "RECLAIM_CH13",
       "time_of_day": "midday",
       "mid_chat": "chat_ch13",
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch14_listening_post": {
       "palette_id": "DUSK_VIOLET",
@@ -591,7 +591,7 @@
       "time_of_day": "dusk",
       "mid_chat": "chat_ch14",
       "signal_layers": true,
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch15_old_clinic": {
       "palette_id": "EMERALD",
@@ -635,7 +635,7 @@
       "reclaim_line": "RECLAIM_CH15",
       "time_of_day": "afternoon",
       "mid_chat": "chat_ch15",
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch16_meeting_stone": {
       "palette_id": "DRY_GOLD",
@@ -679,7 +679,7 @@
       "reclaim_line": "RECLAIM_CH16",
       "time_of_day": "golden",
       "mid_chat": "chat_ch16",
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch17_signal_garden": {
       "palette_id": "LUSH",
@@ -722,7 +722,7 @@
       },
       "reclaim_line": "RECLAIM_CH17",
       "time_of_day": "afternoon",
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "ch18_long_road_home": {
       "palette_id": "WHEAT",
@@ -775,7 +775,7 @@
         0.5,
         0.75
       ],
-      "scrap_multiplier": 0.32
+      "scrap_multiplier": 0.68
     },
     "harvest_sunflower": {
       "level_type": "harvest",
