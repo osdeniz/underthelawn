@@ -267,10 +267,21 @@ func _build() -> void:
 	var band := _mat("band", GameConfig.CHAR_BAND)
 	var boot := _mat("boot", GameConfig.CHAR_BOOT, 0.82)
 
+	# The pelvis is on the ROOT, not the torso: it belongs to the legs, and a
+	# torso roll must not take the hips with it.
+	var ps := GameConfig.CHAR_PELVIS_SIZE
+	_box(self, ps, jeans, Vector3(0.0, ps.y * 0.1, 0.0))
+
 	# Torso pivots at the waist; the box sits above it.
 	_torso = _pivot(self, "Torso", Vector3.ZERO)
 	var ts := GameConfig.CHAR_TORSO_SIZE
 	_box(_torso, ts, shirt, Vector3(0.0, ts.y * 0.5, 0.0))
+	# A yoke across the shoulders, so the shirt has shoulders in it.
+	var ys := GameConfig.CHAR_YOKE_SIZE
+	_box(_torso, ys, shirt, Vector3(0.0, ts.y - ys.y * 0.35, 0.0))
+	# And a neck, so the head is attached to something.
+	var ns := GameConfig.CHAR_NECK_SIZE
+	_box(_torso, ns, skin, Vector3(0.0, ts.y + ns.y * 0.4, 0.0))
 
 	# Head on top of the torso: sphere + brow band + sun hat.
 	_head = _pivot(_torso, "Head", Vector3(0.0, ts.y + 0.06, 0.0))
@@ -292,7 +303,11 @@ func _build() -> void:
 		var elbow := _pivot(shoulder, "Elbow", Vector3(0.0, -GameConfig.CHAR_UPPER_ARM, 0.0))
 		_box(elbow, Vector3(0.07, GameConfig.CHAR_LOWER_ARM, 0.07), skin,
 			Vector3(0.0, -GameConfig.CHAR_LOWER_ARM * 0.5, 0.0))
-		_sphere(elbow, 0.045, skin, Vector3(0.0, -GameConfig.CHAR_LOWER_ARM - 0.02, 0.0))
+		# A hand, not a bare stump: a box reads as a fist at this size, and the
+		# sphere alone read as a bead on the end of a stick.
+		var hs := GameConfig.CHAR_HAND_SIZE
+		_box(elbow, hs, skin,
+			Vector3(0.0, -GameConfig.CHAR_LOWER_ARM - hs.y * 0.4, 0.0))
 		if side < 0:
 			_shoulder_l = shoulder
 		else:
@@ -308,9 +323,20 @@ func _build() -> void:
 		var knee := _pivot(hip, "Knee", Vector3(0.0, -GameConfig.CHAR_UPPER_LEG, 0.0))
 		_box(knee, Vector3(0.10, GameConfig.CHAR_LOWER_LEG, 0.10), jeans,
 			Vector3(0.0, -GameConfig.CHAR_LOWER_LEG * 0.5, 0.0))
+		# The foot: an upper that meets the shin, a sole that meets the ground,
+		# and a toe box in front of both. The old single box sat inside the
+		# bottom of the leg and disappeared at play distance.
 		var bs := GameConfig.CHAR_BOOT_SIZE
+		var ss := GameConfig.CHAR_BOOT_SOLE
+		var ankle := -GameConfig.CHAR_LOWER_LEG
 		_box(knee, bs, boot,
-			Vector3(0.0, -GameConfig.CHAR_LOWER_LEG - bs.y * 0.35, -bs.z * 0.28))
+			Vector3(0.0, ankle - bs.y * 0.5, -bs.z * 0.16))
+		_box(knee, ss, boot,
+			Vector3(0.0, ankle - bs.y - ss.y * 0.5, -bs.z * 0.16))
+		# Toe cap, forward of the sole: what makes the foot POINT somewhere.
+		_box(knee, Vector3(bs.x * 0.9, bs.y * 0.7, GameConfig.CHAR_BOOT_TOE), boot,
+			Vector3(0.0, ankle - bs.y * 0.62,
+				-bs.z * 0.16 - bs.z * 0.5 - GameConfig.CHAR_BOOT_TOE * 0.4))
 		if side < 0:
 			_hip_l = hip
 			_knee_l = knee

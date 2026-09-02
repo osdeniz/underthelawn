@@ -60,6 +60,10 @@ var throttle: float = 0.0
 var desired_omega: float = 0.0
 
 var is_active := false
+## Stopped where it stands while the player walks (G14.16). Not the same as
+## inactive: an inactive mower is hidden and unsimulated, a parked one is still
+## in the yard and still reading the controls for whoever needs them.
+var is_parked := false
 
 var _body: Node3D
 var _clippings: GPUParticles3D
@@ -132,7 +136,11 @@ func right() -> Vector3:
 ## tractor vanish the moment the player got down from it.
 func set_parked(value: bool) -> void:
 	is_active = not value
-	set_physics_process(not value)
+	is_parked = value
+	# Physics processing stays ON. The input pipeline lives in there — the pad,
+	# the keyboard and the camera-relative stick — and the WALKER reads that
+	# same stick. Switching it off parked the machine and took the player's
+	# controls away with it (G14.17).
 	if value:
 		speed = 0.0
 		omega = 0.0
@@ -198,8 +206,12 @@ func _on_reset() -> void:
 # ---------------------------------------------------------------- core loop (§7)
 
 func _physics_process(delta: float) -> void:
+	# Input first, always: parked or not, this is the one place the pad and the
+	# keyboard are read, and the walker borrows the result.
 	_read_keyboard()
 	_gather_input(delta)
+	if is_parked:
+		return
 	_update_speed(delta)
 	_update_steering(delta)
 

@@ -2708,6 +2708,39 @@ pretending to be a person.
 Out of reach, the button refuses and says so rather than teleporting anyone
 into a seat on the far side of the yard.
 
+### G14.17 — the man had no feet, and walking went sideways
+
+Three defects, all mine, all from the sprint before.
+
+**The legs were underground.** The figure's root IS its waist and the legs hang
+DOWN from it — every riding pose accounts for that with a Y offset. The walker
+placed the driver at y 0, so everything below the hips was under the lawn. That
+is what "the man has no feet" was.
+
+**Walking went 90 degrees off.** `Walker` computed its direction as
+`(sin, cos)` where `MowerController._forward()` uses `(cos, sin)` — the same
+vector mirrored across the 45-degree line. Pressing forward on foot went east
+where the machine would have gone south. `WalkDirCheck` compares the two for
+four camera angles and four stick directions and was confirmed to fail at
+exactly 90 degrees against the old formula.
+
+**And the keys did not reach the walker at all.** Parking the machine switched
+off its physics processing — which is where the pad and the keyboard are read,
+and the walker borrows that stick. So on foot nothing moved. `WalkCheck` had
+been passing because it moved the walker by hand; the new test presses
+`move_forward` for real and measures the distance covered. Against the old
+code it reads 0.00 units.
+
+Arrow keys were already bound alongside WASD in the input map — the direction
+was the bug, not the binding.
+
+**The figure itself got the parts it was missing:** a pelvis the legs hang off,
+a neck under the head, hands on the ends of the arms, a yoke across the
+shoulders, and boots in three pieces — upper, sole, toe cap — instead of one
+0.09-tall box tucked inside the bottom of the shin. Proportions went with them:
+the torso was 0.44 against 0.70 of leg, which reads as a short body on long
+legs.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish

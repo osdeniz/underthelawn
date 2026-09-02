@@ -1337,22 +1337,45 @@ const CHAR_HAT := Color(0.55, 0.52, 0.34)
 const CHAR_BAND := Color(0.13, 0.11, 0.09)
 const CHAR_BOOT := Color(0.20, 0.15, 0.11)
 
-const CHAR_TORSO_SIZE := Vector3(0.34, 0.44, 0.20)
-const CHAR_HEAD_RADIUS := 0.115
+## Proportions, revisited (G14.17). The torso was 0.44 against 0.70 of leg,
+## which reads as a short body on long legs; a person is closer to even. The
+## head was small enough that the hat did the work of finding the face.
+const CHAR_TORSO_SIZE := Vector3(0.35, 0.50, 0.21)
+const CHAR_HEAD_RADIUS := 0.125
 const CHAR_BAND_SIZE := Vector2(0.16, 0.035)
 const CHAR_HAT_BRIM_RADIUS := 0.175
 const CHAR_HAT_TOP_RADIUS := 0.10
-const CHAR_SHOULDER := Vector2(0.21, 0.42)     # +/-x, y — on the torso
+const CHAR_SHOULDER := Vector2(0.195, 0.46)    # +/-x, y — on the torso
 const CHAR_UPPER_ARM := 0.24
 const CHAR_LOWER_ARM := 0.22
 const CHAR_HIP_X := 0.09
 const CHAR_UPPER_LEG := 0.36
 const CHAR_LOWER_LEG := 0.34
-const CHAR_BOOT_SIZE := Vector3(0.11, 0.09, 0.22)
+## A real boot, in two parts: a sole that meets the ground and an upper that
+## meets the shin. It was one 0.09-tall box tucked INSIDE the bottom of the leg
+## and read, at any distance the game is actually played at, as no foot at all
+## (G14.17).
+const CHAR_BOOT_SIZE := Vector3(0.135, 0.075, 0.28)
+const CHAR_BOOT_SOLE := Vector3(0.145, 0.045, 0.30)
+const CHAR_BOOT_TOE := 0.09
+## The pelvis the legs hang off, and the neck the head sits on. Without them
+## the torso floated over two separate legs and the head over the torso.
+const CHAR_PELVIS_SIZE := Vector3(0.30, 0.13, 0.19)
+const CHAR_NECK_SIZE := Vector3(0.085, 0.07, 0.085)
+## Hands, so the arms end in something.
+const CHAR_HAND_SIZE := Vector3(0.075, 0.085, 0.075)
+## A yoke across the shoulders: the shirt reads as a shirt with it, and as a
+## rectangle without.
+const CHAR_YOKE_SIZE := Vector3(0.37, 0.075, 0.23)
 const CHAR_AO_SIZE := 0.7                      # NOT in §8 — small contact shadow
 
 # Push mode (§8): walks behind the mower.
 const CHAR_PUSH_SEAT := Vector3(0.0, 0.79, 1.45)
+## Waist height on foot (G14.17). The figure's root IS its waist and the legs
+## hang DOWN from it, so a walker placed at y 0 buries them: that is why the
+## man appeared to have no feet. 0.79 is the push mower's own waist height,
+## which is the same person standing on the same ground.
+const CHAR_WALK_WAIST_Y := 0.79
 const CHAR_PUSH_LEAN := 0.12                   # torso forward lean
 const CHAR_PUSH_ARM_X := 0.85                  # arms forward-down to the handle
 const CHAR_PUSH_ARM_INWARD := 0.12             # "hafif içe" — no number in §8

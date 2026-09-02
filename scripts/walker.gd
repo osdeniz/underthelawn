@@ -31,9 +31,24 @@ func setup(from: MowerController, driver: Character, at: Vector3) -> void:
 	character = driver
 	position = Vector3(at.x, 0.0, at.z)
 	if driver != null:
-		# The person comes with us, reparented and set walking.
+		# The person comes with us, reparented and set walking — at WAIST
+		# height, because the figure's root is its waist and its legs hang
+		# below it. At y 0 the legs were underground, which is exactly what
+		# "the man has no feet" looked like (G14.17).
 		driver.set_mode(Character.Mode.PUSH, null, self)
-		driver.position = Vector3.ZERO
+		driver.position = Vector3(0.0, GameConfig.CHAR_WALK_WAIST_Y, 0.0)
+
+
+## Where a stick points, on foot. Kept as a static and used by the test that
+## compares it against the machine's own answer, because "forward" meaning two
+## different things depending on whether you are riding is the bug this exists
+## to prevent (G14.17).
+static func direction_for(camera_yaw: float, stick: Vector2) -> Vector2:
+	var heading := camera_yaw + atan2(stick.x, stick.y)
+	# (cos, sin), the same as MowerController._forward(). It was (sin, cos),
+	# which is that vector MIRRORED across the 45-degree line: on foot the
+	# player went east when the machine would have gone south.
+	return Vector2(cos(heading), sin(heading))
 
 
 ## Whether the machine can be climbed back onto from here.
@@ -51,9 +66,8 @@ func _physics_process(delta: float) -> void:
 		else Vector2.ZERO
 	var wanted := Vector2.ZERO
 	if stick.length_squared() > 0.0001:
-		var heading := camera_yaw + atan2(stick.x, stick.y)
 		var strength := minf(stick.length(), 1.0)
-		wanted = Vector2(sin(heading), cos(heading)) * strength * GameConfig.WALK_SPEED
+		wanted = direction_for(camera_yaw, stick) * strength * GameConfig.WALK_SPEED
 	# A person stops and starts much faster than a machine, but not instantly.
 	_velocity = _velocity.lerp(wanted, minf(1.0, GameConfig.WALK_TURN * delta))
 	position += Vector3(_velocity.x, 0.0, _velocity.y) * delta
