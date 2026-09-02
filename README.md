@@ -2741,6 +2741,40 @@ shoulders, and boots in three pieces — upper, sole, toe cap — instead of one
 the torso was 0.44 against 0.70 of leg, which reads as a short body on long
 legs.
 
+### G14.17 — the man had no feet, and walking went sideways
+
+Three faults, all mine, all from the walking patch.
+
+**The legs were underground.** The figure's root IS its waist and the legs hang
+below it — every riding pose sets a Y offset for exactly that reason. The
+walker placed the driver at y 0, which buried both legs to the knee. That is
+what "the man has no feet" actually was.
+
+**The feet were also not much of a foot.** One 0.075-tall box tucked inside the
+bottom of the shin, invisible at any distance the game is played at. A boot is
+three parts now — upper, sole, toe cap — and the figure gained the pieces it
+was missing besides: a pelvis the legs hang off, a neck under the head, a yoke
+across the shoulders and hands on the ends of the arms. Without those the torso
+floated over two separate legs and the arms ended in nothing.
+
+**And walking went 90 degrees off.** `Walker` computed its heading as
+`(sin, cos)` where `MowerController._forward()` uses `(cos, sin)` — the same
+vector mirrored across the 45-degree line. Pressing forward on foot went east
+where the machine would have gone south, which is what reads as "the arrow keys
+move the wrong way". `Walker.direction_for()` is a static now and
+`WalkDirCheck` compares it against the machine's own answer at four camera
+angles; it measured exactly 90 degrees of error against the old formula.
+
+**The keys did not reach the walker at all.** Parking the machine switched off
+its physics processing — which is where the pad and the keyboard are read, and
+the walker borrows that stick. So on foot nothing moved, and `WalkCheck`
+passed anyway because it had been moving the walker by hand. The test presses
+`move_forward` for real now and measures the distance covered; against the old
+code it reported 0.00 units.
+
+Arrow keys were never the problem: they have been bound alongside WASD since
+G14, and `InputMapCheck` says so.
+
 ## Not in G1-G9
 
 Nothing major — every REFERENCE.md system through §12 is in. Remaining polish
