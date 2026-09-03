@@ -146,6 +146,7 @@ func _tick_rabbit(entry: Dictionary, delta: float) -> void:
 			if _player_within(root, GameConfig.RABBIT_BOLT_RANGE):
 				entry["state"] = State.FLEE
 				entry["target"] = _bolt_target(root.position)
+				AudioDirector.play_rabbit()
 				# Ears go FLAT and stay flat while it runs. Upright ears on a
 				# sprinting rabbit is the tell that it is an animation, not an
 				# animal.
@@ -256,6 +257,7 @@ func _tick_pecker(entry: Dictionary, delta: float) -> void:
 			if _player_within(root, GameConfig.PECKER_FLEE_RANGE):
 				entry["state"] = State.FLEE
 				entry["timer"] = 1.3
+				AudioDirector.play_bird_takeoff()
 				var out := root.position - player_at
 				out.y = 0.0
 				if out.length() < 0.01:
@@ -396,7 +398,12 @@ func _tick_dog_follow(entry: Dictionary, root: Node3D, body: Node3D,
 			var at := LawnModel.cell_center(scent.x, scent.y)
 			root.rotation.y = face(Vector2(at.x - root.position.x, at.z - root.position.z))
 			_point(body, delta)
+			# One huff when it first has something, not while it holds.
+			if not bool(entry.get("scent_on", false)):
+				entry["scent_on"] = true
+				AudioDirector.play_dog_huff()
 		else:
+			entry["scent_on"] = false
 			_wag(body, delta)
 		return
 	var step := minf(GameConfig.DOG_FOLLOW_SPEED * delta, maxf(gap - 0.2, 0.0))

@@ -460,6 +460,218 @@ def pin():
     return out
 
 
+
+# ============================================================ G16.1 additions
+# The world got rain, night, a walk mode, animals and a prologue lamp and none
+# of them made a sound. Same rules as everything above: synthesized OFFLINE
+# into files, deterministic, replaced by any .ogg of the same base name.
+
+def _noise(n, seed_offset=0):
+    r = random.Random(20260824 + seed_offset)
+    return [r.random() * 2.0 - 1.0 for _ in range(n)]
+
+
+def _lowpass(samples, alpha):
+    out = []
+    y = 0.0
+    for v in samples:
+        y += alpha * (v - y)
+        out.append(y)
+    return out
+
+
+def _highpass(samples, alpha):
+    low = _lowpass(samples, alpha)
+    return [v - l for v, l in zip(samples, low)]
+
+
+def _loop_fade(samples, edge=0.04):
+    """Cross-fades the tail into the head so a loop point is inaudible."""
+    n = len(samples)
+    k = int(n * edge)
+    out = list(samples)
+    for i in range(k):
+        t = i / k
+        out[i] = samples[i] * t + samples[n - k + i] * (1.0 - t)
+    return out[: n - k]
+
+
+# ---- rain: broadband hiss with a slow swell, plus sparse heavier drops.
+def rain_loop():
+    n = seconds(6.0)
+    hiss = _lowpass(_noise(n, 1), 0.35)
+    hiss = _highpass(hiss, 0.02)
+    out = []
+    drops = random.Random(77)
+    drop_at = set(drops.randrange(n) for _ in range(140))
+    tick = 0.0
+    for i in range(n):
+        t = i / SR
+        swell = 0.75 + 0.25 * math.sin(TAU * 0.21 * t)
+        if i in drop_at:
+            tick = 1.0
+        tick *= 0.9992
+        v = hiss[i] * swell * 0.55 + (drops.random() - 0.5) * tick * 0.5
+        out.append(v)
+    return _loop_fade(out)
+
+
+# ---- night: crickets. Trains of 4.2 kHz chirps, several insects out of phase,
+# with a slow breathing swell so it is a field and not a machine.
+def crickets_loop():
+    n = seconds(8.0)
+    out = [0.0] * n
+    bugs = [(4100.0, 0.0, 17.0), (4500.0, 0.37, 15.5), (3900.0, 0.71, 19.0)]
+    for freq, phase, rate in bugs:
+        for i in range(n):
+            t = i / SR
+            gate = 0.5 + 0.5 * math.sin(TAU * rate * t + phase * TAU)
+            gate = gate ** 6
+            train = 0.5 + 0.5 * math.sin(TAU * 1.9 * t + phase * 4.0)
+            train = 1.0 if train > 0.35 else 0.0
+            out[i] += math.sin(TAU * freq * t) * gate * train * 0.12
+    return _loop_fade(out)
+
+
+# ---- a gust crossing the field: a noise swell, 2.6 s, one shot.
+def wind_gust():
+    n = seconds(2.6)
+    raw = _lowpass(_noise(n, 3), 0.08)
+    out = []
+    for i in range(n):
+        t = i / n
+        env = math.sin(math.pi * t) ** 1.6
+        out.append(raw[i] * env)
+    return out
+
+
+# ---- footsteps: a soft broadband thud with a grassy swish on top.
+def footstep(grass=True, seed=5):
+    n = seconds(0.22)
+    raw = _noise(n, seed)
+    out = []
+    for i in range(n):
+        t = i / SR
+        thud = math.sin(TAU * 62 * t) * math.exp(-42 * t)
+        swish = raw[i] * math.exp(-18 * t) * (0.55 if grass else 0.25)
+        crunch = raw[i] * math.exp(-90 * t) * (0.0 if grass else 0.6)
+        out.append(thud * 0.6 + swish + crunch)
+    return out
+
+
+# ---- the lamp on the gate: a faint mains hum with a flicker in it.
+def lamp_hum():
+    n = seconds(3.0)
+    out = []
+    for i in range(n):
+        t = i / SR
+        flick = 1.0 + 0.08 * math.sin(TAU * 7.3 * t) * math.sin(TAU * 0.9 * t)
+        v = (math.sin(TAU * 60 * t) * 0.6 + math.sin(TAU * 120 * t) * 0.3
+             + math.sin(TAU * 180 * t) * 0.1) * flick
+        out.append(v)
+    return _loop_fade(out)
+
+
+# ---- the dog, once, when it has something: a short low huff, not a bark.
+def dog_huff():
+    n = seconds(0.28)
+    raw = _lowpass(_noise(n, 8), 0.12)
+    out = []
+    for i in range(n):
+        t = i / SR
+        env = math.sin(math.pi * min(1.0, t / 0.28)) ** 0.7
+        out.append(raw[i] * env * 0.9 + math.sin(TAU * 140 * t) * env * 0.25)
+    return out
+
+
+# ---- a rabbit going through grass: a quick rustle, rising then gone.
+def rabbit_rustle():
+    n = seconds(0.55)
+    raw = _highpass(_noise(n, 11), 0.15)
+    out = []
+    for i in range(n):
+        t = i / 0.55 / SR * SR
+        u = i / n
+        env = (u * 3.0 if u < 0.33 else 1.0) * math.exp(-4.5 * u)
+        out.append(raw[i] * env)
+    return out
+
+
+# ---- a small bird taking off: five quick wing flaps.
+def bird_takeoff():
+    n = seconds(0.6)
+    raw = _lowpass(_noise(n, 13), 0.5)
+    out = []
+    for i in range(n):
+        t = i / SR
+        flap = 0.5 + 0.5 * math.sin(TAU * 11.0 * t - math.pi / 2)
+        flap = flap ** 3
+        env = math.exp(-3.2 * t)
+        out.append(raw[i] * flap * env)
+    return out
+
+
+# ---- somebody at the edge of town: two soft notes, a fifth apart.
+def settler_card():
+    a = bell(392.0, 0.9, 0.8)
+    b = bell(587.3, 1.1, 0.9)
+    n = max(len(a), len(b)) + seconds(0.25)
+    out = [0.0] * n
+    for i, v in enumerate(a):
+        out[i] += v
+    off = seconds(0.25)
+    for i, v in enumerate(b):
+        out[i + off] += v
+    return out
+
+
+# ---- a crate of food picked up: a soft wooden pluck, lower than scrap.
+def food_pickup():
+    n = seconds(0.3)
+    out = []
+    for i in range(n):
+        t = i / SR
+        v = math.sin(TAU * 196 * t) * 0.7 + math.sin(TAU * 392 * t) * 0.2
+        v += (rng.random() - 0.5) * 0.4 * math.exp(-200 * t)
+        out.append(v * math.exp(-14 * t))
+    return out
+
+
+# ---- two music beds for the yard: the hub theme's language, slower, and
+# without its melody line so it can sit under mowing for four minutes.
+def _bed(seed, scale, bar, bars, base_gain, decay, minor=False):
+    mel = random.Random(seed)
+    n = seconds(bar * bars)
+    out = [0.0] * n
+    for k in range(bars * 2):
+        f = scale[mel.randrange(len(scale))]
+        start = seconds(k * bar / 2 + mel.random() * 0.4)
+        ln = seconds(bar * 0.9)
+        for i in range(ln):
+            t = i / SR
+            v = math.sin(TAU * f * t) * 0.6 + math.sin(TAU * f * 2 * t) * 0.12
+            v += math.sin(TAU * f * 0.5 * t) * 0.25
+            j = start + i
+            if j < n:
+                out[j] += v * math.exp(-decay * t) * base_gain
+    # a held root underneath, very quiet
+    root = scale[0] * 0.5
+    for i in range(n):
+        t = i / SR
+        out[i] += math.sin(TAU * root * t) * 0.05 * (0.6 + 0.4 * math.sin(TAU * 0.05 * t))
+    return _loop_fade(out, 0.06)
+
+
+def bed_day():
+    # G major pentatonic, open and unhurried.
+    return _bed(4001, [196.0, 220.0, 246.9, 293.7, 329.6, 392.0], 2.4, 16, 0.16, 0.9)
+
+
+def bed_evening():
+    # E minor, slower, lower, with the fifth doing most of the work.
+    return _bed(4002, [164.8, 196.0, 220.0, 246.9, 293.7, 329.6], 3.0, 16, 0.14, 0.7)
+
+
 print("[gen_audio] yaziliyor:")
 write("mower_engine_loop", engine(), 0.9)
 write("grass_cut", cut(), 0.8)
@@ -477,4 +689,18 @@ write("cut_corn", cut_corn(), 0.86)
 write("cut_sunflower", cut_sunflower(), 0.78)
 write("signal_static_loop", signal_static(), 0.5)
 write("signal_clear_loop", signal_clear(), 0.55)
+write("rain_loop", rain_loop(), 0.6)
+write("crickets_loop", crickets_loop(), 0.5)
+write("wind_gust", wind_gust(), 0.55)
+write("footstep_grass_a", footstep(True, 5), 0.55)
+write("footstep_grass_b", footstep(True, 6), 0.55)
+write("footstep_dirt", footstep(False, 7), 0.55)
+write("lamp_hum_loop", lamp_hum(), 0.35)
+write("dog_huff", dog_huff(), 0.6)
+write("rabbit_rustle", rabbit_rustle(), 0.6)
+write("bird_takeoff", bird_takeoff(), 0.6)
+write("settler_card", settler_card(), 0.8)
+write("food_pickup", food_pickup(), 0.8)
+write("bed_day", bed_day(), 0.8)
+write("bed_evening", bed_evening(), 0.8)
 print("[gen_audio] bitti")

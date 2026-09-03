@@ -177,10 +177,12 @@ func _ready() -> void:
 	_animals = Animals.build(_fx_root, model, variant.decor_seed,
 		variant.is_harvest(), variant.vignette)
 	_activate(GameConfig.MOWER_PUSH, true)
-	# G9.4: no birds in play — the theme runs instead (RootFlow keeps it going).
-	# Standalone (tests, direct scene run) start it here so the scene sounds
-	# the same without the flow above it.
-	AudioDirector.play_theme()
+	# The yard's own sound (G16.1): a bed for the hour instead of the hub theme
+	# running on, rain when it is wet, crickets after dark, the lamp on the
+	# prologue's gate. Birds stay out of play (G9.4).
+	var hour := SkyTime.resolve(variant.time_of_day)
+	AudioDirector.set_scene(hour, Rain.is_wet(), variant.is_road())
+	AudioDirector.play_bed(hour)
 
 	# G8: the briefing moved to RootFlow's DialogueBox, so by the time this
 	# scene exists the case has already been accepted.
@@ -714,7 +716,11 @@ func _build_harvest_settler() -> void:
 	# INSIDE the fence, on the bare strip between the crop and the posts: past
 	# the fence is the barn's footprint (it is deep), and two renders in a row
 	# showed a red wall and nobody.
-	figure.position = Vector3(2.6, 0.0, GameConfig.fence_north_z() + 0.5)
+	# BESIDE the barn, not in front of it. Probed: the barn's box runs to z -18.0
+	# on the harvest grid — a unit past the lawn edge — so every spot in front
+	# of its door is inside it, which is why three renders showed a red wall.
+	# Its half-width is 5.7; the figure stands clear of that on the fence strip.
+	figure.position = Vector3(7.6, 0.0, GameConfig.fence_north_z() + 0.5)
 	# Facing the field (+Z), which the model does by turning its -Z round.
 	figure.rotation.y = PI
 	_fx_root.add_child(figure)
@@ -906,6 +912,10 @@ func _tick_lapse() -> void:
 		_lapse_bucket = bucket
 		variant.time_of_day = bucket
 		hud.refresh_sky()
+		# The sound follows the light: crickets come in with the dark, and the
+		# bed changes if the hour crosses into the evening set.
+		AudioDirector.set_scene(SkyTime.resolve(bucket), Rain.is_wet(), false)
+		AudioDirector.play_bed(SkyTime.resolve(bucket))
 
 
 func _check_pickups() -> void:
@@ -1169,7 +1179,7 @@ func _on_food_found(col: int, row: int, value: int) -> void:
 	var at := LawnModel.cell_center(col, row)
 	hud.fly_food(value, cam.unproject_position(at + Vector3.UP * 0.6))
 	hud.set_food(TownStats.food() + _food_banked)
-	AudioDirector.play_scrap()
+	AudioDirector.play_food()
 	Haptics.light()
 
 
@@ -1303,3 +1313,6 @@ func _check_echo(col: int, row: int) -> void:
 func _exit_tree() -> void:
 	AudioDirector.stop_engine()
 	AudioDirector.stop_signal()
+	# The yard's weather, night and bed leave with the yard (G16.1).
+	AudioDirector.set_scene("", false, false)
+	AudioDirector.stop_bed()

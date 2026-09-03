@@ -36,7 +36,7 @@ func _shot(chapter: String, path: String, aim_barn: bool) -> void:
 	if aim_barn:
 		# Close and a little high, or the foreground crop hides everything below
 		# head height at the target distance.
-		var target := Vector3(2.6, 1.0, GameConfig.fence_north_z() + 0.5)
+		var target := Vector3(7.6, 1.0, GameConfig.fence_north_z() + 0.5)
 		eye.position = target + Vector3(0.0, 3.0, 4.2)
 		eye.look_at(target)
 	else:

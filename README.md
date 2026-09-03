@@ -3483,3 +3483,38 @@ dialogue box: keys are translated by the box, a line handed to it already
 translated passes through unchanged, so one key serves every settler. Six
 harvest variants name `chat_harvest`, and `_check_mid_chat` skips it when there
 is nobody to talk about.
+
+### G16.1 — the sound of the world
+
+The world had rain, night, a man on foot, animals, a lamp on a gate and a
+growing town, and none of it made a sound. Fourteen files now, all synthesized
+OFFLINE by `tools/gen_audio.py` under the rule that has held since G1 —
+generated assets are fine, runtime synthesis is not — and every one of them is
+replaced by dropping a recording of the same base name into `audio/`.
+
+| file | what | when |
+|---|---|---|
+| `rain_loop` | broadband hiss with a swell and sparse heavy drops | wet chapters |
+| `crickets_loop` | three insects out of phase, breathing | dusk, night |
+| `wind_gust` | a 2.6 s noise swell | every 14–26 s outdoors |
+| `footstep_grass_a/b`, `footstep_dirt` | thud plus swish, or crunch | on foot, by DISTANCE |
+| `lamp_hum_loop` | 60 Hz and its harmonics with a flicker | the prologue road |
+| `dog_huff` | one low huff | the dog first has a scent |
+| `rabbit_rustle` | a rustle rising and gone | a rabbit bolts |
+| `bird_takeoff` | five wing flaps | a bird flees |
+| `settler_card` | two soft notes a fifth apart | somebody at the edge of town |
+| `food_pickup` | a wooden pluck, lower than scrap | a crate is picked up |
+| `bed_day`, `bed_evening` | the hub theme's language, slower, no melody line | under the yard |
+
+**The hub theme no longer runs under gameplay.** G9.4 sent it there in place of
+the ambient birds, and it has been the same forty bars for two hours since. Two
+beds now, chosen by hour — bright hours the day bed, golden/sunset/dusk/night
+the evening one — cross-faded when the class changes and left alone when it
+does not, so the ch06 sunset switches beds at its midpoint and nothing else
+does. The theme is the hub's and the cards' again.
+
+Footfalls are by distance, not time, so a shuffle and a stride both sound like
+walking. Everything sits LOW: these are under the engine and the cut, which are
+the sounds the game is about. `AudioCheck` asserts every key loads, the scene
+switches with hour and weather, the bed follows the hour, and every one-shot is
+silent rather than an error when its file is missing.

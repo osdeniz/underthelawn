@@ -2494,3 +2494,28 @@ const OBSERVER_VANISH_RANGE := 7.0
 ## the newest one stands by the barn while the field is cut and the Marshal
 ## says two things about them, with the settler's own name in the line.
 const HARVEST_CHAT_KEY := "chat_harvest"
+
+
+# ---------------------------------------------------------------- sound of the world (G16.1)
+
+## The world had rain, night, a man on foot, animals and a lamp on a gate, and
+## none of it made a sound. Every gain here is LOW on purpose: these sit under
+## the engine and the cut, which are the sounds the game is about.
+const RAIN_GAIN := 0.34
+const CRICKETS_GAIN := 0.26
+const LAMP_GAIN := 0.16
+## The two yard beds. The hub theme stays the hub's; under mowing it was the
+## same forty bars for two hours. Day for the bright hours, evening for the
+## warm and dark ones.
+const BED_GAIN := 0.20
+const BED_FADE := 1.6
+const EVENING_BED_HOURS: Array[String] = ["golden", "sunset", "dusk", "night"]
+const NIGHT_SOUND_HOURS: Array[String] = ["dusk", "night"]
+const STEP_GAIN := 0.42
+## Metres between footfalls on foot.
+const WALK_STRIDE := 0.66
+const GUST_GAIN := 0.28
+const GUST_INTERVAL := Vector2(14.0, 26.0)
+## Round-robin one-shot voices, so a rustle and a pickup in the same frame do
+## not cut each other off.
+const FX_VOICES := 3

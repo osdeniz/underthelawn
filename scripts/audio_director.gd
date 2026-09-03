@@ -24,6 +24,22 @@ const PATHS := {
 	# this axis rather than broken.
 	"signal_static": "res://audio/signal_static_loop",
 	"signal_clear": "res://audio/signal_clear_loop",
+	# The world's own sounds (G16.1). All generated placeholders until a
+	# recording of the same base name replaces them.
+	"rain": "res://audio/rain_loop",
+	"crickets": "res://audio/crickets_loop",
+	"gust": "res://audio/wind_gust",
+	"step_a": "res://audio/footstep_grass_a",
+	"step_b": "res://audio/footstep_grass_b",
+	"step_dirt": "res://audio/footstep_dirt",
+	"lamp": "res://audio/lamp_hum_loop",
+	"dog_huff": "res://audio/dog_huff",
+	"rabbit": "res://audio/rabbit_rustle",
+	"bird_takeoff": "res://audio/bird_takeoff",
+	"settler": "res://audio/settler_card",
+	"food": "res://audio/food_pickup",
+	"bed_day": "res://audio/bed_day",
+	"bed_evening": "res://audio/bed_evening",
 }
 const AUDIO_EXTENSIONS: Array[String] = [".ogg", ".wav", ".mp3"]
 
@@ -54,6 +70,18 @@ var _turn_amount := 0.0
 var _profile: Dictionary = GameConfig.ENGINE_PROFILES[GameConfig.MOWER_PUSH]
 var _cut_frame := -1
 var _suspended := false
+## The world's loops (G16.1): weather, night, the prologue lamp, the yard bed.
+var _rain: AudioStreamPlayer
+var _night: AudioStreamPlayer
+var _lamp: AudioStreamPlayer
+var _bed: AudioStreamPlayer
+var _bed_key := ""
+var _bed_tween: Tween
+var _fx: Array[AudioStreamPlayer] = []
+var _fx_index := 0
+var _step_toggle := false
+var _outdoors := false
+var _gust_timer := 0.0
 var _rng := RandomNumberGenerator.new()
 
 
@@ -100,6 +128,12 @@ func _build_players() -> void:
 	_signal_clear = _make_player("SignalClear", "signal_clear", true)
 	for i in CUT_VOICES:
 		_cut_players.append(_make_player("Cut%d" % i, "cut", false))
+	_rain = _make_player("Rain", "rain", true)
+	_night = _make_player("Night", "crickets", true)
+	_lamp = _make_player("Lamp", "lamp", true)
+	_bed = _make_player("Bed", "", false)
+	for i in GameConfig.FX_VOICES:
+		_fx.append(_make_player("Fx%d" % i, "", false))
 
 
 func _make_player(node_name: String, key: String, looping: bool) -> AudioStreamPlayer:
@@ -404,7 +438,128 @@ func _set_suspended(value: bool) -> void:
 		_ambient_player.stream_paused = value
 
 
+# ---------------------------------------------------------------- the world (G16.1)
+
+## What the level sounds like under everything else: rain when it is wet,
+## crickets after dark, the gate lamp on the prologue road, and an occasional
+## gust anywhere outdoors. Called on entry and whenever the hour changes; an
+## empty hour switches everything off (the yard is being left).
+func set_scene(hour: String, wet: bool, lamp: bool) -> void:
+	_outdoors = hour != ""
+	_loop_to(_rain, wet and _outdoors, GameConfig.RAIN_GAIN)
+	_loop_to(_night, _outdoors and GameConfig.NIGHT_SOUND_HOURS.has(hour),
+		GameConfig.CRICKETS_GAIN)
+	_loop_to(_lamp, lamp and _outdoors, GameConfig.LAMP_GAIN)
+	if _outdoors:
+		_gust_timer = _rng.randf_range(GameConfig.GUST_INTERVAL.x, GameConfig.GUST_INTERVAL.y)
+
+
+func _loop_to(player: AudioStreamPlayer, on: bool, gain: float) -> void:
+	if player == null or player.stream == null:
+		return
+	if on and not player.playing:
+		player.volume_db = GameConfig.linear_to_db_safe(gain)
+		player.play()
+	elif not on and player.playing:
+		player.stop()
+
+
+## Which bed an hour gets: the bright hours the day bed, the warm and dark ones
+## the evening bed. Exposed so a test can ask without a scene.
+static func bed_for(hour: String) -> String:
+	return "bed_evening" if GameConfig.EVENING_BED_HOURS.has(hour) else "bed_day"
+
+
+## Music under the yard. Replaces the hub theme, which used to run on under
+## every chapter (G9.4) — the same forty bars for two hours. Cross-fades when
+## the bed changes and does nothing when it does not.
+func play_bed(hour: String) -> void:
+	var key := bed_for(hour)
+	if key == _bed_key and _bed.playing:
+		return
+	if not _streams.has(key) or _bed == null:
+		return
+	stop_theme()
+	_bed_key = key
+	if _bed_tween and _bed_tween.is_valid():
+		_bed_tween.kill()
+	_bed_tween = create_tween()
+	if _bed.playing:
+		_bed_tween.tween_property(_bed, "volume_db",
+			GameConfig.linear_to_db_safe(0.0001), GameConfig.BED_FADE * 0.5)
+	_bed_tween.tween_callback(func() -> void:
+		_bed.stream = _streams[key]
+		_force_loop(_bed.stream)
+		_bed.volume_db = GameConfig.linear_to_db_safe(0.0001)
+		_bed.play())
+	_bed_tween.tween_property(_bed, "volume_db",
+		GameConfig.linear_to_db_safe(GameConfig.BED_GAIN), GameConfig.BED_FADE)
+
+
+func stop_bed() -> void:
+	if _bed == null or not _bed.playing:
+		return
+	_bed_key = ""
+	if _bed_tween and _bed_tween.is_valid():
+		_bed_tween.kill()
+	_bed_tween = create_tween()
+	_bed_tween.tween_property(_bed, "volume_db",
+		GameConfig.linear_to_db_safe(0.0001), GameConfig.BED_FADE * 0.5)
+	_bed_tween.tween_callback(func() -> void: _bed.stop())
+
+
+## One-shots from the world. Each is a plain "play this key" through a small
+## round-robin pool; a missing file is silence, never an error.
+func _shot(key: String, gain: float, pitch := 1.0) -> void:
+	if muted or _fx.is_empty() or not _streams.has(key):
+		return
+	var p := _fx[_fx_index % _fx.size()]
+	_fx_index += 1
+	p.stream = _streams[key]
+	p.volume_db = GameConfig.linear_to_db_safe(gain)
+	p.pitch_scale = pitch
+	p.play()
+
+
+## A footfall on foot. Alternates two grass recordings; dirt on the road.
+func step(on_dirt := false) -> void:
+	_step_toggle = not _step_toggle
+	var key := "step_dirt" if on_dirt else ("step_a" if _step_toggle else "step_b")
+	_shot(key, GameConfig.STEP_GAIN, _rng.randf_range(0.94, 1.06))
+
+
+func gust() -> void:
+	_shot("gust", GameConfig.GUST_GAIN, _rng.randf_range(0.9, 1.1))
+
+
+func play_food() -> void:
+	_shot("food", 0.8)
+
+
+func play_settler() -> void:
+	_shot("settler", 0.7)
+
+
+func play_rabbit() -> void:
+	_shot("rabbit", 0.55, _rng.randf_range(0.92, 1.08))
+
+
+func play_bird_takeoff() -> void:
+	_shot("bird_takeoff", 0.5, _rng.randf_range(0.95, 1.1))
+
+
+func play_dog_huff() -> void:
+	_shot("dog_huff", 0.6)
+
+
 func _process(delta: float) -> void:
+	# A gust now and then, anywhere outdoors: the field's wind shader already
+	# moves the grass, and this is the sound of that (G16.1).
+	if _outdoors and not muted:
+		_gust_timer -= delta
+		if _gust_timer <= 0.0:
+			_gust_timer = _rng.randf_range(GameConfig.GUST_INTERVAL.x, GameConfig.GUST_INTERVAL.y)
+			gust()
 	if _engine_player == null or _engine_player.stream == null:
 		return
 	_engine_mix = lerpf(_engine_mix, _engine_target,

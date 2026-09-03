@@ -23,6 +23,7 @@ var character: Character
 
 var _velocity := Vector2.ZERO
 var _source: MowerController
+var _stride := 0.0
 
 
 func setup(from: MowerController, driver: Character, at: Vector3) -> void:
@@ -75,6 +76,12 @@ func _physics_process(delta: float) -> void:
 	# A person stops and starts much faster than a machine, but not instantly.
 	_velocity = _velocity.lerp(wanted, minf(1.0, GameConfig.WALK_TURN * delta))
 	position += Vector3(_velocity.x, 0.0, _velocity.y) * delta
+	# Footfalls by DISTANCE, not by time, so a slow shuffle and a stride both
+	# sound like walking (G16.1). Dirt on the prologue road, grass elsewhere.
+	_stride += _velocity.length() * delta
+	if _stride >= GameConfig.WALK_STRIDE:
+		_stride = 0.0
+		AudioDirector.step(LevelVariant.current != null and LevelVariant.current.is_road())
 	# Inside the fence, like every other body in the yard.
 	position.x = clampf(position.x, -GameConfig.HALF_X + 0.4,
 		GameConfig.HALF_X - 0.4)

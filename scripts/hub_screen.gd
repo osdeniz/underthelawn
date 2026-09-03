@@ -2504,6 +2504,9 @@ func _announce_objectives(earned: Array) -> void:
 ## one (G14.13).
 func _settler_call() -> void:
 	var spec := Settlers.pending()
+	if not spec.is_empty():
+		# Somebody at the edge of town: two soft notes before the card (G16.1).
+		AudioDirector.play_settler()
 	if spec.is_empty():
 		return
 	if find_children("SettlerCard", "", true, false).size() > 0:
