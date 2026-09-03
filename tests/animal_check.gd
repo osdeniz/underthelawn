@@ -322,9 +322,74 @@ func _dog_follows() -> void:
 	ck("kopek yine de yakinda", settled < GameConfig.DOG_FOLLOW_FAR + 1.0,
 		"%.2f birim" % settled)
 	print("  [olcum] kopek %.1f -> %.1f -> %.1f birim" % [before, after, settled])
+
+	# --- SCENT (G15.4). Driven by moving the MOWER so the dog follows into
+	# range; the claim is the dog's FACING, read off its transform, not its
+	# state. First a spot with NOTHING buried near it, so "not pointing" is a
+	# real observation and not luck about where the secrets landed.
+	var head := dog.get_node("Body/Head") as Node3D
+	var buried_cells: Array[Vector2i] = []
+	for cell: Vector2i in game.model.secret_cells:
+		if game.model.states[LawnModel.index_of(cell.x, cell.y)] == LawnModel.CellState.SECRET:
+			buried_cells.append(cell)
+	ck("gomulu kanit var", not buried_cells.is_empty(), "yok")
+	var clear_spot := Vector3.ZERO
+	var clear_gap := 0.0
+	for candidate: Vector3 in [Vector3(-GameConfig.HALF_X + 1.5, 0.0, GameConfig.HALF_Z - 1.5),
+			Vector3(GameConfig.HALF_X - 1.5, 0.0, GameConfig.HALF_Z - 1.5),
+			Vector3(-GameConfig.HALF_X + 1.5, 0.0, -GameConfig.HALF_Z + 1.5),
+			Vector3(GameConfig.HALF_X - 1.5, 0.0, -GameConfig.HALF_Z + 1.5),
+			Vector3(0.0, 0.0, 0.0)]:
+		var nearest := 1e9
+		for cell: Vector2i in buried_cells:
+			nearest = minf(nearest, candidate.distance_to(LawnModel.cell_center(cell.x, cell.y)))
+		if nearest > clear_gap:
+			clear_gap = nearest
+			clear_spot = candidate
+	game.mower.global_position = Vector3(clear_spot.x, game.mower.global_position.y, clear_spot.z)
+	# Wait for ARRIVAL, not a fixed time: a corner-to-corner walk at
+	# DOG_FOLLOW_SPEED is six seconds, and a 3.5 s wait measured a dog that was
+	# still on its way with its head where the last scent left it.
+	await _dog_arrives(dog, game.mower)
+	await _settle(1.0)
+	ck("yakinda kanit yokken isaret etmiyor", head.rotation.x < 0.1,
+		"kafa %.2f asagida (en yakin kanit %.1f)" % [head.rotation.x, clear_gap])
+	if not buried_cells.is_empty():
+		var buried := buried_cells[0]
+		var at := LawnModel.cell_center(buried.x, buried.y)
+		game.mower.global_position = at + Vector3(1.5, game.mower.global_position.y, 0.0)
+		await _dog_arrives(dog, game.mower)
+		await _settle(1.0)
+		var to := Vector2(at.x - dog.position.x, at.z - dog.position.z)
+		var fwd := -dog.global_transform.basis.z
+		var off := rad_to_deg(absf(Vector2(fwd.x, fwd.z).angle_to(to)))
+		ck("kopek gomulu hucreye donuyor", off < 20.0,
+			"%.0f derece, mesafe %.1f" % [off, to.length()])
+		ck("kopek isaret ederken kafasi asagida", head.rotation.x > 0.2,
+			"kafa %.2f" % head.rotation.x)
+		# Dug up: it loses interest.
+		game.model.mow(buried.x, buried.y, 0)
+		await _settle(1.5)
+		ck("kanit cikinca serbest kaliyor", head.rotation.x < 0.15,
+			"kafa %.2f" % head.rotation.x)
+		print("  [olcum] koku: sapma %.0f derece, mesafe %.1f, bos noktada en yakin %.1f"
+			% [off, to.length(), clear_gap])
 	GameState.set_setting("story", "prologue_done", false)
 	game.queue_free()
 	await _frames(6)
+
+
+## Waits until the dog has closed to its follow distance of `mower`, or ten
+## seconds, whichever first.
+func _dog_arrives(dog: Node3D, mower: Node3D) -> void:
+	var until := Time.get_ticks_msec() + 10000
+	while Time.get_ticks_msec() < until:
+		get_tree().paused = false
+		await get_tree().process_frame
+		var gap := Vector2(dog.position.x - mower.global_position.x,
+			dog.position.z - mower.global_position.z).length()
+		if gap <= GameConfig.DOG_FOLLOW_NEAR + 0.3:
+			return
 
 
 # ---------------------------------------------------------------- helpers

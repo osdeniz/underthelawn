@@ -386,13 +386,58 @@ func _tick_dog_follow(entry: Dictionary, root: Node3D, body: Node3D,
 		entry["state"] = State.FLEE
 		walking = true
 	if not walking:
-		_wag(body, delta)
+		# Arrived. NOW it scans the ground around where the player is. The first
+		# version let a scent interrupt the walk itself, and a dog that locks
+		# onto something five units from its start never follows anyone
+		# anywhere — measured: 16.3 units away and it moved 0.7. Following
+		# comes first; pointing is what it does once it is beside you.
+		var scent := _scent_cell(root)
+		if scent.x >= 0:
+			var at := LawnModel.cell_center(scent.x, scent.y)
+			root.rotation.y = face(Vector2(at.x - root.position.x, at.z - root.position.z))
+			_point(body, delta)
+		else:
+			_wag(body, delta)
 		return
 	var step := minf(GameConfig.DOG_FOLLOW_SPEED * delta, maxf(gap - 0.2, 0.0))
 	var dir := flat.normalized()
 	root.position += Vector3(dir.x, 0.0, dir.y) * step
 	root.rotation.y = face(dir)
 	_trot(body)
+
+
+## The nearest cell that still has something under it, within scent range of
+## the dog, or (-1, -1). Reads the model's own state: a SECRET cell is buried,
+## a SECRET_REVEALED one has been found, and the dog loses interest the frame
+## it is dug up.
+func _scent_cell(root: Node3D) -> Vector2i:
+	if not GameConfig.DOG_SCENT_ENABLED or model == null:
+		return Vector2i(-1, -1)
+	var best := Vector2i(-1, -1)
+	var best_d := GameConfig.DOG_SCENT_RANGE
+	for cell: Vector2i in model.secret_cells:
+		if model.states[LawnModel.index_of(cell.x, cell.y)] != LawnModel.CellState.SECRET:
+			continue
+		var at := LawnModel.cell_center(cell.x, cell.y)
+		var d := Vector2(at.x - root.position.x, at.z - root.position.z).length()
+		if d < best_d:
+			best_d = d
+			best = cell
+	return best
+
+
+## Pointing: legs settle, the tail goes STILL, and the head drops towards the
+## ground. The stillness is the signal — a wagging dog is a dog with nothing to
+## say.
+func _point(body: Node3D, delta: float) -> void:
+	_settle_legs(body, delta)
+	var w := minf(1.0, GameConfig.IDLE_RECOVER_RATE * delta)
+	var tail := body.get_node_or_null("Tail") as Node3D
+	if tail != null:
+		tail.rotation.y = lerpf(tail.rotation.y, 0.0, w)
+	var head := body.get_node_or_null("Head") as Node3D
+	if head != null:
+		head.rotation.x = lerpf(head.rotation.x, GameConfig.DOG_POINT_HEAD, w)
 
 
 ## Standing about: the tail, and nothing else. A still dog with a still tail is
@@ -402,6 +447,10 @@ func _wag(body: Node3D, delta: float) -> void:
 	var tail := body.get_node_or_null("Tail") as Node3D
 	if tail != null:
 		tail.rotation.y = sin(_t * GameConfig.DOG_TAIL_FREQ) * 0.5
+	var head := body.get_node_or_null("Head") as Node3D
+	if head != null:
+		head.rotation.x = lerpf(head.rotation.x, 0.0,
+			minf(1.0, GameConfig.IDLE_RECOVER_RATE * delta))
 
 
 ## The diagonal pairs, which is what a trot is, plus the body's bob.
@@ -419,6 +468,11 @@ func _trot(body: Node3D) -> void:
 	var tail := body.get_node_or_null("Tail") as Node3D
 	if tail != null:
 		tail.rotation.y = sin(_t * GameConfig.DOG_TAIL_FREQ) * 0.5
+	# A running dog is not pointing. Without this the head stayed down from the
+	# last scent for the whole walk over, and read as pointing at nothing.
+	var head := body.get_node_or_null("Head") as Node3D
+	if head != null:
+		head.rotation.x = lerpf(head.rotation.x, 0.0, 0.08)
 
 
 func _settle_legs(body: Node3D, delta: float) -> void:

@@ -3390,3 +3390,27 @@ A correction to the review that led here: it said Ellie has no voice in the
 finale. She has three lines there, and they are right — childlike, and about
 the garden and the party rather than the danger. The review was wrong on that
 point; the consistency bug in the line after hers was real.
+
+### G15.4 — the dog is the scent system
+
+When something is still buried within five units of the dog, it stops, turns to
+face the cell and lowers its head. Tail still. That is the entire interface: no
+marker, no chime, no line of text. The player learns to watch the dog the way
+anyone with a dog does, and it pays the prologue off — the animal that found
+him on the road is the one that finds what is under the grass.
+
+**Following comes first; pointing is what it does once it is beside you.** The
+first version let a scent interrupt the walk, and a dog that locks onto
+something five units from its start never follows anyone anywhere — measured:
+sixteen units away, it moved 0.7. Now it walks to the player, and only scans the
+ground once it has arrived. That is also the right picture: it searches where
+you are, not where it happens to be standing.
+
+Two smaller things the test found. A running dog kept its head down from the
+last scent for the whole walk over, and read as pointing at nothing — the head
+comes up while it trots. And the test itself waited a fixed 3.5 s for a walk
+that takes six at `DOG_FOLLOW_SPEED`, then measured a dog still on its way; it
+waits for arrival now.
+
+Measured: facing error 0 degrees at 2.3 units; head up within 1.5 s of the cell
+being dug; cost unchanged at 48 draws for all six animals in frame.

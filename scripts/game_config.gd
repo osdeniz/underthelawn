@@ -2434,6 +2434,19 @@ const PROLOGUE_TRIAL_MOWERS := true
 const DOG_FOLLOW_NEAR := 2.6
 const DOG_FOLLOW_FAR := 5.5
 const DOG_FOLLOW_SPEED := 3.4
+
+## The dog is the game's scent system (G15.4). When something is still buried
+## within this range of it, it stops, turns to face the cell and lowers its
+## head — and that is the whole interface. No marker, no sound, no line of
+## text: the player learns to watch the dog the way anyone with a dog does.
+## It pays off the prologue too — the animal that found HIM on the road is the
+## one that finds what is under the grass — and it is the reason the follow
+## distance matters: the dog scans the ground around wherever the player is.
+const DOG_SCENT_ENABLED := true
+const DOG_SCENT_RANGE := 5.0
+## How far the head drops when it points. Small; a dog pointing is a posture,
+## not a bow.
+const DOG_POINT_HEAD := 0.38
 ## Where it is sitting when he comes up the road: just inside the lawn's far
 ## edge, in front of the open gate the clearing landmark builds. It cannot be a
 ## constant — the grid size, and therefore HALF_Z, is per chapter.
