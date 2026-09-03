@@ -8,6 +8,8 @@ extends Node
 signal run_started()
 signal run_finished(elapsed: float)
 
+## Kept as the LEGACY path: the save moved to SaveStore's versioned JSON in
+## G16.2, and this is where a pre-G16.2 install still has its data.
 const SETTINGS_PATH := "user://settings.cfg"
 ## The save file's format version (G14.1).
 ##
@@ -19,7 +21,7 @@ const SETTINGS_PATH := "user://settings.cfg"
 ##
 ## Bump this when the MEANING of stored keys changes, and add a branch to
 ## `_migrate`. Adding a brand-new key needs no bump: readers already default.
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2
 const META := "meta"
 ## Whether the one-time orientation has been shown (G15). Stored, not a runtime
 ## flag: it has to survive the app being closed mid-search, or a player who
@@ -32,7 +34,7 @@ const ECONOMY := "economy"
 var elapsed: float = 0.0
 var is_running: bool = false
 
-var _config := ConfigFile.new()
+var _store := SaveStore.new()
 var _session_id := ""
 var _session_ended_sent := false
 
@@ -83,30 +85,63 @@ func format_elapsed() -> String:
 # ---------------------------------------------------------------- settings
 
 func get_setting(section: String, key: String, default: Variant) -> Variant:
-	return _config.get_value(section, key, default)
+	return _store.get_value(section, key, default)
 
 
 ## Whether a key has ever been written. Needed to tell "never set" from "set to
 ## zero", which is the difference between a fresh larder and an empty one.
 func has_setting(section: String, key: String) -> bool:
-	return _config.has_section_key(section, key)
+	return _store.has_value(section, key)
 
 
 func set_setting(section: String, key: String, value: Variant) -> void:
-	_config.set_value(section, key, value)
-	var err := _config.save(SETTINGS_PATH)
+	_store.set_value(section, key, value)
+	var err := _store.save()
 	if err != OK:
-		push_warning("GameState: could not save %s (error %d)" % [SETTINGS_PATH, err])
+		push_warning("GameState: could not save %s (error %d)" % [SaveStore.PATH, err])
 		Analytics.log_error("save_write_failed", "error %d" % err, "game_state")
+		return
+	# Best effort, no-op without a provider (G16.2).
+	CloudSave.push(FileAccess.get_file_as_string(SaveStore.PATH))
 
 
 func _load_settings() -> void:
-	var err := _config.load(SETTINGS_PATH)
-	if err != OK and err != ERR_FILE_NOT_FOUND:
-		push_warning("GameState: could not read %s (error %d)" % [SETTINGS_PATH, err])
+	var err := _store.load()
+	if err != OK:
+		push_warning("GameState: save unreadable (%d); starting fresh" % err)
 		Analytics.log_error("save_read_failed", "error %d" % err, "game_state")
-		return
+	if _store.loaded_from == "backup" or _store.loaded_from == "legacy":
+		print("[GameState] kayit %s dosyasindan alindi" % _store.loaded_from)
+		Analytics.track("save_recovered", {"from": _store.loaded_from})
+	_pull_cloud()
 	_migrate()
+
+
+## A cloud copy, if a provider has one: the side with more chapters done wins,
+## local on a tie. Nothing happens without a provider.
+func _pull_cloud() -> void:
+	var text := CloudSave.pull()
+	if text.is_empty():
+		return
+	var remote := SaveStore.new()
+	var live_path := SaveStore.PATH
+	var f := FileAccess.open(SaveStore.TMP, FileAccess.WRITE)
+	if f == null:
+		return
+	f.store_string(text)
+	f.close()
+	SaveStore.PATH = SaveStore.TMP
+	var ok := remote.load() == OK
+	SaveStore.PATH = live_path
+	if not ok:
+		return
+	var remote_done: Variant = remote.get_value("progress", "done", [])
+	var local_done: Variant = _store.get_value("progress", "done", [])
+	var remote_n := (remote_done as Array).size() if remote_done is Array else 0
+	var local_n := (local_done as Array).size() if local_done is Array else 0
+	if remote_n > local_n:
+		_store = remote
+		_store.save()
 
 
 ## Brings an older save up to SAVE_VERSION. A file with no version key is
@@ -114,7 +149,7 @@ func _load_settings() -> void:
 ## walked forward through every step, so a player who has been on an old build
 ## keeps their town.
 func _migrate() -> void:
-	var found := int(_config.get_value(META, "save_version", 0))
+	var found := int(_store.get_value(META, "save_version", 0))
 	if found == SAVE_VERSION:
 		return
 	if found > SAVE_VERSION:
@@ -133,9 +168,14 @@ func _migrate() -> void:
 				# 0 -> 1: versioning introduced. Nothing to rewrite; the file's
 				# existing keys already mean what version 1 means.
 				pass
+			1:
+				# 1 -> 2: storage moved from ConfigFile to SaveStore's JSON
+				# (G16.2). The store did the carrying on load; the keys mean
+				# what they meant. Nothing to rewrite here either.
+				pass
 		found += 1
-	_config.set_value(META, "save_version", SAVE_VERSION)
-	var err := _config.save(SETTINGS_PATH)
+	_store.set_value(META, "save_version", SAVE_VERSION)
+	var err := _store.save()
 	if err != OK:
 		push_warning("GameState: could not stamp save version (error %d)" % err)
 		Analytics.log_error("save_write_failed", "error %d" % err, "game_state")
@@ -169,7 +209,8 @@ func erase_save() -> void:
 	# reads the game, not a thing they achieved in it, and dropping them back
 	# into the OS locale would look like a bug rather than a fresh start.
 	var locale := str(get_setting(META, "locale", ""))
-	_config = ConfigFile.new()
+	_store.erase()
+	_store = SaveStore.new()
 	set_setting(META, "install_id", keep)
 	set_setting(META, "save_version", SAVE_VERSION)
 	if locale != "":
@@ -208,7 +249,7 @@ func mark_orientation_done() -> void:
 
 ## Which format the file on disk is in. Zero means unversioned or absent.
 func save_version() -> int:
-	return int(_config.get_value(META, "save_version", 0))
+	return int(_store.get_value(META, "save_version", 0))
 
 
 # ---------------------------------------------------------------- scrap (G9)
@@ -216,7 +257,7 @@ func save_version() -> int:
 func scrap_total() -> int:
 	# A fresh save picks up DEV_STARTING_SCRAP once, so debug builds can reach
 	# the workshop and the town without grinding there first.
-	if not _config.has_section_key(ECONOMY, "scrap"):
+	if not _store.has_value(ECONOMY, "scrap"):
 		set_setting(ECONOMY, "scrap", GameConfig.DEV_STARTING_SCRAP)
 	return int(get_setting(ECONOMY, "scrap", 0))
 

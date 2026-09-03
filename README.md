@@ -3518,3 +3518,35 @@ walking. Everything sits LOW: these are under the engine and the cut, which are
 the sounds the game is about. `AudioCheck` asserts every key loads, the scene
 switches with hour and weather, the bed follows the hour, and every one-shot is
 silent rather than an error when its file is missing.
+
+### G16.2 — a save that survives what used to wipe it
+
+`user://settings.cfg` was rewritten in place on every single `set_setting`. A
+crash, a full disk or a kill during that write left a truncated file;
+`ConfigFile.load` on a truncated file fails; every reader in the game then
+defaulted its keys — and a player who had rebuilt half a town opened the app to
+a fresh one, with no backup, no recovery and no way to know. For a premium game
+that is a refund.
+
+**`SaveStore`**: a versioned JSON file (`save.json`, format 2), written
+atomically — serialize, write `.tmp`, copy the live file to `.bak`, rename
+`.tmp` over it — so that whatever happens mid-way one of the three is whole.
+`load()` tries primary, then backup, then the old `settings.cfg`, and rewrites a
+good primary from whichever it found. Values are stored as `var_to_str` strings
+inside the JSON, not as JSON values: JSON has one number type and no vectors,
+and a migration that turns every int into a float is a different bug wearing a
+new file extension. `SaveCheck` proves the round-trip keeps int, bool, string,
+float and array intact, recovers a deliberately truncated primary from the
+backup, treats "no files at all" as fresh rather than as an error, and leaves
+no `.tmp` behind.
+
+**`CloudSave`** is the seam, not the feature: an autoload with `push(text)` and
+`pull()` that do nothing until a `provider` object is set. `GameState` already
+pushes after every write and pulls before its first read, with one conflict
+rule — the side with more chapters done wins, local on a tie — so wiring iCloud
+(NSUbiquitousKeyValueStore; this save is ~60 KB) or Play Games Saved Games is a
+provider object with two methods, not a refactor. The plugin steps are in the
+file's header.
+
+`GameState.SAVE_VERSION` is 2. The 1 → 2 step rewrites nothing: the store
+carried the keys and they mean what they meant.

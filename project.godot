@@ -24,6 +24,7 @@ general/ios/session_category=3
 
 [autoload]
 
+CloudSave="*res://scripts/cloud_save.gd"
 GameState="*res://scripts/game_state.gd"
 Haptics="*res://scripts/haptics.gd"
 AudioDirector="*res://scripts/audio_director.gd"
