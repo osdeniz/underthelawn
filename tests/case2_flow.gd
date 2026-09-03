@@ -421,8 +421,18 @@ func _check_every_way_home_unparks_the_town() -> void:
 	ck("hub acildi", hub != null, "")
 	if hub == null:
 		return
-	var full: Vector2i = (hub._diorama_view as SubViewport).size
-	ck("hubda diyorama tam cozunurlukte", full.x > 500, str(full))
+	# What "unparked" means changed in G16 and this check did not follow it,
+	# so it failed on a hub that was behaving correctly. The hub opens on the
+	# case board, not the town page; there the town is shown as a STILL
+	# photographed at full size and the live viewport is deliberately shrunk
+	# to 1/32 to release its framebuffer. Probed: active=true, page=board,
+	# still=true, shrink=32, view=47x79 — by design. The G13 bug this guards
+	# against was a 36x79 IMAGE stretched across the screen, and that is what
+	# is asserted now: the hub is active, and whatever the player is looking
+	# at — live view or still — is full-resolution.
+	ck("hub aktif", hub._hub_active, "park edilmis")
+	ck("hubda kasaba tam cozunurlukte (canli ya da still)", _town_full(hub),
+		_town_state(hub))
 
 	for route in ["return_to_hub", "return_to_board"]:
 		root.set("_pending_variant", "ch01_aldridge")
@@ -433,11 +443,33 @@ func _check_every_way_home_unparks_the_town() -> void:
 			str(parked))
 		root.call(route)
 		await settle(3.0)
-		var back: Vector2i = (hub._diorama_view as SubViewport).size
-		ck("%s diyoramayi geri buyutuyor" % route, back == full,
-			"%s != %s" % [str(back), str(full)])
+		# Back home: active again, and the town the player sees — live view or
+		# still — is full size. The old check compared raw viewport sizes,
+		# which the G16 still design made meaningless (see above).
+		ck("%s hub'i geri aciyor" % route, hub._hub_active, "park edilmis kaldi")
+		ck("%s diyoramayi geri buyutuyor" % route, _town_full(hub), _town_state(hub))
 	root.queue_free()
 	await settle(0.5)
+
+
+## Whether what the hub shows for the town is full-resolution: the live viewport
+## on the town page, or the photographed still everywhere else (G16).
+func _town_full(hub: Node) -> bool:
+	var view: Vector2i = (hub._diorama_view as SubViewport).size
+	if view.x > 500:
+		return true
+	var still: TextureRect = hub._diorama_still
+	return still != null and is_instance_valid(still) and still.visible \
+		and still.texture != null and still.texture.get_size().x > 500
+
+
+func _town_state(hub: Node) -> String:
+	var still: TextureRect = hub._diorama_still
+	var still_size := "yok"
+	if still != null and is_instance_valid(still) and still.texture != null:
+		still_size = "%s%s" % [str(still.texture.get_size()), "" if still.visible else " (gizli)"]
+	return "view=%s still=%s shrink=%d" % [str((hub._diorama_view as SubViewport).size),
+		still_size, hub._diorama_frame.stretch_shrink]
 
 
 ## An ending card has to close when it is tapped, THROUGH THE REAL INPUT PATH.

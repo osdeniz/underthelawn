@@ -456,6 +456,8 @@ func _build_obstacle_props() -> void:
 				_build_log(rect, centre, wood)
 			"rubble":
 				_build_rubble(rect, centre, stone_mat)
+			"patch":
+				_build_basket(centre)
 
 
 ## A fallen trunk lying across the road (G15.1), built to the WIDTH of its rect
@@ -483,6 +485,40 @@ func _build_log(rect: Rect2, centre: Vector3, wood: Material) -> void:
 	_cyl(trunk, 0.06, 0.09, 0.7, bark, Vector3(-span * 0.24, 0.48, -0.15),
 		Vector3(0.5, -0.4, 0.0))
 	_ao_blob(trunk, Vector2(span, 1.1), Vector3(0.0, 0.012, 0.0), 0.45)
+
+
+## The basket at the end of the long walk, with the child in it (G15.2). It was
+## a lidded box with a blanket over it, standing beyond the fence in open
+## country, and the player could not see a baby anywhere — because there was
+## not one. Now it is open, on the bare patch, and what is in it is a swaddle
+## and a head: the two shapes that read as a baby at any size.
+func _build_basket(centre: Vector3) -> void:
+	var wicker := _flat("cl_wicker", Color(0.68, 0.56, 0.36), 0.9)
+	var blanket := _flat("cl_blanket", Color(0.78, 0.34, 0.32), 0.95)
+	var swaddle := _flat("cl_swaddle", Color(0.93, 0.90, 0.82), 0.9)
+	var skin := _flat("figure_skin", Color(0.78, 0.62, 0.50), 1.0)
+	var basket := Node3D.new()
+	basket.name = "Basket"
+	basket.position = centre + Vector3(0.55, 0.0, 0.15)
+	basket.rotation.y = 0.35
+	add_child(basket)
+	# Open weave: four low walls, not a lid.
+	_box(basket, Vector3(0.70, 0.04, 0.50), wicker, Vector3(0.0, 0.02, 0.0))
+	for sz: float in [-1.0, 1.0]:
+		_box(basket, Vector3(0.70, 0.22, 0.04), wicker, Vector3(0.0, 0.13, sz * 0.23))
+		_box(basket, Vector3(0.04, 0.22, 0.50), wicker, Vector3(sz * 0.33, 0.13, 0.0))
+	# A handle arching over, which is what makes a box a basket.
+	_cyl(basket, 0.025, 0.025, 0.56, wicker, Vector3(0.0, 0.40, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5), 8)
+	for sx: float in [-1.0, 1.0]:
+		_cyl(basket, 0.025, 0.025, 0.24, wicker, Vector3(sx * 0.28, 0.30, 0.0),
+			Vector3.ZERO, 8)
+	# The blanket, then the child: a swaddle lying along the basket and a head
+	# at one end, turned a little as a sleeping head is.
+	_box(basket, Vector3(0.60, 0.05, 0.40), blanket, Vector3(0.0, 0.07, 0.0))
+	_ball(basket, 0.11, swaddle, Vector3(0.06, 0.16, 0.0), Vector3(1.9, 0.75, 1.1))
+	_ball(basket, 0.085, skin, Vector3(-0.22, 0.19, 0.02), Vector3(1.0, 0.92, 1.0))
+	_ao_blob(basket, Vector2(1.1, 0.9), Vector3(0.0, 0.012, 0.0), 0.55)
 
 
 ## Rubble across the road: a scatter of stones that FILLS its rect, spaced along
@@ -1413,8 +1449,6 @@ func _landmark_clearing(root: Node3D) -> void:
 	root.position.z = -GameConfig.HALF_Z - 1.2
 	var post := _flat("cl_post", Color(0.42, 0.34, 0.24), 0.95)
 	var rail := _flat("cl_rail", Color(0.52, 0.45, 0.34), 0.95)
-	var wicker := _flat("cl_wicker", Color(0.68, 0.56, 0.36), 0.9)
-	var blanket := _flat("cl_blanket", Color(0.78, 0.34, 0.32), 0.95)
 	# The mown ground past the gate: the one bright, SHORT patch of grass in the
 	# level, so "there" is legible from "here".
 	var green := _flat("cl_green", Color(0.36, 0.62, 0.24), 0.95)
@@ -1451,17 +1485,8 @@ func _landmark_clearing(root: Node3D) -> void:
 		_box(leaf, Vector3(1.9, 0.09, 0.06), rail,
 			Vector3(0.95, 0.55 + float(i) * 0.42, 0.0))
 	_box(leaf, Vector3(0.09, 1.4, 0.06), rail, Vector3(1.85, 0.97, 0.0))
-	# The basket, just inside the gate.
-	var basket := Node3D.new()
-	basket.name = "Basket"
-	basket.position = Vector3(0.9, 0.0, 0.5)
-	basket.rotation.y = 0.4
-	root.add_child(basket)
-	_box(basket, Vector3(0.62, 0.30, 0.44), wicker, Vector3(0.0, 0.15, 0.0))
-	_box(basket, Vector3(0.66, 0.06, 0.48), wicker, Vector3(0.0, 0.32, 0.0))
-	_box(basket, Vector3(0.50, 0.05, 0.36), blanket, Vector3(0.0, 0.34, 0.0),
-		Vector3(0.0, 0.2, 0.0))
-	_ao_blob(basket, Vector2(1.0, 0.8), Vector3(0.0, 0.012, 0.0), 0.5)
+	# The basket is NOT here any more: it stands on the bare patch at the end
+	# of the road, inside the fence, where it can be seen (_build_basket).
 
 
 func _landmark_crossing(root: Node3D) -> void:

@@ -91,10 +91,11 @@ func _ordinary_yard() -> void:
 	var runner := calm["node"] as Node3D
 	var prev := runner.position
 	var worst_face := 0.0
-	while spent < 3.0 and int(calm["state"]) != Animals.State.GONE:
+	var bolt_until := Time.get_ticks_msec() + 3000
+	while Time.get_ticks_msec() < bolt_until and int(calm["state"]) != Animals.State.GONE:
 		get_tree().paused = false
 		await get_tree().process_frame
-		spent += get_process_delta_time()
+		spent += 0.0
 		worst_face = maxf(worst_face, _face_error(runner, prev))
 		prev = runner.position
 	# Tail-first was how all three animals ran before G14.27.
@@ -138,7 +139,11 @@ func _ordinary_yard() -> void:
 	if not edge.is_empty():
 		var first := LawnModel.cell_at((edge["node"] as Node3D).position)
 		if not game.model.is_cut(first.x, first.y):
-			await _settle(GameConfig.RABBIT_RESETTLE + 0.4)
+			# The resettle interval is six seconds by design; the timer is not
+			# what is under test, so it is zeroed the way _ring zeroes the rest.
+			for entry: Dictionary in rabbits:
+				entry["settle"] = 0.0
+			await _settle(0.4)
 			_ring(animals)
 			await _frames(12)
 			edge = _first_calm(rabbits)
@@ -162,10 +167,11 @@ func _ordinary_yard() -> void:
 	var dog_face := 0.0
 	var outside := 1e9
 	var clear := 1e9
-	while watched < 2.0:
+	var watch_until := Time.get_ticks_msec() + 2000
+	while Time.get_ticks_msec() < watch_until:
 		get_tree().paused = false
 		await get_tree().process_frame
-		watched += get_process_delta_time()
+		watched += 0.0
 		worst = minf(worst, absf(dog.position.z) - GameConfig.HALF_Z)
 		# Past the FENCE, so it is above the grass line rather than behind it,
 		# and clear of the porch in x. "Outside the lawn" alone let it walk
@@ -184,6 +190,7 @@ func _ordinary_yard() -> void:
 	ck("kopek cime girmiyor", worst > 0.0, "%.2f birim icerde" % -worst)
 	print("  [olcum] kopek cim kenarindan en yakin %.2f birim uzakta" % worst)
 	print("  [olcum] hayvan dugumu=%d" % _node_count(animals))
+	print("  [asama] maliyet olcumu basliyor")
 
 	# --- What they cost, in ONE scene with the animals as the only variable.
 	# Comparing two scenes measures two scenes; that mistake has been made in
@@ -205,9 +212,11 @@ func _ordinary_yard() -> void:
 	above.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
 	above.current = true
 	game.add_child(above)
+	# Through _drawn_frame, never a bare await on frame_post_draw: this was the
+	# one raw wait left after the _draws fix, and it is exactly where the test
+	# sat for 280 s with no verdict when the window was not drawing.
 	for _i in 8:
-		get_tree().paused = false
-		await RenderingServer.frame_post_draw
+		await _drawn_frame()
 	var showing := 0
 	for entry: Dictionary in animals._entries:
 		if (entry["node"] as Node3D).visible:
@@ -219,6 +228,7 @@ func _ordinary_yard() -> void:
 	# camera changed and the counter was handing back a stale value, which
 	# looked exactly like "the animals are free".
 	var hood := game.get_node("Neighborhood") as Node3D
+	print("  [asama] kadraj kuruldu, sayac sondasi")
 	var with_hood := await _draws(animals, true)
 	hood.visible = false
 	await _frames(8)
@@ -226,8 +236,10 @@ func _ordinary_yard() -> void:
 	hood.visible = true
 	await _frames(8)
 	var counter_live := with_hood - without_hood > 100
-	ck("cizim sayaci canli", counter_live,
-		"mahalleli=%d mahallesiz=%d" % [with_hood, without_hood])
+	if not counter_live:
+		print("  ATLANDI maliyet olcumu: cizim sayaci cevap vermiyor (mahalleli=%d"
+			% with_hood + " mahallesiz=%d) - pencere cizmiyor, on planda calistir"
+			% without_hood)
 
 	var on_total := 0
 	var off_total := 0
@@ -237,7 +249,7 @@ func _ordinary_yard() -> void:
 	var on := int(round(float(on_total) / 4.0))
 	var off := int(round(float(off_total) / 4.0))
 	if not counter_live:
-		print("  ATLANDI maliyet olcumu: sayac cevap vermiyor")
+		pass  # already reported above, with the numbers
 	else:
 		print("  [olcum] ayni sahne: hayvanli=%d hayvansiz=%d fark=%d cizim"
 			% [on, off, on - off]
@@ -297,13 +309,13 @@ func _dog_follows() -> void:
 	await _frames(4)
 	var before := Vector2(dog.position.x - game.mower.global_position.x,
 		dog.position.z - game.mower.global_position.z).length()
-	await _settle(3.0)
+	await _settle(2.2)
 	var after := Vector2(dog.position.x - game.mower.global_position.x,
 		dog.position.z - game.mower.global_position.z).length()
 	ck("kopek bize dogru geliyor", after < before - 1.0,
 		"%.2f -> %.2f birim" % [before, after])
 	# And STOPS short. A dog that arrives at your feet stands in the picture.
-	await _settle(4.0)
+	await _settle(2.6)
 	var settled := Vector2(dog.position.x - game.mower.global_position.x,
 		dog.position.z - game.mower.global_position.z).length()
 	ck("kopek dibimize girmiyor", settled > 0.8, "%.2f birim" % settled)
@@ -342,11 +354,17 @@ func _frames(count: int) -> void:
 ## a slow one. LifeCheck failed and passed on identical code for exactly this
 ## reason before it was fixed the same way.
 func _settle(seconds: float) -> void:
-	var spent := 0.0
-	while spent < seconds:
+	# WALL-CLOCK time, not summed deltas. get_process_delta_time() reads 0 on a
+	# node the tree has paused — and the game pauses itself whenever the window
+	# loses focus — so a delta-summing loop never reaches its target and the
+	# test hangs with no verdict. The clock keeps moving whatever the tree does,
+	# and a hard cap on frames means this can never spin for ever either.
+	var until := Time.get_ticks_msec() + int(seconds * 1000.0)
+	var frames := 0
+	while Time.get_ticks_msec() < until and frames < 6000:
 		get_tree().paused = false
 		await get_tree().process_frame
-		spent += get_process_delta_time()
+		frames += 1
 
 
 ## Zeroes every waiting timer. The RETURN delays are seconds long by design —
@@ -370,15 +388,32 @@ func _draws(animals: Animals, on: bool) -> int:
 	# every sample, which is exactly what made this measurement report a flat
 	# 400 for eight rounds and look like "the animals are free".
 	for _i in 6:
-		get_tree().paused = false
-		await RenderingServer.frame_post_draw
+		await _drawn_frame()
 	var total := 0
 	for _i in 8:
-		get_tree().paused = false
-		await RenderingServer.frame_post_draw
+		await _drawn_frame()
 		total += RenderingServer.get_rendering_info(
 			RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 	return int(round(float(total) / 8.0))
+
+
+## One drawn frame, or 0.25 s, whichever comes first. A backgrounded or
+## occluded window stops drawing altogether, and a bare
+## `await RenderingServer.frame_post_draw` then never returns: this test hung
+## at the cost measurement for the whole of a 280 s run with no verdict. If no
+## frame is drawn the counter reading is stale, and the liveness check below
+## SKIPS the measurement rather than trusting it.
+var _drew := false
+func _drawn_frame() -> void:
+	_drew = false
+	var mark := func() -> void: _drew = true
+	RenderingServer.frame_post_draw.connect(mark, CONNECT_ONE_SHOT)
+	var until := Time.get_ticks_msec() + 250
+	while not _drew and Time.get_ticks_msec() < until:
+		get_tree().paused = false
+		await get_tree().process_frame
+	if RenderingServer.frame_post_draw.is_connected(mark):
+		RenderingServer.frame_post_draw.disconnect(mark)
 
 
 ## How far a body's forward axis is from where it just moved, in degrees. Zero

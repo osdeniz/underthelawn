@@ -197,9 +197,23 @@ func _road_level() -> void:
 		"%d" % game.variant.scrap_budget)
 	var clearing := game.find_children("Landmark_clearing", "", true, false)
 	ck("acikliga varilacak yer var", clearing.size() == 1, "%d" % clearing.size())
-	ck("sepet duruyor",
-		clearing.size() == 1 and clearing[0].find_child("Basket", true, false) != null,
-		"sepet yok")
+	# The basket stands on the bare patch inside the fence now, not at the
+	# landmark beyond it (G15.2) — so it is looked for anywhere in the yard.
+	var baskets := game.find_children("Basket", "", true, false)
+	ck("sepet duruyor", baskets.size() == 1, "%d sepet" % baskets.size())
+	if baskets.size() == 1:
+		var at := (baskets[0] as Node3D).global_position
+		ck("sepet cimin icinde", absf(at.z) < GameConfig.HALF_Z, "z=%.1f" % at.z)
+		var cell := LawnModel.cell_at(at)
+		ck("sepet biciLMEyen zeminde", not game.model.is_mowable(cell.x, cell.y),
+			"%s bicilebilir" % cell)
+	# THE bug this sprint was for: two default secrets were buried on the road,
+	# and the first thing a new player dug up was a radio from a case nine
+	# years away. Nothing is buried here, and nothing is counted as evidence.
+	ck("yolda gomulu sir yok", game.model.secret_cells.is_empty(),
+		"%d sir" % game.model.secret_cells.size())
+	ck("yolda kanit sayisi sifir", game._evidence_total() == 0,
+		"%d" % game._evidence_total())
 	var animals := game._animals as Animals
 	var dog: Node3D = null
 	if animals != null:
@@ -215,6 +229,10 @@ func _road_level() -> void:
 			"%.2f birim kaydi" % dog.position.distance_to(held))
 		ck("kopek acikligin onunde", absf(dog.position.z - want.z) < 0.01,
 			"%.2f" % dog.position.z)
+		# And on the bare patch, where it can be seen, not in the tall grass.
+		var dog_cell := LawnModel.cell_at(dog.position)
+		ck("kopek cimsiz zeminde", not game.model.is_mowable(dog_cell.x, dog_cell.y),
+			"%s cimenin icinde" % dog_cell)
 	game.queue_free()
 	for _i in 6:
 		get_tree().paused = false

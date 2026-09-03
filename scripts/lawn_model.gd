@@ -56,7 +56,15 @@ const OBSTACLE_LAYOUTS := {
 	# is a feature here, not a limitation: a tutorial must not be able to trap
 	# anybody.
 	"road": [
-		{ "name": "log", "fx": 0.00, "fz": 0.09, "cols": 5, "rows": 1 },
+		# Where the dog and the basket are (G15.2). A non-mowable rect with no
+		# grass on it, so they stand on bare short ground and can be SEEN — in
+		# the tall grass a 0.56 dog vanished, the same way the rabbit did.
+		# Being an obstacle also keeps the mower off the baby.
+		{ "name": "patch", "fx": 0.36, "fz": 0.02, "cols": 3, "rows": 2 },
+		# Two rows of grass between the patch and the first log. At fz 0.09 the
+		# log landed ON the patch's second row and lay across the basket: from
+		# the road the child was a wicker handle sticking up behind a trunk.
+		{ "name": "log", "fx": 0.00, "fz": 0.15, "cols": 5, "rows": 1 },
 		{ "name": "rubble", "fx": 0.40, "fz": 0.19, "cols": 5, "rows": 1 },
 		{ "name": "log", "fx": 0.00, "fz": 0.29, "cols": 5, "rows": 1 },
 		{ "name": "rubble", "fx": 0.40, "fz": 0.39, "cols": 5, "rows": 2 },
@@ -292,8 +300,12 @@ func _row_ceil(margin: int) -> int:
 ## every reset (§3, §18 trap 4).
 func _place_secrets() -> void:
 	secret_cells.clear()
-	# A harvest buries nothing: the field is work, not a search (G13.6).
-	if LevelVariant.current != null and LevelVariant.current.is_harvest():
+	# A harvest buries nothing: the field is work, not a search (G13.6). Nor
+	# does the prologue's road (G15.2): it shipped with two default secrets
+	# in it, so the first thing a new player dug up on the long walk was a
+	# radio that belonged to a case nine years away.
+	if LevelVariant.current != null \
+			and (LevelVariant.current.is_harvest() or LevelVariant.current.is_road()):
 		return
 	var margin := GameConfig.SECRET_EDGE_MARGIN
 	var tries := 0

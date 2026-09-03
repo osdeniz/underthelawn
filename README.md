@@ -3306,3 +3306,46 @@ page shipped. The CSV is now checked for field count on every row.
 **Known, not fixed:** `Case2Flow` fails its "diorama at full resolution" check,
 reading a 47x79 viewport. Verified against the previous commit — it was already
 failing before this sprint and is unrelated to it.
+
+### G15.2 — the radio on the road, and the child nobody could see
+
+Reported from the first playthrough of the prologue: the player dug up a radio
+on the long walk, and could not find the baby or the dog at the end of it.
+
+**The radio was a default secret.** `LawnModel._place_secrets()` skipped
+harvests and nothing else, so the road — with `evidence_defs: []` — still got
+`SECRET_COUNT` secrets buried in it, and `_evidence_total()` fell back to
+`SECRET_TOTAL` for the same reason. The first thing a new player found on a
+road nine years before the case was a piece of that case's evidence. Roads
+bury nothing now and count nothing, and `PrologueCheck` asserts both.
+
+**The child was not there to see.** The basket was a lidded box with a blanket
+over it, standing at the landmark beyond the fence in open country — waist-high
+grass — and the dog stood in the last rows of uncut lawn, 0.56 tall in 0.9
+grass. Same failure as the rabbit in G14.25, third time now. Both stand on a
+bare non-mowable `"patch"` at the far end of the road: no grass drawn on it,
+so they are seen against dark ground, and it is an obstacle, so the mower is
+kept off the baby. The basket is open, with a swaddle and a head in it, which
+are the two shapes that read as a child at any size. Rendered close and from
+the road; then the first log turned out to lie across the patch's second row
+with the basket behind it, and was moved two rows down.
+
+**Case2Flow's "diorama at full resolution" check was asserting a contract that
+G16 replaced.** Probed: after CONTINUE the hub is active, on the case board
+page, with a full-size STILL of the town on screen and the live viewport
+deliberately shrunk to 1/32 to release its framebuffer — by design. The check
+read the shrunk viewport (47x79) and called it the G13 bug, which was a 36x79
+IMAGE stretched across the screen. It asserts what the player sees now: hub
+active, and the town shown — live or still — is full-resolution, on entry and
+after every route home. The whole suite takes over two minutes; run it with a
+limiter that allows that.
+
+**And a test that hung with no verdict, twice, for two reasons.** `AnimalCheck`
+sat for 280 s in a background run. First: a bare `await
+RenderingServer.frame_post_draw` never returns when the window is not drawing
+(backgrounded, occluded), and there were nine of them. Second: `_settle` summed
+`get_process_delta_time()`, which reads 0 on a node the tree has paused — and
+the game pauses itself on focus-out — so the loop never reached its target.
+Every wait in that test is wall-clock now, with a frame cap, and a drawn-frame
+wait that gives up after 0.25 s; when no frame is drawn the cost measurement
+says ATLANDI rather than trusting a stale counter.

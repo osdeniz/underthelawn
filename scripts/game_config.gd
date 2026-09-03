@@ -2437,5 +2437,8 @@ const DOG_FOLLOW_SPEED := 3.4
 ## Where it is sitting when he comes up the road: just inside the lawn's far
 ## edge, in front of the open gate the clearing landmark builds. It cannot be a
 ## constant — the grid size, and therefore HALF_Z, is per chapter.
+## On the bare patch the road layout leaves at its far end (rows 2-3, the
+## middle three columns), beside the basket — not in the grass in front of the
+## gate, where at 0.56 tall it could not be seen (G15.2).
 static func prologue_dog_spot() -> Vector3:
-	return Vector3(0.6, 0.0, -HALF_Z + 1.2)
+	return Vector3(-0.55, 0.0, -HALF_Z + 2.6)

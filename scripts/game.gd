@@ -883,6 +883,11 @@ func _begin_search() -> void:
 func _evidence_total() -> int:
 	if variant != null and variant.evidence_count() > 0:
 		return variant.evidence_count()
+	# The fallback below exists for the bare scene run with no variant data.
+	# A road is not that: it has data, and the data says there is nothing to
+	# find (G15.2).
+	if variant != null and (variant.is_road() or variant.is_harvest()):
+		return 0
 	return GameConfig.SECRET_TOTAL
 
 
