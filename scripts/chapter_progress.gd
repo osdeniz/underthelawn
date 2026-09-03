@@ -45,18 +45,49 @@ static func case_one_finished() -> bool:
 ## active_case_chapters() instead.
 static func chapters() -> Array:
 	var list: Array = Story.list("chapters")
-	if case_two_open():
-		return list + Story.list("case_02.chapters")
+	# A closed Case 02 stays listed whatever town_ready() says today: you cannot
+	# have closed it without it having been open, and Case 03 building on top
+	# of a list that had dropped Case 02 counted 16 chapters where there are 26.
+	if case_two_open() or case_three_open():
+		list = list + Story.list("case_02.chapters")
+	if case_three_open():
+		list = list + Story.list("case_03.chapters")
 	return list
+
+
+## Case 03 opens on Case 02's ending card — the headlights on the road are the
+## visitors, and the case is what the town does in the twelve days before they
+## arrive (G17).
+static func case_three_open() -> bool:
+	return bool(GameState.get_setting("story", "case02_closed", false))
+
+
+## 1, 2 or 3: which case the hub is showing.
+static func active_case_index() -> int:
+	var active := active_case_chapters()
+	if active == Story.list("case_03.chapters"):
+		return 3
+	if active == Story.list("case_02.chapters"):
+		return 2
+	return 1
+
+
+## The story.json path of the active case: "case", "case_02" or "case_03".
+static func active_case_path() -> String:
+	match active_case_index():
+		3: return "case_03"
+		2: return "case_02"
+	return "case"
 
 
 ## The chapters of the case `variant_id` belongs to. A chapter is the last one
 ## of ITS case, not of the game, which is what decides whether finishing it ends
 ## a case or simply moves to the next chapter.
 static func case_of(variant_id: String) -> Array:
-	for chapter: Dictionary in Story.list("case_02.chapters"):
-		if str(chapter.get("variant_id", "")) == variant_id:
-			return Story.list("case_02.chapters")
+	for path: String in ["case_03.chapters", "case_02.chapters"]:
+		for chapter: Dictionary in Story.list(path):
+			if str(chapter.get("variant_id", "")) == variant_id:
+				return Story.list(path)
 	return Story.list("chapters")
 
 
@@ -68,7 +99,12 @@ static func active_case_chapters() -> Array:
 	for chapter: Dictionary in Story.list("chapters"):
 		if not is_done(str(chapter.get("variant_id", ""))):
 			return Story.list("chapters")
-	return Story.list("case_02.chapters")
+	if not case_three_open():
+		return Story.list("case_02.chapters")
+	for chapter: Dictionary in Story.list("case_02.chapters"):
+		if not is_done(str(chapter.get("variant_id", ""))):
+			return Story.list("case_02.chapters")
+	return Story.list("case_03.chapters")
 
 
 ## Whether the active case is the second one, for the title the hub prints.

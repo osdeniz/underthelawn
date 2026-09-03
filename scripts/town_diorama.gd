@@ -48,6 +48,7 @@ var _birds: Array = []
 var _bird_timer := 3.0
 ## The townsfolk, and Ellie on her swing (G13.5).
 var _figures: Array = []
+var _dog_figure: Node3D
 var _ellie_swing: Node3D
 ## A restore card is being held down, and the camera is showing its plot.
 var _peek := false
@@ -2092,6 +2093,19 @@ func _outfit_for(id: String) -> int:
 	return absi(id.hash()) % GameConfig.CHAR_OUTFITS.size()
 
 
+## The Marshal's dog at diorama scale (G17): the yard dog's proportions in
+## miniature — long, low, level back, head forward, tail up.
+func _dog_body_small(root: Node3D) -> void:
+	var coat := _flat("dog_small", GameConfig.DOG_COAT, 1.0)
+	_ball(root, 0.075, coat, Vector3(0.0, 0.17, 0.0), Vector3(0.8, 0.78, 2.3))
+	_ball(root, 0.047, coat, Vector3(0.0, 0.205, -0.2))
+	for side: float in [-1.0, 1.0]:
+		_box(root, Vector3(0.024, 0.14, 0.026), coat, Vector3(side * 0.035, 0.07, -0.1))
+		_box(root, Vector3(0.024, 0.14, 0.026), coat, Vector3(side * 0.038, 0.07, 0.11))
+	_box(root, Vector3(0.018, 0.018, 0.1), coat, Vector3(0.0, 0.22, 0.15),
+		Vector3(-0.7, 0.0, 0.0))
+
+
 ## The barn cat: a low body, a head and a tail that stands up.
 func _cat_body(root: Node3D, colour: Color) -> void:
 	var fur := _flat("cat_walk", colour, 1.0)
@@ -2138,10 +2152,26 @@ func refresh_figures() -> void:
 		if node == null or not is_instance_valid(node):
 			continue
 		node.visible = RestoreBoard.is_built(str(entry["needs"]))
+	var gate_decided := bool(GameState.get_setting("story", "case03_closed", false))
+	var gate_open := bool(GameState.get_setting("story", "gate_open", false))
 	if _ellie_swing != null and is_instance_valid(_ellie_swing):
-		# She is only here once the case that was looking for her is closed.
+		# She is only here once the case that was looking for her is closed —
+		# and after the gate (G17) only if it was opened; closed, she is inside.
 		_ellie_swing.visible = RestoreBoard.is_built(GameConfig.DIORAMA_ELLIE_NEEDS) \
-			and ChapterProgress.done_count() >= ChapterProgress.count()
+			and ChapterProgress.done_count() >= ChapterProgress.count() \
+			and (not gate_decided or gate_open)
+	# The dog appears in the town once the gate has been decided, and WHERE it
+	# stands is the town's answer: by the swing, or at the gate beside him.
+	if _dog_figure == null or not is_instance_valid(_dog_figure):
+		_dog_figure = Node3D.new()
+		_dog_figure.name = "Figure_dog"
+		add_child(_dog_figure)
+		_dog_body_small(_dog_figure)
+	_dog_figure.visible = gate_decided
+	if gate_decided:
+		_dog_figure.position = GameConfig.DIORAMA_DOG_BY_SWING if gate_open \
+			else GameConfig.DIORAMA_DOG_AT_GATE
+		_dog_figure.rotation.y = 0.6 if gate_open else PI
 
 
 ## Walks every visible figure back and forth along its pair of points, and

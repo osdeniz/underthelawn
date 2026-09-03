@@ -592,5 +592,48 @@
         "playable": true
       }
     ]
+  },
+  "endings": {
+    "_comment": "Case 03's two mornings (G17). Played through IntroSequence with cards_key 'endings.open' / 'endings.closed'. Same event, one detail apart: where the dog stands.",
+    "open": {
+      "cards": [
+        {
+          "image": "story/ending_open",
+          "fallback_image": "story/homecoming",
+          "lines": [
+            "END_OPEN_T",
+            "END_OPEN_1"
+          ]
+        },
+        {
+          "image": "story/ending_open",
+          "fallback_image": "story/homecoming",
+          "ken_burns": "reverse",
+          "lines": [
+            "END_OPEN_2"
+          ]
+        }
+      ]
+    },
+    "closed": {
+      "cards": [
+        {
+          "image": "story/ending_closed",
+          "fallback_image": "story/convoy",
+          "lines": [
+            "END_CLOSED_T",
+            "END_CLOSED_1"
+          ]
+        },
+        {
+          "image": "story/ending_closed",
+          "fallback_image": "story/convoy",
+          "ken_burns": "reverse",
+          "lines": [
+            "END_CLOSED_2"
+          ]
+        }
+      ]
+    }
   }
 }

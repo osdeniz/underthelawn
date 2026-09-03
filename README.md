@@ -3670,3 +3670,51 @@ asserts the button exists first. And `Case2FlowB`, which starts chapters at
 ch09, ran the night the gate landed and found the card where the level should
 be; every suite that drives the flow now opens the gate in its setup, and only
 `DemoCheck` lowers it.
+
+## G17 — Case 03: The Visitors
+
+Eight chapters, all in and around the town, getting it ready to be seen.
+Case 01 searched the town; Case 02 walked east; Case 03 comes home. Concord is
+twelve days out — four vehicles, steady speed, stopping at dusk, *"not how you
+sneak up on a town; how you give one time"* — and every yard the player cuts
+is the town deciding to be looked at. The design is in `docs/CASE_03.md`; the
+short version is that the game has been about one thing since the prologue,
+caring for what is not yours, and this is where it stops implying and asks.
+
+**The chapters reuse what exists.** Every landmark is one the game already had
+(the meeting stone, the tower, the playground, the orchard, the prologue's
+clearing, the crossing), every palette is in the table, and the three mechanics
+of G15.5 come back where they belong: the school-field chalk map is FRAGILE
+(*"Don't drive on it"* — Ellie's own briefing), the second marker on the grave
+row is reached on FOOT, and the night watch has the fireflies. No new meshes,
+no new systems; sixteen pieces of evidence, each with Cole's reading and the
+Marshal's margin note, in both languages.
+
+**One echo, not by name.** The grave row has a second marker: same board, same
+nail, same hand as the nine-year-old one at the other end — *"steadier now."*
+Cole says so; the Marshal says *"Leave it, Cole."* That is the whole of it.
+
+**The visitors are not villains.** The letter thanks the town and *asks*. The
+photograph is a baby in a basket, taken from the road nine years ago — they
+knew the whole time and did nothing, and the Stranger admits he took it. The
+threat is the smallest and truest it has been: being in the file.
+
+**The Gate Card.** After the last debrief: two pages, then the one choice the
+game ever asks — *Open the gate* / *Keep it closed*. Neither button says
+"share" or "protect" or "family"; those words are forbidden. Two mornings
+follow, the same event one detail apart: open, she tells four strangers about
+dragons and the man with the notebook closes it without writing; closed, they
+turn the trucks around and she watches from Sarah's window. In both, where the
+dog stands is the answer — beside her, or at the gate beside you. The town
+diorama remembers the choice the same way, with a dog figure and nothing said.
+
+**Wiring.** Case 03 opens on Case 02's ending card (`case_three_open()`), the
+chapter list grows to 26, the hub reads the active case's title through one
+`active_case_path()` instead of four `is_two` branches, and `RootFlow` routes
+the ch26 finale to the card and the card to its morning. A closed Case 02 now
+stays listed whatever `town_ready()` says — Case 03 on top of a list that had
+dropped it counted 16 chapters where there are 26, which `Case3Check` caught.
+
+**What is not here.** Illustrations for the two mornings (`story/ending_open`,
+`story/ending_closed`) fall back to the homecoming and convoy art until they
+exist. Voice, as everywhere, is the recording's job.

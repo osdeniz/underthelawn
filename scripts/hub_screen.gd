@@ -419,16 +419,13 @@ func _refresh_progress() -> void:
 	# ever finished, which is the right number for the town but the wrong one
 	# for a line that names one case (G13).
 	var case_list := ChapterProgress.active_case_chapters()
-	var case_id := "case_02.id" if ChapterProgress.active_case_is_two() \
-		else "case.id"
+	var case_id := ChapterProgress.active_case_path() + ".id"
 	_progress_label.text = Story.text("hub.progress").format({
 		"case": Story.text(case_id),
 		"done": ChapterProgress.done_in(case_list),
 		"total": case_list.size()})
 	if _case_name_label != null and is_instance_valid(_case_name_label):
-		_case_name_label.text = Story.text(
-			"case_02.title" if ChapterProgress.active_case_is_two()
-			else "case.title")
+		_case_name_label.text = Story.text(ChapterProgress.active_case_path() + ".title")
 	_scrap_label.text = "%d" % GameState.scrap_total()
 	if _reclaim_label != null and is_instance_valid(_reclaim_label):
 		# Deliberately NOT tied to money: this is the measure of work done, and
@@ -620,8 +617,7 @@ func _case_section_label(key: String) -> Label:
 func _refresh_case_summary() -> void:
 	if _case_summary_page == null or not is_instance_valid(_case_summary_page):
 		return
-	var is_two := ChapterProgress.active_case_is_two()
-	var case_path := "case_02" if is_two else "case"
+	var case_path := ChapterProgress.active_case_path()
 	var chapters := ChapterProgress.active_case_chapters()
 
 	var objective_label := _case_summary_page.find_child("CaseObjective", true,
@@ -920,8 +916,7 @@ func _refresh_lead_card() -> void:
 	var go := card.find_child("LeadGo", true, false) as Button
 	if all_done:
 		eyebrow.text = tr("HUB_LEAD_DONE_LABEL")
-		place.text = Story.text("case_02.title"
-			if ChapterProgress.active_case_is_two() else "case.title")
+		place.text = Story.text(ChapterProgress.active_case_path() + ".title")
 		lead.text = tr("CASE_LEAD_CLOSED")
 		go.text = tr("CASE_ALL_SEARCHED")
 		go.disabled = true

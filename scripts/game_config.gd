@@ -2554,3 +2554,13 @@ const DEMO_FREE_CHAPTERS: Array[String] = ["ch01_aldridge", "ch02_neighbor",
 	"ch03_playground"]
 ## The chapter whose debrief the card follows.
 const DEMO_GATE_AFTER := "ch03_playground"
+
+
+# ---------------------------------------------------------------- the gate remembered (G17)
+
+## After Case 03 the town diorama reads the choice. Open: Ellie on the swing in
+## the square with the dog beside her. Closed: the swing empty — she is inside —
+## and the dog at the town gate, beside where the Marshal stands. Nothing is
+## said; the dog's position is the whole answer (docs/CASE_03.md).
+const DIORAMA_DOG_BY_SWING := Vector3(2.4, 0.0, 0.9)
+const DIORAMA_DOG_AT_GATE := Vector3(0.4, 0.0, 10.6)

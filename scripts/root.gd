@@ -466,7 +466,12 @@ func _on_search_finished(evidence: int, total: int) -> void:
 		# and then cold — Ellie home, then the question of what she saw. Case 02
 		# ends the same shape: the town in sight, then the lights on the road
 		# behind it (G13).
-		if _in_case_two(_pending_variant):
+		if _in_case_three(_pending_variant):
+			# Case 03 ends on the one choice the game asks (G17): the finale
+			# conversation, then the gate, then whichever morning follows.
+			_play_dialogue(Dialogue.conversation("finale_case03"), "",
+				func() -> void: _show_gate())
+		elif _in_case_two(_pending_variant):
 			_play_dialogue(Dialogue.conversation("debrief_ch18_full"), "",
 				func() -> void: _show_convoy())
 		else:
@@ -531,6 +536,32 @@ func _is_last_chapter(variant_id: String) -> bool:
 	if chapters.is_empty():
 		return false
 	return str((chapters.back() as Dictionary).get("variant_id", "")) == variant_id
+
+
+func _in_case_three(variant_id: String) -> bool:
+	for chapter: Dictionary in Story.list("case_03.chapters"):
+		if str(chapter.get("variant_id", "")) == variant_id:
+			return true
+	return false
+
+
+## The gate (G17): two pages, one choice, and the morning it leads to. The
+## choice is remembered — the town diorama reads it from then on — and the
+## case closes either way.
+func _show_gate() -> void:
+	_clear_game()
+	var layer := CanvasLayer.new()
+	layer.layer = 70
+	add_child(layer)
+	var card: Control = load("res://scripts/gate_card.gd").new()
+	layer.add_child(card)
+	card.chosen.connect(func(open: bool) -> void:
+		layer.queue_free()
+		GameState.set_setting("story", "gate_open", open)
+		GameState.set_setting("story", "case03_closed", true)
+		Analytics.track("gate_chosen", {"open": open})
+		_play_cards("endings.open" if open else "endings.closed", func() -> void:
+			return_to_board()))
 
 
 func _in_case_two(variant_id: String) -> bool:

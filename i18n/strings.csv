@@ -1019,3 +1019,205 @@ DEMO_BUY,Unlock the full story,Hikâyenin tamamını aç
 DEMO_LATER,Not now,Şimdi değil
 DEMO_RESTORE,Restore a purchase,Satın alımı geri yükle
 BOARD_LOCKED_DEMO,Full story,Tam hikâye
+CASE_03_HUD_LINE,CASE 03 — THE VISITORS · Get the town ready,VAKA 03 — ZİYARETÇİLER · Kasabayı hazırla
+CH_19_NAME,The Square,Meydan
+CH_20_NAME,The Tower Road,Kule Yolu
+CH_21_NAME,The School Field,Okul Bahçesi
+CH_22_NAME,"The Orchard, Again","Bahçe, Yeniden"
+CH_23_NAME,The Grave Row,Mezar Sırası
+CH_24_NAME,The Gate Line,Kapı Hattı
+CH_25_NAME,Night Watch,Gece Nöbeti
+CH_26_NAME,The Visit,Ziyaret
+OPENING_19_HEADLINE,THE SQUARE,MEYDAN
+OPENING_19_SUBLINE,Twelve days. Start where they will stand.,On iki gün. Duracakları yerden başla.
+OPENING_20_HEADLINE,THE TOWER ROAD,KULE YOLU
+OPENING_20_SUBLINE,Let them see the way in.,Girişi görsünler.
+OPENING_21_HEADLINE,THE SCHOOL FIELD,OKUL BAHÇESİ
+OPENING_21_SUBLINE,Where she drew the arrow.,Oku çizdiği yer.
+OPENING_22_HEADLINE,"THE ORCHARD, AGAIN","BAHÇE, YENİDEN"
+OPENING_22_SUBLINE,Somebody kept it. Help him.,Biri ona baktı. Yardım et.
+OPENING_23_HEADLINE,THE GRAVE ROW,MEZAR SIRASI
+OPENING_23_SUBLINE,Cut it back. Quietly.,Aç. Sessizce.
+OPENING_24_HEADLINE,THE GATE LINE,KAPI HATTI
+OPENING_24_SUBLINE,This is where they will stop.,Duracakları yer burası.
+OPENING_25_HEADLINE,NIGHT WATCH,GECE NÖBETİ
+OPENING_25_SUBLINE,Headlights on the east road.,Doğu yolunda farlar.
+OPENING_26_HEADLINE,THE VISIT,ZİYARET
+OPENING_26_SUBLINE,One more yard. Then the gate.,Bir bahçe daha. Sonra kapı.
+RECLAIM_CH19,The square is cut. Somebody set the tables out without being asked.,Meydan biçildi. Biri sormadan masaları çıkardı.
+RECLAIM_CH20,The tower road is open. Gus can see the bend from the top.,Kule yolu açık. Gus tepeden dönemeci görüyor.
+RECLAIM_CH21,The school field is a field again. The bell is up.,Okul bahçesi yine bahçe. Zil asıldı.
+RECLAIM_CH22,The orchard is pruned. He did most of it before we got there.,Bahçe budandı. Çoğunu biz gelmeden o yapmış.
+RECLAIM_CH23,The row is cut. Nobody says who the second marker is for.,Sıra biçildi. İkinci işaretin kimin için olduğunu kimse söylemiyor.
+RECLAIM_CH24,The gate line is clear. The sign is still blank.,Kapı hattı açık. Tabela hâlâ boş.
+RECLAIM_CH25,"Four sets of lights, eleven miles out, not hurrying.","Dört çift ışık, on sekiz kilometre ötede, acele etmiyorlar."
+RECLAIM_CH26,They came. They talked. The rest is in the notes.,Geldiler. Konuştular. Gerisi notlarda.
+LOC_SQUARE,the square,meydan
+LOC_HALL,the hall steps,salon basamakları
+LOC_LADDER,the ladder,merdiven
+LOC_SLAB,the slab,beton
+LOC_POST,the bell post,zil direği
+LOC_TREE,under the big tree,büyük ağacın altı
+LOC_ROW,the row,sıra
+LOC_GATE,the gate,kapı
+LOC_STEPS,the tower steps,kule basamakları
+LOC_TABLE,the table,masa
+EV_CH19_A_NAME,Marked stone,İşaretli taş
+EV_CH19_A_LINE,"Seven stars, scratched small. A child's copy of a grown-up's mark.","Yedi yıldız, küçük kazınmış. Bir büyüğün işaretinin çocuk kopyası."
+COLE_STONE_MARK,"Same seven stars as the crate lids and the chalk. Scratched with a nail, at the height of a nine-year-old's hand.","Kasa kapaklarındaki ve tebeşirdeki aynı yedi yıldız. Çiviyle, dokuz yaşındaki bir elin hizasında kazınmış."
+MN_CH19_A,She copied their sign. She wanted us to see it.,İşaretlerini kopyaladı. Görmemizi istedi.
+EV_CH19_B_NAME,The roster,Liste
+EV_CH19_B_LINE,"Every name in town, in Sarah's hand. One line has been rubbed out.","Kasabadaki her isim, Sarah'nın eliyle. Bir satır silinmiş."
+COLE_ROSTER,"Forty-one names. The rubbed line is between the Ks and the Ms — an E, or an L. Sarah wrote this list and Sarah took a name off it.",Kırk bir isim. Silinen satır K ile M arasında — bir E ya da L. Bu listeyi Sarah yazdı ve bir ismi Sarah sildi.
+MN_CH19_B,She's hiding her already. Before anyone asked.,Onu şimdiden saklıyor. Kimse sormadan.
+EV_CH20_A_NAME,Signal mirror,İşaret aynası
+EV_CH20_A_LINE,"Hung on the tower rail, angled east.","Kule korkuluğuna asılı, doğuya çevrilmiş."
+COLE_MIRROR,"A shaving mirror on a wire. Angled to catch the morning sun down the east road: whoever hung it wanted to be SEEN coming, not to see.","Tel üstünde bir tıraş aynası. Sabah güneşini doğu yoluna yansıtacak açıda: bunu asan görmek değil, GÖRÜLMEK istiyordu."
+MN_CH20_A,"Gus says he didn't. Gus is lying badly, which means kindly.","Gus ben değilim diyor. Kötü yalan söylüyor, yani iyi niyetle."
+EV_CH20_B_NAME,Oil can,Yağdanlık
+EV_CH20_B_LINE,Fresh oil on every rung of the tower ladder.,Kule merdiveninin her basamağında taze yağ.
+COLE_OIL_CAN,"Oiled this week, top to bottom. You oil a ladder you expect a stranger to climb.","Bu hafta yağlanmış, tepeden dibe. Yabancının çıkmasını beklediğin merdiveni yağlarsın."
+MN_CH20_B,The town is getting ready to be looked at. I'm not sure I like it.,Kasaba bakılmaya hazırlanıyor. Hoşuma gittiğinden emin değilim.
+EV_CH21_A_NAME,Chalk map,Tebeşir harita
+EV_CH21_A_LINE,"The town, drawn on the slab. One house is circled.","Kasaba, betona çizilmiş. Bir ev daire içinde."
+COLE_CHALK_MAP,"Every building in the right place, from memory. The circled house is Sarah's. The circle is drawn three times, harder each time.","Her bina yerli yerinde, hafızadan. Daire içindeki ev Sarah'nın. Daire üç kez, her seferinde daha sert çizilmiş."
+COLE_CHALK_MAP_CRUSHED,Smeared under a wheel. The circle survived — three passes of chalk are hard to erase. Sarah's house.,Bir tekerleğin altında yayılmış. Daire kalmış — üç kat tebeşir kolay silinmiyor. Sarah'nın evi.
+MN_CH21_A,Mine. That's what a circle means at nine.,Benim. Dokuz yaşında daire bu demek.
+EV_CH21_B_NAME,School bell,Okul zili
+EV_CH21_B_LINE,Rehung on its post. It has not rung in nine years.,Direğine yeniden asılmış. Dokuz yıldır çalmadı.
+COLE_BELL,"Rope new, bracket old. Somebody means to ring it when they come — a town announcing itself.","İp yeni, braket eski. Biri onlar gelince çalmak niyetinde — kendini ilan eden bir kasaba."
+MN_CH21_B,We could hide. We're doing the opposite.,Saklanabilirdik. Tam tersini yapıyoruz.
+EV_CH22_A_NAME,Pruning saw,Budama testeresi
+EV_CH22_A_LINE,"Clean, sharp, left on a branch.","Temiz, keskin, bir dala bırakılmış."
+COLE_PRUNING_SAW,"Sharpened by hand, this month. He kept these trees for two years and never took an apple. That is not a garden. That is a promise.","Elle bilenmiş, bu ay. İki yıl bu ağaçlara baktı ve tek elma almadı. Bu bahçe değil. Bu bir söz."
+MN_CH22_A,He grew it for the town he wasn't allowed to join.,Katılmasına izin verilmeyen kasaba için yetiştirdi.
+EV_CH22_B_NAME,Ladder,Merdiven
+EV_CH22_B_LINE,"Three new rungs, the rest grey with weather.","Üç basamak yeni, gerisi havadan kurşunileşmiş."
+COLE_LADDER,The new rungs are lower. Somebody shorter has been climbing it lately.,Yeni basamaklar alçakta. Son zamanlarda daha kısa biri çıkıyor.
+MN_CH22_B,Ellie. Of course.,Ellie. Tabii.
+EV_CH23_A_NAME,Second marker,İkinci işaret
+EV_CH23_A_LINE,"A plain board, no name, at the end of the row.","Düz bir tahta, isimsiz, sıranın sonunda."
+COLE_MARKER,"Not the town's work. Same board and the same nail as the one nine years old at the other end, and driven by the same hand — steadier now.","Kasabanın işi değil. Öbür uçtaki dokuz yıllık işaretle aynı tahta, aynı çivi, aynı el — artık daha sakin."
+MN_CH23_A,...,...
+EV_CH23_B_NAME,Grey ribbon,Gri kurdele
+EV_CH23_B_LINE,Tied to the fence. Not a colour anybody here wears.,Çite bağlı. Buralarda kimsenin giydiği bir renk değil.
+COLE_RIBBON_GREY,"Concord grey, machine-woven. Tied recently, tied carefully. Somebody from the file has already stood here.","Concord grisi, makine dokuması. Yakında, dikkatle bağlanmış. Dosyadan biri buraya çoktan gelmiş."
+MN_CH23_B,They've been in town. Nobody saw. Nobody was hurt.,Kasabaya girmişler. Kimse görmedi. Kimse zarar görmedi.
+EV_CH24_A_NAME,Fence wire,Çit teli
+EV_CH24_A_LINE,"Re-strung, tight, both sides of the gate.","Kapının iki yanında yeniden gerilmiş, gergin."
+COLE_WIRE,"Tensioned to sing. A fence that could keep nothing out, made to look like it means to.","Şarkı söyleyecek kadar gergin. Hiçbir şeyi dışarıda tutamayacak bir çit, tutar gibi görünsün diye yapılmış."
+MN_CH24_A,A fence is a sentence. This one hasn't decided what it says.,"Çit bir cümledir. Bu, ne dediğine karar vermemiş."
+EV_CH24_B_NAME,Blank sign,Boş tabela
+EV_CH24_B_LINE,"Planed smooth, painted white, nothing on it.","Rendelenmiş, beyaza boyanmış, üstünde hiçbir şey yok."
+COLE_SIGN_BLANK,Primed twice. Two people started to write and both stopped. The town does not know what it is called yet.,"İki kat astar. İki kişi yazmaya başladı, ikisi de durdu. Kasaba adının ne olduğunu henüz bilmiyor."
+MN_CH24_B,Neither do I.,Ben de bilmiyorum.
+EV_CH25_A_NAME,Gus's lantern,Gus'ın feneri
+EV_CH25_A_LINE,"Lit, and set on the top step.","Yakılmış, en üst basamağa konmuş."
+COLE_LANTERN,"Trimmed for a long night. Left where the road can see it — the same porch light the Marshal walked towards nine years ago, higher.","Uzun bir gece için ayarlanmış. Yolun göreceği yere bırakılmış — Mareşal'in dokuz yıl önce yürüdüğü veranda ışığı, daha yüksekte."
+MN_CH25_A,I know what a light on a porch does to a man on a road.,Bir veranda ışığının yoldaki adama ne yaptığını bilirim.
+EV_CH25_B_NAME,Radio log,Telsiz kaydı
+EV_CH25_B_LINE,"Three nights of Gus's handwriting: lights, distances, times.","Gus'ın üç gecelik el yazısı: ışıklar, mesafeler, saatler."
+COLE_RADIO_LOG,"Four vehicles, steady speed, stopping at dusk each night. They are not sneaking up. They are giving us time.","Dört araç, sabit hız, her gece alacakaranlıkta duruyorlar. Sinsice yaklaşmıyorlar. Bize zaman veriyorlar."
+MN_CH25_B,Tomorrow.,Yarın.
+EV_CH26_A_NAME,The letter,Mektup
+EV_CH26_A_LINE,Typed. Signed by hand. It thanks us.,Daktilo. Elle imzalı. Bize teşekkür ediyor.
+COLE_LETTER,No demand in it anywhere. It thanks the town for 'nine years of care' and asks to see her. Asks.,İçinde hiçbir yerde talep yok. Kasabaya 'dokuz yıllık bakım' için teşekkür ediyor ve onu görmek istiyor. İstiyor.
+MN_CH26_A,"They knew. The whole time, they knew where she was.",Biliyorlardı. Bütün bu süre boyunca nerede olduğunu biliyorlardı.
+EV_CH26_B_NAME,A photograph,Bir fotoğraf
+EV_CH26_B_LINE,"A baby in a basket. Nine years old, the print.",Sepette bir bebek. Baskı dokuz yıllık.
+COLE_PHOTOGRAPH,"Taken from the road, from a distance, the day she arrived. Somebody watched a man carry a basket into this town and wrote it down. That is all they ever did.","Yoldan, uzaktan, geldiği gün çekilmiş. Biri bir adamın bu kasabaya sepet taşımasını izlemiş ve yazmış. Bütün yaptıkları bu."
+MN_CH26_B,I was in that photograph. Out of frame.,O fotoğrafta bendim. Kadrajın dışında.
+BRIEF_19_ACCEPT,Start with the square,Meydandan başla
+DLG_BRIEF_CH19_1,"Twelve days, he says. Then people we've never met stand in our square.",On iki gün diyor. Sonra hiç tanımadığımız insanlar meydanımızda durur.
+DLG_BRIEF_CH19_2,"Then the square gets cut first. If they're going to look at us, we'll be looked at.","O zaman önce meydan biçilir. Bize bakacaklarsa, bakılırız."
+DLG_BRIEF_CH19_3,She's been out there since dawn with a nail.,Şafaktan beri elinde çiviyle orada.
+DLG_BRIEF_CH19_4,Then let's see what she's been writing.,O zaman ne yazdığına bakalım.
+DLG_DEB_CH19_F1,"Seven stars on the stone. Their sign, her hand.","Taşta yedi yıldız. Onların işareti, onun eli."
+DLG_DEB_CH19_F2,And a roster with one name rubbed out.,Ve bir ismi silinmiş bir liste.
+DLG_DEB_CH19_F3,I wrote it. I rubbed it out. I'd do it again.,Ben yazdım. Ben sildim. Yine yaparım.
+DLG_DEB_CH19_P1,Half the square. They'll stand on the cut half.,Meydanın yarısı. Biçilen yarıda dururlar.
+BRIEF_20_ACCEPT,Open the road,Yolu aç
+DLG_BRIEF_CH20_1,From the top of the tower you can see the bend. From the bend they can see the tower.,Kulenin tepesinden dönemeci görüyorsun. Dönemeçten kuleyi görüyorlar.
+DLG_BRIEF_CH20_2,You want them to see it.,Görmelerini istiyorsun.
+DLG_BRIEF_CH20_3,I want them to know somebody's up there. That's different.,Yukarıda birinin olduğunu bilsinler istiyorum. O başka.
+DLG_DEB_CH20_F1,A mirror on the rail and oil on every rung.,"Korkulukta ayna, her basamakta yağ."
+DLG_DEB_CH20_F2,"Gus, you're getting ready to be visited. Don't tell me you're not.","Gus, ziyaret edilmeye hazırlanıyorsun. Hazırlanmıyorum deme."
+DLG_DEB_CH20_P1,Road's half open. They'll manage the rest on foot.,Yol yarı açık. Gerisini yürüyerek hallederler.
+BRIEF_21_ACCEPT,Cut the field,Bahçeyi biç
+DLG_BRIEF_CH21_1,I drew the whole town on the slab. Don't drive on it.,Bütün kasabayı betona çizdim. Üstünden geçme.
+DLG_BRIEF_CH21_2,Then I'll cut around it. Which house did you circle?,O zaman etrafından biçerim. Hangi evi daire içine aldın?
+DLG_BRIEF_CH21_A1,Why the whole town?,Neden bütün kasaba?
+DLG_BRIEF_CH21_R1,So they'd know it's real. You can't visit a place that isn't drawn.,Gerçek olduğunu bilsinler diye. Çizilmemiş bir yer ziyaret edilemez.
+DLG_BRIEF_CH21_A2,Do you know who's coming?,Kimin geldiğini biliyor musun?
+DLG_BRIEF_CH21_R2,The man from the cellar's friends. He said they count. I can count too.,Mahzendeki adamın arkadaşları. Sayarlar dedi. Ben de sayabilirim.
+DLG_BRIEF_CH21_3,"Gently, then. Around the chalk.",Yavaş öyleyse. Tebeşirin etrafından.
+DLG_DEB_CH21_F1,The map's whole. Every building where it should be.,Harita bütün. Her bina yerli yerinde.
+DLG_DEB_CH21_F2,I circled ours three times so it wouldn't wash off.,"Bizimkini üç kere daire içine aldım, yıkanıp gitmesin diye."
+DLG_DEB_CH21_F3,It won't.,Gitmez.
+DLG_DEB_CH21_C1,The wheel took the west side of it. The circle's still there.,Tekerlek batı tarafını aldı. Daire hâlâ orada.
+DLG_DEB_CH21_C2,I'll draw it again. I said don't drive on it.,Yeniden çizerim. Üstünden geçme demiştim.
+DLG_DEB_CH21_P1,Half the field. The map's on the half we haven't reached.,Bahçenin yarısı. Harita henüz varmadığımız yarıda.
+BRIEF_22_ACCEPT,Help him,Yardım et
+DLG_BRIEF_CH22_1,I pruned it in the dark for two years. I would like to do it once in daylight.,İki yıl karanlıkta budadım. Bir kez gün ışığında yapmak isterim.
+DLG_BRIEF_CH22_2,With the town watching.,Kasaba izlerken.
+DLG_BRIEF_CH22_3,With the town helping. If it will.,Kasaba yardım ederken. Ederse.
+DLG_CHAT_CH22_1,Lower branches first. She cannot reach the others and she will try.,Önce alçak dallar. Ötekilere uzanamaz ve deneyecektir.
+DLG_CHAT_CH22_2,You've been watching her climb for two years.,İki yıldır tırmanmasını izliyorsun.
+DLG_DEB_CH22_F1,"A saw kept sharp and a ladder with three new rungs, low.",Keskin tutulmuş bir testere ve üç yeni alçak basamaklı merdiven.
+DLG_DEB_CH22_F2,I did not plant it for them. I should say that once.,Onlar için dikmedim. Bunu bir kez söylemem gerek.
+DLG_DEB_CH22_F3,You've said it.,Söyledin.
+DLG_DEB_CH22_P1,Half the rows. He'll finish them tonight; he always has.,Sıraların yarısı. Bu gece bitirir; hep bitirdi.
+BRIEF_23_ACCEPT,Cut it back,Aç
+DLG_BRIEF_CH23_1,The row's grown over. Nobody's been up since spring.,Sıra otla kaplandı. Bahardan beri kimse çıkmadı.
+DLG_BRIEF_CH23_2,I have.,Ben çıktım.
+DLG_BRIEF_CH23_3,Then you know there's a second marker. I don't know who put it there.,O zaman ikinci bir işaret olduğunu biliyorsun. Kimin koyduğunu bilmiyorum.
+DLG_DEB_CH23_F1,Same board as the old one. Same nail.,Eskisiyle aynı tahta. Aynı çivi.
+DLG_DEB_CH23_F2,Same hand. Steadier.,Aynı el. Daha sakin.
+DLG_DEB_CH23_F3,"Leave it, Cole.","Bırak, Cole."
+DLG_DEB_CH23_P1,Half the row. The far end can stay in the grass a while.,Sıranın yarısı. Uzak uç bir süre otta kalabilir.
+BRIEF_24_ACCEPT,Clear the line,Hattı aç
+DLG_BRIEF_CH24_1,"This is where they stop. The fence, the gate, the sign.","Duracakları yer burası. Çit, kapı, tabela."
+DLG_BRIEF_CH24_2,The sign's blank. I've had the brush in my hand twice.,Tabela boş. Fırçayı iki kere elime aldım.
+DLG_BRIEF_CH24_3,Cut the line first. We'll know what to write when we can see it.,Önce hattı aç. Görünce ne yazacağımızı biliriz.
+DLG_DEB_CH24_F1,"New wire, tight enough to sing. A sign with nothing on it.","Yeni tel, şarkı söyleyecek kadar gergin. Üstünde hiçbir şey olmayan bir tabela."
+DLG_DEB_CH24_F2,A town that's decided to be seen and hasn't decided what to say.,"Görülmeye karar vermiş, ne diyeceğine karar vermemiş bir kasaba."
+DLG_DEB_CH24_F3,"Say nothing, then. Let them read the grass.",Hiçbir şey deme öyleyse. Çimeni okusunlar.
+DLG_DEB_CH24_P1,Half the line. The gate itself is clear.,Hattın yarısı. Kapının kendisi açık.
+BRIEF_25_ACCEPT,Take the watch,Nöbeti al
+DLG_BRIEF_CH25_1,Four sets of lights on the east road. Eleven miles. They stopped at dusk.,Doğu yolunda dört çift ışık. On sekiz kilometre. Alacakaranlıkta durdular.
+DLG_BRIEF_CH25_2,I'm not coming down off this tower tonight.,Bu gece bu kuleden inmiyorum.
+DLG_BRIEF_CH25_3,"Then I'll cut the ground under you. If they come early, I want to see them do it.",O zaman altındaki zemini ben açarım. Erken gelirlerse görmek istiyorum.
+DLG_CHAT_CH25_1,They've put their lights out. Camp.,Işıklarını söndürdüler. Kamp.
+DLG_CHAT_CH25_2,Good. So can we.,İyi. Biz de yapabiliriz.
+DLG_DEB_CH25_F1,"A lantern on the top step, and three nights of your handwriting.","En üst basamakta bir fener, üç gecelik el yazın."
+DLG_DEB_CH25_F2,Steady speed. Stopping at dark. That's not how you sneak up on a town.,Sabit hız. Karanlıkta duruş. Bir kasabaya böyle sinsice yaklaşılmaz.
+DLG_DEB_CH25_F3,No. That's how you give one time.,Hayır. Bir kasabaya böyle zaman verilir.
+DLG_DEB_CH25_P1,Half the ground. Tomorrow doesn't care.,Zeminin yarısı. Yarının umurunda değil.
+BRIEF_26_ACCEPT,Cut the last of it,Kalanı biç
+DLG_BRIEF_CH26_1,"They're at the gate line. Four men, no hurry, hats off.","Kapı hattındalar. Dört adam, acele yok, şapkalar çıkmış."
+DLG_BRIEF_CH26_2,The square's cut. The tables are out. She's inside.,Meydan biçildi. Masalar çıktı. O içeride.
+DLG_BRIEF_CH26_3,"Then I'll finish this last patch, and we'll open the gate, and we'll see.","O zaman bu son parçayı bitiririm, kapıyı açarız ve görürüz."
+DLG_DEB_CH26_P1,It can wait. Nothing else can.,Bekleyebilir. Başka hiçbir şey bekleyemez.
+DLG_FIN3_1,They have a letter and a photograph. I have read the letter. I took the photograph.,Bir mektupları ve bir fotoğrafları var. Mektubu okudum. Fotoğrafı ben çektim.
+DLG_FIN3_2,You were on the road that day.,O gün yoldaydın.
+DLG_FIN3_3,"I was fifty yards behind a man with a basket, and I wrote down what I saw, and then I did nothing for nine years. That is the whole of my crime.","Sepetli bir adamın elli metre arkasındaydım, gördüğümü yazdım ve sonra dokuz yıl hiçbir şey yapmadım. Suçumun tamamı bu."
+DLG_FIN3_4,They want to see her. They asked. Nobody has ever asked me anything about her.,Onu görmek istiyorlar. Sordular. Kimse bana onun hakkında hiçbir şey sormamıştı.
+DLG_FIN3_5,I want to see them too. I drew them a map.,Ben de onları görmek istiyorum. Onlara harita çizdim.
+DLG_FIN3_6,...Then it's my call. It always was.,...O zaman karar benim. Hep öyleydi.
+GATE_TITLE,THE GATE,KAPI
+GATE_1_L1,Four men at the fence with their hats in their hands.,"Çitte dört adam, şapkaları ellerinde."
+GATE_1_L2,"Behind you, a town that cut every yard it owns to be seen.","Arkanda, görülmek için sahip olduğu her bahçeyi biçmiş bir kasaba."
+GATE_2_L1,Nine years ago you carried a basket through this gate and handed it to a whole town.,Dokuz yıl önce bu kapıdan bir sepet taşıdın ve onu bir kasabanın tamamına verdin.
+GATE_2_L2,The gate is yours to open. It always was.,Kapıyı açmak sana kalmış. Hep öyleydi.
+GATE_OPEN,Open the gate,Kapıyı aç
+GATE_OPEN_SUB,Bring her out. Let them see what a town did.,Onu çıkar. Bir kasabanın ne yaptığını görsünler.
+GATE_CLOSE,Keep it closed,Kapalı tut
+GATE_CLOSE_SUB,Tell them the file is wrong. There was never a child here.,Dosyanın yanlış olduğunu söyle. Burada hiç çocuk olmadı.
+END_OPEN_T,MORNING,SABAH
+END_OPEN_1,She stood in the square with the whole town behind her and told four strangers about dragons.,"Bütün kasaba arkasında, meydanda durdu ve dört yabancıya ejderhaları anlattı."
+END_OPEN_2,The man with the notebook closed it without writing anything down. The dog did not leave her side.,Defterli adam hiçbir şey yazmadan defterini kapattı. Köpek yanından ayrılmadı.
+END_CLOSED_T,MORNING,SABAH
+END_CLOSED_1,They thanked us for our time and turned the trucks around. Nobody rang the bell.,Zaman ayırdığımız için teşekkür edip kamyonları çevirdiler. Kimse zili çalmadı.
+END_CLOSED_2,"She watched them go from Sarah's window. The dog stood at the gate, beside you, and did not look back at the house.","Sarah'nın penceresinden gidişlerini izledi. Köpek kapıda, yanında durdu ve eve dönüp bakmadı."
+CASE_03_COMPLETE,CASE 03 CLOSED,VAKA 03 KAPANDI
+CASE_03_UNLOCKED,CASE 03 UNLOCKED,VAKA 03 AÇILDI
