@@ -53,6 +53,10 @@ func run() -> void:
 	if bar != null:
 		ck("HUD ust bari ortada", absf(bar.offset_left - (margin + 56.0)) < 2.0,
 			"%.0f" % bar.offset_left)
+	var walk: Control = game.hud._walk_button
+	if walk != null:
+		ck("IN dugmesi sutunun icinde", walk.position.x >= margin - 1.0,
+			"x=%.0f pay=%.0f" % [walk.position.x, margin])
 	print("  [olcum] yatay gorunum %s, kenar payi %.0f" % [vp, margin])
 	await close(game)
 	get_window().size = Vector2i(1170, 2532)

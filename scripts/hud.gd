@@ -535,6 +535,10 @@ func show_scent(key: String) -> void:
 func _centre_for_wide_screens() -> void:
 	var wide := get_viewport_rect().size.x
 	var margin := maxf(0.0, (wide - GameConfig.UI_MAX_WIDTH) * 0.5)
+	# The walk button is pinned bottom-left and was the one control still in the
+	# far corner of a 16:9 frame (G18). Translated in by the margin.
+	if _walk_button != null and is_instance_valid(_walk_button):
+		GameConfig.fit_wide(_walk_button)
 	for entry: Array in [["TopBarPanel", 30.0], ["TopBar", 56.0],
 			["CompletePanel", 0.0], ["OpeningTitle", 0.0]]:
 		var node := get_node_or_null(NodePath(entry[0])) as Control
