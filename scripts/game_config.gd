@@ -2480,3 +2480,17 @@ const REED_HEAD_COLOUR := Color(0.42, 0.30, 0.18)
 ## first briefing has promised candles burning down since G7 and nothing ever
 ## burned; here the light itself is the clock. No fail state — an unfinished
 ## yard is finished in the dark, which was measured playable (G14.7).
+
+
+# ---------------------------------------------------------------- people seen (G15.6)
+
+## Concord was a faceless threat for ten chapters. At the listening post the
+## man the Marshal is "an hour behind" is on the ridge as the yard opens —
+## back turned, walking away — and gone once the machine comes within this
+## range. One line about it, and he is never seen again in Case 02.
+const OBSERVER_VANISH_RANGE := 7.0
+
+## Harvests were work with nobody at them. Once a settler has been taken in,
+## the newest one stands by the barn while the field is cut and the Marshal
+## says two things about them, with the settler's own name in the line.
+const HARVEST_CHAT_KEY := "chat_harvest"

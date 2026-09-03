@@ -59,6 +59,10 @@ var _animals: Animals
 ## debrief; and whether the two one-time hints have shown.
 var crushed_count := 0
 var _walk_hint_shown := false
+## G15.6: the figure on the ridge at the listening post, and whether he has gone.
+var _observer: Node3D
+var _observer_gone := false
+var _harvest_settler: Node3D
 var _look_hold := 0.0
 ## Set once both pieces of evidence are in hand and the player chose to keep
 ## mowing, so the "Continue" badge stays available.
@@ -135,6 +139,8 @@ func _ready() -> void:
 	model.secret_revealed.connect(_on_secret_uncovered)
 	model.secret_crushed.connect(_on_secret_crushed)
 	_build_reeds()
+	_observer = find_child("Observer", true, false) as Node3D
+	_build_harvest_settler()
 	hud.restart_pressed.connect(_restart)
 	hud.selector.mower_chosen.connect(select_mower)
 
@@ -251,6 +257,8 @@ func _process(delta: float) -> void:
 	_update_animals()
 	_tick_lapse()
 	_check_walk_only()
+	_check_observer()
+	_sway_settler(delta)
 	_tick_orientation(delta)
 	_check_pickups()
 	if mower != null and hud != null:
@@ -391,6 +399,11 @@ func _check_mid_chat(ratio: float) -> void:
 		var lines := Dialogue.conversation(key)
 		if lines.is_empty():
 			return
+		# The harvest chat is ABOUT a settler, so it needs one (G15.6).
+		if key == GameConfig.HARVEST_CHAT_KEY:
+			if Settlers.accepted().is_empty():
+				return
+			lines = _settler_lines(lines)
 		_play_mid_chat(lines)
 		return
 
@@ -661,6 +674,115 @@ func _on_secret_uncovered(col: int, row: int) -> void:
 
 ## Anything the mower drives near is taken. One reach for both evidence and
 ## cash, so "it looked like I touched it" and "it counted" are the same rule.
+## The man on the ridge (G15.6). Once the machine — or the man on foot — is
+## within range he is gone, and the Marshal says so. Not a chase and not a
+## reveal: the whole point is that he was there and now is not.
+func _check_observer() -> void:
+	if _observer == null or _observer_gone or not _search_started:
+		return
+	var who: Node3D = _walker if _walker != null and is_instance_valid(_walker) else mower
+	if who == null or not is_instance_valid(who):
+		return
+	if who.global_position.distance_to(_observer.global_position) \
+			> GameConfig.OBSERVER_VANISH_RANGE:
+		return
+	_observer_gone = true
+	_observer.visible = false
+	var lines := Dialogue.conversation("chat_ch14_observer")
+	if not lines.is_empty():
+		_play_mid_chat(lines)
+
+
+## The newest settler, by the barn, while the field is cut (G15.6). Only once
+## somebody has actually been taken in: a harvest before that is still work
+## with nobody at it, which is the truth of it.
+func _build_harvest_settler() -> void:
+	if variant == null or not variant.is_harvest():
+		return
+	var accepted := Settlers.accepted()
+	if accepted.is_empty():
+		return
+	# accepted() returns the SPECS, not ids. The first pass wrapped one in str()
+	# and looked it up by that, got {} back, and dressed and named nobody.
+	var spec: Dictionary = accepted[accepted.size() - 1]
+	var figure := Node3D.new()
+	figure.name = "HarvestSettler"
+	# Just past the north fence, to one side of the barn door: rendered at
+	# house_pos_z() + 3.6 the figure stood INSIDE the barn's footprint and the
+	# shot showed a red wall and nobody. Here it is against the wheat, head and
+	# shoulders above the crop from the player's low camera.
+	# INSIDE the fence, on the bare strip between the crop and the posts: past
+	# the fence is the barn's footprint (it is deep), and two renders in a row
+	# showed a red wall and nobody.
+	figure.position = Vector3(2.6, 0.0, GameConfig.fence_north_z() + 0.5)
+	# Facing the field (+Z), which the model does by turning its -Z round.
+	figure.rotation.y = PI
+	_fx_root.add_child(figure)
+	var kit: Dictionary = GameConfig.CHAR_OUTFITS[
+		absi(str(spec.get("id", "")).hash()) % GameConfig.CHAR_OUTFITS.size()]
+	var coat := StandardMaterial3D.new()
+	coat.albedo_color = kit["shirt"]
+	var jeans := StandardMaterial3D.new()
+	jeans.albedo_color = kit["jeans"]
+	var hat := StandardMaterial3D.new()
+	hat.albedo_color = kit["hat"]
+	var skin := StandardMaterial3D.new()
+	skin.albedo_color = Color(0.78, 0.62, 0.50)
+	_prim(figure, BoxMesh.new(), Vector3(0.48, 0.70, 0.28), coat, Vector3(0.0, 1.05, 0.0))
+	_prim(figure, SphereMesh.new(), Vector3(0.32, 0.32, 0.32), skin, Vector3(0.0, 1.56, 0.0))
+	_prim(figure, CylinderMesh.new(), Vector3(0.42, 0.05, 0.42), hat, Vector3(0.0, 1.72, 0.0))
+	for side: float in [-1.0, 1.0]:
+		_prim(figure, BoxMesh.new(), Vector3(0.15, 0.70, 0.15), jeans,
+			Vector3(side * 0.12, 0.35, 0.0))
+	_harvest_settler = figure
+
+
+## One primitive on `parent`, sized through scale so the same call builds a box,
+## a ball or a disc.
+func _prim(parent: Node3D, mesh: Mesh, size: Vector3, mat: Material, pos: Vector3) -> void:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.position = pos
+	if mesh is BoxMesh:
+		(mesh as BoxMesh).size = size
+	elif mesh is SphereMesh:
+		(mesh as SphereMesh).radius = size.x * 0.5
+		(mesh as SphereMesh).height = size.x
+	elif mesh is CylinderMesh:
+		(mesh as CylinderMesh).top_radius = size.x * 0.5
+		(mesh as CylinderMesh).bottom_radius = size.x * 0.5
+		(mesh as CylinderMesh).height = size.y
+	parent.add_child(mi)
+
+
+## A figure that stands perfectly still is a post; this one breathes.
+func _sway_settler(delta: float) -> void:
+	if _harvest_settler == null or not is_instance_valid(_harvest_settler):
+		return
+	_harvest_settler.rotation.z = sin(_search_seconds * 0.9) * 0.02
+	_harvest_settler.position.y = absf(sin(_search_seconds * 1.7)) * 0.01
+
+
+## The lines of a mid-chat with the newest settler's NAME written in (G15.6).
+## Dialogue keys are translated by the box; a line handed to it already
+## translated passes through unchanged, which is what lets one key serve every
+## settler. `{settler}` is the placeholder.
+func _settler_lines(lines: Array) -> Array:
+	var accepted := Settlers.accepted()
+	if accepted.is_empty():
+		return lines
+	var spec: Dictionary = accepted[accepted.size() - 1]
+	var who := tr(str(spec.get("name", "")))
+	var out: Array = []
+	for any: Variant in lines:
+		var line: Dictionary = (any as Dictionary).duplicate()
+		if line.has("text"):
+			line["text"] = tr(str(line["text"])).replace("{settler}", who)
+		out.append(line)
+	return out
+
+
 ## The fragile piece was driven over (G15.5): it is still found, and it is not
 ## whole. The prop lies tilted and half in the ground, the debrief says so, and
 ## Cole's note for it changes.

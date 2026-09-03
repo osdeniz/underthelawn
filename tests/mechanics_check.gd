@@ -11,6 +11,8 @@ func _ready() -> void:
 	await _fragile()
 	await _walk_only()
 	await _time_lapse()
+	await _observer()
+	await _harvest_settler()
 	if _fails > 0:
 		push_error("%d MEKANIK TESTI BASARISIZ" % _fails)
 		print("--- %d MEKANIK TESTI BASARISIZ ---" % _fails)
@@ -137,6 +139,47 @@ func _time_lapse() -> void:
 	ck("yarida isik ikisinin arasinda", absf(sun.rotation_degrees.x - mid) < 0.5,
 		"%.1f vs %.1f" % [sun.rotation_degrees.x, mid])
 	print("  [olcum] gunes: baslangic %.1f, yari %.1f, gece %.1f" % [start_elev, mid, -float(night["elev"])])
+	game.queue_free(); await _frames(4)
+
+
+## ch14: a man on the ridge as the yard opens; gone once the machine is near.
+func _observer() -> void:
+	var game: Node = await _open("ch14_listening_post")
+	var who: Node3D = game.find_child("Observer", true, false)
+	ck("sirtta gozlemci var", who != null and who.visible, "yok")
+	if who == null:
+		game.queue_free(); await _frames(4); return
+	var far: float = game.mower.global_position.distance_to(who.global_position)
+	ck("baslangicta uzakta", far > GameConfig.OBSERVER_VANISH_RANGE, "%.1f" % far)
+	game.mower.global_position = who.global_position + Vector3(0.0, 0.0, 3.0)
+	await _frames(3)
+	ck("yaklasinca kayboluyor", not who.visible, "hala gorunur")
+	ck("bir kez konusuyor", game._observer_gone, "")
+	ck("gozlemci satiri var", Dialogue.conversation("chat_ch14_observer").size() == 1, "")
+	game.queue_free(); await _frames(4)
+
+
+## A harvest: nobody by the barn until somebody has been taken in; then the
+## newest settler, and two lines with their name written in.
+func _harvest_settler() -> void:
+	Settlers.reset()
+	var game: Node = await _open("harvest_field")
+	ck("yerlesimci yokken figur yok", game.find_child("HarvestSettler", true, false) == null, "var")
+	ck("yerlesimci yokken sohbet yok",
+		game._settler_lines(Dialogue.conversation("chat_harvest"))[0]["text"] == "DLG_CHAT_HARVEST_1",
+		"degistirilmis")
+	game.queue_free(); await _frames(4)
+	var first: Dictionary = Settlers.all()[0]
+	Settlers.accept(str(first["id"]))
+	game = await _open("harvest_field")
+	ck("yerlesimci gelince figur var", game.find_child("HarvestSettler", true, false) != null, "yok")
+	var lines: Array = game._settler_lines(Dialogue.conversation("chat_harvest"))
+	var who := tr(str(first["name"]))
+	ck("satirda yerlesimcinin adi var", str(lines[0]["text"]).find(who) >= 0,
+		"%s icinde %s yok" % [lines[0]["text"], who])
+	ck("harvest sohbeti bagli", game.variant.mid_chat_key(0) == GameConfig.HARVEST_CHAT_KEY, "")
+	print("  [olcum] hasat satiri: %s" % lines[0]["text"])
+	Settlers.reset()
 	game.queue_free(); await _frames(4)
 
 

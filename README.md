@@ -3453,3 +3453,33 @@ burning down since G7; this is the chapter where the light is the clock.
 
 `MechanicsCheck` drives all three the way a player would — a pass over a cell,
 a walker stepping in, time going by — and reads the result off the model.
+
+### G15.6 — the man on the ridge, and somebody at the harvest
+
+**Concord had no body for ten chapters.** The review called for the Stranger to
+be seen once, and was wrong about who the faceless one was: the Stranger has
+walked beside the Marshal since the ch09 debrief and has a face, a coat and a
+button. The thing with no body was Concord — the visitors — and the closest the
+game came to them was *"the foam is still damp, we were an hour behind him."*
+
+So at the listening post, the man they were an hour behind is on the far ridge
+as the yard opens: back turned, pack on, walking away. Once the machine or the
+man on foot is within seven units he is gone — not running, simply not there
+the next time you look — and the Marshal says one thing: *"Someone on the
+ridge. ...Gone. He didn't run. He walked."* Nothing else. He is never seen
+again in Case 02, and that is the point of him.
+
+**Harvests had nobody at them.** Once a settler has been taken in, the newest
+one stands by the barn while the field is cut — dressed from the same wardrobe
+as the driver, keyed off their id, breathing — and halfway through the Marshal
+says two things about them with their name written in: *"{settler} came out to
+watch. First harvest since the road."* / *"Says the rows are crooked. They
+are."* Before anyone has been taken in there is no figure and no chat, because
+a harvest before that is still work with nobody at it, and pretending
+otherwise would be the game lying about its own town.
+
+The name goes in through the existing mid-chat mechanism with no change to the
+dialogue box: keys are translated by the box, a line handed to it already
+translated passes through unchanged, so one key serves every settler. Six
+harvest variants name `chat_harvest`, and `_check_mid_chat` skips it when there
+is nobody to talk about.

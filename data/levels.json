@@ -357,7 +357,8 @@
       "evidence_defs": [],
       "time_of_day": "golden",
       "plant_profile_id": "WILD_WHEAT",
-      "food_budget": 4
+      "food_budget": 4,
+      "mid_chat": "chat_harvest"
     },
     "ch09_radio_room": {
       "palette_id": "GREEN_COOL",
@@ -820,7 +821,8 @@
       "evidence_defs": [],
       "time_of_day": "golden",
       "plant_profile_id": "SUNFLOWER",
-      "food_budget": 6
+      "food_budget": 6,
+      "mid_chat": "chat_harvest"
     },
     "harvest_corn": {
       "level_type": "harvest",
@@ -838,7 +840,8 @@
       "evidence_defs": [],
       "time_of_day": "golden",
       "plant_profile_id": "CORN",
-      "food_budget": 9
+      "food_budget": 9,
+      "mid_chat": "chat_harvest"
     },
     "harvest_lavender": {
       "level_type": "harvest",
@@ -856,7 +859,8 @@
       "evidence_defs": [],
       "time_of_day": "golden",
       "plant_profile_id": "LAVENDER",
-      "food_budget": 1
+      "food_budget": 1,
+      "mid_chat": "chat_harvest"
     },
     "harvest_pumpkin": {
       "level_type": "harvest",
@@ -874,7 +878,8 @@
       "evidence_defs": [],
       "time_of_day": "golden",
       "plant_profile_id": "PUMPKIN",
-      "food_budget": 14
+      "food_budget": 14,
+      "mid_chat": "chat_harvest"
     },
     "harvest_cotton": {
       "level_type": "harvest",
@@ -892,7 +897,8 @@
       "evidence_defs": [],
       "time_of_day": "golden",
       "plant_profile_id": "COTTON",
-      "food_budget": 2
+      "food_budget": 2,
+      "mid_chat": "chat_harvest"
     }
   }
 }

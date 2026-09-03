@@ -1301,6 +1301,28 @@
         }
       ],
       "_comment": "G15.5: the drawing was driven over. Same shape as the full debrief with the finding changed."
+    },
+    "chat_ch14_observer": {
+      "_comment": "G15.6: the man on the ridge is gone. One line, no chase.",
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_CHAT_CH14_OBS_1"
+        }
+      ]
+    },
+    "chat_harvest": {
+      "_comment": "G15.6: two lines about the newest settler; {settler} is written in by Game._settler_lines. Skipped when nobody has been taken in.",
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_CHAT_HARVEST_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_CHAT_HARVEST_2"
+        }
+      ]
     }
   },
   "town": {

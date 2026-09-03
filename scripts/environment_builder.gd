@@ -1260,6 +1260,36 @@ func _build_landmark(landmark_id: String) -> void:
 			root.queue_free()
 
 
+## The man they were an hour behind (G15.6): a figure on the far ridge beyond
+## the mound, back to the yard, at the moment the level opens. Game hides him
+## when the machine gets within OBSERVER_VANISH_RANGE — he does not run, he is
+## simply not there the next time you look — and the Marshal says one thing.
+## Built plain: coat, head, hat, legs, at yard scale, and a pack, because a man
+## who is leaving carries one.
+func _build_observer(root: Node3D) -> void:
+	# On a rise behind the mound, so that from the player's low camera his head
+	# and shoulders clear the container's roof line: rendered on flat ground
+	# at z -7.8 he was a head poking over a box. The rise is a flattened ball,
+	# the same soil as the mound.
+	var soil := _flat("lp_soil", Color(0.31, 0.26, 0.21), 1.0)
+	_ball(root, 2.4, soil, Vector3(2.6, 0.0, -9.2), Vector3(1.0, 0.42, 1.0))
+	var figure := Node3D.new()
+	figure.name = "Observer"
+	figure.position = Vector3(2.6, 0.92, -9.2)
+	# Facing -Z: away from the yard, up the ridge.
+	root.add_child(figure)
+	var coat := _flat("obs_coat", Color(0.30, 0.32, 0.36), 0.95)
+	var skin := _flat("figure_skin", Color(0.78, 0.62, 0.50), 1.0)
+	var dark := _flat("obs_dark", Color(0.20, 0.19, 0.21), 0.95)
+	var pack := _flat("obs_pack", Color(0.42, 0.36, 0.26), 0.95)
+	_box(figure, Vector3(0.50, 0.72, 0.30), coat, Vector3(0.0, 1.06, 0.0))
+	_ball(figure, 0.16, skin, Vector3(0.0, 1.58, 0.0))
+	_cyl(figure, 0.20, 0.20, 0.05, dark, Vector3(0.0, 1.74, 0.0))
+	_box(figure, Vector3(0.36, 0.44, 0.22), pack, Vector3(0.0, 1.12, 0.26))
+	for side: float in [-1.0, 1.0]:
+		_box(figure, Vector3(0.16, 0.70, 0.16), dark, Vector3(side * 0.13, 0.35, 0.0))
+
+
 ## The farm's barn: the harvest level's anchor. Red boards, a gambrel roof, a
 ## white-framed door, and one hay bale per harvest already brought in, up to the
 ## cap — so the field visibly repays the work (G13.6).
@@ -1580,6 +1610,7 @@ func _landmark_roadside_camp(root: Node3D) -> void:
 ## antenna and a hatch. Half-buried is the tell: this was meant not to be seen
 ## from the road (G13).
 func _landmark_listening_post(root: Node3D) -> void:
+	_build_observer(root)
 	var steel := _flat("lp_steel", Color(0.30, 0.36, 0.34), 0.8, 0.2)
 	var rib := _flat("lp_rib", Color(0.25, 0.30, 0.29), 0.85, 0.2)
 	var soil := _flat("lp_soil", Color(0.31, 0.26, 0.21), 1.0)
