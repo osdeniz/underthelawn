@@ -48,6 +48,10 @@ var _choices: VBoxContainer
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Landscape (G18): the panel and the portrait keep to a centred column of
+	# UI_MAX_WIDTH; the scrim stays full width. Deferred, so it runs once every
+	# child below exists.
+	call_deferred("_fit_wide_controls")
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_build()
 	modulate.a = 0.0
@@ -254,6 +258,11 @@ func _speak(text_key: String) -> void:
 
 ## Speaker id -> the name key the town screen also uses, so a character is named
 ## the same everywhere.
+func _fit_wide_controls() -> void:
+	GameConfig.fit_wide(_portrait_frame)
+	GameConfig.fit_wide(_panel)
+
+
 func _speaker_name_key(speaker_id: String) -> String:
 	return "CHAR_" + speaker_id.to_upper()
 

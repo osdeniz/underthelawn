@@ -49,6 +49,7 @@ func _build() -> void:
 	header.add_theme_font_size_override("font_size", GameConfig.UI_TITLE)
 	header.add_theme_color_override("font_color", GameConfig.UI_INK)
 	add_child(header)
+	GameConfig.fit_wide(header)
 
 	_counter = Label.new()
 	_counter.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
@@ -59,6 +60,7 @@ func _build() -> void:
 	_counter.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
 	_counter.add_theme_color_override("font_color", GameConfig.UI_BRASS_DEEP)
 	add_child(_counter)
+	GameConfig.fit_wide(_counter)
 
 	var close := Button.new()
 	close.text = "×"
@@ -108,6 +110,7 @@ func _build() -> void:
 	scroll.offset_bottom = -60
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
+	GameConfig.fit_wide(scroll)
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", GameConfig.UI_GAP_WIDE)

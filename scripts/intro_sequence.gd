@@ -43,6 +43,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_cards = Story.list(cards_key)
 	_build()
+	# Landscape (G18): the text keeps to a readable column; the art stays full.
+	GameConfig.fit_wide(_lines)
+	GameConfig.fit_wide(_hint)
 	if _cards.is_empty():
 		# Nothing to show; do not strand the player on a black screen.
 		push_warning("[Intro] anlati kartlari yok - aciliş atlandi")

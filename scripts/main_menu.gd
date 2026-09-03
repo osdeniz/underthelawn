@@ -118,6 +118,7 @@ func _build() -> void:
 	rows.offset_bottom = -120.0
 	rows.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
 	add_child(rows)
+	GameConfig.fit_wide(rows)
 
 	var has_progress := GameState.has_progress()
 	if has_progress:

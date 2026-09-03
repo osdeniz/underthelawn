@@ -185,6 +185,10 @@ func _ready() -> void:
 	add_child(_echoes_page)
 	add_child(_objectives_page)
 	_show_page(_tiles_page)
+	# Landscape (G18): every page keeps to the centred column the HUD uses; the
+	# diorama frame behind them stays full width.
+	for page: Control in _pages():
+		GameConfig.fit_wide(page)
 
 
 # ---------------------------------------------------------------- chrome

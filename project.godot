@@ -35,8 +35,8 @@ Purchases="*res://scripts/purchases.gd"
 
 window/size/viewport_width=1170
 window/size/viewport_height=2532
-window/size/window_width_override=900
-window/size/window_height_override=1500
+window/size/window_width_override=1600
+window/size/window_height_override=900
 window/stretch/mode="viewport"
 window/stretch/aspect="keep_height"
 window/handheld/orientation=1

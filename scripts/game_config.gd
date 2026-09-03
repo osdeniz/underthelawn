@@ -2564,3 +2564,49 @@ const DEMO_GATE_AFTER := "ch03_playground"
 ## said; the dog's position is the whole answer (docs/CASE_03.md).
 const DIORAMA_DOG_BY_SWING := Vector3(2.4, 0.0, 0.9)
 const DIORAMA_DOG_AT_GATE := Vector3(0.4, 0.0, 10.6)
+
+
+# ---------------------------------------------------------------- landscape (G18)
+
+## Steam. The project stretches in "viewport" mode keeping HEIGHT, so a 16:9
+## window widens the viewport rather than letterboxing it: the yard fills the
+## width, and every Control anchored full-rect stretches with it — a dialogue
+## line four thousand pixels long, a hub page with buttons a metre wide. The
+## HUD solved this for itself in G14 (a centred column of UI_MAX_WIDTH); this
+## is that rule for every screen that reads, in one place.
+##
+## The phone is unaffected: at 1170 wide the margin is zero.
+static func wide_margin(viewport_width: float) -> float:
+	return maxf(0.0, (viewport_width - UI_MAX_WIDTH) * 0.5)
+
+
+## Pulls a full-rect Control in to a centred column of UI_MAX_WIDTH, keeping
+## whatever side insets it already had, and keeps doing so when the window is
+## resized. Idempotent: the original insets are remembered on the node.
+static func fit_wide(control: Control) -> void:
+	if control == null or not is_instance_valid(control):
+		return
+	if not control.has_meta("wide_insets"):
+		control.set_meta("wide_insets", Vector2(control.offset_left, control.offset_right))
+		var viewport := control.get_viewport()
+		if viewport != null:
+			viewport.size_changed.connect(func() -> void: fit_wide(control))
+	var kept: Vector2 = control.get_meta("wide_insets")
+	var margin := wide_margin(control.get_viewport_rect().size.x)
+	if is_equal_approx(control.anchor_left, control.anchor_right):
+		# Pinned to one edge (a portrait bottom-left, a button bottom-right):
+		# TRANSLATE it in by the margin rather than insetting both sides, or a
+		# left-pinned box would shrink to nothing.
+		var shift := margin if control.anchor_left < 0.5 else -margin
+		control.offset_left = kept.x + shift
+		control.offset_right = kept.y + shift
+	else:
+		control.offset_left = kept.x + margin
+		control.offset_right = kept.y - margin
+
+
+static func is_landscape(viewport: Viewport) -> bool:
+	if viewport == null:
+		return false
+	var size := viewport.get_visible_rect().size
+	return size.x > size.y

@@ -3718,3 +3718,31 @@ dropped it counted 16 chapters where there are 26, which `Case3Check` caught.
 **What is not here.** Illustrations for the two mornings (`story/ending_open`,
 `story/ending_closed`) fall back to the homecoming and convoy art until they
 exist. Voice, as everywhere, is the recording's job.
+
+## G18 — landscape, for Steam
+
+The project stretches in `viewport` mode keeping HEIGHT, which means a 16:9
+window does not letterbox the game: the viewport widens to 4501 x 2532 and the
+yard fills it. That part was already right. What was wrong was every Control
+anchored full-rect — a line of dialogue four thousand pixels long, a hub page
+with buttons a metre wide. The HUD had solved this for itself in G14 with a
+centred column of `UI_MAX_WIDTH`; `GameConfig.fit_wide()` is that rule for
+every screen that reads, in one place, re-applied on resize, and aware of
+edge-pinned controls (a portrait pinned bottom-left is translated in, not
+insetted to nothing). Dialogue, the story cards, the gate card, every hub page,
+settings, the journal, the main menu's column. At 1170 wide the margin is zero
+and the phone is untouched.
+
+`LandscapeCheck` pins the window to 1600 x 900 and measures: the viewport is
+wider than tall, the margin is 1666, the dialogue panel is at most 1170 wide
+and sits at margin + 40, the portrait is inside the column, the intro text,
+every hub page and the settings rows are within the column, the HUD's bar is
+centred. The desktop window default is landscape now (1600 x 900); mobile
+ignores that override and stays portrait. Mouse already emulates touch and
+WASD has driven the mowers since G14, so the desktop has its input.
+
+**Not done here, on purpose:** a landscape-specific camera. The default
+`KEEP_HEIGHT` shows MORE of the yard sideways on a wide screen, which is a
+gift on a monitor rather than a problem; retuning the chase offsets for it is a
+feel pass for a desktop build with a desktop tester, and the macOS preset is
+there for exactly that.

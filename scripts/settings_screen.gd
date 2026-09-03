@@ -49,6 +49,7 @@ func _ready() -> void:
 	header.add_theme_font_size_override("font_size", GameConfig.UI_TITLE)
 	header.add_theme_color_override("font_color", GameConfig.UI_INK)
 	add_child(header)
+	GameConfig.fit_wide(header)
 
 	var close := Button.new()
 	close.text = "×"
@@ -63,6 +64,7 @@ func _ready() -> void:
 		Haptics.light()
 		closed.emit())
 	add_child(close)
+	GameConfig.fit_wide(close)
 
 	_rows = VBoxContainer.new()
 	_rows.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
@@ -71,6 +73,7 @@ func _ready() -> void:
 	_rows.offset_right = -70.0
 	_rows.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
 	add_child(_rows)
+	GameConfig.fit_wide(_rows)
 
 	# Three rows in one undifferentiated column left most of the screen empty
 	# and told the player nothing about how the rows related. Grouping them

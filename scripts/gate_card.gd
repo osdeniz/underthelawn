@@ -82,6 +82,8 @@ func _ready() -> void:
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_fade)
 	_apply()
+	for control: Control in [_title, _lines, _choices, _hint]:
+		GameConfig.fit_wide(control)
 	create_tween().tween_property(_fade, "color:a", 0.0, FADE)
 
 
