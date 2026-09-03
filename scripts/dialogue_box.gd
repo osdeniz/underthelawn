@@ -139,7 +139,7 @@ func _build() -> void:
 	_panel.add_child(rows)
 
 	_name_label = Label.new()
-	_name_label.add_theme_font_size_override("font_size", 54)
+	_name_label.add_theme_font_size_override("font_size", GameConfig.fs(54))
 	_name_label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(_name_label)
@@ -150,7 +150,7 @@ func _build() -> void:
 	# Four lines of headroom: Case 1 has lines that wrap to three, and a box
 	# that grows mid-read pushes the text under the reader's thumb.
 	_text_label.custom_minimum_size = Vector2(0, 300)
-	_text_label.add_theme_font_size_override("font_size", 52)
+	_text_label.add_theme_font_size_override("font_size", GameConfig.fs(52))
 	_text_label.add_theme_color_override("font_color", Color(0.94, 0.94, 0.91))
 	_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(_text_label)
@@ -161,7 +161,7 @@ func _build() -> void:
 	rows.add_child(_choices)
 
 	_accept = Button.new()
-	_accept.add_theme_font_size_override("font_size", 46)
+	_accept.add_theme_font_size_override("font_size", GameConfig.fs(46))
 	_accept.visible = false
 	rows.add_child(_accept)
 
@@ -288,7 +288,7 @@ func _show_choice(choice: Dictionary) -> void:
 		var button := Button.new()
 		button.text = tr(str(option.get("text", "")))
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.add_theme_font_size_override("font_size", 38)
+		button.add_theme_font_size_override("font_size", GameConfig.fs(38))
 		button.pressed.connect(_on_choice.bind(option))
 		_choices.add_child(button)
 	_choices.visible = true

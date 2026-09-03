@@ -91,6 +91,11 @@ func _ready() -> void:
 	# corner of every screen. Off by default; a tester turns it on here.
 	_add_toggle(tr("SET_PERF_TITLE"), tr("SET_PERF_HINT"), PerfOverlay.enabled(),
 		func(on: bool) -> void: PerfOverlay.set_enabled(on))
+	# Large text for the surfaces the player reads (G16.4). Takes effect on the
+	# next dialogue or card; the settings page itself is not one of them.
+	_add_toggle(tr("SET_BIGTEXT_TITLE"), tr("SET_BIGTEXT_HINT"),
+		bool(GameState.get_setting("display", "large_text", false)),
+		func(on: bool) -> void: GameState.set_setting("display", "large_text", on))
 	_add_section(tr("SETTINGS_GROUP_GAME"))
 	# The same switch as the one on the game's top bar, in the place a player
 	# goes looking for it (G14.8). Cycles the four positions in order, and the

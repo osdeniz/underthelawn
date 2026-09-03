@@ -116,6 +116,11 @@ func _ready() -> void:
 	# present, so a non-Latin language does not render as boxes.
 	LocaleSupport.apply()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Large text applies to the case line too (G16.4): it is the one line of
+	# prose on the HUD.
+	if _case_line != null:
+		_case_line.add_theme_font_size_override("font_size",
+			GameConfig.fs(_case_line.get_theme_font_size("font_size")))
 	# Deferred: the pause button, the home button and the poster are all built
 	# further down _ready, so running now would find none of them (G14).
 	_centre_for_wide_screens.call_deferred()

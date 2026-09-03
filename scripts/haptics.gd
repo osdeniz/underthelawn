@@ -6,9 +6,13 @@ extends Node
 ## sprint brief instructs. Hard rule from the brief: at most ONE vibration per
 ## frame, no matter how many callers ask.
 ##
-## Values from the brief: light = 10 ms, medium = 25 ms, success = two short
-## pulses. The gap between the two success pulses is the only number not given;
-## SUCCESS_GAP_S below is a placeholder and should be corrected from §15.
+## Values from the brief: light = 10 ms, medium = 25 ms, success = the
+## platform's "success" notification. §15 names the platform pattern rather
+## than a number, so the number is DERIVED from it (G16.4): iOS's
+## UINotificationFeedbackGenerator .success is a light tap followed by a
+## heavier one about a tenth of a second later. That is what success() does —
+## light, 100 ms, medium — instead of the two equal pulses 80 ms apart that
+## stood in for it since G6.
 
 const LIGHT_MS := GameConfig.HAPTIC_LIGHT_MS
 const MEDIUM_MS := GameConfig.HAPTIC_MEDIUM_MS
@@ -38,12 +42,13 @@ func medium() -> void:
 		Input.vibrate_handheld(MEDIUM_MS)
 
 
-## Two medium pulses 80 ms apart: secret collected, and 100% complete (§15).
-## Awaits internally; callers do not need to await it.
+## The platform's success pattern (§15): a light tap, then a heavier one a
+## tenth of a second later. Secret collected, and 100% complete. Awaits
+## internally; callers do not need to await it.
 func success() -> void:
 	if not _claim_frame():
 		return
-	Input.vibrate_handheld(SUCCESS_PULSE_MS)
+	Input.vibrate_handheld(LIGHT_MS)
 	await get_tree().create_timer(SUCCESS_GAP_S).timeout
 	Input.vibrate_handheld(SUCCESS_PULSE_MS)
 

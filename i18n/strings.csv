@@ -1011,3 +1011,5 @@ DLG_CHAT_HARVEST_1,{settler} came out to watch. First harvest since the road.,{s
 DLG_CHAT_HARVEST_2,Says the rows are crooked. They are.,Sıralar eğri diyor. Haklı.
 SET_PERF_TITLE,Performance readout,Performans göstergesi
 SET_PERF_HINT,"fps, draw calls and triangles in the corner. For testing on a phone.","Köşede fps, çizim ve üçgen sayısı. Telefonda test için."
+SET_BIGTEXT_TITLE,Large text,Büyük yazı
+SET_BIGTEXT_HINT,Dialogue and story cards a quarter larger.,Diyaloglar ve hikâye kartları çeyrek daha büyük.

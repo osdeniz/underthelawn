@@ -1106,7 +1106,9 @@ const HAPTIC_ENABLED := true
 const HAPTIC_LIGHT_MS := 20        # cell mown, mower commands
 const HAPTIC_MEDIUM_MS := 40       # secret uncovered
 ## Secret collected and 100% complete: two medium pulses.
-const HAPTIC_SUCCESS_GAP := 0.08
+## Derived from the platform success pattern, not a guess (G16.4): light tap,
+## then the heavier one about a tenth of a second on.
+const HAPTIC_SUCCESS_GAP := 0.10
 
 # ---------------------------------------------------------------- G6 quality switches
 ## Every G6 visual feature has a switch, for FPS calibration on the phone.
@@ -2525,3 +2527,16 @@ const GUST_INTERVAL := Vector2(14.0, 26.0)
 ## Round-robin one-shot voices, so a rustle and a pickup in the same frame do
 ## not cut each other off.
 const FX_VOICES := 3
+
+
+# ---------------------------------------------------------------- reading (G16.4)
+
+## Large text. Not a global UI scale — that would move every button and break
+## every layout that was measured at 1170 wide — but a factor on the surfaces
+## the player READS: dialogue, the opening cards, the case line. The two values
+## are the two that matter; a slider would be a promise the layouts cannot keep.
+const TEXT_SCALE_LARGE := 1.25
+static func text_scale() -> float:
+	return TEXT_SCALE_LARGE if bool(GameState.get_setting("display", "large_text", false)) else 1.0
+static func fs(base: int) -> int:
+	return int(round(float(base) * text_scale()))

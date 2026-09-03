@@ -3584,3 +3584,28 @@ every screen, off by default, remembered in the save.
 
 The measuring itself is the one thing in this list that cannot be done from
 here. Nothing above is "verified on a phone"; it is ready to be.
+
+### G16.4 — reading it: colour, size, and the haptic that was a guess
+
+**Colour-blindness, measured rather than assumed.** The whole game is telling
+cut grass from uncut, and the legibility test has always measured that as a
+LUMINANCE gap — which is the right thing to rely on, because luminance survives
+a missing cone. "Rely on" was a claim, though, and this is the measurement of
+it: `Legibility` now applies Machado's severity-1.0 deuteranopia and protanopia
+matrices to the two sampled bands and reads the gap again. Midday dry: 0.061
+plain, 0.051 deutan, 0.076 protan. Night dry: 0.093 / 0.086 / 0.103. All two
+to three times the 0.030 floor, and the floor is now asserted for all three.
+
+**Large text.** A settings toggle, and deliberately NOT a global UI scale:
+every layout in the game was measured at 1170 wide and a global factor would
+move every button off its mark. `GameConfig.fs()` scales the surfaces the
+player READS by a quarter — dialogue (name, line, accept, choices), the story
+cards, the HUD case line — and nothing else. Rendered: two lines of Turkish at
+65 pt sit in the dialogue panel with room to spare.
+
+**The haptic placeholder, closed.** `SUCCESS_GAP_S` had carried a "placeholder,
+correct from §15" note since G6. §15 does not give a number; it names the
+platform's success notification. So the number is derived from that: iOS's
+`.success` is a light tap then a heavier one about a tenth of a second later,
+and `Haptics.success()` does exactly that — light, 100 ms, medium — instead of
+two equal pulses 80 ms apart.

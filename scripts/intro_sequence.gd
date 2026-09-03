@@ -167,7 +167,7 @@ func _apply(card: Dictionary) -> void:
 		# Each line is a translation key.
 		label.text = TranslationServer.translate(str(raw))
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.add_theme_font_size_override("font_size", 62)
+		label.add_theme_font_size_override("font_size", GameConfig.fs(62))
 		label.add_theme_color_override("font_color", Color(1, 1, 1))
 		# A soft shadow keeps the line legible over a bright patch of artwork.
 		label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
