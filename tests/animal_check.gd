@@ -1,23 +1,17 @@
-extends Node
+extends TestBase
 ## G14.25: the animals read the lawn. That is the whole claim, so it is what
 ## gets measured — not "an animal exists", which would pass on a static prop.
 
-var _fails := 0
 
 
-func _ready() -> void:
+func run() -> void:
+	suite = "HAYVAN"
 	GameState.set_setting("meta", "orientation_done", true)
 	_facing_maths()
 	await _ordinary_yard()
 	await _harvest_and_cellar()
 	await _dog_follows()
 
-	if _fails > 0:
-		push_error("%d HAYVAN TESTI BASARISIZ" % _fails)
-		print("--- %d HAYVAN TESTI BASARISIZ ---" % _fails)
-	else:
-		print("--- TUM HAYVAN TESTLERI GECTI ---")
-	get_tree().quit()
 
 
 ## Animals.face is checked by ROTATING A NODE and reading its forward axis --
@@ -37,7 +31,7 @@ func _facing_maths() -> void:
 
 
 func _ordinary_yard() -> void:
-	var game: Node = await _open("ch01_aldridge")
+	var game: Node = await open("ch01_aldridge")
 	var animals := game._animals as Animals
 	ck("bahcede hayvanlar var", animals != null, "null")
 	if animals == null:
@@ -55,7 +49,7 @@ func _ordinary_yard() -> void:
 	# --- Nothing is cut yet, so no bird has anywhere to stand. This is the
 	# assertion that would catch a bird spawned on faith.
 	_ring(animals)
-	await _frames(6)
+	await frames(6)
 	var standing := 0
 	for entry: Dictionary in peckers:
 		if (entry["node"] as Node3D).visible:
@@ -64,12 +58,12 @@ func _ordinary_yard() -> void:
 
 	# --- A rabbit sits in LONG grass.
 	_ring(animals)
-	await _frames(10)
+	await frames(10)
 	var calm := _first_calm(rabbits)
 	ck("tavsan yerlesti", not calm.is_empty(), "hicbiri CALM degil")
 	if calm.is_empty():
 		game.queue_free()
-		await _frames(6)
+		await frames(6)
 		return
 	var at: Vector3 = (calm["node"] as Node3D).position
 	var cell := LawnModel.cell_at(at)
@@ -81,7 +75,7 @@ func _ordinary_yard() -> void:
 	# --- It bolts. Driven by MOVING THE MOWER, not by setting the animal's
 	# state: what is under test is that the machine coming is what does it.
 	game.mower.global_position = at + Vector3(1.2, 0.0, 0.0)
-	await _frames(4)
+	await frames(4)
 	ck("makine yaklasinca kaciyor", int(calm["state"]) != Animals.State.CALM,
 		"hala CALM")
 	# Given a moment it is off the lawn entirely.
@@ -115,7 +109,7 @@ func _ordinary_yard() -> void:
 	# bird cannot land.
 	game.mower.global_position = Vector3(0.0, 0.0, GameConfig.HALF_Z - 0.5)
 	_ring(animals)
-	await _frames(12)
+	await frames(12)
 	var landed := 0
 	var wrong := 0
 	for entry: Dictionary in peckers:
@@ -132,7 +126,7 @@ func _ordinary_yard() -> void:
 	# --- And the rabbit moves to the MOWN EDGE once there is one. This is the
 	# assertion the render forced: in the long grass it was invisible.
 	_ring(animals)
-	await _frames(12)
+	await frames(12)
 	var edge := _first_calm(rabbits)
 	# The one that never bolted is still sitting in long grass; give the
 	# resettle its interval and it moves out to the edge like the other.
@@ -143,9 +137,9 @@ func _ordinary_yard() -> void:
 			# what is under test, so it is zeroed the way _ring zeroes the rest.
 			for entry: Dictionary in rabbits:
 				entry["settle"] = 0.0
-			await _settle(0.4)
+			await settle(0.4)
 			_ring(animals)
-			await _frames(12)
+			await frames(12)
 			edge = _first_calm(rabbits)
 	ck("bicildikten sonra tavsan geri geliyor", not edge.is_empty(), "yok")
 	if not edge.is_empty():
@@ -199,7 +193,7 @@ func _ordinary_yard() -> void:
 	# Every animal placed and standing first, so the number is the WORST case
 	# rather than whatever happened to be on screen at the sample moment.
 	_ring(animals)
-	await _settle(0.5)
+	await settle(0.5)
 	# And all of them IN FRAME. The chase camera looks down the lawn from
 	# behind the mower; when the dog moved off the porch (G14.27) it left the
 	# frustum, the toggle stopped changing anything, and this measurement
@@ -216,7 +210,7 @@ func _ordinary_yard() -> void:
 	# one raw wait left after the _draws fix, and it is exactly where the test
 	# sat for 280 s with no verdict when the window was not drawing.
 	for _i in 8:
-		await _drawn_frame()
+		await drawn_frame()
 	var showing := 0
 	for entry: Dictionary in animals._entries:
 		if (entry["node"] as Node3D).visible:
@@ -231,10 +225,10 @@ func _ordinary_yard() -> void:
 	print("  [asama] kadraj kuruldu, sayac sondasi")
 	var with_hood := await _draws(animals, true)
 	hood.visible = false
-	await _frames(8)
+	await frames(8)
 	var without_hood := await _draws(animals, true)
 	hood.visible = true
-	await _frames(8)
+	await frames(8)
 	var counter_live := with_hood - without_hood > 100
 	if not counter_live:
 		print("  ATLANDI maliyet olcumu: cizim sayaci cevap vermiyor (mahalleli=%d"
@@ -266,11 +260,11 @@ func _ordinary_yard() -> void:
 	above.queue_free()
 
 	game.queue_free()
-	await _frames(6)
+	await frames(6)
 
 
 func _harvest_and_cellar() -> void:
-	var farm: Node = await _open("harvest_field")
+	var farm: Node = await open("harvest_field")
 	var animals := farm._animals as Animals
 	if animals == null:
 		ck("tarlada hayvan var", false, "null")
@@ -280,12 +274,12 @@ func _harvest_and_cellar() -> void:
 			_of(animals, Animals.Kind.RABBIT).size() == GameConfig.RABBIT_COUNT,
 			"eksik")
 	farm.queue_free()
-	await _frames(6)
+	await frames(6)
 
-	var cellar: Node = await _open("ch08_cellar")
+	var cellar: Node = await open("ch08_cellar")
 	ck("mahzende hayvan yok", cellar._animals == null, "var")
 	cellar.queue_free()
-	await _frames(6)
+	await frames(6)
 
 
 ## Once the long walk is done the dog is HIS, and it comes to where he is
@@ -293,29 +287,29 @@ func _harvest_and_cellar() -> void:
 ## as a distance that closes — the dog's own state is not the claim.
 func _dog_follows() -> void:
 	GameState.set_setting("story", "prologue_done", true)
-	var game: Node = await _open("ch01_aldridge")
+	var game: Node = await open("ch01_aldridge")
 	var animals := game._animals as Animals
 	ck("kendi kopegimiz var", animals != null
 		and animals.get_node_or_null("Dog") != null, "yok")
 	if animals == null or animals.get_node_or_null("Dog") == null:
 		GameState.set_setting("story", "prologue_done", false)
 		game.queue_free()
-		await _frames(6)
+		await frames(6)
 		return
 	var dog := animals.get_node("Dog") as Node3D
 	# Sent to the far corner of the yard, well past DOG_FOLLOW_FAR.
 	game.mower.global_position = Vector3(-GameConfig.HALF_X + 1.5,
 		game.mower.global_position.y, -GameConfig.HALF_Z + 1.5)
-	await _frames(4)
+	await frames(4)
 	var before := Vector2(dog.position.x - game.mower.global_position.x,
 		dog.position.z - game.mower.global_position.z).length()
-	await _settle(2.2)
+	await settle(2.2)
 	var after := Vector2(dog.position.x - game.mower.global_position.x,
 		dog.position.z - game.mower.global_position.z).length()
 	ck("kopek bize dogru geliyor", after < before - 1.0,
 		"%.2f -> %.2f birim" % [before, after])
 	# And STOPS short. A dog that arrives at your feet stands in the picture.
-	await _settle(2.6)
+	await settle(2.6)
 	var settled := Vector2(dog.position.x - game.mower.global_position.x,
 		dog.position.z - game.mower.global_position.z).length()
 	ck("kopek dibimize girmiyor", settled > 0.8, "%.2f birim" % settled)
@@ -351,7 +345,7 @@ func _dog_follows() -> void:
 	# DOG_FOLLOW_SPEED is six seconds, and a 3.5 s wait measured a dog that was
 	# still on its way with its head where the last scent left it.
 	await _dog_arrives(dog, game.mower)
-	await _settle(1.0)
+	await settle(1.0)
 	ck("yakinda kanit yokken isaret etmiyor", head.rotation.x < 0.1,
 		"kafa %.2f asagida (en yakin kanit %.1f)" % [head.rotation.x, clear_gap])
 	if not buried_cells.is_empty():
@@ -359,7 +353,7 @@ func _dog_follows() -> void:
 		var at := LawnModel.cell_center(buried.x, buried.y)
 		game.mower.global_position = at + Vector3(1.5, game.mower.global_position.y, 0.0)
 		await _dog_arrives(dog, game.mower)
-		await _settle(1.0)
+		await settle(1.0)
 		var to := Vector2(at.x - dog.position.x, at.z - dog.position.z)
 		var fwd := -dog.global_transform.basis.z
 		var off := rad_to_deg(absf(Vector2(fwd.x, fwd.z).angle_to(to)))
@@ -369,14 +363,14 @@ func _dog_follows() -> void:
 			"kafa %.2f" % head.rotation.x)
 		# Dug up: it loses interest.
 		game.model.mow(buried.x, buried.y, 0)
-		await _settle(1.5)
+		await settle(1.5)
 		ck("kanit cikinca serbest kaliyor", head.rotation.x < 0.15,
 			"kafa %.2f" % head.rotation.x)
 		print("  [olcum] koku: sapma %.0f derece, mesafe %.1f, bos noktada en yakin %.1f"
 			% [off, to.length(), clear_gap])
 	GameState.set_setting("story", "prologue_done", false)
 	game.queue_free()
-	await _frames(6)
+	await frames(6)
 
 
 ## Waits until the dog has closed to its follow distance of `mower`, or ten
@@ -393,44 +387,6 @@ func _dog_arrives(dog: Node3D, mower: Node3D) -> void:
 
 
 # ---------------------------------------------------------------- helpers
-
-func _open(chapter: String) -> Node:
-	var game: Node = load("res://scenes/Main.tscn").instantiate()
-	game.variant_id = chapter
-	add_child(game)
-	await _frames(10)
-	get_tree().paused = false
-	game.hud._close_pause()
-	game._begin_search()
-	await _frames(20)
-	return game
-
-
-func _frames(count: int) -> void:
-	for _i in count:
-		get_tree().paused = false
-		await get_tree().process_frame
-
-
-## Yields frames until `seconds` of PROCESS TIME have gone by. Everything an
-## animal does is a rate per SECOND, and a frame count is not a duration —
-## headless this scene reaches hundreds of frames a second, so a 240-frame wait
-## for a bolt to finish was under half a second on a fast run and over four on
-## a slow one. LifeCheck failed and passed on identical code for exactly this
-## reason before it was fixed the same way.
-func _settle(seconds: float) -> void:
-	# WALL-CLOCK time, not summed deltas. get_process_delta_time() reads 0 on a
-	# node the tree has paused — and the game pauses itself whenever the window
-	# loses focus — so a delta-summing loop never reaches its target and the
-	# test hangs with no verdict. The clock keeps moving whatever the tree does,
-	# and a hard cap on frames means this can never spin for ever either.
-	var until := Time.get_ticks_msec() + int(seconds * 1000.0)
-	var frames := 0
-	while Time.get_ticks_msec() < until and frames < 6000:
-		get_tree().paused = false
-		await get_tree().process_frame
-		frames += 1
-
 
 ## Zeroes every waiting timer. The RETURN delays are seconds long by design —
 ## an animal that reappears instantly reads as a spawn — but a test should not
@@ -453,10 +409,10 @@ func _draws(animals: Animals, on: bool) -> int:
 	# every sample, which is exactly what made this measurement report a flat
 	# 400 for eight rounds and look like "the animals are free".
 	for _i in 6:
-		await _drawn_frame()
+		await drawn_frame()
 	var total := 0
 	for _i in 8:
-		await _drawn_frame()
+		await drawn_frame()
 		total += RenderingServer.get_rendering_info(
 			RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 	return int(round(float(total) / 8.0))
@@ -468,19 +424,6 @@ func _draws(animals: Animals, on: bool) -> int:
 ## at the cost measurement for the whole of a 280 s run with no verdict. If no
 ## frame is drawn the counter reading is stale, and the liveness check below
 ## SKIPS the measurement rather than trusting it.
-var _drew := false
-func _drawn_frame() -> void:
-	_drew = false
-	var mark := func() -> void: _drew = true
-	RenderingServer.frame_post_draw.connect(mark, CONNECT_ONE_SHOT)
-	var until := Time.get_ticks_msec() + 250
-	while not _drew and Time.get_ticks_msec() < until:
-		get_tree().paused = false
-		await get_tree().process_frame
-	if RenderingServer.frame_post_draw.is_connected(mark):
-		RenderingServer.frame_post_draw.disconnect(mark)
-
-
 ## How far a body's forward axis is from where it just moved, in degrees. Zero
 ## when it did not move far enough to say.
 func _face_error(node: Node3D, previous: Vector3) -> float:
@@ -513,8 +456,3 @@ func _node_count(root: Node) -> int:
 	return total
 
 
-func ck(label: String, passed: bool, detail: String) -> void:
-	if passed:
-		return
-	_fails += 1
-	print("  FAIL %s  %s" % [label, detail])

@@ -1,11 +1,11 @@
-extends Node
+extends TestBase
 ## G14: WASD drives every hand-driven mower, in screen directions, and never
 ## fights a finger already on the pad.
 
-var _fails := 0
 
 
-func _ready() -> void:
+func run() -> void:
+	suite = "KLAVYE"
 	# Not a first run: the orientation sheet pauses the tree, and a paused tree
 	# cannot be driven (G15).
 	GameState.set_setting("meta", "orientation_done", true)
@@ -49,12 +49,6 @@ func _ready() -> void:
 	push.on_touch_released(0, Vector2(500, 1300))
 
 	game.queue_free()
-	if _fails > 0:
-		push_error("%d KLAVYE TESTI BASARISIZ" % _fails)
-		print("--- %d KLAVYE TESTI BASARISIZ ---" % _fails)
-	else:
-		print("--- TUM KLAVYE TESTLERI GECTI ---")
-	get_tree().quit()
 
 
 ## Holds one key and checks the mower actually travels that way on screen.
@@ -100,8 +94,3 @@ func _release(action: String) -> void:
 	Input.action_release(action)
 
 
-func ck(label: String, passed: bool, detail: String) -> void:
-	if passed:
-		return
-	_fails += 1
-	print("  FAIL %s  %s" % [label, detail])

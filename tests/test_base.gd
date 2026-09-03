@@ -21,6 +21,10 @@ extends Node
 
 var _fails := 0
 var _drew := false
+## The per-frame unpause is what keeps a headless run alive; a test whose CLAIM
+## is that the game pauses (InputMapCheck's background check) turns it off for
+## that stretch, or the harness disproves the thing it is testing.
+var keep_unpaused := true
 ## Printed in the verdict line: "TUM <suite> TESTLERI GECTI" / "N <suite> TESTI BASARISIZ".
 var suite := "TEST"
 
@@ -34,7 +38,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	get_tree().paused = false
+	if keep_unpaused:
+		get_tree().paused = false
 
 
 ## Override. Await freely; finish() runs when it returns.

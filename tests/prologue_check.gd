@@ -1,12 +1,12 @@
-extends Node
+extends TestBase
 ## G15.1: the long walk. The claim that matters most is that the road can
 ## actually be WALKED — a tutorial that can trap the player is worse than no
 ## tutorial — so that one is a flood fill, not an eyeball.
 
-var _fails := 0
 
 
-func _ready() -> void:
+func run() -> void:
+	suite = "PROLOG"
 	_text()
 	_cards()
 	_not_a_chapter()
@@ -15,12 +15,6 @@ func _ready() -> void:
 	_flow_flags()
 	await _road_level()
 
-	if _fails > 0:
-		push_error("%d PROLOG TESTI BASARISIZ" % _fails)
-		print("--- %d PROLOG TESTI BASARISIZ ---" % _fails)
-	else:
-		print("--- TUM PROLOG TESTLERI GECTI ---")
-	get_tree().quit()
 
 
 ## Every new key exists in BOTH languages. A missing key renders as the key
@@ -239,8 +233,3 @@ func _road_level() -> void:
 		await get_tree().process_frame
 
 
-func ck(label: String, passed: bool, detail: String) -> void:
-	if passed:
-		return
-	_fails += 1
-	print("  FAIL %s  %s" % [label, detail])

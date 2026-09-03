@@ -31,13 +31,7 @@ func _ready() -> void:
 	await _check_chapter_runs()
 	_check_endings()
 	await _check_map()
-	await _check_warm_up_leaves_no_trace()
-	await _check_the_door()
 	_check_every_chapter_has_a_pin()
-	await _check_panel_clears_back()
-	await _check_warm_up_survives_a_road_chapter()
-	await _check_board_is_built_late()
-	await _check_every_way_home_unparks_the_town()
 	await _check_ending_cards_dismiss("_show_convoy")
 	await _check_ending_cards_dismiss("_show_reunion")
 
@@ -45,7 +39,7 @@ func _ready() -> void:
 		push_error("%d VAKA 02 AKIS TESTI BASARISIZ" % _fails)
 		print("--- %d VAKA 02 AKIS TESTI BASARISIZ ---" % _fails)
 	else:
-		print("--- TUM VAKA 02 AKIS TESTLERI GECTI ---")
+		print("--- TUM VAKA 02 AKIS (A) TESTLERI GECTI ---")
 	get_tree().quit()
 
 
