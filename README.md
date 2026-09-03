@@ -3150,3 +3150,72 @@ key: it never unpaused the tree, and `_read_keyboard` lives in
 entry. Both were the same cause — a headless window has no focus, so the game
 correctly pauses itself for the background before the test starts. Neither was
 a game bug; both had been failing silently since before G14.25.
+
+### G14.27 — the dog walked through the porch, and all three walked backwards
+
+Reported from play: the dog passed through the porch boards, and went back
+along its line without turning to face the way it was going.
+
+**The facing was the walker's bug again, in all three animals.** Every one of
+them had `rotation.y = atan2(dir.x, dir.z)`, which aims the model's +Z down the
+direction of travel while every model in this project faces -Z. So the rabbit
+bolted tail-first, the bird flew backwards and the dog trotted in reverse.
+G14.26 had just fixed exactly this in `Walker` — and finding it there should
+have led straight to sweeping the file written the same week. There is one
+`Animals.face()` now, so it can only ever be wrong once. The dog's heading also
+came from a hand-written constant per leg (`PI * 0.5` one way, `-PI * 0.5` the
+other) and BOTH were the wrong way round; it is derived from the movement now.
+
+**The dog's path took three tries, and each failure named the next number.**
+
+1. *In front of the porch.* There is no strip there. The house sits
+   `HOUSE_MARGIN_Z` past the lawn edge with a 4.2-deep body, so its south wall
+   is 2.69 out; the porch is a 5.0 x 1.6 platform centred 0.8 further out,
+   which reaches to within **nine centimetres** of the north fence, and the
+   wall bushes fill the rest. The dog walked down the middle of the boards.
+2. *Inside the fence.* That fixed the clipping and broke the visibility: the
+   uncut clumps stand up to 0.9 and the dog is 0.56, so from the player's low
+   camera it was behind a wall of grass — **the same mistake as the rabbit, one
+   sprint later.**
+3. *Beside the porch, beyond the fence.* Above the grass line, plainly visible,
+   nothing in the way. Rendered at both ends of its beat and the middle.
+
+The reason the first arithmetic was wrong is worth keeping: it used
+`HALF_Z = 12`, the default, and **ch01's grid is smaller — HALF_Z 9.** Every
+absolute distance around the yard was off by three units. `DOG_PATH_OUTSET` is
+measured from the fence now, the way G9.1 says everything around the lawn
+should be. The x range stays absolute on purpose, and says so: the porch is
+5.0 wide in the house mesh whatever the lawn measures.
+
+**The cost measurement in `AnimalCheck` was lying, twice.** It sampled the draw
+counter on `process_frame`, and in a fast headless run several of those pass
+between two renders — so the counter handed back the same stale number for
+every sample and reported a flat 400 for eight rounds running, which looks
+exactly like "the animals are free". It samples on `RenderingServer.
+frame_post_draw` now, and it will not report a cost at all unless hiding the
+whole neighbourhood moves the reading by more than 100 draws first.
+
+With that fixed the honest worst case — all six animals in frame, seen from
+above the whole yard — was **105 draw calls, not the 33 recorded in G14.25.**
+That 33 was measured from behind the mower with the dog out of frame. Most of
+the 105 was SHADOWS: an ear, a paw and a beak each got their own shadow pass
+and not one of them is visible in the result. Casting from each animal's body
+mesh only, and nothing else, took it to **51**, and the studio render is
+unchanged to the eye.
+
+**New assertions, all of which would have caught something.** `Animals.face()`
+is checked by rotating a real node and reading its forward axis — ground truth,
+not a second copy of the formula. The rabbit's bolt and the dog's walk are
+checked for facing against the direction they actually moved. The dog is
+checked to stay past the fence AND clear of the porch's 2.5-unit half width,
+because "outside the lawn" on its own let it walk through the boards for two
+sprints.
+
+**And a third test with the headless-focus bug.** `FourMowers` hung at its own
+header with no verdict: a headless window has no focus, the game correctly
+pauses itself for the background, and a paused tree does not run the TEST
+node's `_process` either — so its frame counter never advanced and the run sat
+there until the limiter killed it. `PROCESS_MODE_ALWAYS` and an unpause every
+frame. That is three tests (`KeyboardCheck`, `InputMapCheck`, `FourMowers`)
+with one cause, and it is worth checking for in any new scene test: **if a test
+drives the game, it has to unpause it.**

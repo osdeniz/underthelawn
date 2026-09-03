@@ -7,6 +7,7 @@ var _fails := 0
 
 func _ready() -> void:
 	GameState.set_setting("meta", "orientation_done", true)
+	_facing_maths()
 	await _ordinary_yard()
 	await _harvest_and_cellar()
 
@@ -16,6 +17,22 @@ func _ready() -> void:
 	else:
 		print("--- TUM HAYVAN TESTLERI GECTI ---")
 	get_tree().quit()
+
+
+## Animals.face is checked by ROTATING A NODE and reading its forward axis --
+## the ground truth, not a second copy of the formula. WalkDirCheck spent a
+## whole sprint passing because it restated the maths it was testing.
+func _facing_maths() -> void:
+	var probe := Node3D.new()
+	add_child(probe)
+	for want: Vector2 in [Vector2(0, -1), Vector2(1, 0), Vector2(0, 1),
+			Vector2(-1, 0), Vector2(0.6, -0.8)]:
+		probe.rotation.y = Animals.face(want)
+		var forward := -probe.global_transform.basis.z
+		var got := Vector2(forward.x, forward.z).normalized()
+		var off := rad_to_deg(absf(got.angle_to(want.normalized())))
+		ck("face%v dogru eksende" % want, off < 0.5, "%.1f derece" % off)
+	probe.queue_free()
 
 
 func _ordinary_yard() -> void:
@@ -70,10 +87,18 @@ func _ordinary_yard() -> void:
 	# The longest bolt is a corner-to-fence run: about 13 units at
 	# RABBIT_SPEED, so a little over two seconds.
 	var spent := 0.0
+	var runner := calm["node"] as Node3D
+	var prev := runner.position
+	var worst_face := 0.0
 	while spent < 3.0 and int(calm["state"]) != Animals.State.GONE:
 		get_tree().paused = false
 		await get_tree().process_frame
 		spent += get_process_delta_time()
+		worst_face = maxf(worst_face, _face_error(runner, prev))
+		prev = runner.position
+	# Tail-first was how all three animals ran before G14.27.
+	ck("tavsan kactigi yone bakiyor", worst_face < 15.0,
+		"%.0f derece" % worst_face)
 	ck("kacinca gorunmez oluyor",
 		int(calm["state"]) == Animals.State.GONE
 			and not (calm["node"] as Node3D).visible,
@@ -132,11 +157,29 @@ func _ordinary_yard() -> void:
 	# to catch it wandering in.
 	var worst := 1e9
 	var watched := 0.0
+	var dog_prev := dog.position
+	var dog_face := 0.0
+	var outside := 1e9
+	var clear := 1e9
 	while watched < 2.0:
 		get_tree().paused = false
 		await get_tree().process_frame
 		watched += get_process_delta_time()
 		worst = minf(worst, absf(dog.position.z) - GameConfig.HALF_Z)
+		# Past the FENCE, so it is above the grass line rather than behind it,
+		# and clear of the porch in x. "Outside the lawn" alone let it walk
+		# through the porch boards for two sprints.
+		outside = minf(outside,
+			absf(dog.position.z) - absf(GameConfig.fence_north_z()))
+		clear = minf(clear, absf(dog.position.x) - 2.5)
+		dog_face = maxf(dog_face, _face_error(dog, dog_prev))
+		dog_prev = dog.position
+	ck("kopek gittigi yone bakiyor", dog_face < 15.0, "%.0f derece" % dog_face)
+	ck("kopek citin otesinde yuruyor", outside > 0.0,
+		"%.2f birim citin icinde" % -outside)
+	# The porch platform is 5.0 wide in the house mesh, so x -2.5 to 2.5.
+	ck("kopek verandanin yanindan geciyor", clear > 0.0,
+		"%.2f birim veranda uzerinde" % -clear)
 	ck("kopek cime girmiyor", worst > 0.0, "%.2f birim icerde" % -worst)
 	print("  [olcum] kopek cim kenarindan en yakin %.2f birim uzakta" % worst)
 	print("  [olcum] hayvan dugumu=%d" % _node_count(animals))
@@ -149,10 +192,42 @@ func _ordinary_yard() -> void:
 	# rather than whatever happened to be on screen at the sample moment.
 	_ring(animals)
 	await _settle(0.5)
+	# And all of them IN FRAME. The chase camera looks down the lawn from
+	# behind the mower; when the dog moved off the porch (G14.27) it left the
+	# frustum, the toggle stopped changing anything, and this measurement
+	# reported the animals costing 0 draws. A number that cannot move is not a
+	# measurement, so the shot is taken from above the whole yard and the
+	# assertion below requires the difference to be NON-ZERO.
+	var above := Camera3D.new()
+	above.fov = 70.0
+	above.position = Vector3(0.0, 24.0, -4.0)
+	above.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+	above.current = true
+	game.add_child(above)
+	for _i in 8:
+		get_tree().paused = false
+		await RenderingServer.frame_post_draw
 	var showing := 0
 	for entry: Dictionary in animals._entries:
 		if (entry["node"] as Node3D).visible:
 			showing += 1
+	# PROVE THE COUNTER RESPONDS before believing anything it says. Hiding the
+	# whole neighbourhood is most of the yard's mesh, so the reading has to
+	# fall a long way; the first version of this measurement reported a flat
+	# 400 for eight rounds running -- the renderer had not settled after the
+	# camera changed and the counter was handing back a stale value, which
+	# looked exactly like "the animals are free".
+	var hood := game.get_node("Neighborhood") as Node3D
+	var with_hood := await _draws(animals, true)
+	hood.visible = false
+	await _frames(8)
+	var without_hood := await _draws(animals, true)
+	hood.visible = true
+	await _frames(8)
+	var counter_live := with_hood - without_hood > 100
+	ck("cizim sayaci canli", counter_live,
+		"mahalleli=%d mahallesiz=%d" % [with_hood, without_hood])
+
 	var on_total := 0
 	var off_total := 0
 	for _round in 4:
@@ -160,17 +235,22 @@ func _ordinary_yard() -> void:
 		on_total += await _draws(animals, true)
 	var on := int(round(float(on_total) / 4.0))
 	var off := int(round(float(off_total) / 4.0))
-	if on == 0 and off == 0:
-		print("  ATLANDI maliyet olcumu: headless'ta cizim sayaci yok"
-			+ " - pencereli calistir")
+	if not counter_live:
+		print("  ATLANDI maliyet olcumu: sayac cevap vermiyor")
 	else:
-		print("  [olcum] ayni sahne: hayvanli=%d hayvansiz=%d fark=%d cizim (%d hayvan)"
-			% [on, off, on - off, showing])
+		print("  [olcum] ayni sahne: hayvanli=%d hayvansiz=%d fark=%d cizim"
+			% [on, off, on - off]
+			+ " (%d hayvan, hepsi kadrajda)" % showing)
+		ck("hayvanlar kadrajda", on - off > 0,
+			"fark yok - kadraj disinda olcum yapilmis")
 		# Not "free": every animal is a handful of separate meshes because its
-		# ears, head and legs move. The budget is what a yard can spare.
-		ck("hayvanlar butcede", on - off <= 48, "%d cizim" % (on - off))
+		# ears, head and legs move. This is the WORST case - all six on screen
+		# at once from above the whole yard. Behind the mower, where fewer of
+		# them are in frame, it measured 33.
+		ck("hayvanlar butcede", on - off <= 80, "%d cizim" % (on - off))
 	animals.visible = true
 	animals.set_process(true)
+	above.queue_free()
 
 	game.queue_free()
 	await _frames(6)
@@ -244,14 +324,31 @@ func _ring(animals: Animals) -> void:
 func _draws(animals: Animals, on: bool) -> int:
 	animals.visible = on
 	animals.set_process(on)
-	await _frames(8)
+	# Waits on frames that were actually DRAWN. process_frame advances the game
+	# loop, and in a fast headless run several of those can pass between two
+	# renders — the draw counter then hands back the same stale number for
+	# every sample, which is exactly what made this measurement report a flat
+	# 400 for eight rounds and look like "the animals are free".
+	for _i in 6:
+		get_tree().paused = false
+		await RenderingServer.frame_post_draw
 	var total := 0
 	for _i in 8:
 		get_tree().paused = false
-		await get_tree().process_frame
+		await RenderingServer.frame_post_draw
 		total += RenderingServer.get_rendering_info(
 			RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 	return int(round(float(total) / 8.0))
+
+
+## How far a body's forward axis is from where it just moved, in degrees. Zero
+## when it did not move far enough to say.
+func _face_error(node: Node3D, previous: Vector3) -> float:
+	var step := Vector2(node.position.x - previous.x, node.position.z - previous.z)
+	if step.length() < 0.0008:
+		return 0.0
+	var forward := -node.global_transform.basis.z
+	return rad_to_deg(absf(Vector2(forward.x, forward.z).angle_to(step)))
 
 
 func _of(animals: Animals, kind: int) -> Array:

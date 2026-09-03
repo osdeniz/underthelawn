@@ -91,9 +91,9 @@ func _populate(seed_value: int, farmland: bool) -> void:
 		root.name = "Dog"
 		add_child(root)
 		var body := _dog_body(root)
-		# The gap between the house front (about z -14.7) and the fence (-13.0).
-		root.position = Vector3(GameConfig.DOG_RUN_X.x, 0.0,
-			GameConfig.fence_north_z() - 0.9)
+		# North of the fence and BESIDE the porch — see DOG_PATH_OUTSET for why
+		# neither the porch strip nor the inside of the fence works.
+		root.position = Vector3(_dog_x(0.0), 0.0, dog_z())
 		_entries.append({"kind": Kind.DOG, "node": root, "body": body,
 			"state": State.CALM, "timer": 0.0, "target": Vector3.ZERO,
 			"phase": _rng.randf()})
@@ -143,7 +143,7 @@ func _tick_rabbit(entry: Dictionary, delta: float) -> void:
 				root.visible = false
 				return
 			root.position += away.normalized() * step
-			root.rotation.y = atan2(away.x, away.z)
+			root.rotation.y = face(Vector2(away.x, away.z))
 			# The hop: the whole body leaves the ground and pitches nose-down
 			# as it lands. One sine drives both.
 			var hop := sin(_t * GameConfig.RABBIT_HOP_FREQ)
@@ -247,7 +247,7 @@ func _tick_pecker(entry: Dictionary, delta: float) -> void:
 			var out: Vector3 = entry["target"]
 			root.position += out * GameConfig.PECKER_SPEED * delta
 			root.position.y += GameConfig.PECKER_RISE * delta
-			root.rotation.y = atan2(out.x, out.z)
+			root.rotation.y = face(Vector2(out.x, out.z))
 			_flap(body, sin(_t * GameConfig.PECKER_FLAP_FREQ))
 			if float(entry["timer"]) <= 0.0:
 				entry["state"] = State.GONE
@@ -298,8 +298,13 @@ func _tick_dog(entry: Dictionary, delta: float) -> void:
 	var forward := k <= 1.0
 	if not forward:
 		k = 2.0 - k
-	root.position.x = lerpf(GameConfig.DOG_RUN_X.x, GameConfig.DOG_RUN_X.y, k)
-	root.rotation.y = (PI * 0.5) if forward else (-PI * 0.5)
+	var was := root.position.x
+	root.position.x = _dog_x(k)
+	# Faced from where it is actually GOING, not from a hand-written constant
+	# per leg: the constants were both the wrong way round, so the dog walked
+	# backwards in both directions and turned at neither end.
+	if absf(root.position.x - was) > 0.00001:
+		root.rotation.y = face(Vector2(signf(root.position.x - was), 0.0))
 	var trot := sin(_t * GameConfig.DOG_TROT_FREQ)
 	body.position.y = absf(trot) * 0.035
 	for leg: String in ["LegFL", "LegBR"]:
@@ -316,6 +321,29 @@ func _tick_dog(entry: Dictionary, delta: float) -> void:
 
 
 # ---------------------------------------------------------------- placement
+
+## The dog's line, measured out from the north fence.
+static func dog_z() -> float:
+	return GameConfig.fence_north_z() - GameConfig.DOG_PATH_OUTSET
+
+
+## Where along that line the dog is, for `k` from 0 to 1.
+static func _dog_x(k: float) -> float:
+	return lerpf(GameConfig.DOG_RUN_X.x, GameConfig.DOG_RUN_X.y, k)
+
+
+## The Godot rotation.y that points a model FACING -Z along `direction` (x, z).
+##
+## Every model in this project faces -Z and every machine applies
+## rotation.y = -yaw for that reason. All three animals had
+## `rotation.y = atan2(dir.x, dir.z)`, which aims the model's +Z down the
+## direction of travel — so the rabbit bolted tail-first, the bird flew
+## backwards and the dog trotted in reverse. It is the same mistake the walker
+## had (G14.26), in the same file family, and finding it there should have led
+## to sweeping this one. One function now, so it can only be wrong once.
+static func face(direction: Vector2) -> float:
+	return -atan2(direction.x, -direction.y)
+
 
 func _player_within(root: Node3D, range_units: float) -> bool:
 	if not player_on:
@@ -400,7 +428,8 @@ func _rabbit_body(root: Node3D) -> Node3D:
 	# potato (X is the side axis), and stretched 1.60 in Z it was a seal. A
 	# crouched rabbit is barely longer than it is tall — what reads is the
 	# high rump, the low head and the ears, not the length.
-	_ball(body, 0.115, fur, Vector3(0.0, 0.110, 0.0), Vector3(1.0, 0.92, 1.30))
+	_ball(body, 0.115, fur, Vector3(0.0, 0.110, 0.0), Vector3(1.0, 0.92, 1.30)) \
+		.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	var head := Node3D.new()
 	head.name = "Head"
 	# High and well forward, so the profile steps DOWN from rump to head. A
@@ -438,7 +467,8 @@ func _pecker_body(root: Node3D) -> Node3D:
 	root.add_child(body)
 	var feather := _mat("pecker", GameConfig.PECKER_BODY)
 	var beak := _mat("beak", GameConfig.PECKER_BEAK)
-	_ball(body, 0.075, feather, Vector3(0.0, 0.095, 0.0), Vector3(1.0, 0.9, 1.45))
+	_ball(body, 0.075, feather, Vector3(0.0, 0.095, 0.0), Vector3(1.0, 0.9, 1.45)) \
+		.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	var head := Node3D.new()
 	head.name = "Head"
 	head.position = Vector3(0.0, 0.145, -0.06)
@@ -455,7 +485,6 @@ func _pecker_body(root: Node3D) -> Node3D:
 	bill.material_override = beak
 	bill.position = Vector3(0.0, -0.005, -0.075)
 	bill.rotation = Vector3(-PI * 0.5, 0.0, 0.0)
-	bill.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	head.add_child(bill)
 	# Tail, angled up: it is what makes a small dark lump read as a bird.
 	_box(body, Vector3(0.05, 0.014, 0.095), feather,
@@ -473,7 +502,6 @@ func _pecker_body(root: Node3D) -> Node3D:
 		panel.mesh = prism
 		panel.material_override = feather
 		panel.position = Vector3(side * 0.095, 0.0, 0.0)
-		panel.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		wing.add_child(panel)
 		wing.visible = false
 	return body
@@ -491,7 +519,8 @@ func _dog_body(root: Node3D) -> Node3D:
 	# stilts was a cat. What reads as a dog at any size is a long shallow body
 	# with a level back, the head carried FORWARD at about back height, and legs
 	# roughly as long as the body is deep.
-	_ball(body, 0.150, coat, Vector3(0.0, 0.340, 0.0), Vector3(0.80, 0.78, 2.30))
+	_ball(body, 0.150, coat, Vector3(0.0, 0.340, 0.0), Vector3(0.80, 0.78, 2.30)) \
+		.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	# A deeper chest at the front, so the back line is level and the profile is
 	# not symmetrical front to back.
 	_ball(body, 0.115, coat, Vector3(0.0, 0.330, -0.170), Vector3(0.92, 0.98, 1.15))
@@ -562,6 +591,12 @@ func _ball(parent: Node3D, radius: float, mat: StandardMaterial3D, pos: Vector3,
 	node.material_override = mat
 	node.position = pos
 	node.scale = squash
+	# NO shadow by default. Measured from directly above the whole yard, six
+	# animals cost 105 draw calls with every part casting -- an ear, a paw and
+	# a beak each get their own shadow pass, and at this size not one of them
+	# is visible in the result. Each animal turns the shadow back ON for its
+	# BODY only, which is the blob that actually grounds it.
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(node)
 	return node
 
@@ -575,5 +610,6 @@ func _box(parent: Node3D, size: Vector3, mat: StandardMaterial3D, pos: Vector3,
 	node.material_override = mat
 	node.position = pos
 	node.rotation = rot
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(node)
 	return node

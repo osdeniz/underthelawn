@@ -28,10 +28,18 @@ const SPOTS := [Vector3(-5.0, 0.0, 10.0), Vector3(5.0, 0.0, 10.0),
 
 func _ready() -> void:
 	game = get_node("Main") as Game
+	# A headless window has no focus, so the game correctly pauses itself for
+	# the background — and a paused tree does not run this node's _process
+	# either, so the test hung at this print forever with no verdict. Third
+	# test in this project with the same cause (KeyboardCheck, InputMapCheck).
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().paused = false
 	print("--- dort mower sahne testi ---")
 
 
 func _process(_delta: float) -> void:
+	# Every frame, not once: the notification can arrive at any point.
+	get_tree().paused = false
 	frame += 1
 	if frame < 30:
 		return

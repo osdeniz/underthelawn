@@ -2377,9 +2377,30 @@ const PECKER_BEAK := Color(0.80, 0.66, 0.28)
 const DOG_ENABLED := true
 const DOG_SPEED := 1.35
 const DOG_COAT := Color(0.62, 0.48, 0.32)
-## Its beat, in x, on the strip between the porch and the north fence. The
-## house front stands at about z -14.7 and the fence at -13.0, so the middle of
-## that gap is where a dog would actually walk.
-const DOG_RUN_X := Vector2(-5.2, 5.4)
+## Its beat. This took three tries and each failure taught the next number.
+##
+## The ground in front of the house is NOT free. The house sits HOUSE_MARGIN_Z
+## past the lawn edge with a 4.2-deep body, so its south wall is 2.69 outside
+## the lawn; the porch is a 5.0-wide, 1.6-deep platform centred 0.8 further
+## out, reaching to within nine centimetres of the north fence; and the wall
+## bushes fill the rest. The first line ran down the middle of that platform,
+## and the dog walked through the boards.
+##
+## Moving it INSIDE the fence fixed the clipping and broke the visibility: the
+## uncut clumps stand up to 0.9 and the dog is 0.56, so from the player's low
+## camera it was behind a wall of grass. The same mistake as the rabbit, one
+## sprint later.
+##
+## So: north of the fence, where it is above the grass line and plainly seen,
+## and BESIDE the porch rather than on it. The z offset is measured from the
+## fence like every other distance around the yard (G9.1) — ch01's grid is
+## smaller than the default and absolute numbers were wrong for it. The x
+## range is absolute, and that is deliberate: the porch is 5.0 wide in the
+## HOUSE mesh whatever the lawn measures, so clearing it is an absolute
+## distance, not a fraction of anything.
+const DOG_PATH_OUTSET := 0.55
+## Starts clear of the 5.0-wide porch (x -2.5 to 2.5) and stops well inside the
+## side fence.
+const DOG_RUN_X := Vector2(3.0, 6.2)
 const DOG_TROT_FREQ := 7.0
 const DOG_TAIL_FREQ := 4.5
