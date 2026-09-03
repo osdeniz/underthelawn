@@ -392,6 +392,17 @@ func _fade_out_then(action: Callable) -> void:
 # ---------------------------------------------------------------- chapter
 
 func _on_chapter_chosen(variant_id: String) -> void:
+	# The gate (G16.6), in the ONE place every way of starting a chapter passes
+	# through — the board, the continue button, the results panel's "next".
+	# Behind it the card opens instead of the briefing; bought, the same choice
+	# is made again and goes through.
+	if not Purchases.chapter_allowed(variant_id):
+		_show_demo_card(func(bought: bool) -> void:
+			if bought:
+				_on_chapter_chosen(variant_id)
+			else:
+				return_to_board())
+		return
 	_pending_variant = variant_id
 	var chapter := ChapterProgress.entry(variant_id)
 	var brief_id := str(chapter.get("brief", ""))
@@ -480,7 +491,24 @@ func _on_search_finished(evidence: int, total: int) -> void:
 		return
 	_play_dialogue(lines, "", func() -> void:
 		if scene != "":
-			_play_quiet_scene(scene))
+			_play_quiet_scene(scene)
+		# The offer comes ONCE, here: the third chapter's debrief has just been
+		# read and the player is looking for a girl they have started to know.
+		# The results panel stays underneath either way (G16.6).
+		elif _pending_variant == GameConfig.DEMO_GATE_AFTER and not Purchases.is_full():
+			_show_demo_card(func(_bought: bool) -> void: pass))
+
+
+## The one card that asks for money (G16.6), over whatever is on screen.
+func _show_demo_card(then: Callable) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 70
+	add_child(layer)
+	var card: Control = load("res://scripts/demo_card.gd").new()
+	layer.add_child(card)
+	card.finished.connect(func(bought: bool) -> void:
+		layer.queue_free()
+		then.call(bought))
 
 
 ## A scene the player watches, over its own drawn still, between chapters.

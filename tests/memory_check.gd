@@ -51,6 +51,7 @@ func settle(seconds: float) -> void:
 
 
 func _ready() -> void:
+	GameState.set_setting("purchases", "full", true)  # gate open: tests test the game, DemoCheck tests the gate (G16.6)
 	await settle(0.5)
 	GameState.set_setting("story", "intro_seen", true)
 	var root: Node = load("res://scenes/Root.tscn").instantiate()

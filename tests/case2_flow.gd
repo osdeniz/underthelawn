@@ -20,6 +20,7 @@ func settle(seconds: float) -> void:
 
 func _ready() -> void:
 	GameState.set_setting("meta", "orientation_done", true)
+	GameState.set_setting("purchases", "full", true)  # gate open: tests test the game, DemoCheck tests the gate (G16.6)
 	GameState.set_setting("story", "intro_seen", true)
 	ChapterProgress.reset()
 	RestoreBoard.reset()

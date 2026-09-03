@@ -1013,3 +1013,9 @@ SET_PERF_TITLE,Performance readout,Performans göstergesi
 SET_PERF_HINT,"fps, draw calls and triangles in the corner. For testing on a phone.","Köşede fps, çizim ve üçgen sayısı. Telefonda test için."
 SET_BIGTEXT_TITLE,Large text,Büyük yazı
 SET_BIGTEXT_HINT,Dialogue and story cards a quarter larger.,Diyaloglar ve hikâye kartları çeyrek daha büyük.
+DEMO_TITLE,THE REST OF THE STORY,HİKÂYENİN DEVAMI
+DEMO_LINE,"Three yards down. Fifteen to go, a harvest every third, a town to bring back, and the question of who grew that garden.","Üç bahçe bitti. On beş bahçe, her üçte bir hasat, geri getirilecek bir kasaba ve o bahçeyi kimin yetiştirdiği sorusu kaldı."
+DEMO_BUY,Unlock the full story,Hikâyenin tamamını aç
+DEMO_LATER,Not now,Şimdi değil
+DEMO_RESTORE,Restore a purchase,Satın alımı geri yükle
+BOARD_LOCKED_DEMO,Full story,Tam hikâye

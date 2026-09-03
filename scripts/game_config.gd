@@ -2540,3 +2540,17 @@ static func text_scale() -> float:
 	return TEXT_SCALE_LARGE if bool(GameState.get_setting("display", "large_text", false)) else 1.0
 static func fs(base: int) -> int:
 	return int(round(float(base) * text_scale()))
+
+
+# ---------------------------------------------------------------- the gate (G16.6)
+
+## Premium with a free start. The prologue and the first three chapters are
+## free; after the ch03 debrief — the player is looking for Ellie and does not
+## want to stop — one card offers the rest for one price. No ads, no currency
+## for sale, no timers: the food and scrap economies are the GAME'S and are not
+## for sale, which is the whole reason a premium model fits this one.
+const DEMO_GATE := true
+const DEMO_FREE_CHAPTERS: Array[String] = ["ch01_aldridge", "ch02_neighbor",
+	"ch03_playground"]
+## The chapter whose debrief the card follows.
+const DEMO_GATE_AFTER := "ch03_playground"

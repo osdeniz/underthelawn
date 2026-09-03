@@ -29,6 +29,7 @@ GameState="*res://scripts/game_state.gd"
 Haptics="*res://scripts/haptics.gd"
 AudioDirector="*res://scripts/audio_director.gd"
 PerfOverlay="*res://scripts/perf_overlay.gd"
+Purchases="*res://scripts/purchases.gd"
 
 [display]
 

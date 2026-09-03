@@ -21,6 +21,7 @@ var _fails := 0
 
 
 func _ready() -> void:
+	GameState.set_setting("purchases", "full", true)  # gate open: tests test the game, DemoCheck tests the gate (G16.6)
 	_check_guard()
 	_check_scene_files()
 	await _check_live_hud()

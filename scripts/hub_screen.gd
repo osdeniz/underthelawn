@@ -671,6 +671,12 @@ func _refresh_case_summary() -> void:
 		_case_next_button.disabled = false
 		_case_next_button.text = "%s: %s" % [tr("CASE_CONTINUE"),
 			tr(str(ChapterProgress.entry(next_id).get("name", "")))]
+		# Behind the gate (G16.6): the door is still drawn, still tappable — it
+		# opens the offer, not the chapter — and says what it is.
+		if not Purchases.chapter_allowed(next_id):
+			_case_next_button.text = "🔒 %s — %s" % [
+				tr(str(ChapterProgress.entry(next_id).get("name", ""))), tr("BOARD_LOCKED_DEMO")]
+			_style_nav_row(_case_next_button, true)
 
 
 ## One area: a filled ring for a finished chapter, a pulsing amber ring for the

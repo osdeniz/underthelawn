@@ -33,6 +33,11 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = false
 	GameState.set_setting("meta", "orientation_done", true)
+	# The gate is open for every suite but the one that tests the gate
+	# (DemoCheck lowers it itself). Case2FlowB failed three checks the night the
+	# gate landed, because its chapters start at ch09 and the card opened
+	# instead of the level.
+	GameState.set_setting("purchases", "full", true)
 	await run()
 	finish()
 

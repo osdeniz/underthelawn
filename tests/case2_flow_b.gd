@@ -7,11 +7,17 @@ extends "res://tests/case2_flow.gd"
 
 func _ready() -> void:
 	GameState.set_setting("meta", "orientation_done", true)
+	GameState.set_setting("purchases", "full", true)  # gate open: tests test the game, DemoCheck tests the gate (G16.6)
 	GameState.set_setting("story", "intro_seen", true)
 	ChapterProgress.reset()
 	RestoreBoard.reset()
 	GameState.set_setting("story", "case01_closed", false)
 	GameState.set_setting("story", "case02_closed", false)
+	# The first half ends with Case 01 searched to the end, and the door checks
+	# below assumed exactly that — split off, they found no Case 02 tile because
+	# no chapter was done. Reproduce the state rather than depend on the order.
+	for chapter: Dictionary in Story.list("chapters"):
+		ChapterProgress.record(str(chapter.get("variant_id", "")), 2, 2)
 
 	await _check_warm_up_leaves_no_trace()
 	await _check_the_door()

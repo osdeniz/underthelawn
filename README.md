@@ -3609,3 +3609,64 @@ platform's success notification. So the number is derived from that: iOS's
 `.success` is a light tap then a heavier one about a tenth of a second later,
 and `Haptics.success()` does exactly that — light, 100 ms, medium — instead of
 two equal pulses 80 ms apart.
+
+### G16.5 — one test base, and the flow test cut in two
+
+Three scene tests failed or hung for one reason (a headless window has no
+focus, the game correctly pauses itself, and a paused tree runs neither the
+mowers nor the test's own `_process`), two more waited on frame counts or
+summed deltas for things that happen per second, and one sat on a bare
+`frame_post_draw` that never fired. Each was fixed where it was found. `TestBase`
+is those fixes in one place: always-process with an unpause every frame,
+wall-clock `settle()`, a `drawn_frame()` that gives up after a quarter second,
+`open()` for a chapter searching and unpaused, and `ck()`/`finish()` for the one
+verdict line the runner greps. Six suites extend it now; their helper copies
+are gone and their verdict lines are unchanged.
+
+One thing the base got wrong on its first run: `InputMapCheck`'s claim IS that
+the tree pauses when the app is backgrounded, and the base's per-frame unpause
+refuted it — the test failed with "did not pause" because the harness was
+un-pausing it. `keep_unpaused` is a flag a test can lower for a stretch.
+
+`Case2Flow` took over two minutes in one process, past any sane limiter, and
+was reporting "??" (no verdict) rather than pass or fail. It is two scenes now
+— A: gate, board, chapter, map; B: warm-up, door, panel, road, late board,
+every way home — sharing one script through `extends`. And `tools/run_tests.sh`
+runs every suite and prints `ok`, `FAIL` or `??`; a suite with no verdict is
+never counted as passing.
+
+### G16.6 — the gate, and the one card that asks for money
+
+Premium with a free start. The prologue and the first three chapters are free;
+after the third chapter's debrief — the player has just read that the girl
+stopped to play and drew an arrow east, and is looking for someone they have
+started to know — one card offers the rest for one price. It says what is left
+(*"Three yards down. Fifteen to go, a harvest every third, a town to bring back,
+and the question of who grew that garden."*), has a buy button, a "not now" and
+a restore link, and gets out of the way. No timer, no second ask on the same
+screen, and nothing else in the game is for sale: the food and scrap economies
+are the game's own, which is the whole reason a premium model fits this one.
+
+**The gate is enforced in one place.** Every way of starting a chapter — the
+board, the continue button, the results panel's "next" — goes through
+`RootFlow._on_chapter_chosen`, and that is where a gated chapter opens the card
+instead of the briefing. Bought, the same choice is made again and goes through.
+On the board the next chapter still has its door, still tappable, marked
+🔒 *Full story*.
+
+**`Purchases` is the seam.** Locally `unlock_full()` grants at once and the card
+closes itself on `changed`; a store plugs in as a provider with `buy`, `restore`
+and `owns`, calls `grant()` when it confirms, and the flag in the SAVE is what
+the game reads from then on — a store outage after purchase never locks a
+paying player out. Plugin names for StoreKit 2 and Play Billing are in the file
+header. `DEV_UNLOCK_ALL` and a build without `DEMO_GATE` both mean everything
+open.
+
+Two harness things the gate exposed. `DemoCheck` passed its first run while
+erroring out before its assertions — `get_node("Buy")` was null because the
+button sits inside the panel's column, the runtime error aborted `run()`, and
+the base printed the verdict with nothing failed. It uses `find_child` and
+asserts the button exists first. And `Case2FlowB`, which starts chapters at
+ch09, ran the night the gate landed and found the card where the level should
+be; every suite that drives the flow now opens the gate in its setup, and only
+`DemoCheck` lowers it.

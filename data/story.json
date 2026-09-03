@@ -522,8 +522,75 @@
     "id": "CASE_03_ID",
     "title": "CASE_03_TITLE",
     "objective": "CASE_03_OBJECTIVE",
+    "teaser_image": "story/convoy",
     "locked_note": "CASE_03_LOCKED",
-    "chapters": [],
-    "_comment": "Skeleton only (G13), the same shape Case 02 was left in by G11: the keys exist so the shape of what follows is visible in the data."
+    "hud_line": "CASE_03_HUD_LINE",
+    "_comment": "THE VISITORS (G17). Eight chapters, all in and around the town, getting it ready to be seen. Opens when Case 02 is closed. Ends on the Gate Card: open or closed, two mornings, and where the dog stands is the whole answer (docs/CASE_03.md).",
+    "chapters": [
+      {
+        "variant_id": "ch19_town_square",
+        "name": "CH_19_NAME",
+        "brief": "brief_ch19",
+        "debrief_full": "debrief_ch19_full",
+        "debrief_partial": "debrief_ch19_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch20_watchtower_road",
+        "name": "CH_20_NAME",
+        "brief": "brief_ch20",
+        "debrief_full": "debrief_ch20_full",
+        "debrief_partial": "debrief_ch20_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch21_school_field",
+        "name": "CH_21_NAME",
+        "brief": "brief_ch21",
+        "debrief_full": "debrief_ch21_full",
+        "debrief_partial": "debrief_ch21_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch22_the_orchard_again",
+        "name": "CH_22_NAME",
+        "brief": "brief_ch22",
+        "debrief_full": "debrief_ch22_full",
+        "debrief_partial": "debrief_ch22_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch23_the_grave_row",
+        "name": "CH_23_NAME",
+        "brief": "brief_ch23",
+        "debrief_full": "debrief_ch23_full",
+        "debrief_partial": "debrief_ch23_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch24_the_gate_line",
+        "name": "CH_24_NAME",
+        "brief": "brief_ch24",
+        "debrief_full": "debrief_ch24_full",
+        "debrief_partial": "debrief_ch24_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch25_night_watch",
+        "name": "CH_25_NAME",
+        "brief": "brief_ch25",
+        "debrief_full": "debrief_ch25_full",
+        "debrief_partial": "debrief_ch25_partial",
+        "playable": true
+      },
+      {
+        "variant_id": "ch26_the_visit",
+        "name": "CH_26_NAME",
+        "brief": "brief_ch26",
+        "debrief_full": "debrief_ch26_full",
+        "debrief_partial": "debrief_ch26_partial",
+        "playable": true
+      }
+    ]
   }
 }
