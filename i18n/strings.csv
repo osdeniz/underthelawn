@@ -152,7 +152,7 @@ DLG_DEBRIEF_CH03_FULL,"She stopped to play, then drew an arrow east. That's not 
 DLG_DEBRIEF_CH03_PART,Half of it is still standing. Sarah is waiting.,Yarısı hâlâ ayakta. Sarah bekliyor.
 DLG_BRIEF_CH04_1,The lot floods every spring. Nobody drains it any more.,Arsa her bahar su alıyor. Artık kimse boşaltmıyor.
 DLG_BRIEF_CH04_2,Mud keeps a record. Whatever walked through there is still written in it.,Çamur kayıt tutar. Oradan ne geçtiyse hâlâ yazılı.
-DLG_DEBRIEF_CH04_FULL,"Two sets of prints, walking side by side. I don't know what to feel.","İki takım iz, yan yana yürümüş. Ne hissedeceğimi bilmiyorum."
+DLG_DEBRIEF_CH04_FULL,"Two sets of prints. The small ones in front, the whole way.","İki çift ayak izi. Küçükler önde, yol boyunca."
 DLG_DEBRIEF_CH04_PART,The water hides things. Cut more of it.,Su bir şeyleri saklıyor. Daha fazlasını biç.
 DLG_BRIEF_CH05_1,Somebody has been keeping that greenhouse alive. Quietly.,Biri o serayı hayatta tutuyor. Sessizce.
 DLG_BRIEF_CH05_2,Half the glass is gone and the plants are watered. Explain that to me.,Camın yarısı yok ama bitkiler sulanmış. Bunu bana açıkla.
@@ -231,7 +231,7 @@ EV_CH01_B_LINE,Still tuned to the emergency channel.,Hâlâ acil durum kanalınd
 DLG_BRIEF_CH03_3,I tied that in her hair this morning. Birthday ribbon. She picked yellow because— just find her.,Onu bu sabah saçına ben bağladım. Doğum günü kurdelesi. Sarıyı seçti çünkü— sen sadece onu bul.
 DLG_BRIEF_CH06_3,That light... I need to see it when you're back.,O fener... döndüğünde onu görmem lazım.
 DLG_FINALE_1,You found me! Did you see the garden? HE grew it.,Beni buldun! Bahçeyi gördün mü? Onu O yetiştirdi.
-DLG_FINALE_2,Alive. Not a scratch on her. Thank God.,Yaşıyor. Üstünde tek çizik yok. Şükürler olsun.
+DLG_FINALE_2,"Alive. Bruised, hungry, and on her own feet. Thank God.","Yaşıyor. Morarmış, aç ve kendi ayakları üstünde. Şükür."
 DLG_FINALE_3,"But who is ""he""? And why did he leave the moment we came down?","Peki ""o"" kim? Ve neden biz aşağı inince gitti?"
 DLG_FINALE_4,He said the town wasn't ready yet. He said you'd come when it was.,Kasabanın henüz hazır olmadığını söyledi. Hazır olunca geleceğinizi söyledi.
 DLG_FINALE_5,"Take her home, detective. Sarah has waited long enough.",Onu eve götür dedektif. Sarah yeterince bekledi.
@@ -432,7 +432,7 @@ HARVEST_CORN_HEADLINE,THE CORN IS READY,MISIR HAZIR
 HARVEST_START,HARVEST THE FIELD,TARLAYI BİÇ
 HARVEST_PLACE,The Wheat Field,Buğday Tarlası
 HARVEST_HUD_LINE,HARVEST — Bring the field in,HASAT — Tarlayı içeri al
-DLG_BRIEF_CH01_2B,The tables are set in the square. Cake's still in Cole's oven. Find her before the candles burn down — I want her blowing them out.,Meydanda masalar kurulu. Pasta hâlâ Cole'un fırınında. Mumlar erimeden onu bul — onları o üflesin istiyorum.
+DLG_BRIEF_CH01_2B,The tables are set in the square. Cake's still in Cole's oven.,Masalar meydanda kurulu. Pasta hâlâ Cole'un fırınında.
 DLG_TOWN_MARSHAL_0C,The whole town raised her. The whole town is out looking.,Bütün kasaba büyüttü onu. Bütün kasaba arıyor.
 DLG_TOWN_SARAH_0C,"I'm not her mother. But nine years ago the town handed me a baby, and I've been hers ever since.","Ben onun annesi değilim. Ama dokuz yıl önce kasaba kucağıma bir bebek verdi, o gün bugündür onunum."
 DLG_TOWN_GUS_0B,Nine little packages in my workshop. We never wrote who they're from. We never do.,Atölyemde dokuz küçük paket var. Kimden geldiğini yazmadık. Hep öyle yaparız.
@@ -525,13 +525,13 @@ ECHO_CH11_LINE,"Yields year by year in the same hand, until a year with no numbe
 RECLAIM_CH11,"The rows are clear. If anyone comes back to pick, they will find it kept.","Sıralar açıldı. Toplamaya dönen olursa, bakılmış bulacak."
 DLG_BRIEF_CH09_1,I heard a voice counting at night.,Gece sayı sayan bir ses duydum.
 DLG_BRIEF_CH09_2,Nobody counts anymore. We do not even have a calendar.,Kimse saymaz artık. Takvim bile yok.
-DLG_BRIEF_CH09_3,Sarah says she dreamt it. Sarah also has not slept since Tuesday.,Sarah rüya gördüğünü söylüyor. Sarah salıdan beri uyumadı da.
+DLG_BRIEF_CH09_3,Sarah says she dreamt it. Sarah also hasn't slept since Tuesday.,Sarah rüya gördüğünü söylüyor. Sarah salıdan beri uyumadı da.
 DLG_BRIEF_CH09_4,The old mast is behind the Perrin place. Grass up to your chest.,Eski direk Perrin'lerin arkasında. Ot göğüs hizasında.
 DLG_BRIEF_CH09_A1,A nine-year-old does not invent numbers.,Dokuz yaşındaki bir çocuk sayı uydurmaz.
 DLG_BRIEF_CH09_R1,No. She invents dragons. Numbers she repeats.,Uydurmaz. Ejderha uydurur. Sayıyı tekrar eder.
 DLG_BRIEF_CH09_A2,Could be wind in the wires.,Tellerdeki rüzgâr olabilir.
-DLG_BRIEF_CH09_R2,"Could be. The wind does not stop at nine, though.",Olabilir. Ama rüzgâr dokuzda susmaz.
-DLG_BRIEF_CH09_5,Clear the ground and let us see what is under it.,Zemini aç da altında ne varmış görelim.
+DLG_BRIEF_CH09_R2,"Could be. The wind doesn't stop at nine, though.",Olabilir. Ama rüzgâr dokuzda susmaz.
+DLG_BRIEF_CH09_5,Clear the ground and let's see what's under it.,Zemini aç da altında ne varmış görelim.
 BRIEF_09_ACCEPT,GO TO THE MAST,DİREĞE GİT
 DLG_DEB_CH09_F1,Batteries from this year. Somebody walks up here in the dark.,Bu yılın pilleri. Biri karanlıkta buraya kadar yürüyor.
 DLG_DEB_CH09_F2,And the last number in the log is nine. Ellie is nine.,Ve defterdeki son sayı dokuz. Ellie dokuz yaşında.
@@ -540,9 +540,9 @@ DLG_DEB_CH09_F4,...how long have you been standing behind me?,...ne zamandır ar
 DLG_DEB_CH09_F5,"You are going to follow that signal. It runs east, through country with no names left on it.","O sinyali kovalayacaksın. Doğuya gidiyor, adı kalmamış topraklardan."
 DLG_DEB_CH09_F6,You need somebody who knows the dead zones. Take me with you.,Ölü bölgeleri bilen biri lazım. Beni götür.
 DLG_DEB_CH09_A1,You walk in front. Where I can see you.,Önden yürürsün. Görebileceğim yerde.
-DLG_DEB_CH09_R1,"That is the deal. You lead, I watch.","Anlaşma bu. Sen yol gösterirsin, ben bakarım."
+DLG_DEB_CH09_R1,"That's the deal. You lead, I watch.","Anlaşma bu. Sen yol gösterirsin, ben bakarım."
 DLG_DEB_CH09_A2,You brought her back. That buys one road.,Onu geri getirdin. Bu bir yolluk eder.
-DLG_DEB_CH09_R2,One road. We will see about the second.,Bir yolluk. İkincisini sonra konuşuruz.
+DLG_DEB_CH09_R2,One road. We'll see about the second.,Bir yolluk. İkincisini sonra konuşuruz.
 DLG_DEB_CH09_F7,Pack for two weeks. Not because it is far. Because of what is at the end of it.,İki haftalık hazırlan. Uzak olduğundan değil. Sonunda ne olduğundan.
 DLG_DEB_CH09_P1,Half the ground and half the answer. The mast is still humming.,"Zeminin yarısı, cevabın yarısı. Direk hâlâ uğulduyor."
 DLG_DEB_CH09_P2,Then go back. It will not hum forever.,O zaman geri dön. Sonsuza kadar uğuldamayacak.
@@ -554,28 +554,28 @@ DLG_BRIEF_CH10_A1,All of them?,Hepsini mi?
 DLG_BRIEF_CH10_R1,The ones with something on top.,Tepesinde bir şey olanları.
 DLG_BRIEF_CH10_A2,"Lead, then.",Yürü öyleyse.
 DLG_BRIEF_CH10_R2,Mind the slope. It is steeper than it looks from town.,Yokuşa dikkat. Kasabadan göründüğünden dik.
-DLG_BRIEF_CH10_4,Cut me a path to the top. I will take the questions from there.,Tepeye kadar yol aç. Soruları oradan ben devralırım.
+DLG_BRIEF_CH10_4,Cut me a path to the top. I'll take the questions from there.,Tepeye kadar yol aç. Soruları oradan ben devralırım.
 BRIEF_10_ACCEPT,CLIMB,TIRMAN
 DLG_DEB_CH10_F1,Nine cells. Wrapped. The man up here has a routine.,Dokuz pil. Sarılmış. Buradaki adamın bir düzeni var.
 DLG_DEB_CH10_F2,"Diamond tread, four millimetres deep, worn on the outer edge.","Baklava desen, dört milim derin, dış kenarı aşınmış."
 DLG_DEB_CH10_F3,He carries his weight on the outside of his feet. He has been walking a long time.,Ağırlığını ayağının dışına verip yürüyor. Uzun zamandır yürüyor.
 DLG_DEB_CH10_F4,Right.,Peki.
-DLG_DEB_CH10_F5,I will write that down. Not the tread. The fact that you read it like a page.,Bunu not edeceğim. Deseni değil. Onu bir sayfa gibi okumanı.
+DLG_DEB_CH10_F5,I'll write that down. Not the tread. The fact that you read it like a page.,Bunu not edeceğim. Deseni değil. Onu bir sayfa gibi okumanı.
 DLG_DEB_CH10_P1,Half a hill. The cache can wait; the weather cannot.,"Tepenin yarısı. Zula bekler, hava beklemez."
 DLG_DEB_CH10_P2,It will still be counted when you come back.,Döndüğünde yine sayılmış olacak.
-DLG_BRIEF_CH11_1,"Apples. Two miles out, and the crows have not had them.",Elma. Üç kilometre ötede ve kargalar yememiş.
+DLG_BRIEF_CH11_1,"Apples. Two miles out, and the crows haven't had them.",Elma. Üç kilometre ötede ve kargalar yememiş.
 DLG_BRIEF_CH11_2,Crows go where food is easy. Nothing here is easy.,Karga kolay yemin peşine gider. Burada kolay hiçbir şey yok.
-DLG_BRIEF_CH11_3,Then somebody is making it hard on purpose.,Demek biri bilerek zorlaştırıyor.
+DLG_BRIEF_CH11_3,Then somebody's making it hard on purpose.,Demek biri bilerek zorlaştırıyor.
 DLG_BRIEF_CH11_A1,Is that a good sign?,Bu iyiye mi işaret?
-DLG_BRIEF_CH11_R1,It is an organised sign. Good is a different word.,"Düzenliye işaret. İyi, başka bir kelime."
+DLG_BRIEF_CH11_R1,It is an organised sign. Good is a different word.,Düzen işareti. 'İyi' başka bir kelime.
 DLG_BRIEF_CH11_A2,You have seen this before.,Bunu daha önce gördün.
 DLG_BRIEF_CH11_R2,I have seen orchards before.,Elma bahçesi gördüm.
 BRIEF_11_ACCEPT,WALK THE ROWS,SIRALARI YÜRÜ
 DLG_DEB_CH11_F1,Not one broken branch in forty trees.,Kırk ağaçta tek bir kırık dal yok.
 DLG_DEB_CH11_F2,"And a crate lid stamped on the inside. Seven stars, in a ring.",Ve içine damga vurulmuş bir kasa kapağı. Çember hâlinde yedi yıldız.
 DLG_DEB_CH11_F3,We should move before the light goes.,Işık gitmeden yürüyelim.
-DLG_DEB_CH11_F4,That is the second question you have walked away from.,"Bu, geçiştirdiğin ikinci soru."
-DLG_DEB_CH11_F5,"East, then. Sarah will want to say goodbye properly.",Doğuya öyleyse. Sarah düzgün bir veda isteyecektir.
+DLG_DEB_CH11_F4,That's the second question you've walked away from.,"Bu, geçiştirdiğin ikinci soru."
+DLG_DEB_CH11_F5,"East, then. Sarah'll want to say goodbye properly.",Doğuya öyleyse. Sarah düzgün bir veda isteyecektir.
 DLG_DEB_CH11_P1,Half the rows. The other half will still be standing.,Sıraların yarısı. Diğer yarısı yerinde duracak.
 DLG_DEB_CH11_P2,Everything here waits. That is what worries me.,Burada her şey bekliyor. Beni endişelendiren de bu.
 CASE_02_HUD_LINE,CASE 02 — WHAT ELLIE SAW · Follow the signal,VAKA 02 — ELLIE NE GÖRDÜ · Sinyali takip et
@@ -650,7 +650,7 @@ DLG_BRIEF_CH12_A1,You have crossed here before.,Buradan daha önce geçtin.
 DLG_BRIEF_CH12_R1,Everybody who goes east has crossed here. There is one crossing.,Doğuya giden herkes buradan geçti. Tek geçit var.
 DLG_BRIEF_CH12_A2,Is the water deep?,Su derin mi?
 DLG_BRIEF_CH12_R2,Not in summer. That is why the bridge matters in winter.,Yazın değil. Köprünün önemi de kışın.
-DLG_BRIEF_CH12_4,Then let us find out who has been keeping it.,O zaman onu kimin baktığını bulalım.
+DLG_BRIEF_CH12_4,Then let's find out who's been keeping it.,O zaman ona kimin baktığını bulalım.
 BRIEF_12_ACCEPT,CUT TO THE BANK,KIYIYA AÇ
 DLG_CHAT_CH12_1,There used to be a bridge watch here.,Eskiden burada köprü nöbeti vardı.
 DLG_CHAT_CH12_2,"For two winters, crossing meant not coming back.","İki kış boyunca geçmek, dönmemek demekti."
@@ -661,7 +661,7 @@ DLG_DEB_CH12_F3,There were always others.,Hep başkaları vardı.
 DLG_DEB_CH12_F4,Then you might have led with that.,Bunu baştan söyleyebilirdin.
 DLG_DEB_CH12_P1,Half the reeds and half the bank. The crossing keeps.,"Sazlığın yarısı, kıyının yarısı. Geçit yerinde durur."
 DLG_DEB_CH12_P2,The rope will. The people will not.,Halat durur. İnsanlar durmaz.
-DLG_BRIEF_CH13_1,There is corn growing where nobody planted corn.,Kimsenin mısır ekmediği yerde mısır bitmiş.
+DLG_BRIEF_CH13_1,There's corn growing where nobody planted corn.,Kimsenin mısır ekmediği yerde mısır bitmiş.
 DLG_BRIEF_CH13_2,Somebody planted it. Corn does not volunteer in rows.,Biri ekmiş. Mısır sıra sıra kendiliğinden çıkmaz.
 DLG_BRIEF_CH13_A1,How tall does it get?,Ne kadar uzuyor?
 DLG_BRIEF_CH13_R1,Taller than you. You will not see the camp until you are standing in it.,Senden uzun. Kampı içine girene kadar görmeyeceksin.
@@ -675,15 +675,15 @@ DLG_CHAT_CH13_3,Somebody taught them that. It was not me.,Bunu birileri öğretm
 DLG_DEB_CH13_F1,"A bed made of crates, child length, with toys set out at the head.","Sandıklardan çocuk boyu bir yatak, başucunda dizilmiş oyuncaklar."
 DLG_DEB_CH13_F2,"And two camps, one on top of the other. Tidy underneath. Panicked on top.","Ve iki kamp, biri diğerinin üstünde. Altta düzen. Üstte panik."
 DLG_DEB_CH13_F3,The first ones had rules. The second ones had a head start and no time.,İlkler kurallıydı. İkincilerin başı öndeydi ama vakitleri yoktu.
-DLG_DEB_CH13_F4,I have called people like this looters for six years.,Altı yıldır böyle insanlara yağmacı diyorum.
+DLG_DEB_CH13_F4,I've called people like this looters for six years.,Altı yıldır böyle insanlara yağmacı diyorum.
 DLG_DEB_CH13_P1,Half the rows. Whatever else is in there stays in there.,Sıraların yarısı. İçeride başka ne varsa içeride kalır.
 DLG_DEB_CH13_P2,It has waited this long.,Bu kadar bekledi.
 DLG_BRIEF_CH14_1,There is a container in that mound. It is not buried. It was PUT there.,O höyükte bir konteyner var. Gömülmemiş. Konmuş.
-DLG_BRIEF_CH14_2,And the aerial is new enough to still be straight.,Anten de hâlâ dik duracak kadar yeni.
+DLG_BRIEF_CH14_2,And the aerial's new enough to still be straight.,Anten de hâlâ dik duracak kadar yeni.
 DLG_BRIEF_CH14_A1,How do you know it is occupied?,Kullanıldığını nereden biliyorsun?
 DLG_BRIEF_CH14_R1,The grass around the hatch is flat. Something walks that circle.,Kapağın çevresindeki ot yatmış. Biri o daireyi yürüyor.
 DLG_BRIEF_CH14_A2,We should go in quietly.,Sessiz girsek iyi olur.
-DLG_BRIEF_CH14_R2,We are arriving on a mower. Quiet stopped being an option in town.,Biçme makinesiyle geliyoruz. Sessizlik kasabada tükendi.
+DLG_BRIEF_CH14_R2,We're arriving on a mower. Quiet stopped being an option the day we chose it.,Biçme makinesiyle geliyoruz. Sessiz olma şansımız kasabada kaldı.
 DLG_BRIEF_CH14_3,Cut it back. Let us see what it is pointed at.,Etrafını aç. Neye yöneldiğine bakalım.
 BRIEF_14_ACCEPT,APPROACH THE POST,NOKTAYA YAKLAŞ
 DLG_CHAT_CH14_1,The static is thinning as we cut.,Biçtikçe cızırtı inceliyor.
@@ -769,7 +769,7 @@ MN_CH18_B,Somebody is marking the way home for a child who is not ours.,"Biri, b
 ECHO_CH18_NAME,Last Newspaper,Son Gazete
 ECHO_CH18_LINE,The front page is about a bus timetable. Nothing on it knows what is coming.,Manşet bir otobüs tarifesi hakkında. Üstündeki hiçbir şey ne geldiğini bilmiyor.
 RECLAIM_CH18,The verge is cut the whole way. The road home is a road again.,Yol kenarı baştan sona biçildi. Eve giden yol yeniden bir yol.
-DLG_BRIEF_CH16_1,There is a boundary stone at the crossroads with something drawn on it.,Kavşakta üstüne bir şey çizilmiş bir sınır taşı var.
+DLG_BRIEF_CH16_1,There's a boundary stone at the crossroads with something drawn on it.,Kavşakta üstüne bir şey çizilmiş bir sınır taşı var.
 DLG_BRIEF_CH16_2,Then we should look at it before the light turns.,Işık dönmeden bakmalıyız.
 DLG_BRIEF_CH16_3,Sunflowers follow the sun. These look like they are following the ROAD.,Ayçiçekleri güneşi izler. Bunlar yolu izliyor sanki.
 DLG_BRIEF_CH16_A1,Who plants a field this size alone?,Bu büyüklükte tarlayı kim tek başına eker?
@@ -783,7 +783,7 @@ DLG_DEB_CH16_F1,"Chalk. Seven stars, in a ring, on the south face.","Tebeşir. Y
 DLG_DEB_CH16_F2,Two days old. It rained three days ago.,İki günlük. Üç gün önce yağmur yağdı.
 DLG_DEB_CH16_F3,"And this. A button, in the grass, with the thread snapped.","Ve bu. Otların arasında bir düğme, ipliği kopmuş."
 DLG_DEB_CH16_F4,...,...
-DLG_DEB_CH16_F5,It matches your coat. I am not asking yet. Tomorrow you will tell me.,Paltonla aynı. Şimdilik sormuyorum. Yarın anlatacaksın.
+DLG_DEB_CH16_F5,It matches your coat. I'm not asking yet. Tomorrow you'll tell me.,Paltonla aynı. Şimdilik sormuyorum. Yarın anlatacaksın.
 DLG_DEB_CH16_P1,"Half a field, and I still found the chalk.","Tarlanın yarısı, ve tebeşiri yine de buldum."
 DLG_DEB_CH16_P2,You would have. It was drawn to be found.,Bulurdun. Bulunmak için çizilmişti.
 DLG_BRIEF_CH17_1,"It is just over that rise. A glasshouse, and a mast through the roof of it.","Şu yükseltinin hemen arkasında. Bir sera, ve çatısından geçen bir direk."
@@ -792,7 +792,7 @@ DLG_BRIEF_CH17_3,"Yes. Cut the ground, and then sit down. I will tell you all of
 BRIEF_17_ACCEPT,GO OVER THE RISE,YÜKSELTİYİ AŞ
 DLG_DEB_CH17_P1,Half of it. And you still have not said a word.,Yarısı. Ve hâlâ tek kelime etmedin.
 DLG_DEB_CH17_P2,Finish the ground. I am not going anywhere.,Zemini bitir. Bir yere gitmiyorum.
-DLG_CONF_1,It is still transmitting. One word. FOUND.,Hâlâ yayında. Tek kelime. BULUNDU.
+DLG_CONF_1,It's still transmitting. One word. FOUND.,Hâlâ yayında. Tek kelime. BULUNDU.
 DLG_CONF_2,"I sent that. Eleven days ago, from this bench.","Onu ben gönderdim. On bir gün önce, bu sıradan."
 DLG_CONF_3,My name does not matter. What I am does. I am an observer for Concord.,Adımın önemi yok. Ne olduğumun var. Concord için gözlemciyim.
 DLG_CONF_4,And what does Concord observe.,Concord neyi gözlüyor.
@@ -806,9 +806,9 @@ DLG_CONF_A2,You kept her safe.,Onu güvende tuttun.
 DLG_CONF_R2,I kept her dry and fed. Safe is a word for people who chose to be there.,"Kuru ve tok tuttum. Güvende, orada olmayı seçenler için kullanılan bir kelime."
 DLG_CONF_9,The date on that map is not a collection. It is a CONTACT visit. They come and they talk.,O haritadaki tarih toplama değil. TEMAS ziyareti. Gelirler ve konuşurlar.
 DLG_CONF_10,But I stopped filing. Eighteen months of nothing from this post. They are coming because I went quiet.,Ama rapor vermeyi kestim. Bu noktadan on sekiz aydır hiçbir şey yok. Geliyorlar çünkü ben sustum.
-DLG_CONF_11,So the reason they are coming to my town is you.,Yani kasabama gelmelerinin sebebi sensin.
+DLG_CONF_11,So the reason they're coming to my town is you.,Yani kasabama gelmelerinin sebebi sensin.
 DLG_CONF_12,Yes.,Evet.
-DLG_CONF_13,"...then we have two weeks, and a lot of grass to cut.","...o zaman iki haftamız var, ve biçilecek çok ot."
+DLG_CONF_13,"...then we've got two weeks, and a lot of grass to cut.","...o zaman iki haftamız var, ve biçilecek çok ot."
 DLG_BRIEF_CH18_1,"Home, then. The long way, the way we came.","Eve öyleyse. Uzun yoldan, geldiğimiz yoldan."
 DLG_BRIEF_CH18_2,Walk it slowly. There are things easier to say while moving.,Yavaş yürü. Yürürken söylemesi kolay şeyler var.
 BRIEF_18_ACCEPT,START WALKING,YÜRÜMEYE BAŞLA
@@ -822,9 +822,9 @@ DLG_ROAD_C1,Are we going to tell her?,Ona söyleyecek miyiz?
 DLG_ROAD_C2,She is nine. She got lost on her birthday and she was found.,Dokuz yaşında. Doğum gününde kayboldu ve bulundu.
 DLG_ROAD_C3,Let her be a child for one more winter.,Bırak bir kış daha çocuk kalsın.
 DLG_ROAD_C4,...one winter. All right.,...bir kış. Peki.
-DLG_DEB_CH18_F1,There is the water tower. Sarah will have the porch light on.,İşte su kulesi. Sarah verandanın ışığını yakmıştır.
+DLG_DEB_CH18_F1,There's the water tower. Sarah'll have the porch light on.,İşte su kulesi. Sarah verandanın ışığını yakmıştır.
 DLG_DEB_CH18_F2,"Look east before you go in, detective.","İçeri girmeden önce doğuya bak, dedektif."
-DLG_DEB_CH18_P1,Close enough to see the tower. That will do for tonight.,Kuleyi görecek kadar yaklaştık. Bu gece için yeter.
+DLG_DEB_CH18_P1,Close enough to see the tower. That'll do for tonight.,Kuleyi görecek kadar yaklaştık. Bu gece için yeter.
 CASE_03_ID,CASE 03,VAKA 03
 CASE_03_TITLE,THE VISITORS,ZİYARETÇİLER
 CASE_03_OBJECTIVE,Be ready when they arrive.,Geldiklerinde hazır ol.
@@ -977,7 +977,7 @@ TIP_FOOD_LINE,Crates the yards kept. The town eats a little every day you are ou
 TIP_OK,GOT IT,ANLADIM
 PRO_01_L1,The sickness took eleven days to cross the county.,Hastalığın ilçeyi geçmesi on bir gün sürdü.
 PRO_01_L2,It took my daughter in four.,Kızımı dört günde aldı.
-PRO_02_L1,"Her name was Maggie. She was five.","Adı Maggie'ydi. Beş yaşındaydı."
+PRO_02_L1,Her name was Maggie. She was five.,Adı Maggie'ydi. Beş yaşındaydı.
 PRO_02_L2,I dug the hole myself and I know exactly where it is.,Çukuru kendim kazdım ve tam olarak nerede olduğunu biliyorum.
 PRO_03_L1,"After that there was only the road, and the road had gone to grass.","Ondan sonra sadece yol kaldı, o yol da çimene dönmüştü."
 PRO_03_L2,They said people were gathering somewhere west. They always say that.,Batıda bir yerde insanların toplandığını söylüyorlardı. Hep öyle derler.
@@ -989,10 +989,14 @@ PRO_05_L1,"There was a fence, and a light on somebody's porch.","Bir çit vardı
 PRO_05_L2,I had been walking nineteen days.,On dokuz gündür yürüyordum.
 PRO_06_L1,I could not do it a second time. I knew that much about myself.,İkinci kez yapamazdım. Kendim hakkında en azından bunu biliyordum.
 PRO_06_L2,So I gave her to a whole town instead.,Bu yüzden onu bir kasabanın tamamına verdim.
-DLG_PRO_ROAD_1A,"Easy. Easy now.","Sakin. Sakin ol."
+DLG_PRO_ROAD_1A,Easy. Easy now.,Sakin. Sakin ol.
 DLG_PRO_ROAD_1B,You've been guarding that basket a while.,Bir süredir o sepeti koruyorsun.
 DLG_PRO_ROAD_2A,There's no way you both got this far on your own.,İkinizin buraya kadar tek başınıza geldiğine imkân yok.
 DLG_PRO_ROAD_2B,She's alive because of you. I know that much.,O yaşıyorsa senin sayende. En azından bunu biliyorum.
 DLG_PRO_ROAD_3A,I'm not going to give you a name. Somebody else can do that.,Sana bir isim vermeyeceğim. Onu başkası yapsın.
 DLG_PRO_ROAD_3B,Come on. Both of you.,Gel. İkiniz de.
 PRO_ACCEPT,Walk on,Yürümeye devam et
+DLG_DEBRIEF_CH03_FULL_2,Find her before the candles burn down. I want her blowing them out.,Mumlar sönmeden bul onu. Onları o söndürsün istiyorum.
+DLG_DEBRIEF_CH03_FULL_3,Five-year-olds don't leave arrows. Nine-year-olds do.,Beş yaşındakiler ok bırakmaz. Dokuz yaşındakiler bırakır.
+DLG_DEBRIEF_CH04_FULL_2,I've walked behind a small pair of feet. You don't forget the pace.,Küçük bir çift ayağın arkasından yürüdüm ben. Adımı unutmazsın.
+DLG_FINALE_2B,On her own feet. I've carried one that wasn't.,Kendi ayaklarıyla. Ayakta duramayan birini taşımıştım ben.

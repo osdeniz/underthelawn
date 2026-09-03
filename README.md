@@ -3349,3 +3349,44 @@ the game pauses itself on focus-out — so the loop never reached its target.
 Every wait in that test is wall-clock now, with a frame cap, and a drawn-frame
 wait that gives up after 0.25 s; when no frame is drawn the cost measurement
 says ATLANDI rather than trusting a stale counter.
+
+### G15.3 — the Marshal's voice, and two things that contradicted each other
+
+A read of every line the Marshal speaks found that Case 01 used contractions
+freely ("Nobody's lived", "That's not fear") and Case 02 used none at all ("I
+will take", "let us see", "We do not"). One man, two voices, with no event in
+the story to explain the change. The Marshal speaks the same way in both cases
+now. The Stranger keeps his uncontracted formality — that is him, and it is
+what makes the Marshal's plainness read as plainness beside it.
+
+Two lines contradicted evidence the player had just read:
+
+- Cole's note on the prints: *"The small ones are ahead of the large ones the
+  whole way."* The debrief for the same chapter: *"walking side by side."* The
+  debrief follows Cole now, and lost *"I don't know what to feel"* on the way —
+  the one line in the game that said a feeling instead of showing one.
+- Cole on Ellie: *"Dehydrated, bruised, and furious."* The Marshal, a minute
+  later: *"Not a scratch on her."* He says *bruised, hungry, and on her own
+  feet* now.
+
+**The candles moved.** *"Find her before the candles burn down — I want her
+blowing them out"* was the third line of the FIRST briefing, before the player
+had met the girl or seen a single thing of hers. It is the ch03 debrief now,
+right after *"she stopped to play, then drew an arrow east"* — the player knows
+she was playing, and the candles land.
+
+**Three echoes of the prologue, none of them by name.** After the long walk the
+Marshal has a past, and Case 01 had no trace of it. Three lines now, each one a
+detail and none of them an explanation: ch03 — *"Five-year-olds don't leave
+arrows. Nine-year-olds do."* ch04 — *"I've walked behind a small pair of feet.
+You don't forget the pace."* Finale — *"On her own feet. I've carried one that
+wasn't."* Maggie is never named outside the prologue, and never will be.
+
+Turkish: `CH12_4` had a case error (*"onu kimin baktığını"* → *"ona"*); two
+clipped lines (`CH11_R1`, `CH14_R2`) were rewritten so the ellipsis works in
+Turkish as well as English.
+
+A correction to the review that led here: it said Ellie has no voice in the
+finale. She has three lines there, and they are right — childlike, and about
+the garden and the party rather than the danger. The review was wrong on that
+point; the consistency bug in the line after hers was real.

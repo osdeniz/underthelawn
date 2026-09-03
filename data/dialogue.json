@@ -121,6 +121,14 @@
         {
           "speaker": "marshal",
           "text": "DLG_DEBRIEF_CH03_FULL"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEBRIEF_CH03_FULL_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEBRIEF_CH03_FULL_3"
         }
       ]
     },
@@ -150,6 +158,10 @@
         {
           "speaker": "marshal",
           "text": "DLG_DEBRIEF_CH04_FULL"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEBRIEF_CH04_FULL_2"
         }
       ]
     },
@@ -298,6 +310,10 @@
         {
           "speaker": "marshal",
           "text": "DLG_FINALE_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_FINALE_2B"
         },
         {
           "speaker": "marshal",
