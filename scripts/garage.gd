@@ -12,8 +12,14 @@ static func mower_id(type_index: int) -> String:
 		GameConfig.MOWER_TYPES.size() - 1)]["id"])
 
 
+## Set for the prologue only: every mower drivable, nothing written to the save
+## (G15.1). The player feels the tractor once, then it is taken away and the
+## garage board has a reason to exist from the first minute.
+static var trial := false
+
+
 static func is_unlocked(type_index: int) -> bool:
-	if GameConfig.DEV_UNLOCK_ALL:
+	if GameConfig.DEV_UNLOCK_ALL or trial:
 		return true
 	var id := mower_id(type_index)
 	if int(GameConfig.UNLOCK_COSTS.get(id, 0)) == 0:

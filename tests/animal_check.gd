@@ -10,6 +10,7 @@ func _ready() -> void:
 	_facing_maths()
 	await _ordinary_yard()
 	await _harvest_and_cellar()
+	await _dog_follows()
 
 	if _fails > 0:
 		push_error("%d HAYVAN TESTI BASARISIZ" % _fails)
@@ -272,6 +273,45 @@ func _harvest_and_cellar() -> void:
 	var cellar: Node = await _open("ch08_cellar")
 	ck("mahzende hayvan yok", cellar._animals == null, "var")
 	cellar.queue_free()
+	await _frames(6)
+
+
+## Once the long walk is done the dog is HIS, and it comes to where he is
+## instead of pacing a fence (G15.1). Driven by MOVING THE MOWER, and measured
+## as a distance that closes — the dog's own state is not the claim.
+func _dog_follows() -> void:
+	GameState.set_setting("story", "prologue_done", true)
+	var game: Node = await _open("ch01_aldridge")
+	var animals := game._animals as Animals
+	ck("kendi kopegimiz var", animals != null
+		and animals.get_node_or_null("Dog") != null, "yok")
+	if animals == null or animals.get_node_or_null("Dog") == null:
+		GameState.set_setting("story", "prologue_done", false)
+		game.queue_free()
+		await _frames(6)
+		return
+	var dog := animals.get_node("Dog") as Node3D
+	# Sent to the far corner of the yard, well past DOG_FOLLOW_FAR.
+	game.mower.global_position = Vector3(-GameConfig.HALF_X + 1.5,
+		game.mower.global_position.y, -GameConfig.HALF_Z + 1.5)
+	await _frames(4)
+	var before := Vector2(dog.position.x - game.mower.global_position.x,
+		dog.position.z - game.mower.global_position.z).length()
+	await _settle(3.0)
+	var after := Vector2(dog.position.x - game.mower.global_position.x,
+		dog.position.z - game.mower.global_position.z).length()
+	ck("kopek bize dogru geliyor", after < before - 1.0,
+		"%.2f -> %.2f birim" % [before, after])
+	# And STOPS short. A dog that arrives at your feet stands in the picture.
+	await _settle(4.0)
+	var settled := Vector2(dog.position.x - game.mower.global_position.x,
+		dog.position.z - game.mower.global_position.z).length()
+	ck("kopek dibimize girmiyor", settled > 0.8, "%.2f birim" % settled)
+	ck("kopek yine de yakinda", settled < GameConfig.DOG_FOLLOW_FAR + 1.0,
+		"%.2f birim" % settled)
+	print("  [olcum] kopek %.1f -> %.1f -> %.1f birim" % [before, after, settled])
+	GameState.set_setting("story", "prologue_done", false)
+	game.queue_free()
 	await _frames(6)
 
 

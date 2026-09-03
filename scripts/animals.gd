@@ -36,6 +36,10 @@ var model: LawnModel
 var player_at := Vector3.ZERO
 var player_on := false
 
+## Whether the dog is the player's yet, and whether this is the prologue road.
+var _owned := false
+var _road := false
+
 var _entries: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
 var _mats := {}
@@ -58,6 +62,8 @@ static func build(parent: Node3D, lawn_model: LawnModel, seed_value: int,
 
 func _populate(seed_value: int, farmland: bool) -> void:
 	set_meta("no_bake", true)
+	_owned = is_dog_owned()
+	_road = LevelVariant.current != null and LevelVariant.current.is_road()
 	_rng.seed = seed_value if seed_value != 0 else 20260903
 
 	for i in GameConfig.RABBIT_COUNT:
@@ -86,14 +92,27 @@ func _populate(seed_value: int, farmland: bool) -> void:
 			"target": Vector3.ZERO, "phase": _rng.randf() * TAU}
 		_entries.append(entry)
 
-	if GameConfig.DOG_ENABLED and not farmland:
+	# The dog is HIS from the prologue on (G15.1), and then it comes with him:
+	# every yard, the harvest fields included, walking to where he is instead
+	# of pacing somebody's fence. Before that — and in the prologue itself,
+	# where it does not know him yet — it is the house's dog on its own line.
+	if GameConfig.DOG_ENABLED and (_owned or not farmland):
 		var root := Node3D.new()
 		root.name = "Dog"
 		add_child(root)
 		var body := _dog_body(root)
-		# North of the fence and BESIDE the porch — see DOG_PATH_OUTSET for why
-		# neither the porch strip nor the inside of the fence works.
-		root.position = Vector3(_dog_x(0.0), 0.0, dog_z())
+		if _road:
+			# Sitting at the end of the road with the basket, which is what the
+			# player has been walking towards.
+			root.position = GameConfig.prologue_dog_spot()
+			root.rotation.y = PI
+		elif _owned:
+			var spawn := GameConfig.mower_start()
+			root.position = Vector3(spawn.x + 1.6, 0.0, spawn.y + 0.4)
+		else:
+			# North of the fence and BESIDE the porch — see DOG_PATH_OUTSET for
+			# why neither the porch strip nor the inside of the fence works.
+			root.position = Vector3(_dog_x(0.0), 0.0, dog_z())
 		_entries.append({"kind": Kind.DOG, "node": root, "body": body,
 			"state": State.CALM, "timer": 0.0, "target": Vector3.ZERO,
 			"phase": _rng.randf()})
@@ -290,9 +309,23 @@ func _flap(body: Node3D, amount: float, flying := true) -> void:
 
 ## Back and forth along the strip in front of the porch. The same triangle wave
 ## the town's figures use — two points and a line, no path-finding.
+## Whether the long walk has happened. Read once at build time rather than per
+## frame: it cannot change while a yard is open.
+static func is_dog_owned() -> bool:
+	return bool(GameState.get_setting("story", "prologue_done", false))
+
+
 func _tick_dog(entry: Dictionary, delta: float) -> void:
 	var root := entry["node"] as Node3D
 	var body := entry["body"] as Node3D
+	if _road:
+		# It has not met him yet. It waits by the basket, and the only thing
+		# moving is the tail.
+		_wag(body, delta)
+		return
+	if _owned:
+		_tick_dog_follow(entry, root, body, delta)
+		return
 	entry["phase"] = fmod(float(entry["phase"]) + delta * GameConfig.DOG_SPEED * 0.08, 1.0)
 	var k := float(entry["phase"]) * 2.0
 	var forward := k <= 1.0
@@ -330,6 +363,71 @@ static func dog_z() -> float:
 ## Where along that line the dog is, for `k` from 0 to 1.
 static func _dog_x(k: float) -> float:
 	return lerpf(GameConfig.DOG_RUN_X.x, GameConfig.DOG_RUN_X.y, k)
+
+
+## His dog, in every yard after the prologue. It walks to where he is and then
+## stops SHORT of him: a companion that arrives at your feet is standing in the
+## picture, and one that never closes the gap is scenery. The two distances are
+## deliberately different — closing to NEAR and only setting off again past
+## FAR — because a single threshold makes a dog that twitches in and out of
+## walking every time the mower drifts a centimetre.
+func _tick_dog_follow(entry: Dictionary, root: Node3D, body: Node3D,
+		delta: float) -> void:
+	if not player_on:
+		_wag(body, delta)
+		return
+	var flat := Vector2(player_at.x - root.position.x, player_at.z - root.position.z)
+	var gap := flat.length()
+	var walking := int(entry["state"]) == State.FLEE
+	if walking and gap <= GameConfig.DOG_FOLLOW_NEAR:
+		entry["state"] = State.CALM
+		walking = false
+	elif not walking and gap >= GameConfig.DOG_FOLLOW_FAR:
+		entry["state"] = State.FLEE
+		walking = true
+	if not walking:
+		_wag(body, delta)
+		return
+	var step := minf(GameConfig.DOG_FOLLOW_SPEED * delta, maxf(gap - 0.2, 0.0))
+	var dir := flat.normalized()
+	root.position += Vector3(dir.x, 0.0, dir.y) * step
+	root.rotation.y = face(dir)
+	_trot(body)
+
+
+## Standing about: the tail, and nothing else. A still dog with a still tail is
+## a statue, and it is two lines to not be one.
+func _wag(body: Node3D, delta: float) -> void:
+	_settle_legs(body, delta)
+	var tail := body.get_node_or_null("Tail") as Node3D
+	if tail != null:
+		tail.rotation.y = sin(_t * GameConfig.DOG_TAIL_FREQ) * 0.5
+
+
+## The diagonal pairs, which is what a trot is, plus the body's bob.
+func _trot(body: Node3D) -> void:
+	var beat := sin(_t * GameConfig.DOG_TROT_FREQ)
+	body.position.y = absf(beat) * 0.035
+	for leg: String in ["LegFL", "LegBR"]:
+		var node := body.get_node_or_null(leg) as Node3D
+		if node != null:
+			node.rotation.x = beat * 0.5
+	for leg: String in ["LegFR", "LegBL"]:
+		var node := body.get_node_or_null(leg) as Node3D
+		if node != null:
+			node.rotation.x = -beat * 0.5
+	var tail := body.get_node_or_null("Tail") as Node3D
+	if tail != null:
+		tail.rotation.y = sin(_t * GameConfig.DOG_TAIL_FREQ) * 0.5
+
+
+func _settle_legs(body: Node3D, delta: float) -> void:
+	var w := minf(1.0, GameConfig.IDLE_RECOVER_RATE * delta)
+	body.position.y = lerpf(body.position.y, 0.0, w)
+	for leg: String in ["LegFL", "LegBR", "LegFR", "LegBL"]:
+		var node := body.get_node_or_null(leg) as Node3D
+		if node != null:
+			node.rotation.x = lerpf(node.rotation.x, 0.0, w)
 
 
 ## The Godot rotation.y that points a model FACING -Z along `direction` (x, z).

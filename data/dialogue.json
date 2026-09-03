@@ -1242,6 +1242,36 @@
           "text": "DLG_DEB_CH18_P1"
         }
       ]
+    },
+    "pro_road": {
+      "_comment": "The end of the long walk (G15.1). He talks to the DOG, not to the baby - a baby cannot answer, and saying it to the dog is what makes the dog his. He refuses to name it; nine years later a girl will.",
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_PRO_ROAD_1A"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_PRO_ROAD_1B"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_PRO_ROAD_2A"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_PRO_ROAD_2B"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_PRO_ROAD_3A"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_PRO_ROAD_3B"
+        }
+      ],
+      "accept": "PRO_ACCEPT"
     }
   },
   "town": {

@@ -34,6 +34,12 @@ const GRID_SIZES := {
 	## The road home (G13): narrow and long, so the shape of the level is the
 	## shape of a walk rather than of a yard. Low plant density carries the
 	## rest — B18 is a conversation with mowing under it, not a search.
+	##
+	## The PROLOGUE reuses this exact shape (G15.1), and reuses it on purpose
+	## once it turned out to exist: the game now opens on a road and closes
+	## Case 01 on the same road. 306 cells, about eighty of them under fallen
+	## timber, which is roughly half a minute of cutting at the push mower's
+	## measured 8.3 cells a second — short, which is the point of a prologue.
 	"road": Vector2i(9, 34),
 }
 
@@ -1229,6 +1235,8 @@ const LANDMARK_IDS: Array[String] = [
 	"crossing", "roadside_camp", "listening_post", "old_clinic",
 	# Case 02, Act 3 — the confrontation.
 	"meeting_stone", "signal_garden",
+	# The prologue: what he was walking towards (G15.1).
+	"clearing",
 ]
 
 const HOUSE_MARGIN_Z := 4.8
@@ -2404,3 +2412,30 @@ const DOG_PATH_OUTSET := 0.55
 const DOG_RUN_X := Vector2(3.0, 6.2)
 const DOG_TROT_FREQ := 7.0
 const DOG_TAIL_FREQ := 4.5
+
+
+# ---------------------------------------------------------------- prologue (G15.1)
+
+## The long walk. Nine years before Case 01, and it is nine and not three
+## because the existing town dialogue fixes the arithmetic: Sarah says "nine
+## years ago the town handed me a baby", and Ellie is nine. So the man who
+## carried that baby in is the player, and the day she goes missing is the
+## anniversary of the day he gave her up. None of that is ever said out loud —
+## it is available to anyone who does the sum, which is the tone rule (G14.1).
+const PROLOGUE_ID := "ch00_the_long_walk"
+
+## Every mower is drivable for this one level and then taken away. The player
+## feels the tractor before the garage board ever asks them to pay for it,
+## which is what makes that board mean anything on day one.
+const PROLOGUE_TRIAL_MOWERS := true
+
+## The dog. He finds it on the road with the basket, and from then on it is HIS
+## dog: in every yard, it comes to where he is instead of walking a fence.
+const DOG_FOLLOW_NEAR := 2.6
+const DOG_FOLLOW_FAR := 5.5
+const DOG_FOLLOW_SPEED := 3.4
+## Where it is sitting when he comes up the road: just inside the lawn's far
+## edge, in front of the open gate the clearing landmark builds. It cannot be a
+## constant — the grid size, and therefore HALF_Z, is per chapter.
+static func prologue_dog_spot() -> Vector3:
+	return Vector3(0.6, 0.0, -HALF_Z + 1.2)

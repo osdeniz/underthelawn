@@ -42,6 +42,29 @@ const OBSTACLE_LAYOUTS := {
 	],
 	# Nothing in the way: for the big field and the playground.
 	"open": [],
+	# The prologue's road (G15.1): fallen timber and rubble alternating from
+	# each side, so the clear line weaves across the lane instead of running
+	# straight up the middle.
+	#
+	# Both props FILL their rect. That matters: the "stone" prop draws a single
+	# 0.42 ball wherever the rect's centre is, so a seven-cell stone rect would
+	# be an invisible wall six cells wide. "log" and "rubble" are built to the
+	# rect they were given.
+	#
+	# resolve_layout keeps a one-cell border clear on every side, so there is
+	# always a thin lane past each block and the road can never dead-end. That
+	# is a feature here, not a limitation: a tutorial must not be able to trap
+	# anybody.
+	"road": [
+		{ "name": "log", "fx": 0.00, "fz": 0.09, "cols": 5, "rows": 1 },
+		{ "name": "rubble", "fx": 0.40, "fz": 0.19, "cols": 5, "rows": 1 },
+		{ "name": "log", "fx": 0.00, "fz": 0.29, "cols": 5, "rows": 1 },
+		{ "name": "rubble", "fx": 0.40, "fz": 0.39, "cols": 5, "rows": 2 },
+		{ "name": "log", "fx": 0.00, "fz": 0.51, "cols": 5, "rows": 1 },
+		{ "name": "rubble", "fx": 0.40, "fz": 0.61, "cols": 5, "rows": 1 },
+		{ "name": "log", "fx": 0.00, "fz": 0.71, "cols": 5, "rows": 2 },
+		{ "name": "rubble", "fx": 0.40, "fz": 0.83, "cols": 5, "rows": 1 },
+	],
 }
 
 ## Filled by _build_obstacles from the active layout. Kept under the old name so

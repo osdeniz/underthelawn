@@ -43,7 +43,10 @@ func _ready() -> void:
 	# read as somebody's cul-de-sac with a crop dropped into it. Skipping them
 	# is also the cheapest thing in this file: they are most of the yard's mesh
 	# count and none of them are load-bearing here.
-	var farmland := _variant != null and _variant.is_harvest()
+	# A road is not a suburb any more than a wheat field is: no street, no
+	# parked cars, no neighbours' houses lining a lane in the middle of nowhere.
+	var farmland := _variant != null \
+		and (_variant.is_harvest() or _variant.is_road())
 	if farmland:
 		_build_open_country()
 	else:
@@ -449,6 +452,57 @@ func _build_obstacle_props() -> void:
 					centre + Vector3(0.0, 0.06, 0.0))
 			"sunbed":
 				_build_lounger(centre, wood)
+			"log":
+				_build_log(rect, centre, wood)
+			"rubble":
+				_build_rubble(rect, centre, stone_mat)
+
+
+## A fallen trunk lying across the road (G15.1), built to the WIDTH of its rect
+## rather than at its centre: the "stone" prop is a single ball, and a
+## seven-cell stone rect would have been an invisible wall.
+func _build_log(rect: Rect2, centre: Vector3, wood: Material) -> void:
+	var bark := _flat("log_bark", Color(0.34, 0.26, 0.19), 0.95)
+	var cut := _flat("log_cut", Color(0.62, 0.50, 0.34), 0.9)
+	var trunk := Node3D.new()
+	trunk.name = "Log"
+	trunk.position = centre
+	add_child(trunk)
+	var span := maxf(rect.size.x, 1.0)
+	# Lying along X, so the barrel's own axis has to be turned onto it.
+	_cyl(trunk, 0.30, 0.34, span, bark, Vector3(0.0, 0.30, 0.0),
+		Vector3(0.0, 0.0, PI * 0.5))
+	# The sawn ends read as the pale rings that make a log a log.
+	for side: float in [-1.0, 1.0]:
+		_cyl(trunk, 0.29, 0.29, 0.05, cut,
+			Vector3(side * (span * 0.5 - 0.02), 0.30, 0.0),
+			Vector3(0.0, 0.0, PI * 0.5))
+	# Two broken branch stubs, so the silhouette is not a pipe.
+	_cyl(trunk, 0.07, 0.10, 0.9, bark, Vector3(span * 0.18, 0.52, 0.18),
+		Vector3(-0.5, 0.6, 0.0))
+	_cyl(trunk, 0.06, 0.09, 0.7, bark, Vector3(-span * 0.24, 0.48, -0.15),
+		Vector3(0.5, -0.4, 0.0))
+	_ao_blob(trunk, Vector2(span, 1.1), Vector3(0.0, 0.012, 0.0), 0.45)
+
+
+## Rubble across the road: a scatter of stones that FILLS its rect, spaced along
+## the width so the whole block reads as blocked rather than as one boulder with
+## invisible sides.
+func _build_rubble(rect: Rect2, centre: Vector3, stone_mat: Material) -> void:
+	var heap := Node3D.new()
+	heap.name = "Rubble"
+	heap.position = centre
+	add_child(heap)
+	var span := maxf(rect.size.x, 1.0)
+	var count := maxi(3, int(span / 0.85))
+	for i in count:
+		var t := (float(i) + 0.5) / float(count) - 0.5
+		var jitter := _rng.randf_range(-0.16, 0.16)
+		_ball(heap, _rng.randf_range(0.26, 0.46), stone_mat,
+			Vector3(t * span, 0.14, jitter),
+			Vector3(_rng.randf_range(0.9, 1.3), _rng.randf_range(0.5, 0.8),
+				_rng.randf_range(0.8, 1.2)))
+	_ao_blob(heap, Vector2(span, 1.2), Vector3(0.0, 0.012, 0.0), 0.45)
 
 
 ## Sun lounger, facing west, nudged east so its frame clears the pool border.
@@ -1164,6 +1218,7 @@ func _build_landmark(landmark_id: String) -> void:
 		"old_clinic": _landmark_old_clinic(root)
 		"meeting_stone": _landmark_meeting_stone(root)
 		"signal_garden": _landmark_signal_garden(root)
+		"clearing": _landmark_clearing(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
@@ -1345,6 +1400,70 @@ func _landmark_orchard(root: Node3D) -> void:
 ## The far bank: two anchor posts, a rope walkway and the planks somebody has
 ## been maintaining. It sits at the FAR edge because the chapter is about
 ## getting to it — the reeds are between the player and this (G13).
+## What he was walking towards (G15.1): an open gate, mown ground beyond it,
+## and the basket the dog had been sitting with. It stands at the far end of the
+## road and is visible from the start line, because a tutorial should have
+## something to walk TOWARDS rather than a percentage to fill.
+func _landmark_clearing(root: Node3D) -> void:
+	# Pulled SOUTH of where landmarks normally stand. _build_landmark puts them
+	# where the house would be, HOUSE_MARGIN_Z past the lawn — and rendered
+	# from above, the gate and the mown ground were three units beyond the
+	# fence, lost behind the open country's own tall grass. The gate has to sit
+	# ON the lawn's far edge, because the player has to DRIVE THROUGH it.
+	root.position.z = -GameConfig.HALF_Z - 1.2
+	var post := _flat("cl_post", Color(0.42, 0.34, 0.24), 0.95)
+	var rail := _flat("cl_rail", Color(0.52, 0.45, 0.34), 0.95)
+	var wicker := _flat("cl_wicker", Color(0.68, 0.56, 0.36), 0.9)
+	var blanket := _flat("cl_blanket", Color(0.78, 0.34, 0.32), 0.95)
+	# The mown ground past the gate: the one bright, SHORT patch of grass in the
+	# level, so "there" is legible from "here".
+	var green := _flat("cl_green", Color(0.36, 0.62, 0.24), 0.95)
+	_box(root, Vector3(26.0, 0.06, 9.0), green, Vector3(0.0, 0.03, -2.6))
+	# A gate standing open, and the fence line it belongs to.
+	for sx: float in [-1.0, 1.0]:
+		_cyl(root, 0.11, 0.13, 2.0, post, Vector3(sx * 2.1, 1.0, 1.4))
+		for i in 7:
+			_cyl(root, 0.07, 0.08, 1.5, post,
+				Vector3(sx * (3.2 + float(i) * 1.15), 0.75, 1.4))
+			_box(root, Vector3(1.15, 0.10, 0.06), rail,
+				Vector3(sx * (3.75 + float(i) * 1.15), 1.05, 1.4))
+	# A CROSSBEAM over the gap, and a lamp hanging off it. Two posts and a mown
+	# patch were invisible: past the fence the road level is open country, which
+	# is itself waist-high grass, and a flat green plane at ankle height simply
+	# does not survive it. A tall pale arch with a light on it does — from any
+	# camera height, at any distance, against any amount of grass. It is also
+	# the porch light the cards promise ("a light on somebody's porch"), which
+	# is why it earns its place rather than being a signpost.
+	_box(root, Vector3(5.2, 0.22, 0.16), rail, Vector3(0.0, 2.15, 1.4))
+	_box(root, Vector3(0.30, 0.30, 0.30), post, Vector3(0.0, 1.92, 1.4))
+	var lamp := _flat("cl_lamp", Color(1.00, 0.86, 0.52), 0.4)
+	lamp.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	lamp.emission_enabled = true
+	lamp.emission = Color(1.00, 0.84, 0.46)
+	lamp.emission_energy_multiplier = 2.4
+	_ball(root, 0.20, lamp, Vector3(0.0, 1.72, 1.4), Vector3(1.0, 1.25, 1.0))
+	# The leaf, swung inwards, so the way through is unmistakable.
+	var leaf := Node3D.new()
+	leaf.position = Vector3(-2.1, 0.0, 1.4)
+	leaf.rotation.y = -1.15
+	root.add_child(leaf)
+	for i in 3:
+		_box(leaf, Vector3(1.9, 0.09, 0.06), rail,
+			Vector3(0.95, 0.55 + float(i) * 0.42, 0.0))
+	_box(leaf, Vector3(0.09, 1.4, 0.06), rail, Vector3(1.85, 0.97, 0.0))
+	# The basket, just inside the gate.
+	var basket := Node3D.new()
+	basket.name = "Basket"
+	basket.position = Vector3(0.9, 0.0, 0.5)
+	basket.rotation.y = 0.4
+	root.add_child(basket)
+	_box(basket, Vector3(0.62, 0.30, 0.44), wicker, Vector3(0.0, 0.15, 0.0))
+	_box(basket, Vector3(0.66, 0.06, 0.48), wicker, Vector3(0.0, 0.32, 0.0))
+	_box(basket, Vector3(0.50, 0.05, 0.36), blanket, Vector3(0.0, 0.34, 0.0),
+		Vector3(0.0, 0.2, 0.0))
+	_ao_blob(basket, Vector2(1.0, 0.8), Vector3(0.0, 0.012, 0.0), 0.5)
+
+
 func _landmark_crossing(root: Node3D) -> void:
 	var post := _flat("cr_post", Color(0.35, 0.28, 0.20), 0.95)
 	var rope := _flat("cr_rope", Color(0.72, 0.64, 0.44), 0.9)

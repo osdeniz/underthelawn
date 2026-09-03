@@ -3219,3 +3219,90 @@ there until the limiter killed it. `PROCESS_MODE_ALWAYS` and an unpause every
 frame. That is three tests (`KeyboardCheck`, `InputMapCheck`, `FourMowers`)
 with one cause, and it is worth checking for in any new scene test: **if a test
 drives the game, it has to unpause it.**
+
+## G15 — before the town
+
+### G15.1 — the long walk
+
+The game used to open on a case in a town nobody had explained. It opens on a
+road now: nine years earlier, one man walking out of the outbreak, cutting a
+way through a lane that has gone to grass, and finding a dog sitting with a
+basket at a lit gate.
+
+**Nine years, not three, and the arithmetic decided it.** The brief asked for a
+prologue three years before Case 01 in which the player finds Ellie on the
+road. That is not possible: the existing town dialogue fixes the timeline —
+Sarah says *"nine years ago the town handed me a baby"* and Ellie is nine. At
+three years back she is six years old and six years a resident. So the prologue
+is nine years back and the child is a BABY, which costs nothing to write and
+buys three things for free:
+
+- Sarah's line stops being exposition and becomes an accusation. The town got
+  that baby from **him**.
+- He lost his own daughter weeks earlier and could not keep a second child, so
+  he handed her to a whole town. **Nothing says this.** The player who does the
+  sum finds it; the tone rule (G14.1) forbids anything louder.
+- The day Ellie goes missing is the ninth anniversary of the day he gave her
+  up. That was already in the data.
+
+**The twist door is shut, deliberately.** A lost daughter plus a found baby
+invites "Ellie is secretly his", which is the cheaper story and would have to
+be serviced for two more cases. So he BURIES his daughter, by name, on card
+two. He knows exactly who she was and where she is.
+
+**He talks to the dog, not to the baby.** A baby cannot answer, and *"she's
+alive because of you"* said to a dog is the better line anyway. He also refuses
+to name it — somebody else can do that — which leaves the naming to a girl nine
+years later, and the dog is HIS from that moment: `Animals` gives it a follow
+state once the prologue is done, in every yard including the harvest fields. It
+walks to where he is and stops short of him, on two different distances so it
+does not twitch in and out of walking every time the mower drifts.
+
+**The road already existed.** `GRID_SIZES` has had a `"road"` entry (9 x 34)
+since G13, for ch18, the last chapter of Case 01 — so the corridor shape was
+already in the game and the prologue reuses it rather than adding a second one.
+The accident is worth keeping on purpose: **the game now opens on a road and
+closes Case 01 on the same road.** 256 cuttable cells, about half a minute of
+mowing at the push mower's measured 8.3 cells a second.
+
+Two new obstacle props, and the reason they are new: the existing `"stone"`
+prop draws a single 0.42 ball at its rect's centre, so a five-cell stone rect
+would have been an **invisible wall four cells wide**. `"log"` and `"rubble"`
+are built to the rect they are given.
+
+**All four mowers are drivable for this level only**, through a `Garage.trial`
+flag that writes nothing to the save. The player feels the tractor before the
+garage board ever asks them to pay for it, which is what gives that board a
+reason to exist in the first minute.
+
+**The goal took two attempts, and the first one was invisible.** Two gate posts
+and a bright mown patch of short grass: past the fence a road level is open
+country, which is itself waist-high grass, and a flat green plane at ankle
+height does not survive it — rendered from above it was simply gone. A tall
+pale ARCH with a lamp hanging off it survives at any camera height, at any
+distance, against any amount of grass. It is also the porch light the cards
+promise, so it earns its place instead of being a signpost.
+
+**The test that matters is a flood fill.** A tutorial that can trap the player
+is worse than no tutorial, so `PrologueCheck` walks the road from the spawn
+cell through mowable cells only and requires it to reach the far end — and
+**first** runs the same fill against a road with a wall across it and requires
+that one to FAIL. Without that second run the check passes on any road,
+including a bricked-up one. Measured: 256 cuttable, 256 reachable, 154 when
+walled.
+
+It also asserts the prologue is not on the case board (it would count towards
+`case_one_finished()` and show a ninth entry), that finishing the road takes
+the prologue branch rather than the chapter funnel, and that a save written
+before this feature is **not** sent back to the road — grandfathered off
+`intro_seen`, in one function, rather than through a migration.
+
+**Found while validating: a shipped translation bug.** `HUB_OBJECTIVES_HINT`
+had an unquoted comma in its English text, so the row had four fields — the
+English string was truncated at the comma and the TURKISH column received
+" and what it pays." That has presumably been on the hub since the objectives
+page shipped. The CSV is now checked for field count on every row.
+
+**Known, not fixed:** `Case2Flow` fails its "diorama at full resolution" check,
+reading a 47x79 viewport. Verified against the previous commit — it was already
+failing before this sprint and is unrelated to it.

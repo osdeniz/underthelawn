@@ -207,6 +207,13 @@ func is_harvest() -> bool:
 	return level_type == "harvest"
 
 
+## The prologue's road (G15.1). Like a harvest in that it is not a suburb — no
+## street, no parked cars, no neighbours — and unlike everything else in that
+## finishing it is not a search: there is no evidence on it.
+func is_road() -> bool:
+	return level_type == "road"
+
+
 func evidence_count() -> int:
 	return evidence_defs.size()
 

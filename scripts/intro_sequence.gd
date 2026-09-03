@@ -33,10 +33,15 @@ var _hint: Label
 var _fade: ColorRect
 
 
+## Which card list to play. The prologue uses the same sequence with different
+## data (G15.1) — three sets of cards, one screen.
+var cards_key := "intro.cards"
+
+
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	_cards = Story.list("intro.cards")
+	_cards = Story.list(cards_key)
 	_build()
 	if _cards.is_empty():
 		# Nothing to show; do not strand the player on a black screen.

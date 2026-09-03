@@ -136,6 +136,8 @@ func _ready() -> void:
 	hud.set_secret_count(0, GameConfig.SECRET_TOTAL)
 	if variant != null and variant.is_harvest():
 		hud.apply_harvest_mode()
+	elif variant != null and variant.is_road():
+		hud.apply_road_mode()
 
 	hud.return_requested.connect(_return_to_hub)
 	hud.main_menu_requested.connect(_return_to_main_menu)
@@ -765,6 +767,13 @@ func _on_completed() -> void:
 	# Let the bird's-eye reward land before the panel covers it.
 	var timer := get_tree().create_timer(1.5)
 	timer.timeout.connect(func() -> void:
+		if variant != null and variant.is_road():
+			# The prologue pays nothing and was searching for nothing, so it
+			# gets no payout, no meals and no results panel: "area searched,
+			# 0 evidence, 0 scrap" over a road would be a lie told by a
+			# template. The flow takes it from here (G15.1).
+			search_finished.emit(0, 0)
+			return
 		var payout := _payout()
 		GameState.add_scrap(int(payout["total"]))
 		hud.set_scrap(GameState.scrap_total())

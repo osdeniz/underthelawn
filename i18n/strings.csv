@@ -48,7 +48,7 @@ HUB_CASE_BOARD,CASE BOARD,VAKA PANOSU
 HUB_CASE_BOARD_HINT,Pick where to search next.,Sıradaki arama yerini seç.
 HUB_MAP,MAP,HARİTA
 HUB_MAP_HINT,Where Ellie went. Pick where to search next.,Ellie nereye gitti. Sonraki aramayı seç.
-HUB_OBJECTIVES_HINT,What is still open, and what it pays.,Açık olanlar ve ne kazandırdıkları.
+HUB_OBJECTIVES_HINT,"What is still open, and what it pays.",Açık olanlar ve ne kazandırdıkları.
 BOARD_TAB_PEOPLE,WITNESSES,TANIKLAR
 TOWN_TAP_HINT,Tap a building to see what it needs.,"Bir binaya dokun, neye ihtiyacı olduğunu gör."
 HUB_TOWN,TOWN,KASABA
@@ -187,7 +187,6 @@ OPENING_07_SUBLINE,It never reopened.,Bir daha hiç açılmadı.
 OPENING_08_HEADLINE,NO RECORD OF THIS PLACE,BU YERİN KAYDI YOK
 OPENING_08_SUBLINE,But someone kept the garden alive.,Ama biri bahçeyi yaşatmış.
 UI_RESUME,RESUME,DEVAM
-
 DLG_TOWN_ELLIE_1A,East... then she's past the fence line. Please hurry.,Doğu... o zaman çit hattını geçmiş. Lütfen acele et.
 WS_TITLE,WORKSHOP,ATÖLYE
 WS_ACTIVE,OWNED,SENDE
@@ -976,3 +975,24 @@ TIP_MONEY_LINE,"Cash in the grass, left where people dropped it. It pays for the
 TIP_FOOD_TITLE,THAT'S FOOD,BU YİYECEK
 TIP_FOOD_LINE,Crates the yards kept. The town eats a little every day you are out working — bring some back and the larder holds.,Bahçelerin sakladığı sandıklar. Sen çalışırken kasaba her gün biraz yiyor — getirdiğin kadar kiler dayanır.
 TIP_OK,GOT IT,ANLADIM
+PRO_01_L1,The sickness took eleven days to cross the county.,Hastalığın ilçeyi geçmesi on bir gün sürdü.
+PRO_01_L2,It took my daughter in four.,Kızımı dört günde aldı.
+PRO_02_L1,"Her name was Maggie. She was five.","Adı Maggie'ydi. Beş yaşındaydı."
+PRO_02_L2,I dug the hole myself and I know exactly where it is.,Çukuru kendim kazdım ve tam olarak nerede olduğunu biliyorum.
+PRO_03_L1,"After that there was only the road, and the road had gone to grass.","Ondan sonra sadece yol kaldı, o yol da çimene dönmüştü."
+PRO_03_L2,They said people were gathering somewhere west. They always say that.,Batıda bir yerde insanların toplandığını söylüyorlardı. Hep öyle derler.
+PRO_04_L1,I took what was in a shed and I cut my way through.,Bir barakada ne varsa aldım ve önümü biçerek yürüdüm.
+PRO_04_L2,Two miles a day. Some days less.,Günde üç kilometre. Bazı günler daha az.
+PRO_ROAD_TITLE,THE LONG WALK,UZUN YÜRÜYÜŞ
+PRO_ROAD_TASK,Cut a way through to the green field,Yeşil tarlaya kadar önünü biçerek ilerle
+PRO_05_L1,"There was a fence, and a light on somebody's porch.","Bir çit vardı, ve birinin verandasında yanan bir ışık."
+PRO_05_L2,I had been walking nineteen days.,On dokuz gündür yürüyordum.
+PRO_06_L1,I could not do it a second time. I knew that much about myself.,İkinci kez yapamazdım. Kendim hakkında en azından bunu biliyordum.
+PRO_06_L2,So I gave her to a whole town instead.,Bu yüzden onu bir kasabanın tamamına verdim.
+DLG_PRO_ROAD_1A,"Easy. Easy now.","Sakin. Sakin ol."
+DLG_PRO_ROAD_1B,You've been guarding that basket a while.,Bir süredir o sepeti koruyorsun.
+DLG_PRO_ROAD_2A,There's no way you both got this far on your own.,İkinizin buraya kadar tek başınıza geldiğine imkân yok.
+DLG_PRO_ROAD_2B,She's alive because of you. I know that much.,O yaşıyorsa senin sayende. En azından bunu biliyorum.
+DLG_PRO_ROAD_3A,I'm not going to give you a name. Somebody else can do that.,Sana bir isim vermeyeceğim. Onu başkası yapsın.
+DLG_PRO_ROAD_3B,Come on. Both of you.,Gel. İkiniz de.
+PRO_ACCEPT,Walk on,Yürümeye devam et

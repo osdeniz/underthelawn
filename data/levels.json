@@ -1,6 +1,21 @@
 {
   "_comment": "One LevelVariant per chapter. ONE game scene builds all of them: nothing here is a scene path. Text fields are translation keys; palette_id indexes GameConfig.GRASS_PALETTES; obstacle_layout_id indexes LawnModel.OBSTACLE_LAYOUTS; grid_size indexes GameConfig.GRID_SIZES. decor_seed makes tree/fence/car/mailbox placement repeatable per chapter, so a yard looks the same every visit. SCRAP: ch09-ch18 keep Case 01's burial density (scrap_budget) but pay a third of it (scrap_multiplier), because the economy they land in has no new sinks - all of them are already funded by Case 01. Calibrated G13 against the measured totals; see README.",
   "variants": {
+    "ch00_the_long_walk": {
+      "_comment": "THE PROLOGUE (G15.1). Nine years before Case 01. Not in story.json's chapter list, so it never appears on the case board and never counts towards a case; the flow starts it once, on a first run, straight out of the opening cards. level_type road means no suburb, no evidence and no scrap - it is a walk, not a search.",
+      "level_type": "road",
+      "palette_id": "GREEN",
+      "grid_size": "road",
+      "obstacle_layout_id": "road",
+      "house_variant": "house_none",
+      "landmark_id": "clearing",
+      "decor_seed": 1509,
+      "scrap_budget": 0,
+      "food_budget": 0,
+      "evidence_defs": [],
+      "time_of_day": "golden",
+      "opening": { "headline": "PRO_ROAD_TITLE", "subline": "PRO_ROAD_TASK" }
+    },
     "ch01_aldridge": {
       "palette_id": "GREEN",
       "grid_size": "small",

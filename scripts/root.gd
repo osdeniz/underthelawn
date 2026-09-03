@@ -102,9 +102,16 @@ func dismiss_main_menu() -> void:
 func _begin_after_menu(skip_fade_in := false) -> void:
 	if not skip_fade_in:
 		_fade.color.a = 1.0
-	if GameConfig.STORY_ALWAYS_REPLAY_INTRO or not _intro_seen():
-		# Birdsong belongs to the opening cards ONLY (G9.4): under gameplay it
-		# read as an untraceable background noise. The theme carries the rest.
+	if GameConfig.STORY_ALWAYS_REPLAY_INTRO or not _prologue_done():
+		# THE LONG WALK (G15.1) comes first: cards, then the road, then the
+		# nine-year jump into Case 01. Birdsong belongs to the opening cards
+		# ONLY (G9.4) — under gameplay it read as untraceable background noise.
+		AudioDirector.start_ambient()
+		AudioDirector.play_theme()
+		_play_prologue()
+	elif not _intro_seen():
+		# A save that has done the prologue but not the jump cards: only
+		# reachable by hand, and it should still land somewhere sensible.
 		AudioDirector.start_ambient()
 		AudioDirector.play_theme()
 		_play_intro()
@@ -146,21 +153,74 @@ func _intro_seen() -> bool:
 	return bool(GameState.get_setting("story", "intro_seen", false))
 
 
-func _play_intro() -> void:
+## Whether the long walk has been made (G15.1).
+##
+## A save written before this existed has `intro_seen` and may be hours into
+## Case 01: it is NOT sent back to the road. Grandfathering it here rather than
+## in a migration keeps the rule in one place and readable.
+func _prologue_done() -> bool:
+	if bool(GameState.get_setting("story", "prologue_done", false)):
+		return true
+	return _intro_seen()
+
+
+## Plays one card list and calls `then`. Three sequences share this screen: the
+## prologue's cards, its closing pair, and the nine-year jump (G15.1).
+##
+## `warm` builds a throwaway yard behind the cards to pay the shader bill; only
+## the FIRST set does it, because after that the cache is warm and a second
+## build would be a yard nobody sees, twice.
+func _play_cards(key: String, then: Callable, warm := false) -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 50
 	add_child(layer)
 	_intro = IntroSequence.new()
 	_intro.name = "Intro"
+	_intro.cards_key = key
 	layer.add_child(_intro)
 	_fade.color.a = 0.0
-	# The cards are opaque and the player is reading them: the best moment in
-	# the whole game to pay the shader bill. See _warm_chapter_shaders.
-	_warm_chapter_shaders(false)
+	if warm:
+		_warm_chapter_shaders(false)
 	_intro.finished.connect(func() -> void:
 		_intro = null
 		layer.queue_free()
-		var first_run := not _intro_seen()
+		then.call())
+
+
+func _play_prologue() -> void:
+	_play_cards("prologue.cards", func() -> void:
+		# Every mower drivable, for this level only and without touching the
+		# save: the player feels the tractor before the garage board ever asks
+		# them to pay for it (G15.1).
+		Garage.trial = GameConfig.PROLOGUE_TRIAL_MOWERS
+		_pending_variant = GameConfig.PROLOGUE_ID
+		Analytics.track(AnalyticsEvents.CHAPTER_STARTED,
+			{"chapter": GameConfig.PROLOGUE_ID})
+		_start_chapter(), true)
+
+
+## The road is finished: he talks to the dog, the town takes the child, and nine
+## years pass on the cards that were already written for the old opening.
+func _finish_prologue() -> void:
+	Garage.trial = false
+	GameState.set_setting("story", "prologue_done", true)
+	_play_dialogue(Dialogue.conversation("pro_road"),
+		Dialogue.accept_key("pro_road"), _after_prologue_cards)
+
+
+func _after_prologue_cards() -> void:
+	_play_cards("prologue.after", func() -> void:
+		_play_cards("intro.cards", func() -> void:
+			GameState.set_setting("story", "intro_seen", true)
+			AudioDirector.stop_ambient()
+			_on_chapter_chosen(ChapterProgress.current_variant_id())))
+
+
+func _play_intro() -> void:
+	# The cards are opaque and the player is reading them: the best moment in
+	# the whole game to pay the shader bill. See _warm_chapter_shaders.
+	var first_run := not _intro_seen()
+	_play_cards("intro.cards", func() -> void:
 		GameState.set_setting("story", "intro_seen", true)
 		AudioDirector.stop_ambient()
 		# G10.1: a first-time player goes straight from the cards into the
@@ -169,7 +229,7 @@ func _play_intro() -> void:
 		if first_run:
 			_on_chapter_chosen(ChapterProgress.current_variant_id())
 		else:
-			_open_hub())
+			_open_hub(), true)
 
 
 ## Builds a throwaway yard behind the intro cards so the first real chapter does
@@ -374,6 +434,11 @@ func _start_chapter() -> void:
 
 ## The game scene reports the result; the hub records it and the player returns.
 func _on_search_finished(evidence: int, total: int) -> void:
+	# The prologue is not a chapter: nothing is recorded against it, no case
+	# counts it, and it never reaches the debrief funnel below (G15.1).
+	if _pending_variant == GameConfig.PROLOGUE_ID:
+		_finish_prologue()
+		return
 	ChapterProgress.record(_pending_variant, evidence, total)
 	var chapter := ChapterProgress.entry(_pending_variant)
 	# Harvest has its own completion event (game.gd's HARVEST_COMPLETED, with

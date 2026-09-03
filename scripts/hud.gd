@@ -1491,6 +1491,14 @@ func _build_poster() -> void:
 ## A harvest is a job, not a search: no evidence counter, no missing poster, and
 ## the bar names the errand. Called from Game._ready, because the HUD's own
 ## _ready runs before the variant is applied (G13.6).
+## The prologue's road (G15.1): no evidence chip and no missing-person poster,
+## because nobody is missing yet. The case line carries the one instruction.
+func apply_road_mode() -> void:
+	_case_line.text = tr("PRO_ROAD_TASK")
+	_evidence_chip.visible = false
+	set_poster_visible(false)
+
+
 func apply_harvest_mode() -> void:
 	_case_line.text = tr("HARVEST_HUD_LINE")
 	_evidence_chip.visible = false
