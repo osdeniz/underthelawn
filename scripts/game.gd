@@ -54,6 +54,7 @@ var _food_banked := 0
 ## Seconds actually spent searching, which is what the town is billed for.
 var _search_seconds := 0.0
 var _walker: Walker
+var _animals: Animals
 var _look_hold := 0.0
 ## Set once both pieces of evidence are in hand and the player chose to keep
 ## mowing, so the "Continue" badge stays available.
@@ -153,6 +154,12 @@ func _ready() -> void:
 	# The swarm and the far windows belong to the hour too, and the HUD is what
 	# knows how to reach them (G14.6).
 	hud.refresh_sky()
+	# Things that live in the grass (G14.25). Built here rather than in the
+	# Neighborhood because every one of them reads the LAWN — the rabbit needs
+	# uncut ground to sit in and the birds need cut ground to land on — and the
+	# model belongs to this node.
+	_animals = Animals.build(_fx_root, model, variant.decor_seed,
+		variant.is_harvest(), variant.vignette)
 	_activate(GameConfig.MOWER_PUSH, true)
 	# G9.4: no birds in play — the theme runs instead (RootFlow keeps it going).
 	# Standalone (tests, direct scene run) start it here so the scene sounds
@@ -209,12 +216,29 @@ func _update_look_target(delta: float) -> void:
 	_look_hold = GameConfig.LOOK_HOLD
 
 
+## Where the animals think the player is. It is the MACHINE that startles them
+## when one is being driven and the man when he is on foot — a robot mower is
+## exactly as alarming to a rabbit as a person is, and the blade more so.
+func _update_animals() -> void:
+	if _animals == null or not is_instance_valid(_animals):
+		return
+	if _walker != null and is_instance_valid(_walker) and _walker.visible:
+		_animals.player_at = _walker.global_position
+		_animals.player_on = true
+	elif mower != null and is_instance_valid(mower) and mower.visible:
+		_animals.player_at = mower.global_position
+		_animals.player_on = true
+	else:
+		_animals.player_on = false
+
+
 func _process(delta: float) -> void:
 	# The town's clock runs while the search does — not while the app is open,
 	# and not while it is closed (G14.13).
 	if not _complete_shown:
 		_search_seconds += delta
 	_update_look_target(delta)
+	_update_animals()
 	_tick_orientation(delta)
 	_check_pickups()
 	if mower != null and hud != null:

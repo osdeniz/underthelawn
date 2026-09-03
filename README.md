@@ -3042,3 +3042,72 @@ PLACEHOLDERS by decision — they settle with the next calibration package.
 **Case 03 is where this points.** Case 02 deliberately does not add sinks; if
 Case 03 adds any, this multiplier is the first number to revisit.
 
+
+### G14.25 — the animals, and three wrong bodies
+
+Ground level was empty. The sky had flocks and the night had fireflies, but
+nothing in the grass ever reacted to the machine coming. Three animals now do,
+and each one is tied to the state of the LAWN rather than dropped in as decor:
+
+**Rabbits** graze the mown edge — short grass with long grass beside it — and
+bolt for the nearest fence line when the machine or the man on foot comes
+within 4.2 units. **Birds** land on ground that has just been cut and peck at
+what the blades turned up, which is a real thing birds do behind a mower, and
+they cannot exist until there is cut ground to stand on. The **dog** belongs to
+the house: it trots the strip between the porch and the north fence, never
+comes in, and never startles. There is already a cat in the town diorama
+(`_cat_body`), so it was not built twice.
+
+**The rabbit was in the long grass, and that was wrong.** The design was
+"uncut ground is inhabited and cut ground empties out", which is a nice
+sentence. Rendered, the rabbit was not hidden, it was INVISIBLE: the clumps
+stand 0.4 to 0.9 units and the rabbit is 0.32 tall. A bolt nobody ever sees is
+not a moment. The mown edge is both visible and truer — a rabbit comes out of
+cover to eat a lawn and runs back into it — and it needed two more fixes to
+actually work:
+
+- `RABBIT_MIN_PLAYER_DIST` 7.0 → **5.2**. Early in a chapter the only mown
+  ground is the strip around the player, so nothing cut was ever far enough
+  away and every rabbit fell back into the grass. Just past the bolt range is
+  the right distance; further is not "safer", it is broken.
+- a **resettle** timer, because a rabbit placed before the player cut anything
+  otherwise sits in the blades for the whole chapter and is never seen at all.
+
+**Three of the bodies were wrong and all three were the same mistake.** The
+rabbit's body was squashed 1.55 in X — and X is the SIDE axis, so it was half a
+metre across and read as a potato. Stretched 1.60 in Z instead it read as a
+seal. What reads as a rabbit is a COMPACT crouch with a high rump, a low head
+and the ears splayed into a V; at 0.035 apart the two ears collapsed into a
+single stick from every angle. The dog took four passes — 0.34 deep on 0.30
+legs was a hippo, 0.26 on 0.40 with a gap under it was a table, a ball on
+stilts was a cat — and what fixed it was the RATIO: a long shallow body with a
+level back, the head carried forward at back height, and legs about as long as
+the body is deep. The bird's wings were drawn spread while it stood pecking; a
+small bird's folded wing is a few pixels of smooth outline, so the wings now
+exist only in the air.
+
+**Measured, in one scene with the animals as the only variable:** 34 draw calls
+for all six standing, against 344 for the yard without them. Not free, and the
+comment in `game_config.gd` does not claim it is — every animal is a handful of
+separate meshes precisely because its ears, head and legs move.
+
+**Two harness fixes came out of this.**
+
+`LifeCheck` was failing and passing on IDENTICAL code. Every assertion in it is
+about something that decays at a rate per second, and it waited on FRAME
+COUNTS: headless the scene reaches several hundred frames a second, so a
+40-frame wait for the head to come back was sixty milliseconds on a fast run
+and most of a second on a slow one. It waits on process time now, and so does
+`AnimalCheck`, which had the same bug built into it from the start.
+
+`FireflyCheck`'s cost measurement started failing at 9 draws against a 4-draw
+budget — because the animals appear, vanish and move between its rounds. The
+test's own header already records making this mistake once (comparing a day
+scene against a night scene and blaming the fireflies for 166 draws); this is
+the same lesson a second time, so the animals are stilled for that measurement.
+Leave ONE variable in the frame.
+
+**Still silent.** G9.4 took the random ambient chirp out of gameplay and that
+stands — a chirp with no bird was noise. A bird you can SEE take off is a
+different thing, and it belongs to the audio pass along with the rustle the
+rabbit ought to make.

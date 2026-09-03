@@ -2301,3 +2301,85 @@ const CHAR_SHADE := Color(0.0, 0.0, 0.0, 0.30)
 ## A little stronger under the brim, which is a real overhang.
 const CHAR_SHADE_BRIM := Color(0.0, 0.0, 0.0, 0.42)
 const CHAR_SHADE_THIN := 0.022
+
+# ---------------------------------------------------------------- animals (G14.25)
+
+## Things that live at GROUND level, where the player actually is. The sky had
+## birds and the night had fireflies, but the grass itself was empty — nothing
+## in the yard ever reacted to the machine coming.
+##
+## Every animal here is tied to the state of the LAWN, which is what makes them
+## part of the game rather than decoration:
+##
+##   the rabbit grazes the MOWN EDGE and bolts for cover when you get near it,
+##   so the line between cut and uncut is where the yard is busiest. It was in
+##   the long grass in the first pass and had to be moved: the clumps are 0.4
+##   to 0.9 units tall against a 0.32 rabbit, and a bolt nobody ever sees is
+##   not a moment;
+##
+##   the birds land on ground that has JUST BEEN CUT and peck at what the
+##   blades turned up, so cutting gives something back instead of only taking
+##   the grass away. They are real: birds follow mowers for the insects.
+##
+## The dog belongs to the HOUSE, not to the lawn: it trots the strip between
+## the porch and the north fence, never crosses in, and never startles.
+##
+## Cost: eight or nine primitive meshes each, four animals at most, and a state
+## machine of three states. No navmesh, no physics bodies, no per-frame
+## allocation.
+const ANIMALS_ENABLED := true
+
+## Silent by design in this sprint. G9.4 took the random ambient chirp out of
+## gameplay and that decision stands — a chirp with no bird was noise. A bird
+## you can SEE take off is a different thing and it belongs to the audio pass,
+## along with the rustle the rabbit ought to make.
+
+const RABBIT_COUNT := 2
+## How near the machine (or the man on foot) may come before it goes. Wider
+## than it sounds on purpose: a rabbit that lets you touch it is a toy, and the
+## bolt has to be visible from behind the mower, not underneath it.
+const RABBIT_BOLT_RANGE := 4.2
+const RABBIT_SPEED := 8.0
+const RABBIT_HOP_FREQ := 7.5
+const RABBIT_HOP_HEIGHT := 0.13
+## Seconds gone before another one appears somewhere else in the long grass.
+const RABBIT_RETURN := Vector2(9.0, 16.0)
+## How often a rabbit that is sitting in long grass looks for the mown edge
+## instead. Without it, one placed before the player cut anything sits in the
+## blades for the whole chapter and is never seen at all.
+const RABBIT_RESETTLE := 6.0
+## It never reappears in your lap: that reads as a spawn, not as an animal.
+## Just past the bolt range and no further. At 7.0 it was measured failing:
+## early in a chapter the only mown ground is the strip right around the
+## player, so nothing cut was ever far enough away and the rabbit kept falling
+## back into the long grass, where it cannot be seen at all.
+const RABBIT_MIN_PLAYER_DIST := 5.2
+const RABBIT_FUR := Color(0.52, 0.45, 0.38)
+## The white scut is the whole silhouette of a bolting rabbit. It is the part
+## you actually recognise, so it is the part that gets its own colour.
+const RABBIT_SCUT := Color(0.92, 0.90, 0.86)
+const RABBIT_EAR_PERIOD := 3.4
+const RABBIT_NIBBLE_PERIOD := 1.9
+
+const PECKER_COUNT := 3
+const PECKER_FLEE_RANGE := 2.6
+const PECKER_SPEED := 7.0
+const PECKER_RISE := 5.5
+const PECKER_RETURN := Vector2(4.0, 9.0)
+const PECKER_MIN_PLAYER_DIST := 5.0
+const PECKER_PECK_PERIOD := 0.85
+const PECKER_FLAP_FREQ := 22.0
+const PECKER_BODY := Color(0.30, 0.28, 0.26)
+const PECKER_BEAK := Color(0.80, 0.66, 0.28)
+
+## No dog on a wheat field and none in the cellar: it belongs to a house, and
+## those two chapters do not have one.
+const DOG_ENABLED := true
+const DOG_SPEED := 1.35
+const DOG_COAT := Color(0.62, 0.48, 0.32)
+## Its beat, in x, on the strip between the porch and the north fence. The
+## house front stands at about z -14.7 and the fence at -13.0, so the middle of
+## that gap is where a dog would actually walk.
+const DOG_RUN_X := Vector2(-5.2, 5.4)
+const DOG_TROT_FREQ := 7.0
+const DOG_TAIL_FREQ := 4.5

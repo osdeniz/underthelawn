@@ -54,6 +54,15 @@ func _ready() -> void:
 		get_tree().paused = false
 		await get_tree().process_frame
 	var swarm := game.find_children("Fireflies", "", true, false)[0] as Fireflies
+	# The animals have to be STILLED for this measurement (G14.25). They appear,
+	# vanish and move between rounds, and a rabbit blinking in or out is a
+	# handful of draws — measured, it turned a 9-draw firefly reading into a
+	# failure of a 4-draw budget. Same lesson as the note above: leave one
+	# variable in the frame, not two.
+	var animals := game._animals as Animals
+	if animals != null and is_instance_valid(animals):
+		animals.set_process(false)
+		animals.visible = false
 	# Alternated, not measured once each: the opening camera is still descending
 	# while this runs, so what is culled changes from second to second and a
 	# single on-then-off comparison reads that drift as a cost. Four rounds of
