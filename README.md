@@ -3414,3 +3414,42 @@ waits for arrival now.
 
 Measured: facing error 0 degrees at 2.3 units; head up within 1.5 s of the cell
 being dug; cost unchanged at 48 draws for all six animals in frame.
+
+### G15.5 — three chapters that change what the thumb is doing
+
+Every chapter asked for the same thing: cover the rectangle. What varied was
+paint — palette, hour, weather, the shape of the obstacles — and none of it
+changed the thumb. Three chapters do now, and none of them is a new system;
+each is a rule on top of what the model already tracks.
+
+**ch08, the cellar — the drawing is fragile.** *"Cut a path to her. Gently."*
+has been the briefing since G8 and nothing was ever gentle. A `"fragile": true`
+flag on the evidence def means: cut the grass AROUND the piece and it is found
+whole (the model reveals a fragile secret when a cuttable neighbour is mown);
+drive over it and it is found torn — still counted, but the prop lies tilted
+and half in the ground, the debrief has a `_crushed` variant (*"She's fine. Her
+picture isn't. I said gently."*) and Cole's note changes (*"Torn under a wheel.
+She drew the tower with a light on it; I can still make out the light."*). The
+girl herself is not fragile; only her picture. Nothing else in the game
+punishes a pass over a cell, which is exactly why this one lands.
+
+**ch12, the river — one piece is reached on foot.** The walk mode was built in
+G14.16 and almost nobody stepped down. The anchor is ringed with reeds: eight
+OBSTACLE cells and one 3x3 collision rect, so the machine is pushed out of the
+ring (measured: placed on the cell, it ends 1.5+ units away) while the walker,
+which clamps only to the lawn, steps straight in and the model reveals it.
+One card the first time the machine noses up against the reeds: *"The machine
+won't go in there. Step down and walk."* Teaches the button once; then it is
+theirs.
+
+**ch06, the water tower — the sun goes down.** `SkyTime.blend()` interpolates
+every field of two presets and the chapter's `time_lapse` runs it from sunset
+to night over 170 seconds of search. No fail state: an unfinished yard is
+finished in the dark, which G14.7 measured playable. Measured here: sun
+elevation -9.1 at the start, -30.5 halfway, -52.0 at the end, and the
+hour-bucketed things (fireflies, windows, moth clippings) switch once, at the
+midpoint, rather than every frame. The first briefing has promised candles
+burning down since G7; this is the chapter where the light is the clock.
+
+`MechanicsCheck` drives all three the way a player would — a pass over a cell,
+a walker stepping in, time going by — and reads the result off the model.

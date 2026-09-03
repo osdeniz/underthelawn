@@ -1,0 +1,165 @@
+extends Node
+## G15.5: three chapters that change what the thumb does. Each claim is driven
+## the way the player would drive it — a pass over a cell, a walker stepping
+## in, time going by — and read back off the model.
+
+var _fails := 0
+
+
+func _ready() -> void:
+	GameState.set_setting("meta", "orientation_done", true)
+	await _fragile()
+	await _walk_only()
+	await _time_lapse()
+	if _fails > 0:
+		push_error("%d MEKANIK TESTI BASARISIZ" % _fails)
+		print("--- %d MEKANIK TESTI BASARISIZ ---" % _fails)
+	else:
+		print("--- TUM MEKANIK TESTLERI GECTI ---")
+	get_tree().quit()
+
+
+## ch08: the drawing is fragile. Cut beside it and it comes up whole; drive
+## over it and it comes up torn.
+func _fragile() -> void:
+	var game: Node = await _open("ch08_cellar")
+	var model: LawnModel = game.model
+	var fragile := -1
+	for k in game.variant.evidence_defs.size():
+		if game.variant.is_fragile(k):
+			fragile = k
+	ck("ch08'de kirilgan kanit var", fragile >= 0, "yok")
+	if fragile < 0 or model.secret_cells.size() <= fragile:
+		game.queue_free(); await _frames(4); return
+	var cell: Vector2i = model.secret_cells[fragile]
+	# A cuttable neighbour, mown: the piece is revealed without a pass over it.
+	var side := Vector2i(-1, -1)
+	for step: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		var n := cell + step
+		if LawnModel.in_bounds(n.x, n.y) \
+				and model.states[LawnModel.index_of(n.x, n.y)] == LawnModel.CellState.TALL:
+			side = n
+			break
+	ck("kirilganin yaninda bicilebilir hucre var", side.x >= 0, "yok")
+	if side.x >= 0:
+		model.mow(side.x, side.y, 0)
+		await _frames(3)
+		ck("yanindan bicince ortaya cikiyor",
+			model.states[LawnModel.index_of(cell.x, cell.y)] == LawnModel.CellState.SECRET_REVEALED,
+			"durum %d" % model.states[LawnModel.index_of(cell.x, cell.y)])
+		ck("yanindan bicince ezilmiyor", game.crushed_count == 0, "%d" % game.crushed_count)
+	# The OTHER piece is not fragile: a pass over it is the ordinary find.
+	var other := -1
+	for k in model.secret_cells.size():
+		if k != fragile:
+			other = k
+	if other >= 0:
+		var oc: Vector2i = model.secret_cells[other]
+		model.mow(oc.x, oc.y, 0)
+		await _frames(3)
+		ck("kirilgan olmayan ezilmiyor", game.crushed_count == 0, "%d" % game.crushed_count)
+	game.queue_free(); await _frames(4)
+
+	# And a fresh cellar where the drawing IS driven over.
+	game = await _open("ch08_cellar")
+	model = game.model
+	var cell2: Vector2i = model.secret_cells[fragile]
+	model.mow(cell2.x, cell2.y, 0)
+	await _frames(3)
+	ck("ustunden gecince ezilmis sayiliyor", game.crushed_count == 1, "%d" % game.crushed_count)
+	ck("ezilmis de olsa bulunmus",
+		model.states[LawnModel.index_of(cell2.x, cell2.y)] == LawnModel.CellState.SECRET_REVEALED, "")
+	var crushed_conv := Dialogue.conversation("debrief_ch08_cellar_full_crushed")
+	ck("ezilmis debrief'i var", crushed_conv.size() >= 2, "%d satir" % crushed_conv.size())
+	game.queue_free(); await _frames(4)
+
+
+## ch12: one piece is ringed with reeds. The machine is kept out of the ring;
+## the walker steps in and the piece is found.
+func _walk_only() -> void:
+	var game: Node = await _open("ch12_river_crossing")
+	var model: LawnModel = game.model
+	var cell: Vector2i = model.walk_only_cell
+	ck("ch12'de yuruyerek bulunan kanit var", cell.x >= 0, "yok")
+	if cell.x < 0:
+		game.queue_free(); await _frames(4); return
+	var ring_ok := true
+	for dr in range(-1, 2):
+		for dc in range(-1, 2):
+			if dr == 0 and dc == 0:
+				continue
+			var c := cell.x + dc
+			var r := cell.y + dr
+			if LawnModel.in_bounds(c, r) \
+					and model.states[LawnModel.index_of(c, r)] != LawnModel.CellState.OBSTACLE:
+				ring_ok = false
+	ck("sazlik halkasi engel", ring_ok, "acik hucre var")
+	ck("sazliklar cizildi", game.find_children("Reeds", "", true, false).size() == 1, "")
+	# The machine, placed on the piece, is pushed back out of the ring.
+	var at := LawnModel.cell_center(cell.x, cell.y)
+	var mower: MowerController = game.mower
+	mower.global_position = Vector3(at.x, mower.global_position.y, at.z)
+	mower._resolve_obstacles()
+	var gap := Vector2(mower.position.x - at.x, mower.position.z - at.z).length()
+	ck("makine halkanin disina itiliyor", gap > 1.4, "%.2f birim" % gap)
+	ck("makineyle bulunmadi",
+		model.states[LawnModel.index_of(cell.x, cell.y)] == LawnModel.CellState.SECRET, "")
+	# On foot: step onto it.
+	game.toggle_walk()
+	await _frames(4)
+	var walker: Node3D = game.get_node("Walker")
+	walker.position = Vector3(at.x, 0.0, at.z)
+	await _frames(4)
+	ck("yuruyerek bulunuyor",
+		model.states[LawnModel.index_of(cell.x, cell.y)] == LawnModel.CellState.SECRET_REVEALED, "")
+	game.queue_free(); await _frames(4)
+
+
+## ch06: the light moves from sunset to night over the search.
+func _time_lapse() -> void:
+	var game: Node = await _open("ch06_watertower")
+	var sun: DirectionalLight3D = game.get_node("Sun")
+	var start_elev := sun.rotation_degrees.x
+	ck("ch06'nin gun batimi akisi var", not game.variant.time_lapse.is_empty(), "yok")
+	game._search_seconds = float(game.variant.time_lapse.get("seconds", 150)) * 1.05
+	game._tick_lapse()
+	await _frames(2)
+	var night: Dictionary = GameConfig.TIME_OF_DAY["night"]
+	ck("sure dolunca gunes gece konumunda",
+		absf(sun.rotation_degrees.x - (-float(night["elev"]))) < 0.5,
+		"%.1f, baslangic %.1f" % [sun.rotation_degrees.x, start_elev])
+	ck("saat kovasi geceye dondu", game._lapse_bucket == "night", game._lapse_bucket)
+	# And halfway is genuinely between: not one preset snapped to the other.
+	game._search_seconds = float(game.variant.time_lapse.get("seconds", 150)) * 0.5
+	game._tick_lapse()
+	var sunset: Dictionary = GameConfig.TIME_OF_DAY["sunset"]
+	var mid := -lerpf(float(sunset["elev"]), float(night["elev"]), 0.5)
+	ck("yarida isik ikisinin arasinda", absf(sun.rotation_degrees.x - mid) < 0.5,
+		"%.1f vs %.1f" % [sun.rotation_degrees.x, mid])
+	print("  [olcum] gunes: baslangic %.1f, yari %.1f, gece %.1f" % [start_elev, mid, -float(night["elev"])])
+	game.queue_free(); await _frames(4)
+
+
+func _open(chapter: String) -> Node:
+	var game: Node = load("res://scenes/Main.tscn").instantiate()
+	game.variant_id = chapter
+	add_child(game)
+	await _frames(10)
+	get_tree().paused = false
+	game.hud._close_pause()
+	game._begin_search()
+	await _frames(12)
+	return game
+
+
+func _frames(count: int) -> void:
+	for _i in count:
+		get_tree().paused = false
+		await get_tree().process_frame
+
+
+func ck(label: String, passed: bool, detail: String) -> void:
+	if passed:
+		return
+	_fails += 1
+	print("  FAIL %s  %s" % [label, detail])

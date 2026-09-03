@@ -14,7 +14,10 @@
       "food_budget": 0,
       "evidence_defs": [],
       "time_of_day": "golden",
-      "opening": { "headline": "PRO_ROAD_TITLE", "subline": "PRO_ROAD_TASK" }
+      "opening": {
+        "headline": "PRO_ROAD_TITLE",
+        "subline": "PRO_ROAD_TASK"
+      }
     },
     "ch01_aldridge": {
       "palette_id": "GREEN",
@@ -250,7 +253,12 @@
         "flavor_text": "ECHO_CH06_LINE"
       },
       "reclaim_line": "RECLAIM_CH06",
-      "time_of_day": "sunset"
+      "time_of_day": "sunset",
+      "time_lapse": {
+        "from": "sunset",
+        "to": "night",
+        "seconds": 170
+      }
     },
     "ch07_mill": {
       "palette_id": "DUSK_VIOLET",
@@ -315,7 +323,9 @@
           "name": "EV_CH08_B_NAME",
           "flavor_text": "EV_CH08_B_LINE",
           "location_tag": "LOC_BEDS",
-          "cole_note": "COLE_DRAWING"
+          "cole_note": "COLE_DRAWING",
+          "fragile": true,
+          "cole_note_crushed": "COLE_DRAWING_CRUSHED"
         }
       ],
       "opening": {
@@ -518,7 +528,8 @@
       "time_of_day": "morning",
       "evidence_zone": "far",
       "mid_chat": "chat_ch12",
-      "scrap_multiplier": 0.68
+      "scrap_multiplier": 0.68,
+      "walk_only_evidence": true
     },
     "ch13_roadside_camp": {
       "palette_id": "DRY_GOLD",

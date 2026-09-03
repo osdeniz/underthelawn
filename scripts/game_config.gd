@@ -2455,3 +2455,28 @@ const DOG_POINT_HEAD := 0.38
 ## gate, where at 0.56 tall it could not be seen (G15.2).
 static func prologue_dog_spot() -> Vector3:
 	return Vector3(-0.55, 0.0, -HALF_Z + 2.6)
+
+
+# ---------------------------------------------------------------- three chapters (G15.5)
+
+## Three chapters change what the thumb is doing without adding a system, so
+## the same mowing loop stops being the same eighteen times.
+##
+## FRAGILE (ch08, the drawing): a flag on the evidence def. Cut the grass around
+## it and it is found whole; drive over it and it is found torn. Nothing else
+## in the game punishes a pass over a cell, which is exactly why this one lands.
+##
+## WALK-ONLY (ch12, the anchor): ringed with reeds the machine cannot enter. The
+## walk mode was built in G14.16 and almost nobody stepped down; one piece you
+## can only reach on foot teaches the button once, and then it is theirs.
+const WALK_ONLY_REACH := 0.8
+const WALK_ONLY_HINT_RANGE := 2.6
+const REEDS_PER_CELL := 7
+const REED_HEIGHT := Vector2(1.5, 2.1)
+const REED_COLOUR := Color(0.46, 0.52, 0.26)
+const REED_HEAD_COLOUR := Color(0.42, 0.30, 0.18)
+
+## TIME-LAPSE (ch06, the water tower): the sun goes down over the search. The
+## first briefing has promised candles burning down since G7 and nothing ever
+## burned; here the light itself is the clock. No fail state — an unfinished
+## yard is finished in the dark, which was measured playable (G14.7).

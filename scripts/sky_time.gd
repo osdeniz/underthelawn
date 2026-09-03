@@ -50,15 +50,41 @@ static func apply(env_host: WorldEnvironment, sun: DirectionalLight3D,
 	_write(env_host, sun, resolve(id))
 
 
+## The light part-way between two hours (G15.5): every field of the two presets
+## interpolated, then written like a preset. Used by the one chapter whose sun
+## actually moves, over the length of its search — the only motion the sky
+## ever has, and it costs nothing per frame beyond a handful of lerps.
+static func blend(env_host: WorldEnvironment, sun: DirectionalLight3D,
+		from_id: String, to_id: String, t: float) -> void:
+	var a: Dictionary = GameConfig.TIME_OF_DAY.get(resolve(from_id),
+		GameConfig.TIME_OF_DAY[GameConfig.TIME_OF_DAY_DEFAULT])
+	var b: Dictionary = GameConfig.TIME_OF_DAY.get(resolve(to_id), a)
+	var mixed := {}
+	for k: String in a:
+		var va: Variant = a[k]
+		var vb: Variant = b.get(k, va)
+		if va is Color and vb is Color:
+			mixed[k] = (va as Color).lerp(vb, t)
+		elif (va is float or va is int) and (vb is float or vb is int):
+			mixed[k] = lerpf(float(va), float(vb), t)
+		else:
+			mixed[k] = va if t < 0.5 else vb
+	_write_spec(env_host, sun, mixed, from_id if t < 0.5 else to_id)
+
+
 static func _write(env_host: WorldEnvironment, sun: DirectionalLight3D,
 		id: String) -> void:
-	if env_host == null or env_host.environment == null:
-		return
 	var key := id if GameConfig.TIME_OF_DAY.has(id) \
 		else GameConfig.TIME_OF_DAY_DEFAULT
 	if not GameConfig.TIME_OF_DAY.has(key):
 		return
-	var spec: Dictionary = GameConfig.TIME_OF_DAY[key]
+	_write_spec(env_host, sun, GameConfig.TIME_OF_DAY[key], id)
+
+
+static func _write_spec(env_host: WorldEnvironment, sun: DirectionalLight3D,
+		spec: Dictionary, id: String) -> void:
+	if env_host == null or env_host.environment == null:
+		return
 	var env := env_host.environment
 
 	if sun != null:

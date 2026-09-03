@@ -463,7 +463,13 @@ func _on_search_finished(evidence: int, total: int) -> void:
 				func() -> void: _show_reunion())
 		return
 	var key := "debrief_full" if evidence >= total else "debrief_partial"
-	var lines := Dialogue.conversation(str(chapter.get(key, "")))
+	var conv_id := str(chapter.get(key, ""))
+	# A fragile piece driven over changes what there is to say (G15.5): if the
+	# chapter has written a "_crushed" variant of this debrief, that is the one.
+	if _game != null and is_instance_valid(_game) and int(_game.get("crushed_count")) > 0 \
+			and not Dialogue.conversation(conv_id + "_crushed").is_empty():
+		conv_id += "_crushed"
+	var lines := Dialogue.conversation(conv_id)
 	# A chapter can be followed by a scene rather than by silence: the road east
 	# has one, and it is charged whether or not the debrief had anything to say
 	# (G13).

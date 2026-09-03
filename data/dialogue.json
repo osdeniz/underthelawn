@@ -1288,6 +1288,19 @@
         }
       ],
       "accept": "PRO_ACCEPT"
+    },
+    "debrief_ch08_cellar_full_crushed": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH08_CRUSHED_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH08_CRUSHED_2"
+        }
+      ],
+      "_comment": "G15.5: the drawing was driven over. Same shape as the full debrief with the finding changed."
     }
   },
   "town": {

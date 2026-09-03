@@ -1499,6 +1499,11 @@ func apply_road_mode() -> void:
 	set_poster_visible(false)
 
 
+## The chapter whose light moves (G15.5): the case line says what the clock is.
+func apply_lapse_mode() -> void:
+	_case_line.text = tr("HUD_LAPSE_LINE")
+
+
 func apply_harvest_mode() -> void:
 	_case_line.text = tr("HARVEST_HUD_LINE")
 	_evidence_chip.visible = false

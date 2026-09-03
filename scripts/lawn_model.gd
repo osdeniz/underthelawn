@@ -7,6 +7,10 @@ extends RefCounted
 
 signal cell_tint_changed(col: int, row: int)
 signal secret_revealed(col: int, row: int)
+## A fragile piece was driven over instead of uncovered (G15.5). Emitted right
+## after secret_revealed for the same cell: the piece is still found, it is just
+## not whole any more.
+signal secret_crushed(col: int, row: int)
 signal completed()
 
 enum CellState { TALL, MOWED, OBSTACLE, SECRET, SECRET_REVEALED }
@@ -89,6 +93,10 @@ var mowable_cells: int = 0
 ## World-space XZ collision rectangles, one per obstacle.
 var collision_rects: Array[Rect2] = []
 var secret_cells: Array[Vector2i] = []
+## The one piece that can only be reached on foot, or (-1, -1) (G15.5). Its
+## eight neighbours are reeds: OBSTACLE cells with a collision rect, so the
+## machine stops at the ring and the walker steps through it.
+var walk_only_cell := Vector2i(-1, -1)
 
 var _rng := RandomNumberGenerator.new()
 var _completed := false
@@ -207,8 +215,21 @@ func mow(col: int, row: int, stripe_dir: int) -> MowResult:
 		states[i] = CellState.SECRET_REVEALED
 		result = MowResult.SECRET_REVEALED
 		secret_revealed.emit(col, row)
+		# Driven straight over. A fragile piece is meant to be UNCOVERED — the
+		# grass around it cut so it lies there in the open — and a wheel across
+		# it is what "gently" was warning about (G15.5).
+		if _is_fragile_cell(col, row):
+			secret_crushed.emit(col, row)
 	else:
 		states[i] = CellState.MOWED
+		# Cutting BESIDE a fragile piece is how it is found intact: the blades
+		# open the grass and there it is, in the next cell, untouched.
+		for step: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1),
+				Vector2i(0, -1)]:
+			var n := Vector2i(col + step.x, row + step.y)
+			if in_bounds(n.x, n.y) and states[index_of(n.x, n.y)] == CellState.SECRET \
+					and _is_fragile_cell(n.x, n.y):
+				reveal(n.x, n.y)
 
 	cell_tint_changed.emit(col, row)
 
@@ -220,6 +241,54 @@ func mow(col: int, row: int, stripe_dir: int) -> MowResult:
 
 # ---------------------------------------------------------------- setup
 
+## Uncovers a buried cell WITHOUT a pass over it: the fragile piece seen from
+## the next cell, or the walk-only piece reached on foot (G15.5). Counts as cut
+## for completion, like every SECRET_REVEALED cell does.
+func reveal(col: int, row: int) -> void:
+	if not in_bounds(col, row):
+		return
+	var i := index_of(col, row)
+	if i < 0 or i >= states.size() or states[i] != CellState.SECRET:
+		return
+	states[i] = CellState.SECRET_REVEALED
+	mowed_count += 1
+	secret_revealed.emit(col, row)
+	cell_tint_changed.emit(col, row)
+	if not _completed and is_complete():
+		_completed = true
+		completed.emit()
+
+
+func _is_fragile_cell(col: int, row: int) -> bool:
+	if LevelVariant.current == null:
+		return false
+	return LevelVariant.current.is_fragile(secret_cells.find(Vector2i(col, row)))
+
+
+## Rings the first secret with reeds so only a walker can reach it (G15.5).
+## Called after the secrets are placed. The ring cells become OBSTACLE — they
+## come off the cuttable count — and one 3x3 collision rect keeps the machine
+## out; the walker clamps only to the lawn, so it steps straight in.
+func _place_walk_only() -> void:
+	walk_only_cell = Vector2i(-1, -1)
+	if LevelVariant.current == null or not LevelVariant.current.walk_only_evidence:
+		return
+	if secret_cells.is_empty():
+		return
+	var cell: Vector2i = secret_cells[0]
+	for dr in range(-1, 2):
+		for dc in range(-1, 2):
+			if dr == 0 and dc == 0:
+				continue
+			var c := cell.x + dc
+			var r := cell.y + dr
+			if in_bounds(c, r) and states[index_of(c, r)] == CellState.TALL:
+				states[index_of(c, r)] = CellState.OBSTACLE
+	collision_rects.append(grid_rect_to_world(Rect2i(cell.x - 1, cell.y - 1, 3, 3)))
+	walk_only_cell = cell
+	_recount_mowable()
+
+
 func reset() -> void:
 	_completed = false
 	mowed_count = 0
@@ -230,6 +299,7 @@ func reset() -> void:
 			if states[i] != CellState.OBSTACLE:
 				states[i] = CellState.TALL
 	_place_secrets()
+	_place_walk_only()
 	_recount_mowable()
 
 

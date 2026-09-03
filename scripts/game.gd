@@ -55,6 +55,10 @@ var _food_banked := 0
 var _search_seconds := 0.0
 var _walker: Walker
 var _animals: Animals
+## G15.5: pieces driven over instead of uncovered, read by RootFlow to pick the
+## debrief; and whether the two one-time hints have shown.
+var crushed_count := 0
+var _walk_hint_shown := false
 var _look_hold := 0.0
 ## Set once both pieces of evidence are in hand and the player chose to keep
 ## mowing, so the "Continue" badge stays available.
@@ -129,6 +133,8 @@ func _ready() -> void:
 
 	model.completed.connect(_on_completed)
 	model.secret_revealed.connect(_on_secret_uncovered)
+	model.secret_crushed.connect(_on_secret_crushed)
+	_build_reeds()
 	hud.restart_pressed.connect(_restart)
 	hud.selector.mower_chosen.connect(select_mower)
 
@@ -138,6 +144,8 @@ func _ready() -> void:
 		hud.apply_harvest_mode()
 	elif variant != null and variant.is_road():
 		hud.apply_road_mode()
+	elif variant != null and not variant.time_lapse.is_empty():
+		hud.apply_lapse_mode()
 
 	hud.return_requested.connect(_return_to_hub)
 	hud.main_menu_requested.connect(_return_to_main_menu)
@@ -241,6 +249,8 @@ func _process(delta: float) -> void:
 		_search_seconds += delta
 	_update_look_target(delta)
 	_update_animals()
+	_tick_lapse()
+	_check_walk_only()
 	_tick_orientation(delta)
 	_check_pickups()
 	if mower != null and hud != null:
@@ -651,6 +661,131 @@ func _on_secret_uncovered(col: int, row: int) -> void:
 
 ## Anything the mower drives near is taken. One reach for both evidence and
 ## cash, so "it looked like I touched it" and "it counted" are the same rule.
+## The fragile piece was driven over (G15.5): it is still found, and it is not
+## whole. The prop lies tilted and half in the ground, the debrief says so, and
+## Cole's note for it changes.
+func _on_secret_crushed(col: int, row: int) -> void:
+	crushed_count += 1
+	Haptics.medium()
+	# Remembered against the piece, so the corkboard reads Cole's torn-copy note
+	# for it from now on (LevelVariant.evidence_info).
+	if variant != null:
+		var kind := model.secret_cells.find(Vector2i(col, row))
+		var info := variant.evidence_info(maxi(kind, 0))
+		GameState.set_setting("evidence_crushed",
+			"%s/%s" % [variant.id, str(info.get("id", ""))], true)
+	for prop in _evidence_props:
+		if prop != null and is_instance_valid(prop) \
+				and prop.name == "Evidence_%d_%d" % [col, row]:
+			prop.set_meta("crushed", true)
+			prop.rotation = Vector3(0.42, 0.6, -0.35)
+			prop.position.y -= 0.08
+
+
+## The one piece behind the reeds is found on FOOT (G15.5): the walker steps into
+## the ring and it is uncovered. On the machine, the first time the player comes
+## up against the reeds, one card says why the mower is not the answer here.
+func _check_walk_only() -> void:
+	if model == null or model.walk_only_cell.x < 0 or not _search_started:
+		return
+	var cell := model.walk_only_cell
+	if model.states[LawnModel.index_of(cell.x, cell.y)] != LawnModel.CellState.SECRET:
+		return
+	var at := LawnModel.cell_center(cell.x, cell.y)
+	if _walker != null and is_instance_valid(_walker):
+		if Vector2(_walker.position.x - at.x, _walker.position.z - at.z).length() \
+				<= GameConfig.WALK_ONLY_REACH:
+			model.reveal(cell.x, cell.y)
+			if lawn != null and lawn.tuft_field != null:
+				lawn.tuft_field.refresh_all()
+		return
+	if not _walk_hint_shown and mower != null and is_instance_valid(mower) \
+			and Vector2(mower.position.x - at.x, mower.position.z - at.z).length() \
+			<= GameConfig.WALK_ONLY_HINT_RANGE:
+		_walk_hint_shown = true
+		hud.show_resource_tip(tr("HUD_WALK_TIP_T"), tr("HUD_WALK_TIP_L"))
+
+
+## Reeds around the walk-only piece, built here rather than in the Neighborhood
+## because only the MODEL knows where the secret landed, and the Neighborhood
+## is ready before the model exists (G15.5).
+func _build_reeds() -> void:
+	if model == null or model.walk_only_cell.x < 0:
+		return
+	var cell := model.walk_only_cell
+	var root := Node3D.new()
+	root.name = "Reeds"
+	_fx_root.add_child(root)
+	var stalk := StandardMaterial3D.new()
+	stalk.albedo_color = GameConfig.REED_COLOUR
+	stalk.roughness = 0.9
+	var head := StandardMaterial3D.new()
+	head.albedo_color = GameConfig.REED_HEAD_COLOUR
+	head.roughness = 0.95
+	var rng := RandomNumberGenerator.new()
+	rng.seed = variant.decor_seed + 4411 if variant != null else 4411
+	for dr in range(-1, 2):
+		for dc in range(-1, 2):
+			if dr == 0 and dc == 0:
+				continue
+			var centre := LawnModel.cell_center(cell.x + dc, cell.y + dr)
+			for _i in GameConfig.REEDS_PER_CELL:
+				var height := rng.randf_range(GameConfig.REED_HEIGHT.x, GameConfig.REED_HEIGHT.y)
+				var pivot := Node3D.new()
+				pivot.position = centre + Vector3(rng.randf_range(-0.42, 0.42), 0.0,
+					rng.randf_range(-0.42, 0.42))
+				pivot.rotation = Vector3(rng.randf_range(-0.08, 0.08), 0.0,
+					rng.randf_range(-0.08, 0.08))
+				root.add_child(pivot)
+				var mesh := CylinderMesh.new()
+				mesh.top_radius = 0.018
+				mesh.bottom_radius = 0.03
+				mesh.height = height
+				mesh.radial_segments = 5
+				mesh.rings = 1
+				var mi := MeshInstance3D.new()
+				mi.mesh = mesh
+				mi.material_override = stalk
+				mi.position.y = height * 0.5
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				pivot.add_child(mi)
+				var tip := CylinderMesh.new()
+				tip.top_radius = 0.03
+				tip.bottom_radius = 0.05
+				tip.height = 0.22
+				tip.radial_segments = 5
+				tip.rings = 1
+				var ti := MeshInstance3D.new()
+				ti.mesh = tip
+				ti.material_override = head
+				ti.position.y = height + 0.1
+				ti.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				pivot.add_child(ti)
+
+
+## The one chapter whose light moves (G15.5): from its hour to the next over
+## the length of the search. No fail state — an unfinished yard is simply
+## finished in the dark, and the dark was measured playable (G14.7).
+var _lapse_bucket := ""
+func _tick_lapse() -> void:
+	if variant == null or variant.time_lapse.is_empty() or not _search_started \
+			or _complete_shown:
+		return
+	var seconds := maxf(float(variant.time_lapse.get("seconds", 150.0)), 1.0)
+	var t := clampf(_search_seconds / seconds, 0.0, 1.0)
+	var from := str(variant.time_lapse.get("from", variant.time_of_day))
+	var to := str(variant.time_lapse.get("to", variant.time_of_day))
+	SkyTime.blend($WorldEnvironment as WorldEnvironment, $Sun as DirectionalLight3D,
+		from, to, t)
+	# The hour-bucketed things (fireflies, far windows, moth clippings) switch
+	# once, halfway, rather than every frame.
+	var bucket := from if t < 0.5 else to
+	if bucket != _lapse_bucket:
+		_lapse_bucket = bucket
+		variant.time_of_day = bucket
+		hud.refresh_sky()
+
+
 func _check_pickups() -> void:
 	if mower == null or not _search_started or _complete_shown:
 		return

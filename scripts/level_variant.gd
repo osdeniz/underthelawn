@@ -71,6 +71,14 @@ var food_budget := -1
 ## "search" (the default) or "harvest" (G13.6). A harvest carries no evidence
 ## and no echo, pays more scrap, and stands in a field of crop.
 var level_type := "search"
+## G15.5 — three chapters change what the thumb is doing without adding a
+## system. `walk_only_evidence`: one piece is ringed with reeds the machine
+## cannot enter; it is found on foot. `time_lapse`: {"from", "to", "seconds"}
+## — the light moves from one preset to the other over the search. Fragile
+## evidence is a flag on the evidence DEF itself ("fragile": true): opened by
+## cutting the grass AROUND it, crushed by driving over it.
+var walk_only_evidence := false
+var time_lapse: Dictionary = {}
 
 
 static func data() -> Dictionary:
@@ -122,6 +130,10 @@ static func of(variant_id: String) -> LevelVariant:
 		GameConfig.TIME_OF_DAY_DEFAULT))
 	variant.weather = str(spec.get("weather", GameConfig.WEATHER_CLEAR))
 	variant.food_budget = int(spec.get("food_budget", -1))
+	variant.walk_only_evidence = bool(spec.get("walk_only_evidence", false))
+	var lapse: Variant = spec.get("time_lapse", {})
+	if lapse is Dictionary:
+		variant.time_lapse = lapse
 	var echo: Variant = spec.get("echo_def", {})
 	if echo is Dictionary:
 		variant.echo_def = echo
@@ -207,6 +219,13 @@ func is_harvest() -> bool:
 	return level_type == "harvest"
 
 
+## Whether the evidence at `index` breaks under a wheel (G15.5).
+func is_fragile(index: int) -> bool:
+	if index < 0 or index >= evidence_defs.size():
+		return false
+	return bool((evidence_defs[index] as Dictionary).get("fragile", false))
+
+
 ## The prologue's road (G15.1). Like a harvest in that it is not a suburb — no
 ## street, no parked cars, no neighbours — and unlike everything else in that
 ## finishing it is not a search: there is no evidence on it.
@@ -233,11 +252,22 @@ func evidence_info(index: int) -> Dictionary:
 		# Dr. Cole's reading of the object, which the corkboard only shows once
 		# the clinic is built (G13.4). Left as the KEY, not translated here, so
 		# the board can test it for emptiness before deciding to show a line.
-		"cole_note": str(entry.get("cole_note", "")),
+		"cole_note": _cole_note_for(entry),
 		# The Marshal's own margin note — what the detective wrote down rather
 		# than what the doctor measured. Same rule: the KEY, not the sentence.
 		"marshal_note": str(entry.get("marshal_note", "")),
 	}
+
+
+## Cole's reading of a piece — or of what was left of it. A fragile piece driven
+## over (G15.5) is remembered in the save, and the doctor writes about the torn
+## copy from then on.
+func _cole_note_for(entry: Dictionary) -> String:
+	var torn := str(entry.get("cole_note_crushed", ""))
+	if torn != "" and bool(GameState.get_setting("evidence_crushed",
+			"%s/%s" % [id, str(entry.get("id", ""))], false)):
+		return torn
+	return str(entry.get("cole_note", ""))
 
 
 ## The chapter's echo in the same shape, or {} if it has none.
