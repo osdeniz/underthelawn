@@ -1650,6 +1650,12 @@ const DIORAMA_GRASS_TINT := Color(0.40, 0.58, 0.28)
 ## Sparse across the plate, dense where a ruin stands: nature took the town
 ## back, and a rebuilt plot gets cleared.
 const DIORAMA_TUFT_SPACING := 0.78
+## Cluster detail for the town's grass (G16.3). Measured before: 763k triangles
+## in the diorama, 711k of them tufts and the reclaim band, drawn at the yard's
+## full detail from a camera that cannot resolve a blade. Buildings, trees and
+## the horizon together were under 20k — the LOD the review guessed at (far
+## houses, billboard trees) would have saved nothing.
+const DIORAMA_TUFT_DETAIL := 0.4
 const DIORAMA_TUFT_JITTER := 0.34
 ## Radius around a ruined building that grows thick weeds, and how many extra
 ## clumps go in it.

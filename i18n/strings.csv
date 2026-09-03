@@ -1009,3 +1009,5 @@ HUD_LAPSE_LINE,Finish before the light goes.,Işık gitmeden bitir.
 DLG_CHAT_CH14_OBS_1,Someone on the ridge. ...Gone. He didn't run. He walked.,Sırtta biri var. ...Gitti. Koşmadı. Yürüdü.
 DLG_CHAT_HARVEST_1,{settler} came out to watch. First harvest since the road.,{settler} izlemeye geldi. Yoldan beri ilk hasat.
 DLG_CHAT_HARVEST_2,Says the rows are crooked. They are.,Sıralar eğri diyor. Haklı.
+SET_PERF_TITLE,Performance readout,Performans göstergesi
+SET_PERF_HINT,"fps, draw calls and triangles in the corner. For testing on a phone.","Köşede fps, çizim ve üçgen sayısı. Telefonda test için."

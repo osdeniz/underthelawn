@@ -1551,7 +1551,7 @@ func _build_tufts() -> void:
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_colors = true
-		mm.mesh = TuftField.cluster_mesh(mesh_rng, v)
+		mm.mesh = TuftField.cluster_mesh(mesh_rng, v, GameConfig.DIORAMA_TUFT_DETAIL)
 		mm.instance_count = 0
 		var mmi := MultiMeshInstance3D.new()
 		mmi.name = "TuftVariant%d" % v
@@ -2231,7 +2231,7 @@ func _build_reclaim() -> void:
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
 	# Variant 0 is the plain tall clump; the band is one species gone rank.
-	mm.mesh = TuftField.cluster_mesh(mesh_rng, 0)
+	mm.mesh = TuftField.cluster_mesh(mesh_rng, 0, GameConfig.DIORAMA_TUFT_DETAIL)
 	mm.instance_count = 0
 	var node := MultiMeshInstance3D.new()
 	node.name = "ReclaimBand"

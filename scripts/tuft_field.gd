@@ -79,11 +79,18 @@ func _build_variants(seed_value: int) -> void:
 ## Static so the town diorama can grow the same grass with no LawnModel behind
 ## it: one clump mesh, one source of truth for what this game's grass looks
 ## like (G13.1).
-static func cluster_mesh(rng: RandomNumberGenerator, variant: int) -> ArrayMesh:
-	return _make_cluster(rng, variant)
+## `detail` scales how many plants a cluster holds and how many blades each
+## has (G16.3). The yard uses 1.0. The town diorama is seen from 28 units up at
+## 39 degrees, where a clump is a few pixels — and it was drawing the SAME
+## full-detail clusters as the yard, thousands of them: measured 711k of the
+## diorama's 763k triangles were grass nobody could resolve.
+static func cluster_mesh(rng: RandomNumberGenerator, variant: int,
+		detail := 1.0) -> ArrayMesh:
+	return _make_cluster(rng, variant, detail)
 
 
-static func _make_cluster(rng: RandomNumberGenerator, variant: int) -> ArrayMesh:
+static func _make_cluster(rng: RandomNumberGenerator, variant: int,
+		detail := 1.0) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var spec: Dictionary = GameConfig.clump_variants()[variant]
@@ -97,6 +104,8 @@ static func _make_cluster(rng: RandomNumberGenerator, variant: int) -> ArrayMesh
 	# restates the original constants, so this loop draws exactly what it always
 	# drew unless a chapter asked for something else.
 	var per_cell := int(GameConfig.plant("per_cell", GameConfig.TUFTS_PER_CLUSTER))
+	if detail < 1.0:
+		per_cell = maxi(2, int(round(float(per_cell) * detail)))
 	var spread := float(GameConfig.plant("spread", GameConfig.TUFT_CLUSTER_SPREAD))
 	var h_min := float(GameConfig.plant("height_min", GameConfig.CLUMP_HEIGHT_MIN))
 	var h_max := float(GameConfig.plant("height_max", GameConfig.CLUMP_HEIGHT_MAX))
@@ -117,7 +126,10 @@ static func _make_cluster(rng: RandomNumberGenerator, variant: int) -> ArrayMesh
 				GameConfig.plant("stalk_root", root_col) as Color,
 				GameConfig.plant("stalk_tip", tip_col) as Color)
 		else:
-			_add_clump(st, rng, center, clump_h, root_col, tip_col, spec["flowers"])
+			# Flowers are a few extra triangles per clump that vanish at the
+			# diorama's distance; a reduced cluster does without them.
+			_add_clump(st, rng, center, clump_h, root_col, tip_col,
+				bool(spec["flowers"]) and detail >= 1.0, detail)
 	return st.commit()
 
 
@@ -277,11 +289,14 @@ static func _add_globe_head(st: SurfaceTool, at: Vector3,
 
 
 static func _add_clump(st: SurfaceTool, rng: RandomNumberGenerator, center: Vector3,
-		clump_h: float, root_col: Color, tip_col: Color, flowered: bool) -> void:
+		clump_h: float, root_col: Color, tip_col: Color, flowered: bool,
+		detail := 1.0) -> void:
 	# Blade count and fan width come from the plant profile (G13): a reed bed is
 	# the same builder with fewer, thinner, straighter blades.
 	var blades := int(GameConfig.plant("blades", GameConfig.CLUMP_BLADES)) \
 		+ rng.randi_range(-1, 1)
+	if detail < 1.0:
+		blades = maxi(3, int(round(float(blades) * detail)))
 	var base := rng.randf_range(
 		float(GameConfig.plant("base_min", GameConfig.CLUMP_BASE_MIN)),
 		float(GameConfig.plant("base_max", GameConfig.CLUMP_BASE_MAX)))

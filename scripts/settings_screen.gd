@@ -87,6 +87,10 @@ func _ready() -> void:
 			Haptics.enabled = on
 			GameState.set_setting("meta", "haptics_enabled", on))
 
+	# The device checklist's readout (G16.3): fps, draws and triangles in the
+	# corner of every screen. Off by default; a tester turns it on here.
+	_add_toggle(tr("SET_PERF_TITLE"), tr("SET_PERF_HINT"), PerfOverlay.enabled(),
+		func(on: bool) -> void: PerfOverlay.set_enabled(on))
 	_add_section(tr("SETTINGS_GROUP_GAME"))
 	# The same switch as the one on the game's top bar, in the place a player
 	# goes looking for it (G14.8). Cycles the four positions in order, and the

@@ -3550,3 +3550,37 @@ file's header.
 
 `GameState.SAVE_VERSION` is 2. The 1 → 2 step rewrites nothing: the store
 carried the keys and they mean what they meant.
+
+### G16.3 — the town's triangles, and where they actually were
+
+The review said the hub's 813k triangles were the first screen's risk and
+guessed at the fix: far houses baked to one mesh, trees as billboards. Before
+touching anything, `DioramaTriProbe` summed the faces per subtree:
+
+| subtree | triangles |
+|---|---|
+| seven `TuftVariant` multimeshes | ~711 000 |
+| `ReclaimBand` (the same clusters) | 113 000 |
+| everything else — buildings, trees, horizon, hedges | **under 20 000** |
+
+The guess would have saved nothing. The town was drawing the YARD's grass
+clusters — nine plants, six blades each, flowers — thousands of times, from a
+camera 28 units up at 39 degrees where a clump is a few pixels.
+
+`TuftField.cluster_mesh` takes a `detail` now; the diorama passes 0.4 (fewer
+plants, fewer blades, no flowers) and nothing else changed. Probe: 763k →
+**197k**. In the real hub, `MemoryCheck`: 813k → **241k** triangles at the same
+353 draws. Whether it still reads as a town from the hub camera was checked by
+rendering it, not by assuming a number that big cannot be seen.
+
+**Two presets that were missing.** `export_presets.cfg` had iOS and nothing
+else. Android (arm64-v8a, gradle) and macOS are in it now; the store listing
+fields are placeholders. And `docs/DEVICE_TEST.md`: the checklist for the
+measurement that has never been made — which devices, which screens, in what
+order, the MINIMUM fps not the average, and where the numbers go. The
+performance readout it relies on is a settings toggle (`PerfOverlay`): fps with
+the last second's minimum, draws, triangles and static memory, in the corner of
+every screen, off by default, remembered in the save.
+
+The measuring itself is the one thing in this list that cannot be done from
+here. Nothing above is "verified on a phone"; it is ready to be.
