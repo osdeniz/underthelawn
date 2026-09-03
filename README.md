@@ -3111,3 +3111,42 @@ Leave ONE variable in the frame.
 stands — a chirp with no bird was noise. A bird you can SEE take off is a
 different thing, and it belongs to the audio pass along with the rustle the
 rabbit ought to make.
+
+### G14.26 — the walker went sideways, and backwards
+
+Reported from play: holding forward on foot moved the figure sideways, holding
+left or right moved it back down the screen, and the man walked in reverse the
+whole time. Two separate bugs, and one test that could not have caught either.
+
+**The direction was 90 degrees out.** `MowerController.forward()` is
+`(sin(yaw), 0, -cos(yaw))` — the heading is a SPEC yaw, clockwise from -Z, not
+a Godot rotation. `Walker.direction_for` returned `(cos, sin)`, which is the
+mower's `right()`. G14.17 had already "fixed" this once, from `(sin, cos)` to
+`(cos, sin)`: two wrong answers in a row, because neither of them was read off
+the function they were supposed to match.
+
+**The facing was 180 out.** `rotation.y = atan2(vx, vz)` aims the model's +Z
+down the velocity, and every model in this project faces -Z. Machines apply
+`rotation.y = -yaw` for exactly that reason. So the walker now backs the spec
+yaw out of its own velocity (`sin(yaw) = vx`, `cos(yaw) = -vz`) and applies it
+the same way — which also means `yaw` is finally handed to the camera rig in
+the space the rig documents.
+
+**Why the test passed anyway.** `WalkDirCheck` compared the walker against
+`_machine_direction()`, a function that RESTATED the mower's formula by hand —
+and restated it wrong, as `Vector2(cos(yaw), sin(yaw))`. So a walker that was
+90 degrees out was compared against a hand-copy that was 90 degrees out in the
+same direction, and they agreed to within a degree. **A test that restates the
+code under test proves that two copies match and nothing else.** It asks the
+mower now — sets `mower.yaw` and reads `mower.forward()` — and the fix was
+verified by putting the old formula back and watching the test fail at 90.0
+degrees on every case. A second assertion checks the FACING against the
+movement, which nothing had ever looked at.
+
+**Two stale tests found while checking this, both green now and both green for
+the wrong reason before.** `KeyboardCheck` reported every mower ignoring every
+key: it never unpaused the tree, and `_read_keyboard` lives in
+`_physics_process`. `InputMapCheck` asserted the tree was unpaused right after
+entry. Both were the same cause — a headless window has no focus, so the game
+correctly pauses itself for the background before the test starts. Neither was
+a game bug; both had been failing silently since before G14.25.

@@ -52,10 +52,19 @@ func _ready() -> void:
 func _check_background() -> void:
 	var game: Node = load("res://scenes/Main.tscn").instantiate()
 	add_child(game)
-	for _i in 4:
+	for _i in 8:
 		await get_tree().process_frame
+	# A headless window has no focus, so the game does the right thing and
+	# pauses itself for the background before the test has begun. Clear that
+	# FIRST — otherwise this measures the pause it came in with rather than the
+	# one the notification below is supposed to cause, and reports the game
+	# broken when it is behaving correctly.
+	get_tree().paused = false
+	game.hud._close_pause()
 	game._begin_search()
-	await get_tree().process_frame
+	for _i in 4:
+		get_tree().paused = false
+		await get_tree().process_frame
 	ck("arama basladi", get_tree().paused == false, "zaten duraklamis")
 	game.notification(NOTIFICATION_APPLICATION_PAUSED)
 	await get_tree().process_frame

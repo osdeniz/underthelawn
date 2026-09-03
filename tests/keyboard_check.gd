@@ -11,7 +11,18 @@ func _ready() -> void:
 	GameState.set_setting("meta", "orientation_done", true)
 	var game: Node = load("res://scenes/Main.tscn").instantiate()
 	add_child(game)
-	await get_tree().process_frame
+	for _i in 10:
+		await get_tree().process_frame
+	# UNPAUSE, and close whatever sheet the HUD opened on entry. _read_keyboard
+	# lives in _physics_process, and a paused tree does not run one — so this
+	# test reported every mower ignoring every key, which is what it looks like
+	# when the tree is frozen rather than when the input is broken.
+	get_tree().paused = false
+	game.hud._close_pause()
+	game._begin_search()
+	for _i in 10:
+		get_tree().paused = false
+		await get_tree().process_frame
 
 	for type_index: int in [GameConfig.MOWER_PUSH, GameConfig.MOWER_TRACTOR,
 			GameConfig.MOWER_BLADE]:
@@ -65,10 +76,12 @@ func _drive(mower: MowerController, action: String, label: String,
 		rig.yaw = 0.0
 	mower.camera_yaw = 0.0
 	for _s in 4:
+		get_tree().paused = false
 		await get_tree().physics_frame
 	var from := mower.position
 	_press(action)
 	for _i in 90:
+		get_tree().paused = false
 		await get_tree().physics_frame
 	_release(action)
 	var moved := mower.position - from

@@ -45,10 +45,14 @@ func setup(from: MowerController, driver: Character, at: Vector3) -> void:
 ## to prevent (G14.17).
 static func direction_for(camera_yaw: float, stick: Vector2) -> Vector2:
 	var heading := camera_yaw + atan2(stick.x, stick.y)
-	# (cos, sin), the same as MowerController._forward(). It was (sin, cos),
-	# which is that vector MIRRORED across the 45-degree line: on foot the
-	# player went east when the machine would have gone south.
-	return Vector2(cos(heading), sin(heading))
+	# (sin, -cos). This is MowerController.forward() and nothing else, and it
+	# has now been wrong twice: first (sin, cos), then (cos, sin), which is
+	# the machine's RIGHT vector rather than its forward — a clean 90 degree
+	# rotation, so pressing forward walked sideways and pressing sideways
+	# walked back down the screen. The heading is a SPEC yaw (clockwise from
+	# -Z), not a Godot rotation, and the only safe way to turn one into a
+	# direction is to ask the mower.
+	return Vector2(sin(heading), -cos(heading))
 
 
 ## Whether the machine can be climbed back onto from here.
@@ -77,8 +81,14 @@ func _physics_process(delta: float) -> void:
 	position.z = clampf(position.z, -GameConfig.HALF_Z + 0.4,
 		GameConfig.HALF_Z - 0.4)
 	if _velocity.length() > 0.05:
-		rotation.y = atan2(_velocity.x, _velocity.y)
-		yaw = rotation.y
+		# Back out the spec yaw the velocity implies — sin(yaw) = vx and
+		# cos(yaw) = -vz — and apply it the way every machine does,
+		# rotation.y = -yaw. The old line read the Godot rotation straight off
+		# atan2(vx, vz), which aims the model's +Z down the velocity: the
+		# figure walked BACKWARDS the whole time, and `yaw` was handed to the
+		# camera rig in the wrong space as well.
+		yaw = atan2(_velocity.x, -_velocity.y)
+		rotation.y = -yaw
 	# The driver's walk cycle is driven by speed, and it has no controller now,
 	# so feed it directly.
 	if character != null and is_instance_valid(character):
