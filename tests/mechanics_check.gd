@@ -133,6 +133,31 @@ func _time_lapse() -> void:
 	ck("yarida isik ikisinin arasinda", absf(sun.rotation_degrees.x - mid) < 0.5,
 		"%.1f vs %.1f" % [sun.rotation_degrees.x, mid])
 	print("  [olcum] gunes: baslangic %.1f, yari %.1f, gece %.1f" % [start_elev, mid, -float(night["elev"])])
+	# G18.1: the dark costs speed. Measured on the mower, not on the formula.
+	var full: float = game.mower.max_speed() / game.mower.speed_scale
+	ck("gun batimindan once hiz tam", is_equal_approx(game.mower.speed_scale, 1.0),
+		"%.2f" % game.mower.speed_scale)
+	game._search_seconds = float(game.variant.time_lapse.get("seconds", 150)) * 0.75
+	game._tick_lapse()
+	var mid_scale: float = game.mower.speed_scale
+	ck("gece cokerken hiz ikisinin arasinda",
+		mid_scale < 0.99 and mid_scale > GameConfig.DARK_SPEED_MIN + 0.01, "%.2f" % mid_scale)
+	game._search_seconds = float(game.variant.time_lapse.get("seconds", 150)) * 1.2
+	game._tick_lapse()
+	ck("sure dolunca hiz tabanda",
+		is_equal_approx(game.mower.speed_scale, GameConfig.DARK_SPEED_MIN),
+		"%.2f" % game.mower.speed_scale)
+	ck("makinenin azami hizi gercekten dustu",
+		absf(game.mower.max_speed() - full * GameConfig.DARK_SPEED_MIN) < 0.001,
+		"%.2f vs %.2f" % [game.mower.max_speed(), full])
+	ck("HUD karanlik satirina gecti", game.hud._case_line.text == tr("HUD_DARK_LINE"),
+		game.hud._case_line.text)
+	# What it costs: the second half of the yard at the average dark speed.
+	var avg := (1.0 + GameConfig.DARK_SPEED_MIN) * 0.5
+	var extra_days := (0.5 / avg - 0.5) * float(game.variant.time_lapse.get("seconds", 150)) \
+		/ GameConfig.FOOD_DAY_SECONDS
+	print("  [olcum] karanlik cezasi: ikinci yari %.0f%% daha uzun, ~%.1f gun daha yemek" \
+		% [(1.0 / avg - 1.0) * 100.0, extra_days])
 	game.queue_free(); await frames(4)
 
 

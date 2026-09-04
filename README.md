@@ -3746,3 +3746,24 @@ WASD has driven the mowers since G14, so the desktop has its input.
 gift on a monitor rather than a problem; retuning the chase offsets for it is a
 feel pass for a desktop build with a desktop tester, and the macOS preset is
 there for exactly that.
+
+## G18.1 — the dark costs something
+
+The ch06 time-lapse delivered the promised sunset (G15.5) and then let you
+finish in the dark for free. The review asked for the dark to make mowing
+harder; the answer is a penalty wired to the one pressure the game already
+has. Once the lapse crosses `GameConfig.DARK_ONSET` (the hour flips to night)
+every mower's top speed slides linearly to `DARK_SPEED_MIN` (0.6) by the end
+of the lapse and stays there; `GameConfig.dark_speed_scale(t)` is the pure
+curve, `MowerController.speed_scale` the hook, set by `Game._tick_lapse`
+every frame. No fail state, no new resource: a slower yard is a longer yard,
+and the town eats for every `FOOD_DAY_SECONDS` of it. The HUD's promise line
+("Finish before the light goes") becomes the cost line when night lands.
+
+`MechanicsCheck` measures it on the mower, not on the formula: full speed at
+the onset, between at three quarters, at the floor past the end, and
+`max_speed()` really is 0.6 of what it was. The printed cost: the second half
+of a 170 s yard runs 25 % longer for a player who is still cutting at the
+average dark speed, about half a town-day of food; a player who overruns the
+lapse pays 1.67x on every remaining minute. That is where the bite is meant
+to be — on the slow finish, not on everyone.

@@ -87,9 +87,13 @@ func type_index() -> int:
 	return GameConfig.MOWER_PUSH
 
 
+## Set by the scene, not the machine: the dark (G18.1) slows every mower the
+## same way. 1.0 everywhere except a time-lapse yard after night falls.
+var speed_scale := 1.0
+
 func max_speed() -> float:
 	# G10: the workshop's tier bonus rides on top of the §7 base speed.
-	return params["speed"] * Garage.speed_multiplier(type_index())
+	return params["speed"] * Garage.speed_multiplier(type_index()) * speed_scale
 
 
 func deck_radius() -> float:

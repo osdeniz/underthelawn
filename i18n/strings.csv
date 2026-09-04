@@ -1006,6 +1006,7 @@ DLG_DEB_CH08_CRUSHED_2,She's fine. Her picture isn't. I said gently.,Kız iyi. R
 HUD_WALK_TIP_T,THE REEDS,SAZLIK
 HUD_WALK_TIP_L,The machine won't go in there. Step down and walk.,Makine oraya girmez. İn ve yürü.
 HUD_LAPSE_LINE,Finish before the light goes.,Işık gitmeden bitir.
+HUD_DARK_LINE,Dark. Slower now — and the town is eating.,Karanlık. Artık yavaşsın — ve kasaba yiyor.
 DLG_CHAT_CH14_OBS_1,Someone on the ridge. ...Gone. He didn't run. He walked.,Sırtta biri var. ...Gitti. Koşmadı. Yürüdü.
 DLG_CHAT_HARVEST_1,{settler} came out to watch. First harvest since the road.,{settler} izlemeye geldi. Yoldan beri ilk hasat.
 DLG_CHAT_HARVEST_2,Says the rows are crooked. They are.,Sıralar eğri diyor. Haklı.

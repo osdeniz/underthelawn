@@ -1513,6 +1513,11 @@ func apply_lapse_mode() -> void:
 	_case_line.text = tr("HUD_LAPSE_LINE")
 
 
+## Night has fallen on a time-lapse yard: the promise line becomes the cost.
+func apply_dark_mode() -> void:
+	_case_line.text = tr("HUD_DARK_LINE")
+
+
 func apply_harvest_mode() -> void:
 	_case_line.text = tr("HARVEST_HUD_LINE")
 	_evidence_chip.visible = false

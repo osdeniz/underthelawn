@@ -892,8 +892,9 @@ func _build_reeds() -> void:
 
 
 ## The one chapter whose light moves (G15.5): from its hour to the next over
-## the length of the search. No fail state — an unfinished yard is simply
-## finished in the dark, and the dark was measured playable (G14.7).
+## the length of the search. No fail state — an unfinished yard is finished
+## in the dark — but the dark is not free (G18.1): the machine slows once
+## night falls, and a slow yard eats more of the town's food.
 var _lapse_bucket := ""
 func _tick_lapse() -> void:
 	if variant == null or variant.time_lapse.is_empty() or not _search_started \
@@ -905,13 +906,19 @@ func _tick_lapse() -> void:
 	var to := str(variant.time_lapse.get("to", variant.time_of_day))
 	SkyTime.blend($WorldEnvironment as WorldEnvironment, $Sun as DirectionalLight3D,
 		from, to, t)
+	# The penalty: top speed follows the light down. Every frame, because the
+	# slide is continuous; the mower reads it on its next max_speed() call.
+	if mower != null:
+		mower.speed_scale = GameConfig.dark_speed_scale(t)
 	# The hour-bucketed things (fireflies, far windows, moth clippings) switch
-	# once, halfway, rather than every frame.
-	var bucket := from if t < 0.5 else to
+	# once, at the onset, rather than every frame.
+	var bucket := from if t < GameConfig.DARK_ONSET else to
 	if bucket != _lapse_bucket:
 		_lapse_bucket = bucket
 		variant.time_of_day = bucket
 		hud.refresh_sky()
+		if bucket == to:
+			hud.apply_dark_mode()
 		# The sound follows the light: crickets come in with the dark, and the
 		# bed changes if the hour crosses into the evening set.
 		AudioDirector.set_scene(SkyTime.resolve(bucket), Rain.is_wet(), false)

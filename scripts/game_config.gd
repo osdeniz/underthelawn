@@ -2486,8 +2486,22 @@ const REED_HEAD_COLOUR := Color(0.42, 0.30, 0.18)
 
 ## TIME-LAPSE (ch06, the water tower): the sun goes down over the search. The
 ## first briefing has promised candles burning down since G7 and nothing ever
-## burned; here the light itself is the clock. No fail state — an unfinished
-## yard is finished in the dark, which was measured playable (G14.7).
+## burned; here the light itself is the clock. The dark was measured playable
+## (G14.7) and, until G18.1, free. Now it costs: once the hour flips to night
+## (DARK_ONSET of the lapse) the machine's top speed slides to DARK_SPEED_MIN
+## by the end of the lapse and stays there. No fail state, but a slow yard is
+## a long yard, and the town eats for every FOOD_DAY_SECONDS of it — which is
+## the one pressure this game already has, applied where the light goes.
+const DARK_ONSET := 0.5
+const DARK_SPEED_MIN := 0.6
+
+## The speed scale for a lapse at fraction t (0 = start, 1 = the hour named
+## in "to"). Pure so the test can check the shape, not just the endpoints.
+static func dark_speed_scale(t: float) -> float:
+	if t <= DARK_ONSET:
+		return 1.0
+	var into := (clampf(t, 0.0, 1.0) - DARK_ONSET) / (1.0 - DARK_ONSET)
+	return lerpf(1.0, DARK_SPEED_MIN, into)
 
 
 # ---------------------------------------------------------------- people seen (G15.6)
