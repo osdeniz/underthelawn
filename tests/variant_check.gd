@@ -28,13 +28,18 @@ func _check_variants() -> void:
 	# was right while there was one case; now the rule is that every chapter on
 	# a board has a variant, and every variant belongs to a board (G13).
 	var case_ids: Array[String] = []
-	for chapter: Dictionary in Story.list("chapters") + Story.list("case_02.chapters"):
+	for chapter: Dictionary in Story.list("chapters") + Story.list("case_02.chapters") \
+			+ Story.list("case_03.chapters"):
 		case_ids.append(str(chapter.get("variant_id", "")))
 	ck("vaka 01 sekiz bolum", Story.list("chapters").size() == 8,
 		str(Story.list("chapters").size()))
 	for cid in case_ids:
 		ck("panodaki bolumun varyanti var: %s" % cid, ids.has(cid), cid)
 	for vid in ids:
+		# The prologue road is the one chapter on no board: it plays before
+		# there is a town to have a board (G15.1).
+		if vid == GameConfig.PROLOGUE_ID:
+			continue
 		ck("varyant bir vakaya bagli: %s" % vid, case_ids.has(vid), vid)
 	var palettes := {}
 	var landmarks := {}
@@ -53,6 +58,10 @@ func _check_variants() -> void:
 			ck("landmark tanimli: %s" % v.landmark_id,
 				GameConfig.LANDMARK_IDS.has(v.landmark_id), v.landmark_id)
 			landmarks[v.landmark_id] = true
+		# The road buries nothing and pays nothing: it is walked, not searched
+		# (G15.2). Everything else on a board carries two pieces.
+		if v.is_road():
+			continue
 		ck("%s iki kanit tasiyor" % id, v.evidence_count() == 2,
 			str(v.evidence_count()))
 		# B8 is the short finale (floor 6); the large fields carry more points
@@ -106,7 +115,7 @@ func _check_grid_follows_data() -> void:
 				break
 		# Both evidence slots must land on real cells — except on a harvest,
 		# which buries nothing at all (G13.6).
-		var want := 0 if v.is_harvest() else 2
+		var want := 0 if v.is_harvest() or v.is_road() else 2
 		ck("%s kanit yerlesti" % id, model.secret_cells.size() == want,
 			str(model.secret_cells.size()))
 	# Leave the engine on the default yard for anything that runs after.

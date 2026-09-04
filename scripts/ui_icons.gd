@@ -15,8 +15,9 @@ static var _cache := {}
 
 
 ## A banknote: what the wallet chip and every cost button show.
-static func money() -> Texture2D:
-	return _make("money")
+## A gear: the salvage counter (G19.1; it was a banknote).
+static func salvage() -> Texture2D:
+	return _make("salvage")
 
 
 ## A clipboard: the evidence counter.
@@ -81,7 +82,7 @@ static func _make(id: String) -> Texture2D:
 	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 	match id:
-		"money": _draw_money(img)
+		"salvage": _draw_salvage(img)
 		"evidence": _draw_evidence(img)
 		"map": _draw_map(img)
 		"town": _draw_town(img)
@@ -129,18 +130,20 @@ static func _disc(img: Image, cx: int, cy: int, r: int, c: Color) -> void:
 ## One banknote, drawn big and high-contrast. A first version stacked two notes
 ## with a small oval; at the 38 px the chip actually renders it, the second note
 ## read as noise and the whole thing went muddy against the dark green chip.
-static func _draw_money(img: Image) -> void:
-	var rim := Color(0.07, 0.17, 0.09)
-	var body := Color(0.58, 0.92, 0.58)
-	var mark := Color(0.13, 0.34, 0.16)
-	_rect(img, 4, 16, 56, 32, rim)
-	_rect(img, 7, 19, 50, 26, body)
-	# A fat centre disc and two corner ticks: at icon size these three shapes
-	# are the whole difference between "banknote" and "green rectangle".
-	_disc(img, 32, 32, 10, mark)
-	_disc(img, 32, 32, 6, body)
-	_rect(img, 11, 23, 9, 4, mark)
-	_rect(img, 44, 37, 9, 4, mark)
+static func _draw_salvage(img: Image) -> void:
+	var rim := Color(0.16, 0.17, 0.20)
+	var body := Color(0.74, 0.76, 0.78)
+	var hole := Color(0.30, 0.31, 0.34)
+	# Four teeth as a cross, four more as a shorter diagonal cross made of
+	# small squares; at icon size the eight bumps on a disc are what say "gear".
+	_rect(img, 28, 6, 8, 52, rim)
+	_rect(img, 6, 28, 52, 8, rim)
+	for d: Vector2i in [Vector2i(13, 13), Vector2i(43, 13), Vector2i(13, 43), Vector2i(43, 43)]:
+		_rect(img, d.x, d.y, 8, 8, rim)
+	_disc(img, 32, 32, 19, rim)
+	_disc(img, 32, 32, 16, body)
+	_disc(img, 32, 32, 7, hole)
+	_disc(img, 32, 32, 4, rim)
 
 
 ## A clipboard: board, clip, and two written lines.

@@ -366,7 +366,7 @@ func _price_button(label_text: String, cost: int, index: int,
 	box.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
 	var button := Button.new()
 	button.text = label_text
-	button.icon = UiIcons.money()
+	button.icon = UiIcons.salvage()
 	button.expand_icon = false
 	button.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
 	button.add_theme_constant_override("h_separation", 14)

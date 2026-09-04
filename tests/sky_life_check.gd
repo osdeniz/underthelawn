@@ -21,6 +21,12 @@ func _ready() -> void:
 		int(ProjectSettings.get_setting("display/window/size/viewport_height", 2532)))
 	get_window().size = want
 	get_window().content_scale_size = want
+	# The desktop default is a landscape window with KEEP_HEIGHT (G18), and the
+	# OS clamps a 2532-tall window to the screen, so the viewport came back
+	# 1534 wide and the KEEP_WIDTH camera lost the sky off the top. Letterbox
+	# to the phone's exact frame: this test is about the phone.
+	get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	await get_tree().process_frame
 	await get_tree().process_frame
 
 	var town: TownDiorama = load("res://scenes/TownDiorama.tscn").instantiate()
@@ -45,6 +51,15 @@ func _ready() -> void:
 		return
 
 	var clouds := _on_screen(cam, sky, false)
+	print("  [olcum] viewport %s pencere %s kamera %s fov %.1f" % [cam.get_viewport().get_visible_rect().size,
+		get_window().size, cam.global_position, cam.fov])
+	var shown := 0
+	for any2: Variant in sky.get_children():
+		var mi2 := any2 as MeshInstance3D
+		if mi2 != null and shown < 4:
+			shown += 1
+			print("  [olcum] bulut %s -> %s arkada=%s" % [mi2.global_position, cam.unproject_position(mi2.global_position),
+				cam.is_position_behind(mi2.global_position)])
 	ck("bulutlarin cogu ekranda", clouds[1] * 2 >= clouds[0],
 		"%d / %d" % [clouds[1], clouds[0]])
 	ck("bulut var", clouds[0] > 0, "0 bulut")

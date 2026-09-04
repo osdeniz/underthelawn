@@ -110,7 +110,7 @@ EXIT_ALL_FOUND,All evidence found.,Tüm kanıtlar bulundu.
 EXIT_CONTINUE,CONTINUE THE CASE →,VAKAYA DEVAM ET →
 EXIT_KEEP_MOWING,KEEP MOWING,BİÇMEYE DEVAM
 EXIT_BADGE,Continue →,Devam →
-PAYOUT_GROUND,Cash picked up,Yerden toplanan para
+PAYOUT_GROUND,Salvage picked up,Toplanan hurda
 PAYOUT_BONUS,Search bonus ({pct}% mown),Arama primi (%{pct} biçildi)
 PAYOUT_THOROUGH,Thorough Search +{pct}%,Eksiksiz Arama +%{pct}
 PAYOUT_TOTAL,Total,Toplam
@@ -260,7 +260,7 @@ ECHOES_EMPTY,Nothing found yet. Keep cutting.,Henüz bir şey yok. Biçmeye deva
 HUB_ECHOES,ECHOES,YANKILAR
 HUB_ECHOES_HINT,Scraps of the years before.,Önceki yıllardan kalıntılar.
 HUB_RESTORE,RESTORE,ONARIM
-HUB_RESTORE_HINT,Put the money back into the town.,Parayı kasabaya geri koy.
+HUB_RESTORE_HINT,Put the salvage back into the town.,Hurdayı kasabaya geri koy.
 ECHO_CH01_NAME,Yellowed Headline,Sararmış Manşet
 ECHO_CH01_LINE,"""THE CITIES CLOSE THEIR GATES""","""ŞEHİRLER KAPILARINI KAPATIYOR"""
 ECHO_CH02_NAME,Evacuation Leaflet,Tahliye Broşürü
@@ -317,7 +317,7 @@ PRJ_GREENHOUSE_THANKS,Tomatoes by autumn. I'd forgotten what that felt like.,Son
 PRJ_GREENHOUSE_CRUMB,Ellie wants to plant the seeds from that letter.,Ellie o mektuptaki tohumları ekmek istiyor.
 PRJ_CLINIC_NAME,Clinic Supplies,Klinik Malzemesi
 PRJ_CLINIC_DESC,"Bandages, antiseptic, a working lamp.","Sargı, antiseptik, çalışan bir lamba."
-PRJ_CLINIC_BONUS,+1 salvage point per search,Arama başına +1 para noktası
+PRJ_CLINIC_BONUS,+1 salvage point per search,Arama başına +1 hurda noktası
 PRJ_CLINIC_THANKS,Nobody's died of a cut in this town for two years. Let's keep it that way.,Bu kasabada iki yıldır kimse bir kesikten ölmedi. Öyle kalsın.
 PRJ_CLINIC_CRUMB,"The first winter, we had nothing. I don't talk about that winter.",İlk kış hiçbir şeyimiz yoktu. O kıştan bahsetmem.
 PRJ_MAST_NAME,Radio Mast Repair,Telsiz Direği Onarımı
@@ -411,7 +411,7 @@ FIRST_OK,START SEARCHING,ARAMAYA BAŞLA
 HARVEST_HEADLINE,THE FIELD IS READY,TARLA HAZIR
 HARVEST_SUBLINE,Gus says the wheat is past knee-high.,Gus buğdayın diz boyunu geçtiğini söylüyor.
 HARVEST_TAB,HARVEST,HASAT
-HARVEST_CALL,"Wheat's past its height, Marshal. Grab the tractor.",Buğday boyunu geçti Marshal. Traktörü kap.
+HARVEST_CALL,"Wheat's past its height, detective. Grab the tractor.",Buğday boyunu geçti dedektif. Traktörü kap.
 HARVEST_COMPLETE,HARVEST COMPLETE,HASAT TAMAMLANDI
 HARVEST_CRUMB_1,First winter's store is in.,İlk kışın stoğu tamam.
 HARVEST_CRUMB_2,Barn's full — the cat approves.,Ambar doldu — kedi memnun.
@@ -454,7 +454,7 @@ OBJ_REWARD,Reward,Ödül
 OBJ_COMPLETED_TOAST,OBJECTIVE COMPLETE,GÖREV TAMAMLANDI
 OBJ_ELLIE_TITLE,FIND ELLIE,ELLIE'Yİ BUL
 OBJ_ELLIE_DESC,Eight places to search before the candles burn down.,Mumlar erimeden aranacak sekiz yer.
-OBJ_ELLIE_DONE,The Marshal has nothing to say. He just shakes your hand.,Marshal'ın söyleyecek sözü yok. Sadece elini sıkıyor.
+OBJ_ELLIE_DONE,The Marshal has nothing to say. He just shakes your hand.,Şerif'in söyleyecek sözü yok. Sadece elini sıkıyor.
 OBJ_ELLIE_C1,Search the Aldridge place,Aldridge evini ara
 OBJ_ELLIE_C2,Search the neighbour's yard,Komşunun bahçesini ara
 OBJ_ELLIE_C3,Search the playground,Oyun parkını ara
@@ -465,7 +465,7 @@ OBJ_ELLIE_C7,Search the mill,Değirmeni ara
 OBJ_ELLIE_C8,Search the cellar,Mahzeni ara
 OBJ_WINTER_TITLE,WINTER STORE,KIŞ STOĞU
 OBJ_WINTER_DESC,Gus keeps the wheat standing. Somebody has to bring it in.,Gus buğdayı ayakta tutuyor. Birinin onu kaldırması lazım.
-OBJ_WINTER_DONE,"Winter store's in — the town owes you, Marshal.","Kış stoğu tamam — kasaba sana borçlu, Marshal."
+OBJ_WINTER_DONE,"Winter store's in — the town owes you, detective.","Kış stoğu tamam — kasaba sana borçlu, dedektif."
 OBJ_WINTER_C1,Rebuild the farm,Çiftliği onar
 OBJ_WINTER_C2,Own the tractor,Traktörü al
 OBJ_WINTER_C3,Close three cases,Üç bölüm tamamla
@@ -909,7 +909,7 @@ JOURNAL_TAB_NOTES,Case Notes,Vaka Notları
 JOURNAL_TAB_DISCOVERIES,Discoveries,Bulgular
 JOURNAL_TAB_ECHOES,Echoes,Yankılar
 JOURNAL_NOTES_COUNT,{count} notes written,{count} not yazıldı
-JOURNAL_NOTES_EMPTY,Nothing written down yet. Finish a search and the Marshal will have something to say.,"Henüz not yok. Bir aramayı bitir, Marshal'ın söyleyecek bir şeyi olsun."
+JOURNAL_NOTES_EMPTY,Nothing written down yet. Finish a search and the Marshal will have something to say.,"Henüz not yok. Bir aramayı bitir, Şerif'in söyleyecek bir şeyi olsun."
 JOURNAL_DISCOVERIES_COUNT,{found} of {total} found,{total} bulgudan {found} tanesi
 JOURNAL_DISCOVERIES_EMPTY,No evidence in hand. It is out there in the grass.,Elinde kanıt yok. Otların arasında duruyor.
 JOURNAL_ECHOES_COUNT,{found} of {total} found,{total} yankıdan {found} tanesi
@@ -936,7 +936,7 @@ SET_ACCEPT,TAKE THEM IN,İÇERİ AL
 SET_REJECT,SEND THEM ON,YOLUNA GÖNDER
 SET_UPKEEP,Eats {n}/day,Günde {n} yer
 SET_EFFECT_FOOD,Finds {pct}% more food in a yard,Bahçelerde %{pct} daha çok gıda buluyor
-SET_EFFECT_SCRAP,Finds {pct}% more money in a yard,Bahçelerde %{pct} daha çok para buluyor
+SET_EFFECT_SCRAP,Finds {pct}% more salvage in a yard,Bahçelerde %{pct} daha çok hurda buluyor
 SET_EFFECT_UPKEEP,Feeds the town on {n} less a day,Kasabayı günde {n} eksiğe doyuruyor
 SET_EFFECT_BUILD,Restorations cost {pct}% less,Onarımlar %{pct} ucuza geliyor
 SET_WREN_NAME,Wren,Wren
@@ -958,8 +958,8 @@ HUB_DAILY,{n}/day,Günde {n}
 SHOP_FOOD,Sack of food,Bir çuval gıda
 SHOP_FOOD_HINT,{n} food. The larder does not fill itself.,{n} gıda. Kiler kendi kendine dolmuyor.
 SHOP_BUY,BUY,AL
-SHOP_POOR,Not enough money,Para yetmiyor
-HARVEST_PAYS_MONEY,Pays well,İyi para eder
+SHOP_POOR,Not enough salvage,Hurda yetmiyor
+HARVEST_PAYS_MONEY,Pays well,İyi kazandırır
 HARVEST_PAYS_FOOD,Fills the larder,Kileri doldurur
 HARVEST_QUICK,In before dark,Akşama biter
 HARVEST_LONG,A long day,Uzun bir gün
@@ -970,8 +970,8 @@ UI_DISMOUNT,STEP DOWN,İN
 UI_MOUNT,GET ON,BİN
 UI_MOUNT_WORKING,GET BACK ON,GERİ BİN
 UI_TOO_FAR,Too far from the machine,Makineden çok uzaktasın
-TIP_MONEY_TITLE,THAT'S SALVAGE,BU HURDA PARASI
-TIP_MONEY_LINE,"Cash in the grass, left where people dropped it. It pays for the town: every rebuilt roof on the RESTORE board is bought with this.",Çimenlerin arasında kalmış para. Kasabayı bu ödüyor: ONARIM panosundaki her çatı bununla satın alınıyor.
+TIP_MONEY_TITLE,THAT'S SALVAGE,BU HURDA
+TIP_MONEY_LINE,"Wire, tins, a gear: what the town left in the grass. It pays for the town — every rebuilt roof on the RESTORE board is bought with this.","Tel, teneke, bir dişli: kasabanın çimende bıraktıkları. Kasabayı bu ödüyor — ONARIM panosundaki her çatı bununla alınıyor."
 TIP_FOOD_TITLE,THAT'S FOOD,BU YİYECEK
 TIP_FOOD_LINE,Crates the yards kept. The town eats a little every day you are out working — bring some back and the larder holds.,Bahçelerin sakladığı sandıklar. Sen çalışırken kasaba her gün biraz yiyor — getirdiğin kadar kiler dayanır.
 TIP_OK,GOT IT,ANLADIM
@@ -1114,7 +1114,7 @@ COLE_SIGN_BLANK,Primed twice. Two people started to write and both stopped. The 
 MN_CH24_B,Neither do I.,Ben de bilmiyorum.
 EV_CH25_A_NAME,Gus's lantern,Gus'ın feneri
 EV_CH25_A_LINE,"Lit, and set on the top step.","Yakılmış, en üst basamağa konmuş."
-COLE_LANTERN,"Trimmed for a long night. Left where the road can see it — the same porch light the Marshal walked towards nine years ago, higher.","Uzun bir gece için ayarlanmış. Yolun göreceği yere bırakılmış — Mareşal'in dokuz yıl önce yürüdüğü veranda ışığı, daha yüksekte."
+COLE_LANTERN,"Trimmed for a long night. Left where the road can see it — the same porch light the Marshal walked towards nine years ago, higher.","Uzun bir gece için ayarlanmış. Yolun göreceği yere bırakılmış — Şerif'in dokuz yıl önce yürüdüğü veranda ışığı, daha yüksekte."
 MN_CH25_A,I know what a light on a porch does to a man on a road.,Bir veranda ışığının yoldaki adama ne yaptığını bilirim.
 EV_CH25_B_NAME,Radio log,Telsiz kaydı
 EV_CH25_B_LINE,"Three nights of Gus's handwriting: lights, distances, times.","Gus'ın üç gecelik el yazısı: ışıklar, mesafeler, saatler."
@@ -1222,3 +1222,22 @@ END_CLOSED_1,They thanked us for our time and turned the trucks around. Nobody r
 END_CLOSED_2,"She watched them go from Sarah's window. The dog stood at the gate, beside you, and did not look back at the house.","Sarah'nın penceresinden gidişlerini izledi. Köpek kapıda, yanında durdu ve eve dönüp bakmadı."
 CASE_03_COMPLETE,CASE 03 CLOSED,VAKA 03 KAPANDI
 CASE_03_UNLOCKED,CASE 03 UNLOCKED,VAKA 03 AÇILDI
+UI_RESTART_CONFIRM,TAP AGAIN TO RESTART,SIFIRLAMAK İÇİN TEKRAR DOKUN
+PRO_07_L1,"They made me Marshal, in time. I never told them why I stayed.",Zamanla beni Şerif yaptılar. Neden kaldığımı hiç söylemedim.
+PRO_07_L2,"Nine years later, when she went missing, I sent for you.","Dokuz yıl sonra, o kaybolduğunda, seni çağırdım."
+ECHO_CH19_NAME,Ration Ledger,Karne Defteri
+ECHO_CH19_LINE,"Names down the left, ticks across. The last column is headed with a date and nothing under it.","Solda isimler, yanlarında işaretler. Son sütunun başında bir tarih var, altında hiçbir şey."
+ECHO_CH20_NAME,Signal Tin,Sinyal Tenekesi
+ECHO_CH20_LINE,"A tin with a candle stub and a slit cut in the side. Somebody kept watch from up here, and wanted to be seen doing it.","İçinde mum dibi, yanında bir yarık açılmış teneke. Biri buradan nöbet tutmuş ve tutarken görülmek istemiş."
+ECHO_CH21_NAME,Chalk Alphabet,Tebeşir Alfabesi
+ECHO_CH21_LINE,"A to K on a board, then a different hand from L on. The lesson went on. The teacher did not.","Tahtada A'dan K'ye bir el, L'den sonra başka bir el. Ders devam etmiş. Öğretmen etmemiş."
+ECHO_CH22_NAME,Unsent Letter,Gönderilmemiş Mektup
+ECHO_CH22_LINE,"""We have room."" Folded, addressed, never carried. Whoever had room did not have a road.","""Yerimiz var."" Katlanmış, adresi yazılmış, hiç taşınmamış. Yeri olanın yolu yokmuş."
+ECHO_CH23_NAME,Grave Marker,Mezar Tahtası
+ECHO_CH23_LINE,"Fourteen boards in a row, each with a first name and a season. No years. Nobody was counting them any more.","Sıra sıra on dört tahta, her birinde bir ad ve bir mevsim. Yıl yok. Artık kimse saymıyormuş."
+ECHO_CH24_NAME,Boundary Sketch,Sınır Çizimi
+ECHO_CH24_LINE,"The town drawn from above with a line around it. The line is drawn twice: once tight, once wide.","Kasaba yukarıdan çizilmiş, etrafına bir çizgi. Çizgi iki kez çekilmiş: bir dar, bir geniş."
+ECHO_CH25_NAME,Watch Rota,Nöbet Çizelgesi
+ECHO_CH25_LINE,Two names a night for a year. The same two names for the last month.,Bir yıl boyunca her gece iki isim. Son ay boyunca hep aynı iki isim.
+ECHO_CH26_NAME,Welcome Sign,Hoş Geldiniz Tabelası
+ECHO_CH26_LINE,"Painted over once, then painted back. Somebody changed their mind about strangers, and then changed it again.","Bir kez üstü boyanmış, sonra yeniden yazılmış. Biri yabancılar hakkında fikrini değiştirmiş, sonra bir daha değiştirmiş."

@@ -5,8 +5,8 @@ extends Node3D
 ## until the search ends. Seeing the haul grow is the reward loop; a number in
 ## the corner is only the receipt.
 ##
-## Two stacks share one node: cash bundles pile up, evidence rides on top so the
-## story objects are always the visible crown of the pile.
+## Two stacks share one node: salvage slabs pile up, evidence rides on top so
+## the story objects are always the visible crown of the pile.
 
 const BILL_STEP := 0.075
 const BILL_MAX := 14
@@ -17,24 +17,26 @@ var _items: Array[Node3D] = []
 var _time := 0.0
 
 
-## Adds one cash bundle. Beyond BILL_MAX the stack stops growing (a tower taller
-## than the driver reads as a bug, not a reward) but the counter keeps climbing.
-func add_money() -> void:
+## Adds one slab of salvage — flattened tin and copper, the way scrap gets
+## carried (G19.1; it was a cash bundle). Beyond BILL_MAX the stack stops
+## growing (a tower taller than the driver reads as a bug, not a reward) but
+## the counter keeps climbing.
+func add_salvage() -> void:
 	if _bills.size() >= BILL_MAX:
 		_pop()
 		return
 	var bundle := Node3D.new()
 	add_child(bundle)
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(GameConfig.MONEY_SIZE.x * 0.8,
-		BILL_STEP * 0.85, GameConfig.MONEY_SIZE.z * 0.8)
+	mesh.size = Vector3(0.46, BILL_STEP * 0.85, 0.26)
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = GameConfig.MONEY_BILL if _bills.size() % 2 == 0 \
-		else GameConfig.MONEY_BILL_TOP
-	mat.roughness = 0.7
+	mat.albedo_color = GameConfig.SALVAGE_TIN if _bills.size() % 3 != 1 \
+		else GameConfig.SALVAGE_COPPER
+	mat.roughness = 0.6
+	mat.metallic = 0.25
 	mat.emission_enabled = true
 	mat.emission = mat.albedo_color
-	mat.emission_energy_multiplier = GameConfig.MONEY_GLOW * 0.6
+	mat.emission_energy_multiplier = GameConfig.SALVAGE_GLOW
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh
 	mi.material_override = mat
@@ -49,7 +51,7 @@ func add_money() -> void:
 	_pop()
 
 
-## Adds an evidence object, riding on top of the cash.
+## Adds an evidence object, riding on top of the salvage.
 func add_evidence(evidence_id: String) -> void:
 	var item := SecretItem.new()
 	add_child(item)

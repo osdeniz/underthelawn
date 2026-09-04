@@ -1,7 +1,7 @@
 {
   "_comment": "STRUCTURE ONLY. Every text field below is a TRANSLATION KEY, not a sentence - the sentences live in i18n/strings.csv, one column per language. Adding a language means adding a column there, never editing this file. Image names, emoji and ids are not translated and stay literal here.",
   "prologue": {
-    "_comment": "THE LONG WALK (G15.1). Cards before the road, cards after it, then intro.cards plays as the nine-year jump - which is why intro.cards was not rewritten: 'the outbreak ended years ago / we rebuild / then on the morning of her ninth birthday' already reads exactly as the skip.",
+    "_comment": "THE LONG WALK (G15.1). Cards before the road, cards after it, then intro.cards plays as the nine-year jump - which is why intro.cards was not rewritten: 'the outbreak ended years ago / we rebuild / then on the morning of her ninth birthday' already reads exactly as the skip. G19.1: a third card after the road names the jump in the man's own voice - they made him Marshal, and nine years on he sent for YOU. Without it the player walked the road as one man and mowed the first yard as another with nobody saying so.",
     "cards": [
       {
         "image": "intro/pro_1",
@@ -53,6 +53,14 @@
         "lines": [
           "PRO_06_L1",
           "PRO_06_L2"
+        ]
+      },
+      {
+        "image": "intro/pro_6",
+        "fallback_image": "intro/intro_2b",
+        "lines": [
+          "PRO_07_L1",
+          "PRO_07_L2"
         ]
       }
     ],

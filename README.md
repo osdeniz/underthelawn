@@ -3767,3 +3767,56 @@ of a 170 s yard runs 25 % longer for a player who is still cutting at the
 average dark speed, about half a town-day of food; a player who overruns the
 lapse pays 1.67x on every remaining minute. That is where the bite is meant
 to be — on the slow finish, not on everyone.
+
+## G19.1 — Phase A of the second review: the things to tear out
+
+The second review (September 2026) scored the game area by area and named
+what had to go before anything else was worth polishing. This sprint is that
+list, minus the two images only the artist can make.
+
+**Salvage, not cash.** The pickup was a hovering, spinning, glowing stack of
+dollar bills — the hyper-casual ad-game prop — in a world with no money, and
+it floated ABOVE the grass, so the one rule this game has ("the grass hides
+the world") was broken by its own currency in the first yard (ten bundles
+counted in a ch01 capture). `SalvageProp` replaces it: a coil of copper wire,
+two tins, or a gear and a bolt, seeded per cell, lying at `PROP_GROUND_Y` with
+no motion. Hidden until the grass around it opens: `ScrapField` listens to the
+model's `cell_tint_changed` and reveals anything in the cut cell or its eight
+neighbours, which rises the last few centimetres into view. So things are
+found where things are found — at the edge of what you have cut. The food
+crate follows the same rule. The carry stack is slabs of tin and copper, the
+wallet icon a gear, and every line that said money says salvage
+(`PAYOUT_GROUND`, `TIP_MONEY_*`, the shop, the settler effect). Measured in
+`SalvageCheck` cell by cell against the model: every prop with no cut cell
+within one is hidden, every prop with one is visible, a prop cut before any
+neighbour still pays and is not left invisible.
+
+**Who the player is.** Two UI lines addressed the player as "Marshal"
+(harvest call, winter objective) while the Marshal is the man who briefs you
+and the finale calls you "detective"; the Turkish called him Marshal, Şerif
+and Mareşal in the same game. Decided: the player is the detective, unnamed;
+the NPC is the Marshal, "Şerif" in every Turkish line. The prologue is HIS
+story and the player walks it as him, so a third card after the road says so
+in his voice — they made him Marshal, and nine years on he sent for you —
+because without it the player walked the road as one man and mowed the first
+yard as another with nobody saying so.
+
+**Smaller tears.** The "search feels incomplete" nudge shows once per save,
+not on every partial yard. The pause sheet's RESTART sat at the bottom at
+full weight where the thumb rests; it is dimmed, smaller, and asks once
+(`RESTART_ARM_SECONDS`). "Neighbour's yard" in English on a Turkish panel
+turned out to be `CompleteShot`'s own fixture string, not the game.
+
+**The black hub, measured.** Two captures showed the town black behind the
+menu. `HubStillCheck` opens the hub the way root does and samples the screen
+on the clock: the still is lit at 0.27 s and the top of the screen reads 0.19
+against ~0.02 for black. Both captures had been taken inside the eight-frame
+warm-up. Not a bug; the check stays so it never becomes one.
+
+**Harness.** `SalvageCheck` first passed while dying on a parse error, the
+same way DemoCheck once did. `TestBase` now fails any run that made fewer
+than `min_checks` claims, and `run_tests.sh` reports a SCRIPT ERROR anywhere
+in the output as a failure regardless of the verdict line.
+
+**Left to the artist:** the Marshal's portrait without the rifle, the Case 02
+card without the scrawled word; prompts in the sprint notes.

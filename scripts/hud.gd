@@ -127,7 +127,7 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_centre_for_wide_screens)
 	# Drawn, not emoji: iOS renders an emoji glyph as a blank box (G12.10).
 	_build_top_scrim()
-	_wallet_icon.texture = UiIcons.money()
+	_wallet_icon.texture = UiIcons.salvage()
 	_food_icon.texture = UiIcons.food()
 	set_food(TownStats.food())
 	_evidence_icon.texture = UiIcons.evidence()
@@ -358,7 +358,13 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	_teaser.visible = next_name != ""
 	if next_name != "":
 		_teaser.text = tr("UI_NEXT_CHAPTER").format({"name": next_name})
-	_missed_label.visible = collected.size() < total_secrets
+	# "The search feels incomplete..." is a nudge, not a verdict, and a nudge
+	# repeated on every partial yard becomes nagging (G19.1). Once.
+	var missed := collected.size() < total_secrets
+	var nudged: bool = GameState.get_setting("hints", "incomplete_seen", false)
+	_missed_label.visible = missed and not nudged
+	if missed and not nudged:
+		GameState.set_setting("hints", "incomplete_seen", true)
 	_complete_panel.visible = true
 	# The picker and the joystick go away once the lawn is done (§16).
 	selector.visible = false
@@ -941,7 +947,7 @@ func _build_payout(payout: Dictionary) -> void:
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_label.add_theme_font_size_override("font_size", 34)
 		var coin := TextureRect.new()
-		coin.texture = UiIcons.money()
+		coin.texture = UiIcons.salvage()
 		coin.custom_minimum_size = Vector2(34, 34)
 		coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -1207,11 +1213,29 @@ func _build_pause() -> void:
 			set_scrap(GameState.scrap_total()))
 		rows.add_child(grant)
 
+	# Dimmed, smaller, and it asks once: the first tap arms it for
+	# RESTART_ARM_SECONDS, the second restarts (G19.1). A Dictionary because a
+	# lambda captures a bare local by value.
 	var restart := Button.new()
 	restart.text = tr("UI_RESTART")
-	restart.add_theme_font_size_override("font_size", 42)
+	restart.add_theme_font_size_override("font_size", 34)
 	_style_button(restart)
+	restart.modulate = Color(1.0, 1.0, 1.0, 0.62)
+	var arm := {"on": false}
+	var disarm := func() -> void:
+		arm["on"] = false
+		if is_instance_valid(restart):
+			restart.text = tr("UI_RESTART")
+			restart.modulate = Color(1.0, 1.0, 1.0, 0.62)
 	restart.pressed.connect(func() -> void:
+		if not arm["on"]:
+			arm["on"] = true
+			restart.text = tr("UI_RESTART_CONFIRM")
+			restart.modulate = Color.WHITE
+			Haptics.light()
+			get_tree().create_timer(GameConfig.RESTART_ARM_SECONDS).timeout.connect(disarm)
+			return
+		disarm.call()
 		_close_pause()
 		restart_pressed.emit())
 	rows.add_child(restart)

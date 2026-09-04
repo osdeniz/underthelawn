@@ -18,7 +18,7 @@ var _model: LawnModel
 var _points := {}          # cell index -> value
 var _rng := RandomNumberGenerator.new()
 var _ground_total := 0
-var _props := {}          # cell index -> MoneyProp
+var _props := {}          # cell index -> SalvageProp
 var _food := {}           # cell index -> value
 var _food_props := {}     # cell index -> FoodProp
 var _food_total := 0
@@ -28,6 +28,10 @@ var _food_total := 0
 ## variant already sizes it against the yard.
 func setup(model: LawnModel, budget: int, seed_value: int) -> void:
 	_model = model
+	# The props are hidden until the grass around them opens (G19.1). The model
+	# says when a cell changes; the field decides what that uncovers.
+	if not model.cell_tint_changed.is_connected(_on_cell_cut):
+		model.cell_tint_changed.connect(_on_cell_cut)
 	_points.clear()
 	_ground_total = 0
 	_rng.seed = seed_value if seed_value != 0 else 20260909
@@ -89,16 +93,35 @@ func setup(model: LawnModel, budget: int, seed_value: int) -> void:
 		# A forager in the town finds more in the same yard (G14.13).
 		_food[fkey] = int(round(float(_rng.randi_range(GameConfig.FOOD_VALUE.x,
 			GameConfig.FOOD_VALUE.y)) * Settlers.food_yield()))
-	# Visible cash bundles (G9.4): the money is a goal on the lawn, not a
-	# surprise under it. Only when the field lives in a scene — the placement
-	# tests run it detached.
+	# Salvage at ground level, hidden until the machine cuts beside it (G19.1;
+	# it used to be a cash stack floating over the grass). Only when the field
+	# lives in a scene — the placement tests run it detached.
 	if is_inside_tree():
 		for cell in placed:
-			_props[LawnModel.index_of(cell.x, cell.y)] = MoneyProp.spawn(
+			_props[LawnModel.index_of(cell.x, cell.y)] = SalvageProp.spawn(
 				self, LawnModel.cell_center(cell.x, cell.y))
 		for fcell2 in food_cells:
 			_food_props[LawnModel.index_of(fcell2.x, fcell2.y)] = FoodProp.spawn(
 				self, LawnModel.cell_center(fcell2.x, fcell2.y))
+
+
+## A cell changed under the blades. Anything lying in it or in the eight cells
+## around it comes into view: the grass has been opened next to it, and that
+## is how you find things on the ground — at the edge of what you have cut.
+func _on_cell_cut(col: int, row: int) -> void:
+	if _model == null or not _model.is_cut(col, row):
+		return
+	for dz: int in [-1, 0, 1]:
+		for dx: int in [-1, 0, 1]:
+			var c := col + dx
+			var r := row + dz
+			if not _model.in_bounds(c, r):
+				continue
+			var key := LawnModel.index_of(c, r)
+			if _props.has(key):
+				(_props[key] as SalvageProp).reveal()
+			if _food_props.has(key):
+				(_food_props[key] as FoodProp).reveal()
 
 
 ## Called for every cell the deck cuts. Returns the value if this cell held
@@ -110,7 +133,7 @@ func take(col: int, row: int) -> int:
 	var value: int = _points[key]
 	_points.erase(key)
 	if _props.has(key):
-		(_props[key] as MoneyProp).collect()
+		(_props[key] as SalvageProp).collect()
 		_props.erase(key)
 	_ground_total += value
 	collected.emit(value)

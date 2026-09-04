@@ -935,7 +935,13 @@
         "headline": "OPENING_19_HEADLINE",
         "subline": "OPENING_19_SUBLINE"
       },
-      "reclaim_line": "RECLAIM_CH19"
+      "reclaim_line": "RECLAIM_CH19",
+      "echo_def": {
+        "id": "ledger",
+        "icon": "📒",
+        "name": "ECHO_CH19_NAME",
+        "flavor_text": "ECHO_CH19_LINE"
+      }
     },
     "ch20_watchtower_road": {
       "palette_id": "DRY_GOLD",
@@ -972,7 +978,13 @@
         "headline": "OPENING_20_HEADLINE",
         "subline": "OPENING_20_SUBLINE"
       },
-      "reclaim_line": "RECLAIM_CH20"
+      "reclaim_line": "RECLAIM_CH20",
+      "echo_def": {
+        "id": "can",
+        "icon": "🥫",
+        "name": "ECHO_CH20_NAME",
+        "flavor_text": "ECHO_CH20_LINE"
+      }
     },
     "ch21_school_field": {
       "palette_id": "LUSH",
@@ -1011,7 +1023,13 @@
         "headline": "OPENING_21_HEADLINE",
         "subline": "OPENING_21_SUBLINE"
       },
-      "reclaim_line": "RECLAIM_CH21"
+      "reclaim_line": "RECLAIM_CH21",
+      "echo_def": {
+        "id": "drawing",
+        "icon": "🖍️",
+        "name": "ECHO_CH21_NAME",
+        "flavor_text": "ECHO_CH21_LINE"
+      }
     },
     "ch22_the_orchard_again": {
       "palette_id": "AMBER",
@@ -1049,7 +1067,13 @@
         "headline": "OPENING_22_HEADLINE",
         "subline": "OPENING_22_SUBLINE"
       },
-      "reclaim_line": "RECLAIM_CH22"
+      "reclaim_line": "RECLAIM_CH22",
+      "echo_def": {
+        "id": "letter",
+        "icon": "✉️",
+        "name": "ECHO_CH22_NAME",
+        "flavor_text": "ECHO_CH22_LINE"
+      }
     },
     "ch23_the_grave_row": {
       "palette_id": "DUSK_VIOLET",
@@ -1087,7 +1111,13 @@
         "headline": "OPENING_23_HEADLINE",
         "subline": "OPENING_23_SUBLINE"
       },
-      "reclaim_line": "RECLAIM_CH23"
+      "reclaim_line": "RECLAIM_CH23",
+      "echo_def": {
+        "id": "candle",
+        "icon": "🕯️",
+        "name": "ECHO_CH23_NAME",
+        "flavor_text": "ECHO_CH23_LINE"
+      }
     },
     "ch24_the_gate_line": {
       "palette_id": "GREEN_COOL",
@@ -1124,7 +1154,13 @@
         "headline": "OPENING_24_HEADLINE",
         "subline": "OPENING_24_SUBLINE"
       },
-      "reclaim_line": "RECLAIM_CH24"
+      "reclaim_line": "RECLAIM_CH24",
+      "echo_def": {
+        "id": "map",
+        "icon": "🗺️",
+        "name": "ECHO_CH24_NAME",
+        "flavor_text": "ECHO_CH24_LINE"
+      }
     },
     "ch25_night_watch": {
       "palette_id": "EMERALD",
@@ -1162,7 +1198,13 @@
         "headline": "OPENING_25_HEADLINE",
         "subline": "OPENING_25_SUBLINE"
       },
-      "reclaim_line": "RECLAIM_CH25"
+      "reclaim_line": "RECLAIM_CH25",
+      "echo_def": {
+        "id": "log",
+        "icon": "📓",
+        "name": "ECHO_CH25_NAME",
+        "flavor_text": "ECHO_CH25_LINE"
+      }
     },
     "ch26_the_visit": {
       "palette_id": "WHEAT",
@@ -1199,7 +1241,13 @@
         "headline": "OPENING_26_HEADLINE",
         "subline": "OPENING_26_SUBLINE"
       },
-      "reclaim_line": "RECLAIM_CH26"
+      "reclaim_line": "RECLAIM_CH26",
+      "echo_def": {
+        "id": "headline",
+        "icon": "📰",
+        "name": "ECHO_CH26_NAME",
+        "flavor_text": "ECHO_CH26_LINE"
+      }
     }
   }
 }

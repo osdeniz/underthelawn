@@ -20,7 +20,13 @@ extends Node
 ##     with no verdict is reported as "??", never as passed.
 
 var _fails := 0
+var _checks := 0
 var _drew := false
+## A run() that dies on a script error returns early to _ready with nothing
+## asserted, and used to be reported as a pass (DemoCheck did exactly this in
+## G16.6; SalvageCheck did it again in G19.1). Fewer claims than this is a
+## failure; a suite that legitimately makes fewer sets it lower.
+var min_checks := 3
 ## The per-frame unpause is what keeps a headless run alive; a test whose CLAIM
 ## is that the game pauses (InputMapCheck's background check) turns it off for
 ## that stretch, or the harness disproves the thing it is testing.
@@ -53,6 +59,9 @@ func run() -> void:
 
 
 func finish() -> void:
+	if _checks < min_checks:
+		_fails += 1
+		print("  FAIL iddiaya ulasilamadi: %d/%d kontrol calisti" % [_checks, min_checks])
 	if _fails > 0:
 		push_error("%d %s TESTI BASARISIZ" % [_fails, suite])
 		print("--- %d %s TESTI BASARISIZ ---" % [_fails, suite])
@@ -62,6 +71,7 @@ func finish() -> void:
 
 
 func ck(label: String, passed: bool, detail := "") -> void:
+	_checks += 1
 	if passed:
 		return
 	_fails += 1

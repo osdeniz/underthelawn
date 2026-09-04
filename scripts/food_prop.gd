@@ -2,23 +2,24 @@ class_name FoodProp
 extends Node3D
 ## A crate of produce in the grass (G14.12).
 ##
-## Deliberately the money bundle's twin in behaviour — hovers, bobs, turns,
-## pops when collected — and its opposite in shape and colour: a wooden crate
-## with round produce spilling over the top, so at a glance you know which of
-## the two you just uncovered without reading anything.
+## The salvage prop's twin in behaviour — sits at ground level, hidden until
+## the grass beside it is cut, pops when collected (G19.1) — and its opposite
+## in shape and colour: a wooden crate with round produce spilling over the
+## top, so at a glance you know which of the two you just uncovered.
 
-var _time := 0.0
-var _base_y := 0.0
+var _revealed := false
 var _collected := false
+var _rest_y := 0.0
 
 
 static func spawn(parent: Node3D, at: Vector3) -> FoodProp:
 	var prop := FoodProp.new()
 	prop.name = "Food"
 	parent.add_child(prop)
-	prop.position = Vector3(at.x, GameConfig.MONEY_HOVER, at.z)
-	prop._base_y = prop.position.y
-	prop._time = randf() * TAU
+	prop._rest_y = GameConfig.PROP_GROUND_Y + GameConfig.FOOD_SIZE.y * 0.5
+	prop.position = Vector3(at.x, prop._rest_y - GameConfig.PROP_SINK, at.z)
+	prop.visible = false
+	prop.rotation.y = randf() * TAU
 	prop._build()
 	return prop
 
@@ -59,15 +60,15 @@ func _build() -> void:
 		add_child(produce)
 
 
-## Softly emissive like the money, for the same reason: in full sun a shaded
-## prop sinks into the tips of the grass.
+## Softly emissive like the salvage, for the same reason: in full sun a shaded
+## prop at ground level sinks into the cut grass.
 func _mat(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.roughness = 0.8
 	m.emission_enabled = true
 	m.emission = color
-	m.emission_energy_multiplier = GameConfig.MONEY_GLOW * 0.6
+	m.emission_energy_multiplier = GameConfig.SALVAGE_GLOW
 	return m
 
 
@@ -81,20 +82,28 @@ func _box(size: Vector3, mat: Material, pos: Vector3) -> void:
 	add_child(mi)
 
 
-func _process(delta: float) -> void:
-	if _collected:
+## The grass beside it has been cut: the crate rises into view.
+func reveal() -> void:
+	if _revealed or _collected:
 		return
-	_time += delta
-	position.y = _base_y + sin(_time * TAU * 0.6) * GameConfig.MONEY_BOB
-	rotation.y += GameConfig.MONEY_SPIN * 0.6 * delta
+	_revealed = true
+	visible = true
+	var tw := create_tween()
+	tw.tween_property(self, "position:y", _rest_y, GameConfig.PROP_REVEAL_TIME) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func is_revealed() -> bool:
+	return _revealed
 
 
 func collect() -> void:
 	if _collected:
 		return
 	_collected = true
+	visible = true
 	var tw := create_tween()
-	tw.tween_property(self, "position:y", _base_y + 1.2, 0.28) \
+	tw.tween_property(self, "position:y", _rest_y + 1.2, 0.28) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(self, "scale", Vector3.ONE * 0.05, 0.30) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)

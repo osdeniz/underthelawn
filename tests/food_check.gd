@@ -35,7 +35,7 @@ func _ready() -> void:
 		str(TownStats.food()))
 	TownStats.eat()
 	ck("kasaba yiyor",
-		TownStats.food() == GameConfig.FOOD_START - GameConfig.FOOD_PER_CHAPTER,
+		TownStats.food() == GameConfig.FOOD_START - TownStats.daily_cost(),
 		str(TownStats.food()))
 	# It cannot go below zero, and it warns before it gets there.
 	for _i in 40:

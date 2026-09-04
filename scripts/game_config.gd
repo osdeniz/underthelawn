@@ -859,33 +859,20 @@ const SCRAP_THOROUGH_BONUS := 0.15
 ## math stays untouched): 1 519 * 1.7 = 2 582, clearing the gate with the same
 ## ~15% headroom the harvest gate's own design implies elsewhere.
 const SEARCH_SCRAP_MULTIPLIER := 1.7
-## Money bundle prop: the genre-classic green cash stack, VISIBLE above the
-## grass before it is collected — hidden pickups read as luck, visible ones as
-## goals to steer toward.
-## Deeper than the first pass: at 0.45 green the stack read as painted plastic.
-const MONEY_BILL := Color(0.06, 0.34, 0.15)
-const MONEY_BILL_TOP := Color(0.16, 0.62, 0.26)
-## A paper strap, not a plastic clip: pale and thin. The first pass was a fat
-## saturated yellow band that stood proud of the stack.
-const MONEY_BAND := Color(0.93, 0.88, 0.70)
-## A US note is about 2.35 times as long as it is wide, and that ratio is most
-## of what makes a stack read as CASH rather than as a green brick. It was
-## 1.47:1 and looked like a box with a stripe painted on it (G14.12).
-const MONEY_SIZE := Vector3(0.66, 0.20, 0.28)
-## Individual notes in the bundle. The stack used to be one box with a stripe,
-## which read as a green brick; the stepped edges are what say "paper".
-const MONEY_SHEETS := 5
-## The printed mark on the top note.
-const MONEY_INK := Color(0.08, 0.22, 0.13)
-## The printed FACE of the top note. Banknote paper is pale and greyish; the
-## saturated green belongs to the edges of the stack, which is all you see of
-## the notes underneath.
-const MONEY_FACE := Color(0.66, 0.78, 0.58)
-## Soft self-glow so the stack pops against sunlit grass, ad-game style.
-const MONEY_GLOW := 0.35
-const MONEY_HOVER := 0.55
-const MONEY_BOB := 0.08
-const MONEY_SPIN := 1.4
+## Salvage prop (G19.1). It was a hovering, spinning green cash stack — the
+## ad-game pickup — in a world with no money, floating ABOVE the grass that is
+## supposed to hide everything. Now it is junk at ground level: copper wire,
+## tins, a gear. Dull colours, because metal that has lain in a yard for years
+## is dull; a little self-light so the reveal reads against cut grass.
+const SALVAGE_COPPER := Color(0.60, 0.36, 0.20)
+const SALVAGE_TIN := Color(0.60, 0.62, 0.60)
+const SALVAGE_IRON := Color(0.28, 0.29, 0.32)
+const SALVAGE_GLOW := 0.14
+## Where a ground prop rests, how far under that it waits before the grass
+## beside it is cut, and how long the rise takes.
+const PROP_GROUND_Y := 0.06
+const PROP_SINK := 0.22
+const PROP_REVEAL_TIME := 0.35
 ## G10.1 carry stack: where the haul rides. On foot it sits between the
 ## driver's shoulders; on the tractor and the blade there is no walking back, so
 ## it rides the machine's rear deck.
@@ -2494,6 +2481,11 @@ const REED_HEAD_COLOUR := Color(0.42, 0.30, 0.18)
 ## the one pressure this game already has, applied where the light goes.
 const DARK_ONSET := 0.5
 const DARK_SPEED_MIN := 0.6
+
+## The pause sheet's RESTART sat at the bottom, full weight, where the thumb
+## rests: the easiest way in the game to wipe a yard by accident (G19.1). It
+## is dimmed now and asks once; the second tap within this window restarts.
+const RESTART_ARM_SECONDS := 3.0
 
 ## The speed scale for a lapse at fraction t (0 = start, 1 = the hour named
 ## in "to"). Pure so the test can check the shape, not just the endpoints.

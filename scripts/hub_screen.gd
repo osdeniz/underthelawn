@@ -339,7 +339,7 @@ func _build_top_bar() -> void:
 	wallet.add_child(wallet_row)
 
 	var wallet_icon := TextureRect.new()
-	wallet_icon.texture = UiIcons.money()
+	wallet_icon.texture = UiIcons.salvage()
 	wallet_icon.custom_minimum_size = Vector2(38, 38)
 	wallet_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	wallet_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -1358,7 +1358,7 @@ func _show_building_card(project_id: String) -> void:
 	else:
 		var buy := Button.new()
 		buy.text = tr("RESTORE_BUY").format({"cost": cost})
-		buy.icon = UiIcons.money()
+		buy.icon = UiIcons.salvage()
 		buy.expand_icon = false
 		buy.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
 		buy.add_theme_constant_override("h_separation", 14)

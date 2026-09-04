@@ -1169,7 +1169,7 @@ func _on_scrap_found(col: int, row: int, value: int) -> void:
 	_scrap_banked += value
 	_first_pickup_tip("money", "TIP_MONEY_TITLE", "TIP_MONEY_LINE")
 	if carry != null:
-		carry.add_money()
+		carry.add_salvage()
 	var at := LawnModel.cell_center(col, row)
 	hud.fly_scrap(value, cam.unproject_position(at + Vector3.UP * 0.6))
 	hud.set_scrap(GameState.scrap_total() + _scrap_banked)

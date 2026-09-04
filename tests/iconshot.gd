@@ -9,7 +9,7 @@ func _ready() -> void:
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var icons: Array = [
-		["money", UiIcons.money()], ["evidence", UiIcons.evidence()],
+		["salvage", UiIcons.salvage()], ["evidence", UiIcons.evidence()],
 		["town", UiIcons.for_tile("town")], ["restore", UiIcons.for_tile("restore")],
 		["workshop", UiIcons.for_tile("workshop")],
 		["echoes", UiIcons.for_tile("echoes")],
