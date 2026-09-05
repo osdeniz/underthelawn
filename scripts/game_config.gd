@@ -339,9 +339,19 @@ static func ground_tall_tint() -> Color:
 	return base.lerp(tip, 0.5) * 1.05
 
 
+## One knob on every palette's mown stripes (G19.2). The legibility sweep
+## reads the cut/uncut gap through Machado's colour-blind matrices, and at
+## morning the deuteranopia gap sat at 0.024 against a 0.030 floor while the
+## normal-vision gap was a comfortable 0.078: the two greens differed in hue
+## more than in value. Darkening the cut ground a little moves the gap into
+## luminance, which every eye keeps. Applied HERE rather than to thirteen
+## palettes' tables so the sweep can be re-run against a single number.
+const MOWED_VALUE := 0.90
+
 static func stripe_tint(direction: int) -> Color:
 	var tones: Array = grass_palette()["ground_mowed"]
-	return tones[clampi(direction, 0, tones.size() - 1)]
+	var tone: Color = tones[clampi(direction, 0, tones.size() - 1)]
+	return Color(tone.r * MOWED_VALUE, tone.g * MOWED_VALUE, tone.b * MOWED_VALUE, tone.a)
 
 
 static func clipping_color() -> Color:
@@ -545,11 +555,14 @@ static func plant_is_stalk() -> bool:
 
 
 const TUFTS_PER_CLUSTER := 9
-const CLUMP_BLADES := 6
+const CLUMP_BLADES := 7
 const CLUMP_HEIGHT_MIN := 0.4
 const CLUMP_HEIGHT_MAX := 0.9
 ## 70% short filler, 30% tall spikes out of the band above.
 const CLUMP_TALL_CHANCE := 0.3
+## How far a blade's tip bends down from the height it would reach straight
+## (G19.2): 0 is the old spike, 1 would lay the tip on the ground.
+const BLADE_DROOP := 0.14
 const CLUMP_BASE_MIN := 0.45
 const CLUMP_BASE_MAX := 0.62
 const TUFT_CLUSTER_SPREAD := 0.44
@@ -1401,11 +1414,15 @@ const CHAR_TORSO_SIZE := Vector3(0.35, 0.50, 0.21)
 ## what says "body", and it is also one draw instead of three.
 const CHAR_CHEST_RADIUS := 0.168
 const CHAR_WAIST_RADIUS := 0.138
-const CHAR_TORSO_SIDES := 8
+const CHAR_TORSO_SIDES := 12
+## The slope from the shoulder line up to the collar (G19.2): how far it
+## rises and how wide it is at the top. See Character._build.
+const CHAR_YOKE_RISE := 0.075
+const CHAR_COLLAR_RADIUS := 0.088
 ## How deep the torso is against how broad. A chest is about half as deep as it
 ## is wide; a CylinderMesh is circular, so without this the body came out a
 ## barrel (G14.20).
-const CHAR_TORSO_DEPTH := 0.62
+const CHAR_TORSO_DEPTH := 0.68
 ## How much narrower the pelvis is than the shirt's waist. At 1.0 the two
 ## surfaces were coincident and the pelvis showed THROUGH the shirt.
 const CHAR_PELVIS_INSET := 0.88
@@ -1426,9 +1443,9 @@ const CHAR_LEG_KNEE := 0.056
 const CHAR_LEG_ANKLE := 0.046
 const CHAR_HEAD_RADIUS := 0.125
 const CHAR_BAND_SIZE := Vector2(0.16, 0.035)
-const CHAR_HAT_BRIM_RADIUS := 0.175
-const CHAR_HAT_TOP_RADIUS := 0.10
-const CHAR_SHOULDER := Vector2(0.195, 0.46)    # +/-x, y — on the torso
+const CHAR_HAT_BRIM_RADIUS := 0.162
+const CHAR_HAT_TOP_RADIUS := 0.105
+const CHAR_SHOULDER := Vector2(0.176, 0.455)    # +/-x, y — on the torso
 ## Arm to leg was 0.66 against a human's ~0.72: measurably short, and it read
 ## as short — the hands sat above the hips instead of beside them.
 const CHAR_UPPER_ARM := 0.26
@@ -1446,7 +1463,7 @@ const CHAR_BOOT_TOE := 0.09
 ## The pelvis the legs hang off, and the neck the head sits on. Without them
 ## the torso floated over two separate legs and the head over the torso.
 const CHAR_PELVIS_SIZE := Vector3(0.30, 0.13, 0.19)
-const CHAR_NECK_SIZE := Vector3(0.085, 0.07, 0.085)
+const CHAR_NECK_SIZE := Vector3(0.082, 0.088, 0.082)
 ## Hands, so the arms end in something.
 const CHAR_HAND_SIZE := Vector3(0.075, 0.085, 0.075)
 ## A yoke across the shoulders: the shirt reads as a shirt with it, and as a
@@ -1933,7 +1950,9 @@ const TIME_OF_DAY := {
 	# used elev 14 / energy 0.85 / ambient 0.50 and the yard was unplayable.
 	"dawn": {
 		"elev": 24.0, "azim": 95.0,
-		"sun": Color(1.00, 0.88, 0.74), "sun_energy": 1.02,
+		# 1.02 -> 1.12 (G19.2): dawn's cut/uncut gap sat on the legibility
+		# floor (0.028 against 0.030) and flickered across it run to run.
+		"sun": Color(1.00, 0.88, 0.74), "sun_energy": 1.12,
 		"sky_top": Color(0.42, 0.60, 0.86), "sky_horizon": Color(0.98, 0.86, 0.72),
 		"ground": Color(0.66, 0.66, 0.58),
 		"ambient": Color(0.62, 0.66, 0.78), "ambient_energy": 0.64,

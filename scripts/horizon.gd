@@ -20,8 +20,11 @@ extends RefCounted
 ## actually been seen. With the fog pushed out to 210 the old values came out as
 ## a hard dark ridge; land trailing away is paler and bluer than the ground in
 ## front of it, band by band.
-const HILL_COLOURS := [Color(0.48, 0.55, 0.48), Color(0.58, 0.63, 0.60),
-	Color(0.68, 0.72, 0.72)]
+## Bluer with each band (G19.2): the first values greyed rather than receded,
+## and grey triangles on the horizon were the "flat cardboard mountains" of
+## the review. Land going away goes toward the sky's colour.
+const HILL_COLOURS := [Color(0.47, 0.56, 0.50), Color(0.58, 0.66, 0.66),
+	Color(0.68, 0.76, 0.80)]
 const ROOF_COLOUR := Color(0.46, 0.45, 0.46)
 const WALL_COLOUR := Color(0.56, 0.55, 0.55)
 
@@ -62,11 +65,11 @@ static func build(parent: Node3D, radius: float, seed_value: int,
 			var width := rng.randf_range(26.0, 52.0)
 			var height := width * rng.randf_range(0.10, 0.19) \
 				* (1.0 + float(band) * 0.18)
+			# A mound, not a prism (G19.2): a triangle on the horizon is a
+			# mountain however low it is. The profile is a raised cosine with
+			# its crest pushed off-centre, so no two read as the same shape.
 			var hill := MeshInstance3D.new()
-			var mesh := PrismMesh.new()
-			mesh.size = Vector3(width, height, 2.0)
-			mesh.left_to_right = rng.randf_range(0.35, 0.65)
-			hill.mesh = mesh
+			hill.mesh = _mound(width, height, rng.randf_range(0.35, 0.65))
 			hill.material_override = mat
 			hill.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			# Sunk well below the ground line so only the soft crest shows.
@@ -188,27 +191,32 @@ static func _build_country(root: Node3D, radius: float,
 			var at := Vector3(cos(a) * out, 0.0, sin(a) * out)
 			var trunk := MeshInstance3D.new()
 			var box := BoxMesh.new()
-			box.size = Vector3(scale * 0.22, scale * 1.3, scale * 0.22)
+			box.size = Vector3(scale * 0.16, scale * 1.3, scale * 0.16)
 			trunk.mesh = box
 			trunk.material_override = trunk_mat
 			trunk.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			trunk.position = at + Vector3(0.0, scale * 0.65, 0.0)
 			root.add_child(trunk)
-			# Two offset blobs: one sphere reads as a lollipop at any distance.
-			for blob in 2:
+			# Three blobs, spread sideways more than up (G19.2): two stacked
+			# spheres still read as a lollipop; a crown is wider than it is
+			# tall, with a lower blob to each side of the middle one.
+			var lean_x := rng.randf_range(-0.2, 0.2)
+			var blobs: Array = [
+				[0.62, Vector3(lean_x, 1.35, 0.0)],
+				[0.46, Vector3(lean_x - 0.55, 1.12, rng.randf_range(-0.2, 0.2))],
+				[0.42, Vector3(lean_x + 0.52, 1.18, rng.randf_range(-0.2, 0.2))],
+			]
+			for blob: Array in blobs:
 				var crown := MeshInstance3D.new()
 				var ball := SphereMesh.new()
-				ball.radius = scale * (0.62 if blob == 0 else 0.44)
-				ball.height = ball.radius * 2.0
+				ball.radius = scale * float(blob[0])
+				ball.height = ball.radius * 1.7
 				ball.radial_segments = 6
 				ball.rings = 3
 				crown.mesh = ball
 				crown.material_override = leaf_mat
 				crown.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-				crown.position = at + Vector3(
-					rng.randf_range(-0.3, 0.3) * scale,
-					scale * (1.35 if blob == 0 else 1.75),
-					rng.randf_range(-0.3, 0.3) * scale)
+				crown.position = at + (blob[1] as Vector3) * scale
 				root.add_child(crown)
 
 
@@ -217,4 +225,30 @@ static func _unshaded(_key: String, colour: Color) -> StandardMaterial3D:
 	mat.albedo_color = colour
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.roughness = 1.0
+	# The mounds are single-sided fans seen from either side of the ring.
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return mat
+
+
+## A hill's silhouette: a raised-cosine profile, `crest` in 0..1 saying where
+## along the width the top sits, as one triangle fan. Twenty-two triangles.
+static func _mound(width: float, height: float, crest: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 12
+	var base := Vector3(0.0, -height * 0.5, 0.0)
+	var pts: Array[Vector3] = []
+	for i in n + 1:
+		var t := float(i) / float(n)
+		# Piecewise cosine: rises to the crest, falls after it.
+		var u := t / maxf(crest, 0.05) if t < crest else (1.0 - t) / maxf(1.0 - crest, 0.05)
+		var y := height * (0.5 - 0.5 * cos(clampf(u, 0.0, 1.0) * PI))
+		pts.append(Vector3((t - 0.5) * width, -height * 0.5 + y, 0.0))
+	for i in n:
+		st.set_normal(Vector3.BACK)
+		st.add_vertex(base + Vector3(-width * 0.5, 0.0, 0.0))
+		st.set_normal(Vector3.BACK)
+		st.add_vertex(pts[i + 1])
+		st.set_normal(Vector3.BACK)
+		st.add_vertex(pts[i])
+	return st.commit()

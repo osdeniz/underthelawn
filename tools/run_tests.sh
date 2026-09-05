@@ -12,9 +12,10 @@ for scene in tests/*Check*.tscn tests/FourMowers.tscn tests/Legibility.tscn test
   [ -f "$scene" ] || continue
   name=$(basename "$scene" .tscn)
   case "$name" in *"$PATTERN"*) ;; *) continue;; esac
-  # Two suites are long by design: MemoryCheck opens the hub and a yard many
-  # times over (6.7 min alone), PaceCheck drives all four mowers on the clock.
-  case "$name" in MemoryCheck|PaceCheck) lim=$((LIMIT * 4));; *) lim=$LIMIT;; esac
+  # Three suites are long by design: MemoryCheck opens the hub and a yard many
+  # times over (6.7 min alone), PaceCheck drives all four mowers on the clock,
+  # Legibility settles sixteen skies for 2.6 s each.
+  case "$name" in MemoryCheck|PaceCheck|Legibility) lim=$((LIMIT * 4));; *) lim=$LIMIT;; esac
   out=$( ( "$GODOT" --path . --resolution 1170x2532 "res://$scene" 2>&1 & pid=$!;
            ( i=0; while [ $i -lt "$lim" ]; do sleep 1; kill -0 $pid 2>/dev/null || exit 0; i=$((i+1)); done; kill -9 $pid 2>/dev/null ) & w=$!;
            wait $pid; kill $w 2>/dev/null ) | grep -E "GECTI|BASARISIZ|AYNI|OKUNUYOR|DENGEDE|FAIL|SCRIPT ERROR" )

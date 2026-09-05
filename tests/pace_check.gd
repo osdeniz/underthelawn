@@ -21,11 +21,17 @@ const SPOTS := [Vector3(-5.0, 0.0, 9.0), Vector3(5.0, 0.0, 9.0),
 
 
 func _ready() -> void:
+	# The headless window has no focus, the game pauses itself for the
+	# background, and a paused tree never ran this _process: the audit sat at
+	# its header for 400 s (G19.1). Same cure as TestBase.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().paused = false
 	game = get_node("Main") as Game
 	print("--- hiz denetimi (pencere %.1f sn) ---" % (float(WINDOW) / 60.0))
 
 
 func _process(_d: float) -> void:
+	get_tree().paused = false
 	frame += 1
 	if frame < 20:
 		return

@@ -3820,3 +3820,49 @@ in the output as a failure regardless of the verdict line.
 
 **Left to the artist:** the Marshal's portrait without the rifle, the Case 02
 card without the scrawled word; prompts in the sprint notes.
+
+## G19.2 — Phase B: people, grass, horizon
+
+The review scored the 3D people 3/10 ("box torso, ball shoulders, floating
+hat"), the grass 5/10 ("spiky pineapple crowns") and the far scenery 5/10
+("lollipop trees, flat grey triangle mountains"). Each was rendered before
+and after; the renders are what decided the numbers.
+
+**People.** The chest prism had a flat top at shoulder height, and that flat
+cap was most of what said "box" from the camera this game uses. A short taper
+from the chest to a collar's width (`CHAR_YOKE_RISE`, `CHAR_COLLAR_RADIUS`)
+puts a slope where the trapezius is; the head moved up onto a visible neck.
+The shoulder spheres stood six centimetres proud of the chest on each side
+and read as epaulettes from behind; they are flattened deltoids pushed into
+the chest now, and the shoulder pivots moved in. Twelve sides on the torso,
+a deeper chest (0.62 → 0.68), a smaller brim. `LookShot` is the before/after.
+
+**Grass.** A blade a hand wide (0.12–0.18 m) at knee height is a succulent,
+and from the top-down camera a clump of six of them fanning straight up read
+as an agave rosette. Blades are 0.07–0.11 wide now, seven to a clump, lean
+further (0.30–0.52 of base) and droop at the tip (`BLADE_DROOP` 0.14, on lv
+squared so the lower half stays straight). Same vertex count per blade; one
+more blade per clump, which the diorama probe puts at 197k → 201k triangles.
+`DayShot` before and after: the yard reads as grass.
+
+**Horizon.** The hills were `PrismMesh` — a triangle on the horizon is a
+mountain however low — and are raised-cosine mounds now (`Horizon._mound`,
+22 triangles each, crest off-centre), bluer with each band instead of greyer.
+The far trees were a box trunk under two stacked spheres; three blobs spread
+sideways, thinner trunk.
+
+**Dawn and the colour-blind sweep.** Dawn's cut/uncut gap sat on the floor
+(0.028 against 0.030) and flickered across it; the dawn sun went 1.02 → 1.12.
+Then the sweep's own numbers turned out to swing threefold between two runs
+of the same hour (morning protan 0.027 / 0.082): it waited sixty FRAMES after
+the search began, the camera was still descending from the opening shot, and
+how far it had got depended on the frame rate of the run. It waits 2.6 s on
+the wall clock now and the gaps are steady: deuteranopia 0.038–0.136,
+protanopia 0.030–0.144, all sixteen skies. `MOWED_VALUE` (0.90) darkens every
+palette's mown stripes from one place so that gap lives in luminance, which
+every eye keeps.
+
+**Harness.** Four shot tests (Pose, Day, People, Look) hung for good on a
+bare `frame_post_draw` await once the window lost focus — the trap TestBase
+was written for — and are on TestBase now. Legibility joins the long-limit
+suites in the runner.

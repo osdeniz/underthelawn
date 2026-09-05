@@ -493,14 +493,26 @@ func _build() -> void:
 	_taper(_torso, GameConfig.CHAR_CHEST_RADIUS, GameConfig.CHAR_WAIST_RADIUS,
 		ts.y - lift, shirt, Vector3(0.0, lift + (ts.y - lift) * 0.5, 0.0),
 		GameConfig.CHAR_TORSO_SIDES, GameConfig.CHAR_TORSO_DEPTH)
+	# The shoulder line slopes up to the neck (G19.2). The prism's top was a
+	# flat cap at shoulder height, and a flat-topped trunk is most of what
+	# said "box" about this figure from the front and the back. A short
+	# taper from the chest to a collar's width puts a slope where the
+	# trapezius is.
+	_taper(_torso, GameConfig.CHAR_COLLAR_RADIUS, GameConfig.CHAR_CHEST_RADIUS * 0.985,
+		GameConfig.CHAR_YOKE_RISE, shirt,
+		Vector3(0.0, ts.y - 0.004 + GameConfig.CHAR_YOKE_RISE * 0.5, 0.0),
+		GameConfig.CHAR_TORSO_SIDES, GameConfig.CHAR_TORSO_DEPTH)
 	# And a neck, so the head is attached to something.
 	var ns := GameConfig.CHAR_NECK_SIZE
-	_box(_torso, ns, skin, Vector3(0.0, ts.y + ns.y * 0.4, 0.0))
+	_box(_torso, ns, skin, Vector3(0.0, ts.y + GameConfig.CHAR_YOKE_RISE + ns.y * 0.30, 0.0))
 	# Nor under the chin, for the same reason: the chest's top is a flat cap
 	# and a disc on it reads as a grey square, not as shade.
 
 	# Head on top of the torso: sphere + brow band + sun hat.
-	_head = _pivot(_torso, "Head", Vector3(0.0, ts.y + 0.06, 0.0))
+	# The head sits on a visible neck (G19.2); with the pivot at +0.03 the
+	# skull's underside was inside the yoke and the head read as set on the
+	# shoulders.
+	_head = _pivot(_torso, "Head", Vector3(0.0, ts.y + GameConfig.CHAR_YOKE_RISE + 0.075, 0.0))
 	var r := GameConfig.CHAR_HEAD_RADIUS
 	_sphere(_head, r, skin, Vector3(0.0, r * 0.6, 0.0))
 	_build_face(r)
@@ -531,10 +543,15 @@ func _build() -> void:
 		var shoulder := _pivot(_torso, "Shoulder%s" % ("L" if side < 0 else "R"),
 			Vector3(side * GameConfig.CHAR_SHOULDER.x, GameConfig.CHAR_SHOULDER.y, 0.0))
 		# A shoulder, so the arm grows out of the body instead of floating
-		# beside it.
-		_sphere(_torso, GameConfig.CHAR_ARM_TOP * 0.98, shirt,
-			Vector3(side * GameConfig.CHAR_SHOULDER.x * 0.92,
-				GameConfig.CHAR_SHOULDER.y, 0.0))
+		# beside it. A deltoid, not a ball (G19.2): the full sphere at 0.98 of
+		# the arm's radius stood proud of the chest by six centimetres on each
+		# side and read as epaulettes from behind, which is the camera this
+		# game is played from. Flattened top-to-bottom and pushed into the
+		# chest so only its outer curve shows.
+		_sphere(_torso, GameConfig.CHAR_ARM_TOP * 0.92, shirt,
+			Vector3(side * GameConfig.CHAR_SHOULDER.x * 0.90,
+				GameConfig.CHAR_SHOULDER.y - 0.012, 0.0),
+			Vector3(1.0, 0.74, 0.86))
 		# Tapered, not boxed (G14.20): a square-section limb is the single
 		# loudest thing that says "made of bricks", and the arm narrows from
 		# shoulder to wrist on a real one.

@@ -32,6 +32,13 @@ var _fails := 0
 
 
 func _ready() -> void:
+	# The desktop default is a landscape window with KEEP_HEIGHT (G18) and the
+	# OS clamps a 2532-tall window to the screen, so the viewport came back
+	# 1534 wide and the two sample bands no longer lay over the rows they were
+	# written for: dawn measured 0.003 where it had measured 0.059 (G19.1).
+	# Letterbox to the phone's exact frame; this is a phone measurement.
+	get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	await get_tree().process_frame
 	GameState.set_setting("meta", "orientation_done", true)
 	var only := str(OS.get_environment("UTL_WET"))
 	var passes: Array = [false, true]
@@ -85,10 +92,31 @@ func _sweep(wet: bool) -> void:
 		for row in range(GameConfig.GRID_ROWS - 6, GameConfig.GRID_ROWS):
 			for col in GameConfig.GRID_COLS:
 				game.model.mow(col, row, 0)
-		for _i in 60:
+		# On the WALL CLOCK, not on sixty frames (G19.2): the camera is still
+		# descending from the opening shot during those frames, and how far it
+		# had got depended on the frame rate of the run — so the two sample
+		# bands lay over different rows each time and the colour-blind gaps
+		# swung threefold between two runs of the same hour (0.027 / 0.082).
+		# Until the camera has STOPPED, not for a fixed time: the first sky of
+		# the process compiles the shaders and its frames stall, so 2.6 s of
+		# wall clock still caught dawn mid-descent (0.021 against 0.058 on the
+		# same sky an hour later). Capped, so it can never spin for ever.
+		var cam: Camera3D = game.get_viewport().get_camera_3d()
+		var t0 := Time.get_ticks_msec()
+		var last := cam.global_position if cam != null else Vector3.ZERO
+		var still := 0
+		while Time.get_ticks_msec() - t0 < 8000:
 			get_tree().paused = false
 			await get_tree().process_frame
-		await RenderingServer.frame_post_draw
+			if cam == null or not is_instance_valid(cam):
+				cam = game.get_viewport().get_camera_3d()
+				continue
+			var now := cam.global_position
+			still = still + 1 if now.distance_to(last) < 0.0005 else 0
+			last = now
+			if still >= 20 and Time.get_ticks_msec() - t0 > 1200:
+				break
+		await _drawn()
 
 		var img := get_viewport().get_texture().get_image()
 		var w := img.get_width()
@@ -126,6 +154,23 @@ func _sweep(wet: bool) -> void:
 		game.queue_free()
 		for _i in 6:
 			await get_tree().process_frame
+
+
+## A frame that was actually drawn, or a quarter second — never a bare await on
+## frame_post_draw, which hangs for good once the window loses focus and the
+## game pauses itself (the trap TestBase.drawn_frame exists for; this test
+## predates TestBase and took 400 s of a limiter to remind us).
+var _drew := false
+func _drawn() -> void:
+	_drew = false
+	var mark := func() -> void: _drew = true
+	RenderingServer.frame_post_draw.connect(mark, CONNECT_ONE_SHOT)
+	var until := Time.get_ticks_msec() + 250
+	while not _drew and Time.get_ticks_msec() < until:
+		get_tree().paused = false
+		await get_tree().process_frame
+	if RenderingServer.frame_post_draw.is_connected(mark):
+		RenderingServer.frame_post_draw.disconnect(mark)
 
 
 ## Machado, Oliveira & Fernandes (2009), severity 1.0. Rows of the RGB matrix.

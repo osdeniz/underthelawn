@@ -313,8 +313,14 @@ static func _add_clump(st: SurfaceTool, rng: RandomNumberGenerator, center: Vect
 		# Tight at the base, fanning outward toward the tips.
 		var root_off := center + lean_dir * rng.randf_range(0.02, 0.10)
 		var height := clump_h * rng.randf_range(0.8, 1.05)
-		var lean := rng.randf_range(0.20, 0.36) * base * lean_scale
-		var width := rng.randf_range(0.12, 0.18) * (base / 0.42) * width_scale
+		# Wider lean than the first pass (0.20-0.36): straight blades fanning
+		# a little read as a crown of spikes from the top-down camera — the
+		# "pineapple top" of the G19 review. Grass arcs.
+		var lean := rng.randf_range(0.30, 0.52) * base * lean_scale
+		# Narrower than the first pass (0.12-0.18): a blade a hand wide at
+		# knee height is a succulent, and from the top-down camera a clump of
+		# them read as an agave rosette (G19.2). Grass is lines.
+		var width := rng.randf_range(0.07, 0.11) * (base / 0.42) * width_scale
 		var tip := _add_blade(st, root_off, lean_dir, lean, height, width,
 			root_col, tip_col, rng)
 		if flower_slots.has(b):
@@ -330,12 +336,16 @@ static func _add_blade(st: SurfaceTool, root: Vector3, dir: Vector3, lean: float
 	var crease := dir * width * 0.45     # centre pushed out = the V fold
 	var shade := rng.randf_range(0.9, 1.05)
 
-	# Levels: root (0), mid (0.55), tip (1.0, converges to a point).
-	var levels: Array[float] = [0.0, 0.55, 1.0]
+	# Levels: root (0), mid (0.5), tip (1.0, converges to a point). The blade
+	# leans outward on a square curve and DROOPS at the tip (G19.2): the
+	# height it reaches falls off with lv squared, so the upper half bends
+	# over instead of pointing at the sky. Same vertex count as before.
+	var levels: Array[float] = [0.0, 0.5, 1.0]
 	var rows: Array = []
 	for lv in levels:
-		var w := width * (1.0 - 0.82 * lv)
-		var center := root + dir * (lean * lv * lv) + Vector3(0.0, height * lv, 0.0)
+		var w := width * (1.0 - 0.70 * lv)
+		var droop := 1.0 - GameConfig.BLADE_DROOP * lv * lv
+		var center := root + dir * (lean * lv * lv) + Vector3(0.0, height * lv * droop, 0.0)
 		var col := root_col.lerp(tip_col, lv) * shade
 		col.a = 1.0
 		var dark := col.darkened(0.18)
