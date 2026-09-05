@@ -41,6 +41,15 @@ func _shot(chapter: String, path: String, aim_barn: bool) -> void:
 		eye.position = Vector3(0.0, 4.2, -GameConfig.HALF_Z + 9.0)
 		eye.look_at(target)
 	await frames(8)
+	# The headless window has no focus, so the game re-opens its pause sheet
+	# behind our back and may hand the camera back; close it and re-assert the
+	# eye right before the capture.
+	get_tree().paused = false
+	game.hud._close_pause()
+	if game.cam != null:
+		game.cam.current = false
+	eye.current = true
+	await frames(2)
 	await drawn_frame()
 	get_viewport().get_texture().get_image().save_png(path)
 	print("[cekim] %s yazildi" % path)

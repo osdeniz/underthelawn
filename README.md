@@ -3866,3 +3866,12 @@ every eye keeps.
 bare `frame_post_draw` await once the window lost focus — the trap TestBase
 was written for — and are on TestBase now. Legibility joins the long-limit
 suites in the runner.
+
+**DUSK_VIOLET.** The dusk palette was purple grass root to tip and read as a
+field of amethyst under the dusk sky. Dusk is a light, not a plant: the blades
+are a cooled blue-green now and only the tips take the sky's lilac; the sky
+and the sun carry the hour. Rendered at the listening post before and after.
+
+**Left to the artist:** `docs/ART_PROMPTS.md` — the Marshal without the
+rifle, the Case 02 card without the scrawled word — in the prologue prompts'
+format, with the rules that the current images broke written into YASAK.

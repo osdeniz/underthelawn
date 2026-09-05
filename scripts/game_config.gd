@@ -286,20 +286,25 @@ const GRASS_PALETTES := {
 
 	# B7: last light. Desaturated violet-grey; the one palette where the stripe
 	# ladder carries almost all of the "this is cut" reading.
+	# G19.2: this was purple grass — saturated violet root to tip — and under
+	# the dusk sky it read as a field of amethyst, not a lawn at nightfall.
+	# Dusk is a LIGHT, not a plant: the blades stay a cooled blue-green and only
+	# their tips take the lilac of the sky, the way grass actually looks at
+	# that hour. The sky and the sun (TIME_OF_DAY "dusk") carry the mood.
 	"DUSK_VIOLET": {
-		"cluster_base": Color(0.13, 0.11, 0.18),
-		"cluster_tip": Color(0.46, 0.42, 0.58),
+		"cluster_base": Color(0.09, 0.14, 0.15),
+		"cluster_tip": Color(0.42, 0.45, 0.52),
 		"accents": [
-			{ "base": Color(0.17, 0.13, 0.20), "tip": Color(0.58, 0.50, 0.66),
+			{ "base": Color(0.13, 0.13, 0.17), "tip": Color(0.54, 0.48, 0.58),
 				"weight": 0.18, "flowers": false },
-			{ "base": Color(0.12, 0.13, 0.22), "tip": Color(0.40, 0.44, 0.68),
+			{ "base": Color(0.09, 0.15, 0.20), "tip": Color(0.40, 0.50, 0.62),
 				"weight": 0.06, "flowers": true },
 		],
 		"ground_mowed": [
-			Color(0.40, 0.36, 0.52), Color(0.35, 0.32, 0.47),
-			Color(0.24, 0.22, 0.34), Color(0.30, 0.27, 0.40),
+			Color(0.30, 0.37, 0.40), Color(0.26, 0.33, 0.36),
+			Color(0.18, 0.24, 0.27), Color(0.22, 0.29, 0.32),
 		],
-		"clipping": Color(0.50, 0.45, 0.62),
+		"clipping": Color(0.44, 0.47, 0.54),
 	},
 
 	# B8: the cellar garden. Deep saturated green that reads as lit from above.
