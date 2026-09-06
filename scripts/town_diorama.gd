@@ -345,11 +345,42 @@ func _build_environment() -> void:
 	camera = Camera3D.new()
 	camera.name = "DioramaCamera"
 	camera.fov = GameConfig.DIORAMA_CAM_FOV
-	camera.keep_aspect = Camera3D.KEEP_WIDTH
 	camera.v_offset = GameConfig.DIORAMA_V_OFFSET
 	camera.position = _cam_base
 	add_child(camera)
 	camera.look_at(_cam_look)
+	_fit_camera_aspect()
+	# The hub's SubViewport follows the window; on the desktop it can turn
+	# sideways after this was built.
+	var vp := get_viewport()
+	if vp != null and not vp.size_changed.is_connected(_fit_camera_aspect):
+		vp.size_changed.connect(_fit_camera_aspect)
+
+
+## KEEP_WIDTH was chosen for the phone: with the fov measured vertically a
+## 1170x2532 screen left a twenty-degree horizontal window and the side
+## buildings sat outside it. Sideways (G19.9, the desktop build) the same
+## setting does the opposite — the fixed horizontal angle shrinks the vertical
+## one until the sky and its clouds are off the top of the frame, which is
+## what SkyLifeCheck measured before it pinned itself to the phone. So the
+## fixed axis follows the screen's long axis: width in portrait, height in
+## landscape, and the town is framed the same way on both.
+func _fit_camera_aspect() -> void:
+	if camera == null or not is_instance_valid(camera):
+		return
+	if GameConfig.is_landscape(get_viewport()):
+		# The phone's vertical angle, made explicit: 48 degrees across 1170
+		# becomes ~88 degrees down 2532, and that is the angle the clouds were
+		# placed for. Fixing height at the same angle keeps every vertical
+		# thing where the phone has it; the sides simply show more country.
+		var half := deg_to_rad(GameConfig.DIORAMA_CAM_FOV * 0.5)
+		var portrait := float(ProjectSettings.get_setting("display/window/size/viewport_height", 2532)) \
+			/ float(ProjectSettings.get_setting("display/window/size/viewport_width", 1170))
+		camera.keep_aspect = Camera3D.KEEP_HEIGHT
+		camera.fov = rad_to_deg(2.0 * atan(tan(half) * portrait))
+	else:
+		camera.keep_aspect = Camera3D.KEEP_WIDTH
+		camera.fov = GameConfig.DIORAMA_CAM_FOV
 
 
 ## The plate: a grass top, a bevelled rim that falls away, and a soil skirt. The

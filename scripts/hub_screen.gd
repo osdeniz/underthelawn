@@ -2249,9 +2249,11 @@ func _build_town() -> Control:
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	scroll.offset_left = 50
 	scroll.offset_right = -50
-	# Clear of the top bar, which owns the first 340px of the screen.
+	# Clear of the top bar, which owns the first 340px of the screen. Tall
+	# enough for the heading, the hint and the two rows that moved here in
+	# G19.8 — at 560 the second row was cut in half (seen in HubWideShot).
 	scroll.offset_top = 360
-	scroll.offset_bottom = 560
+	scroll.offset_bottom = 780
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	page.add_child(scroll)

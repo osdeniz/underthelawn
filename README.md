@@ -4043,3 +4043,20 @@ before the capture; the sheet had re-opened between the close and the draw.
 test whose last assertions ran after the background pause had landed, so a
 paused Game never ran `_check_pickups`. On TestBase now; passes alone and in
 the suite's conditions.
+
+## G19.9 — the town camera sideways, and the town page's rows
+
+`SkyLifeCheck` had found it and pinned itself to the phone; the desktop still
+had the bug: the diorama camera fixes its HORIZONTAL angle (right for a tall
+phone, where 48 degrees across becomes ~88 down), and on a 16:9 window that
+same setting shrinks the vertical angle until the sky and every cloud are off
+the top. `TownDiorama._fit_camera_aspect` now fixes the axis the screen is
+long in — width in portrait, height in landscape at the phone's vertical
+angle — and re-fits when the viewport turns. `LandscapeCheck` measures the
+clouds on the live town view at 1600 x 900: 8 of 11 in frame, from 0.
+`HubWideShot` is the render: the plate centred, hills and sky either side,
+the country wide. The wide horizontal angle bows the far horizon a little;
+a hub backdrop can carry that.
+
+The town page's scroll area was 200 px tall and cut the second of the two
+rows G19.8 moved onto it in half; 420 now.
