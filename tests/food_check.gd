@@ -13,6 +13,10 @@ func _ready() -> void:
 	ChapterProgress.reset()
 	RestoreBoard.reset()
 	TownStats.reset()
+	# The people count includes everyone taken in (G14.13), and a suite that
+	# ran before this one may have left a settler in the save: the base read 6
+	# once in a full run and 5 alone (G19.12).
+	Settlers.reset()
 
 	# --- population is derived, and moves when the town does
 	var start_people := TownStats.people()
