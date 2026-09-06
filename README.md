@@ -3913,3 +3913,30 @@ push-only road are the two exceptions, named in the test.
 Not changed: the fence line itself. An L-shaped fence would need the fence
 builder to follow cell edges; the shed against the fence reads as an L yard
 without it.
+
+## G19.4 — Phase C.2: the completion panel, six things
+
+The panel after a yard carried twelve elements and four buttons: title, a
+stats line, the evidence row, an "incomplete" nudge, a CASE NOTES header, a
+per-piece list with places, a case sentence, a town line, a seven-row ledger
+(ground, bonus, thorough, total, food found, food eaten, food left), NEXT,
+VIEW CASE BOARD, RETURN TO TOWN, RESTART. For a two-minute loop.
+
+Now: the title; the evidence row (the emotional core, untouched); one
+sentence — the case line, with the town line as its second line; one line of
+pay — salvage total and the food's net change; NEXT; RETURN TO TOWN. The stats
+line is set but hidden (HarvestCheck reads it; nobody acts on it). The nudge
+is gone rather than once: the partial sentence already says what it said. The
+board is one tap away in the hub. RESTART lives on the pause sheet behind its
+two-tap guard. `CompleteShot` is the render.
+
+**An external commit.** `def14b2` (14:02 today, a different author e-mail)
+landed on the branch while this was in progress. It contained this panel's
+half-finished edits — so they are in history under a message I did not write —
+and a `project.godot` from before G18: the CloudSave, PerfOverlay and Purchases
+autoloads removed, the desktop window back to 900 x 1500. Without the autoloads
+`GameState` fails to parse and nothing runs. The likeliest cause is a Godot
+editor open since before those changes writing its stale copy on save.
+`project.godot` is restored to the G19.3 state here; the panel edits were
+finished on top of `def14b2`. Nothing else in that commit was anyone's work
+but mine.

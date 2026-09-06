@@ -932,7 +932,7 @@ func _build_payout(payout: Dictionary) -> void:
 		GameConfig.CASE_ACCENT)
 	if payout.has("food_left"):
 		var net := int(payout.get("food", 0)) - int(payout.get("food_eaten", 0))
-		var text := ("+%d" if net >= 0 else "%d") % net
+		var text: String = ("+%d" if net >= 0 else "%d") % net
 		var colour := Color(0.62, 0.86, 0.54) if net >= 0 else Color(0.92, 0.62, 0.48)
 		var gap := Control.new()
 		gap.custom_minimum_size = Vector2(28, 0)
