@@ -64,9 +64,27 @@ func _populate(seed_value: int, farmland: bool) -> void:
 	set_meta("no_bake", true)
 	_owned = is_dog_owned()
 	_road = LevelVariant.current != null and LevelVariant.current.is_road()
+	var lake := LevelVariant.current != null and LevelVariant.current.is_lake()
 	_rng.seed = seed_value if seed_value != 0 else 20260903
 
-	for i in GameConfig.RABBIT_COUNT:
+	# The lake's birds (G21.2): herons standing in the reeds instead of
+	# rabbits in the grass. A pecker entry with a taller body that wants
+	# UNCUT cells and lifts off slower and higher; the same flee, the same
+	# return. No rabbits on water.
+	if lake:
+		for i in GameConfig.HERON_COUNT:
+			var root := Node3D.new()
+			root.name = "Heron%d" % i
+			add_child(root)
+			var body := _heron_body(root)
+			var entry := {"kind": Kind.PECKER, "node": root, "body": body,
+				"state": State.GONE, "timer": _rng.randf_range(0.5, 2.5),
+				"target": Vector3.ZERO, "phase": _rng.randf() * TAU,
+				"wants_cut": false, "speed": GameConfig.HERON_SPEED,
+				"rise": GameConfig.HERON_RISE, "flee": GameConfig.HERON_FLEE_RANGE}
+			_entries.append(entry)
+
+	for i in (0 if lake else GameConfig.RABBIT_COUNT):
 		var root := Node3D.new()
 		root.name = "Rabbit%d" % i
 		add_child(root)
@@ -254,9 +272,9 @@ func _tick_pecker(entry: Dictionary, delta: float) -> void:
 				head.rotation.x = maxf(0.0, beat) * 0.85
 			# A hop sideways every few seconds, so it does not stand rooted.
 			root.rotation.y += sin(_t * 0.7 + phase) * delta * 0.6
-			if _player_within(root, GameConfig.PECKER_FLEE_RANGE):
+			if _player_within(root, float(entry.get("flee", GameConfig.PECKER_FLEE_RANGE))):
 				entry["state"] = State.FLEE
-				entry["timer"] = 1.3
+				entry["timer"] = 1.3 if entry.get("wants_cut", true) else 2.2
 				AudioDirector.play_bird_takeoff()
 				var out := root.position - player_at
 				out.y = 0.0
@@ -266,8 +284,8 @@ func _tick_pecker(entry: Dictionary, delta: float) -> void:
 		State.FLEE:
 			entry["timer"] = float(entry["timer"]) - delta
 			var out: Vector3 = entry["target"]
-			root.position += out * GameConfig.PECKER_SPEED * delta
-			root.position.y += GameConfig.PECKER_RISE * delta
+			root.position += out * float(entry.get("speed", GameConfig.PECKER_SPEED)) * delta
+			root.position.y += float(entry.get("rise", GameConfig.PECKER_RISE)) * delta
 			root.rotation.y = face(Vector2(out.x, out.z))
 			_flap(body, sin(_t * GameConfig.PECKER_FLAP_FREQ))
 			if float(entry["timer"]) <= 0.0:
@@ -279,7 +297,7 @@ func _tick_pecker(entry: Dictionary, delta: float) -> void:
 			entry["timer"] = float(entry["timer"]) - delta
 			if float(entry["timer"]) > 0.0:
 				return
-			var cell := _pick_cell(true, GameConfig.PECKER_MIN_PLAYER_DIST)
+			var cell := _pick_cell(bool(entry.get("wants_cut", true)), GameConfig.PECKER_MIN_PLAYER_DIST)
 			if cell.x < 0:
 				# Nothing cut yet. This is not a failure — it is the birds
 				# waiting for a reason to come down.
@@ -772,3 +790,77 @@ func _box(parent: Node3D, size: Vector3, mat: StandardMaterial3D, pos: Vector3,
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(node)
 	return node
+
+
+## A heron (G21.2): grey, tall, all neck and legs. Body an ellipsoid, a long
+## neck up and forward, a small head with a yellow bill, two thin legs, and
+## wings that only exist in the air (WingL/WingR, as the small birds').
+func _heron_body(root: Node3D) -> Node3D:
+	var body := Node3D.new()
+	body.name = "Body"
+	root.add_child(body)
+	var grey := StandardMaterial3D.new()
+	grey.albedo_color = Color(0.58, 0.62, 0.64)
+	grey.roughness = 0.9
+	var dark := StandardMaterial3D.new()
+	dark.albedo_color = Color(0.30, 0.32, 0.34)
+	dark.roughness = 0.9
+	var bill := StandardMaterial3D.new()
+	bill.albedo_color = Color(0.86, 0.70, 0.30)
+	bill.roughness = 0.6
+	var mk := func(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3, rot := Vector3.ZERO,
+			scl := Vector3.ONE) -> MeshInstance3D:
+		var mi := MeshInstance3D.new()
+		mi.mesh = mesh
+		mi.material_override = mat
+		mi.position = pos
+		mi.rotation = rot
+		mi.scale = scl
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		parent.add_child(mi)
+		return mi
+	var torso := SphereMesh.new()
+	torso.radius = 0.16
+	torso.height = 0.32
+	torso.radial_segments = 10
+	torso.rings = 5
+	mk.call(body, torso, grey, Vector3(0.0, 0.62, 0.0), Vector3.ZERO, Vector3(0.8, 0.75, 1.3))
+	var neck := CylinderMesh.new()
+	neck.top_radius = 0.028
+	neck.bottom_radius = 0.045
+	neck.height = 0.42
+	neck.radial_segments = 6
+	mk.call(body, neck, grey, Vector3(0.0, 0.88, -0.14), Vector3(deg_to_rad(28.0), 0.0, 0.0))
+	var head := Node3D.new()
+	head.name = "Head"
+	head.position = Vector3(0.0, 1.08, -0.26)
+	body.add_child(head)
+	var skull := SphereMesh.new()
+	skull.radius = 0.055
+	skull.height = 0.11
+	skull.radial_segments = 8
+	skull.rings = 4
+	mk.call(head, skull, grey, Vector3.ZERO)
+	var beak := CylinderMesh.new()
+	beak.top_radius = 0.004
+	beak.bottom_radius = 0.02
+	beak.height = 0.16
+	beak.radial_segments = 5
+	mk.call(head, beak, bill, Vector3(0.0, -0.01, -0.12), Vector3(-PI * 0.5, 0.0, 0.0))
+	for side: float in [-1.0, 1.0]:
+		var leg := CylinderMesh.new()
+		leg.top_radius = 0.012
+		leg.bottom_radius = 0.012
+		leg.height = 0.50
+		leg.radial_segments = 5
+		mk.call(body, leg, dark, Vector3(side * 0.05, 0.25, 0.02))
+		var wing := Node3D.new()
+		wing.name = "WingL" if side < 0.0 else "WingR"
+		wing.position = Vector3(side * 0.10, 0.68, 0.0)
+		body.add_child(wing)
+		var feather := BoxMesh.new()
+		feather.size = Vector3(0.62, 0.02, 0.24)
+		mk.call(wing, feather, grey, Vector3(side * 0.31, 0.0, 0.0))
+		wing.visible = false
+	return body
+

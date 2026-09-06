@@ -1252,3 +1252,28 @@ SETTINGS_ANALYTICS_HINT,"Which chapter was finished, how long it took, with a ra
 TIP_KEYS_TITLE,KEYS,TUŞLAR
 TIP_KEYS_LINE,W A S D or the arrows drive. Space or Tab picks the next machine. Esc pauses. F11 fills the screen.,W A S D ya da oklar sürer. Boşluk ya da Tab sıradaki makineyi seçer. Esc duraklatır. F11 ekranı doldurur.
 SETTLER_LEFT_LINE,{settler} left in the night. There was nothing here to feed them.,{settler} gece gitti. Burada onu doyuracak bir şey kalmamıştı.
+DLG_BRIEF_CH04_3,Take the punt. The scythe's on the bow; reeds come off like anything else.,Kayığı al. Tırpan burunda; saz da her şey gibi kesilir.
+HUD_LAKE_LINE,Cut the reeds. The water keeps what it covers.,"Sazı biç. Su, örttüğünü saklar."
+CH_27_NAME,The Reed Shore,Sazlık Kıyısı
+OPENING_27_HEADLINE,THE LAKE ROAD,GÖL YOLU
+OPENING_27_SUBLINE,Somebody came this way first.,Buradan önce biri geçti.
+DLG_BRIEF_CH27_1,"They didn't all come by the road. The lake's the other way in, and the reeds have grown over whatever used it.","Hepsi yoldan gelmedi. Göl öteki giriş, ve sazlar oradan geçeni örtmüş."
+DLG_BRIEF_CH27_2,"Take the punt again. Cut to the shore; if a boat came in, it's still there. Boats don't leave.",Kayığı yine al. Kıyıya kadar biç; bir kayık geldiyse hâlâ oradadır. Kayıklar gitmez.
+DLG_BRIEF_CH27_3,Whatever's in it is dry or it isn't. Either way I want to know before the gate.,İçindekiler ya kurudur ya değil. İki hâlde de kapıdan önce bilmek istiyorum.
+BRIEF_27_ACCEPT,Take the punt,Kayığı al
+EV_CH27_A_NAME,Holed Rowboat,Delik Sandal
+EV_CH27_A_LINE,"Stove in on a snag, bailed to the last. Somebody rowed it in leaking and made the shore.","Bir kütüğe çarpıp delinmiş, son ana kadar su boşaltılmış. Biri onu sızdırırken kürek çekip kıyıya vardırmış."
+COLE_ROWBOAT,The hole is old; the bailing tin is not. They knew about the leak before they set out.,Delik eski; boşaltma tenekesi değil. Yola çıkmadan önce sızıntıyı biliyorlardı.
+MN_CH27_A,Came in leaking. Came anyway.,Sızdırırken geldi. Yine de geldi.
+EV_CH27_B_NAME,Oilskin Bundle,Muşamba Bohça
+EV_CH27_B_LINE,"Letters, tied, dry. Every one addressed to this town by a name it stopped using.","Mektuplar, bağlı, kuru. Hepsi bu kasabaya, kasabanın artık kullanmadığı bir adla yazılmış."
+COLE_OILSKIN,Wrapped by somebody who has kept paper dry on water before. A postman's fold.,Suda kâğıt kuru tutmayı bilen biri sarmış. Postacı katlaması.
+MN_CH27_B,They wrote first. We never read it.,Önce yazmışlar. Biz hiç okumadık.
+DLG_DEB_CH27_F1,A boat that came in leaking and letters that stayed dry. That's not a raid. That's a delivery nobody signed for.,Sızdıran bir kayık ve kuru kalmış mektuplar. Bu bir baskın değil. Kimsenin imzalamadığı bir teslimat.
+DLG_DEB_CH27_F2,"They tried the polite way first. Years ago, by the look of the paper.",Önce kibar yolu denemişler. Kâğıda bakılırsa yıllar önce.
+DLG_DEB_CH27_F3,Read them before the gate. All of them.,Kapıdan önce oku. Hepsini.
+DLG_DEB_CH27_P1,"Half the shore. The letters are still in the reeds somewhere, and paper doesn't wait.","Kıyının yarısı. Mektuplar hâlâ sazlığın bir yerinde, ve kâğıt beklemez."
+RECLAIM_CH27,Town reclaimed: the lake road is open.,Kasaba geri alındı: göl yolu açık.
+ECHO_CH27_NAME,Ferry Ticket,Vapur Bileti
+ECHO_CH27_LINE,"Return half, never punched. Somebody paid to cross and never went back.","Dönüş parçası, hiç zımbalanmamış. Biri geçmek için ödemiş, bir daha dönmemiş."
+LOC_SHALLOWS,in the shallows,sığlıkta

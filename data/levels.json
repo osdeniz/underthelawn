@@ -138,11 +138,11 @@
       "time_of_day": "midday"
     },
     "ch04_flooded": {
-      "palette_id": "MARSH",
+      "palette_id": "LAKE",
       "grid_size": "medium",
       "obstacle_layout_id": "stones",
       "house_variant": "house_none",
-      "landmark_id": "",
+      "landmark_id": "jetty",
       "decor_seed": 4404,
       "scrap_budget": 12,
       "evidence_defs": [
@@ -175,7 +175,10 @@
       },
       "reclaim_line": "RECLAIM_CH04",
       "time_of_day": "afternoon",
-      "weather": "rain"
+      "weather": "rain",
+      "level_type": "lake",
+      "plant_profile_id": "REED",
+      "_comment": "G21: the flooded lot is a LAKE level — reeds in water, cut from the punt. The first water in Case 01; Case 03's reed shore is the second."
     },
     "ch05_greenhouse": {
       "palette_id": "LUSH",
@@ -1271,6 +1274,52 @@
         "icon": "📰",
         "name": "ECHO_CH26_NAME",
         "flavor_text": "ECHO_CH26_LINE"
+      }
+    },
+    "ch27_the_reed_shore": {
+      "_comment": "G21.2: Case 03's lake — the other way into town. Dusk, no rain, the bundle on foot in the reeds.",
+      "palette_id": "LAKE",
+      "grid_size": "medium",
+      "obstacle_layout_id": "stones",
+      "landmark_id": "sunken_boat",
+      "time_of_day": "dusk",
+      "decor_seed": 2727,
+      "scrap_budget": 12,
+      "level_type": "lake",
+      "plant_profile_id": "REED",
+      "walk_only_evidence": true,
+      "evidence_defs": [
+        {
+          "id": "rowboat",
+          "icon": "🛶",
+          "name": "EV_CH27_A_NAME",
+          "flavor_text": "EV_CH27_A_LINE",
+          "location_tag": "LOC_SHALLOWS",
+          "cole_note": "COLE_ROWBOAT",
+          "marshal_note": "MN_CH27_A"
+        },
+        {
+          "id": "oilskin",
+          "icon": "📦",
+          "name": "EV_CH27_B_NAME",
+          "flavor_text": "EV_CH27_B_LINE",
+          "location_tag": "LOC_REEDS",
+          "cole_note": "COLE_OILSKIN",
+          "marshal_note": "MN_CH27_B"
+        }
+      ],
+      "house_variant": "house_none",
+      "scrap_multiplier": 0.72,
+      "opening": {
+        "headline": "OPENING_27_HEADLINE",
+        "subline": "OPENING_27_SUBLINE"
+      },
+      "reclaim_line": "RECLAIM_CH27",
+      "echo_def": {
+        "id": "leaflet",
+        "icon": "🎫",
+        "name": "ECHO_CH27_NAME",
+        "flavor_text": "ECHO_CH27_LINE"
       }
     }
   }

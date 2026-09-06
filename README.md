@@ -4180,3 +4180,72 @@ the field itself 988k → 631k. The harvest lawn's own 327k (wheat stalks, nine
 a cell, 988 cells) is left for the device to judge: it is the crop the player
 is cutting, and the one place thinning would be seen. Numbers for
 `docs/DEVICE_TEST.md`, where "en büyük ızgara" now has a figure behind it.
+
+## G21 — the lake, sprint 1: the water is a cover too
+
+The player asked for water — a sea, a boat, "something to make it move". The
+sea would have been a second game with none of the first one's rule in it.
+What fits is a LAKE: reeds standing in water, cut from a punt. The surface is
+the cover, the bed is what the cover hid, and the rule does not change.
+
+**Level type `lake`** (`LevelVariant.is_lake()`), first used by ch04 — the
+flooded lot, which was already water in name, palette and rain. Palette
+`LAKE`: reed-dark at the waterline, tan at the head, and the "mown" ladder is
+not cut grass but clear water, dark blue-green. Plant profile `REED`. A thin
+animated sheen (the pool's water shader, alpha 0.40) lies over the lawn plane
+so the two tints read as one surface; the tufts stand through it.
+
+**The punt** is the push mower with a different body and a different hand:
+`GameConfig.BOAT` — slower (2.4), a wider turn, no reverse, nearly a second to
+get going, longer to stop, and DRIFT: `MowerController` keeps a hull velocity
+that follows the heading at `grip` per second, so a turn is a curve. Only a
+params set with `grip` uses that path; the mowers move exactly as before.
+`PushMower.set_boat` hides every mower part and shows a planked hull with a
+pointed bow, two thwarts, an iron scythe bar across the bow where the deck
+cuts, and the pole along the gunwale. The driver sits on the stern thwart
+facing the bow (the first render had him wading behind it in the push pose).
+The selector is gone on a lake; the tractor cannot be chosen. The engine
+player plays an oar — dip, pull, drips, generated — under the same speed
+fraction.
+
+`LakeCheck` measures: lake, palette, selector hidden, hull shown and mower
+parts hidden, reverse zero, tractor refused, a two-second pull on the clock
+covers more than 45% of nominal (2.91 of 4.8 — the slow start is the point),
+the hull coasts 0.91 after release, and a cut cell is a cut cell. `LakeShot`
+is the render: a channel of clear water through the reeds, in the rain.
+
+**Sprint 2, next:** a jetty and a sunken rowboat as ch04's landmark, a heron
+in the reeds instead of the rabbit, Case 03's reed shore as a second lake with
+its own texts, and the lake in the legibility sweep.
+
+## G21.2 — the lake, sprint 2: a place, a bird, a second shore
+
+**Landmarks.** ch04's north bank has a jetty now — posts, a plank walk, a
+mooring ring, a rowboat tied alongside with its bailing tin — and the apron
+around a lake is wet mud rather than dry earth. Case 03's new shore has the
+boat the evidence is about: holed on a snag, sunk to its thwarts, bow up, the
+lantern still lit on its post.
+
+**Herons.** On a lake the rabbits are replaced by two herons standing in the
+uncut reeds — the small birds' entry with a taller body that wants UNCUT
+cells, lifts off slower and higher, and flees from further away. Wings only
+in the air, as before.
+
+**ch27 — The Reed Shore.** Case 03 grows to nine chapters, placed before the
+visit: the lake is the other way into town, and the reeds have grown over
+whoever used it. Dusk, no rain, the punt again, the oilskin bundle on foot in
+the reeds. Two pieces — a rowboat that came in leaking and was bailed to the
+last, and letters tied in oilskin, dry, addressed to the town by a name it
+stopped using — and a debrief that turns the case: "That's not a raid. That's
+a delivery nobody signed for." Read them before the gate. Cole's notes, the
+Marshal's margins, an echo (a ferry ticket, return half never punched), the
+reclaim line, en and tr. `Case3Check` counts nine and twenty-seven.
+
+**Legibility on water.** The sweep runs a lake pass (ch04, afternoon, wet):
+cut/uncut gap 0.096 against the 0.030 floor.
+
+**The limiter.** Every test all day had "taken" its full limit: `/tmp/tmo.sh`'s
+watcher subshell inherited the caller's pipe and its orphaned `sleep` held it
+open after Godot had exited, so `tmo … | grep` returned when the sleep did.
+TextCheck: 120 s → 1 s. The watcher runs with its stdio closed now. Not the
+game, not the tests — the ruler.

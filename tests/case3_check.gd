@@ -5,7 +5,7 @@ extends TestBase
 func run() -> void:
 	suite = "VAKA 03"
 	var chapters := Story.list("case_03.chapters")
-	ck("sekiz bolum", chapters.size() == 8, str(chapters.size()))
+	ck("dokuz bolum", chapters.size() == 9, str(chapters.size()))
 	var seen := {}
 	for chapter: Dictionary in chapters:
 		var id := str(chapter.get("variant_id", ""))
@@ -35,9 +35,9 @@ func run() -> void:
 	var before := ChapterProgress.chapters().size()
 	GameState.set_setting("story", "case02_closed", true)
 	ck("vaka 02 kapaninca vaka 03 acik", ChapterProgress.case_three_open())
-	ck("liste 26'ya cikiyor", ChapterProgress.chapters().size() == 26,
+	ck("liste 27'ye cikiyor", ChapterProgress.chapters().size() == 27,
 		"%d -> %d" % [before, ChapterProgress.chapters().size()])
-	ck("case_of ch26 -> vaka 03", ChapterProgress.case_of("ch26_the_visit").size() == 8)
+	ck("case_of ch26 -> vaka 03", ChapterProgress.case_of("ch26_the_visit").size() == 9)
 	GameState.set_setting("story", "case02_closed", was)
 
 	# The card: two pages by tap, then two buttons, each ending the card with

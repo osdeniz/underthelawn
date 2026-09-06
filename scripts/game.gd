@@ -150,6 +150,8 @@ func _ready() -> void:
 		hud.apply_harvest_mode()
 	elif variant != null and variant.is_road():
 		hud.apply_road_mode()
+	elif variant != null and variant.is_lake():
+		apply_lake_mode()
 	elif variant != null and not variant.time_lapse.is_empty():
 		hud.apply_lapse_mode()
 
@@ -482,6 +484,9 @@ func _apply_quality() -> void:
 ## Switches type in place: the new mower inherits position and heading, speed
 ## resets, the camera keeps lerping, and the robot replans from the current lawn.
 func select_mower(index: int) -> void:
+	# On the lake there is one boat (G21).
+	if variant != null and variant.is_lake() and index != GameConfig.MOWER_PUSH:
+		return
 	if index == _active_index and mower != null:
 		return
 	_activate(index, false)
@@ -524,6 +529,8 @@ func _activate(index: int, initial: bool) -> void:
 		cam.snap_to_target()
 
 	AudioDirector.set_engine_profile(index)
+	if variant != null and variant.is_lake():
+		AudioDirector.set_engine_profile_lake()
 	hud.set_joystick_visible(index == GameConfig.MOWER_TRACTOR)
 	hud.selector.set_current(index)
 	_place_character(index)
@@ -602,7 +609,14 @@ func _place_character(index: int) -> void:
 		return
 	match index:
 		GameConfig.MOWER_PUSH:
-			character.set_mode(Character.Mode.PUSH, mower, mower)
+			if variant != null and variant.is_lake():
+				# In the punt, not behind it (G21): the sit pose on the stern
+				# thwart, facing the bow.
+				character.set_mode(Character.Mode.SIT, mower, mower)
+				character.position = GameConfig.CHAR_BOAT_SEAT
+				character.rotation.y = 0.0
+			else:
+				character.set_mode(Character.Mode.PUSH, mower, mower)
 		GameConfig.MOWER_TRACTOR:
 			character.set_mode(Character.Mode.TRACTOR, mower, mower)
 		GameConfig.MOWER_ROBOT, GameConfig.MOWER_BLADE:
@@ -1026,6 +1040,48 @@ func _cycle_mower() -> void:
 		if Garage.is_unlocked(next):
 			select_mower(next)
 			return
+
+
+## THE LAKE (G21). The yard is reeds standing in water and the push mower is
+## a punt: same controls, a hull, drift, no reverse, an oar for an engine. A
+## thin animated sheen lies over the lawn plane so the cell tints — reed-dark
+## uncut, clear-water cut — read as one surface. The rule does not change:
+## the cover comes off, the bed shows, what it hid is there.
+func apply_lake_mode() -> void:
+	hud.apply_lake_mode()
+	hud.selector.visible = false
+	var punt: Node = _mowers[GameConfig.MOWER_PUSH] if GameConfig.MOWER_PUSH < _mowers.size() else null
+	if punt != null and punt.has_method("set_boat"):
+		punt.set_boat(true)
+	AudioDirector.set_engine_profile_lake()
+	_build_lake_sheen()
+
+
+func _build_lake_sheen() -> void:
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(float(GameConfig.GRID_COLS), float(GameConfig.GRID_ROWS))
+	plane.subdivide_width = 16
+	plane.subdivide_depth = 20
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/pool_water.gdshader")
+	mat.set_shader_parameter("water_color", GameConfig.LAKE_SHEEN_COLOUR)
+	mat.set_shader_parameter("water_roughness", GameConfig.POOL_WATER_ROUGHNESS)
+	mat.set_shader_parameter("wave_speed", GameConfig.POOL_WAVE_SPEED * 0.5)
+	mat.set_shader_parameter("wave_amp", GameConfig.POOL_WAVE_AMP * 0.5)
+	mat.set_shader_parameter("fancy", GameConfig.WATER_FANCY_ENABLED)
+	mat.set_shader_parameter("wave2_speed", GameConfig.WATER_WAVE2_SPEED)
+	mat.set_shader_parameter("wave2_freq", GameConfig.WATER_WAVE2_FREQ)
+	mat.set_shader_parameter("wave2_amp", GameConfig.WATER_WAVE2_AMP)
+	mat.set_shader_parameter("fresnel_power", GameConfig.WATER_FRESNEL_POWER)
+	mat.set_shader_parameter("alpha_facing", GameConfig.LAKE_SHEEN_COLOUR.a)
+	mat.set_shader_parameter("alpha_grazing", minf(1.0, GameConfig.LAKE_SHEEN_COLOUR.a + 0.3))
+	var sheen := MeshInstance3D.new()
+	sheen.name = "LakeSheen"
+	sheen.mesh = plane
+	sheen.material_override = mat
+	sheen.position = Vector3(0.0, GameConfig.LAKE_SHEEN_Y, 0.0)
+	sheen.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_fx_root.add_child(sheen)
 
 
 ## Food at zero had no consequence (G20.5): the counter went red and the town

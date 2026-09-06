@@ -593,6 +593,14 @@
         "playable": true
       },
       {
+        "variant_id": "ch27_the_reed_shore",
+        "name": "CH_27_NAME",
+        "brief": "brief_ch27",
+        "debrief_full": "debrief_ch27_full",
+        "debrief_partial": "debrief_ch27_partial",
+        "playable": true
+      },
+      {
         "variant_id": "ch26_the_visit",
         "name": "CH_26_NAME",
         "brief": "brief_ch26",

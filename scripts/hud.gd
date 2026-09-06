@@ -1542,6 +1542,11 @@ func apply_lantern_mode() -> void:
 	_case_line.text = tr("HUD_LANTERN_LINE")
 
 
+## The lake (G21).
+func apply_lake_mode() -> void:
+	_case_line.text = tr("HUD_LAKE_LINE")
+
+
 func apply_harvest_mode() -> void:
 	_case_line.text = tr("HARVEST_HUD_LINE")
 	_evidence_chip.visible = false

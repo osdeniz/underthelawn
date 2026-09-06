@@ -39,6 +39,7 @@ görünür kılma. Kimin için görünür — soru bu.
 | 23 | ch23_the_grave_row | mezarlık sırası | clearing | DUSK_VIOLET | dusk | **tek yankı**: küçük bir tahta işaret, yazısız; walk_only kanıt (yürüyerek) |
 | 24 | ch24_the_gate_line | kasaba kapısı, çit hattı | gate_line (G19.6) | GREEN_COOL | dawn | kapının önü; sazlık; "buradan geçecekler" |
 | 25 | ch25_night_watch | gece nöbeti, kule altı | water_tower | EMERALD | night | fireflies; **zaman baskısı**: farlar yaklaşır (HUD hattı) |
+| 27 | ch27_the_reed_shore | sazlık kıyısı, göl yolu | sunken_boat (G21.2) | LAKE | dusk | **göl**: kayık, saz; batık sandal + kuru mektuplar; bohça yürüyerek (walk_only) |
 | 26 | ch26_the_visit | ziyaret | square_tables (G19.6) | WHEAT | sunset | **finale**: biçme kısa (small); sonunda **Kapı Kartı** (seçim) |
 
 Landmark'lar mevcut olanlardan seçildi; yeni mesh yok. Palet ve saatler bir

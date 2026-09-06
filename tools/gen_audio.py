@@ -584,6 +584,23 @@ def dog_huff():
     return out
 
 
+# ---- an oar in still water (G21): a soft dip, a pull, a drip, once every
+# 1.3 s, looped. Lowpassed noise shaped by a pull envelope, a small splash on
+# the dip, a couple of drips after.
+def oar_loop():
+    dur = 1.3
+    n = seconds(dur)
+    raw = _lowpass(_noise(n, 21), 0.08)
+    out = []
+    for i in range(n):
+        t = i / SR
+        pull = math.exp(-((t - 0.28) ** 2) / 0.012) * 0.9
+        dip = math.exp(-((t - 0.12) ** 2) / 0.0015) * 0.7
+        drip = sum(math.exp(-((t - d) ** 2) / 0.0004) * 0.35 for d in (0.72, 0.86, 1.02))
+        out.append(raw[i] * (pull + dip) + math.sin(TAU * 1800 * t) * drip * 0.4)
+    return _loop_fade(out)
+
+
 # ---- the robot's two-note acknowledgement when it takes the yard (G20.4):
 # a low tone then a higher one, each 90 ms, clean sines with a soft edge.
 def robot_beep():
@@ -720,6 +737,7 @@ write("footstep_dirt", footstep(False, 7), 0.55)
 write("lamp_hum_loop", lamp_hum(), 0.35)
 write("dog_huff", dog_huff(), 0.6)
 write("robot_beep", robot_beep(), 0.5)
+write("oar_loop", oar_loop(), 0.45)
 write("rabbit_rustle", rabbit_rustle(), 0.6)
 write("bird_takeoff", bird_takeoff(), 0.6)
 write("settler_card", settler_card(), 0.8)

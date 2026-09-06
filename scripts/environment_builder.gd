@@ -261,7 +261,11 @@ func _ao_blob(parent: Node3D, size: Vector2, pos: Vector3, alpha := 1.0) -> Mesh
 ## Dirt apron under everything that is not lawn — without it the house, road
 ## and porch float over the sky.
 func _build_yard() -> void:
-	var dirt := _tex_mat("dirt", "dirt_albedo", Color(0.38, 0.28, 0.18), 1.0,
+	# A lake's apron is a wet bank, not dry earth (G21.2): the same texture,
+	# darker and colder, so the jetty stands on mud and not on a field.
+	var lake := _variant != null and _variant.is_lake()
+	var dirt := _tex_mat("mud" if lake else "dirt", "dirt_albedo",
+		Color(0.24, 0.20, 0.15) if lake else Color(0.38, 0.28, 0.18), 1.0,
 		Vector3(14.0, 12.0, 1.0))
 	_ground_quad(self, Vector2(90.0, 76.0), dirt, Vector3(0.0, -0.04, 6.0))
 
@@ -1413,9 +1417,88 @@ func _build_landmark(landmark_id: String) -> void:
 		"clearing": _landmark_clearing(root)
 		"gate_line": _landmark_gate_line(root)
 		"square_tables": _landmark_square_tables(root)
+		"jetty": _landmark_jetty(root)
+		"sunken_boat": _landmark_sunken_boat(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
+
+
+## The lake (G21.2).
+
+## A jetty from the north bank out over the water: posts, a plank walk, a
+## mooring ring, and a rowboat tied alongside, bailing tin on its seat. Where
+## the flooded lot's water used to be a drain.
+func _landmark_jetty(root: Node3D) -> void:
+	var wood := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
+	var post := _flat("jt_post", Color(0.36, 0.29, 0.21), 0.95)
+	var iron := _flat("jt_iron", Color(0.34, 0.34, 0.37), 0.8, 0.3)
+	var tin := _flat("jt_tin", Color(0.64, 0.66, 0.64), 0.55, 0.3)
+	# Deck: planks running out toward the yard (+Z), six posts under it.
+	for i in 9:
+		_box(root, Vector3(1.6, 0.06, 0.32), wood, Vector3(0.0, 0.42, 1.4 - float(i) * 0.36))
+	for sx: float in [-0.65, 0.65]:
+		for pz: float in [1.3, 0.2, -1.2]:
+			_cyl(root, 0.07, 0.08, 0.9, post, Vector3(sx, 0.0, pz))
+	# A ring on the last post, and the boat tied to it.
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.05
+	ring.outer_radius = 0.09
+	ring.rings = 8
+	ring.ring_segments = 10
+	_mesh(root, ring, iron, Vector3(0.72, 0.52, 1.3))
+	var boat := Node3D.new()
+	boat.position = Vector3(1.9, 0.0, 0.6)
+	boat.rotation.y = deg_to_rad(12.0)
+	root.add_child(boat)
+	_box(boat, Vector3(0.62, 0.08, 1.4), post, Vector3(0.0, 0.08, 0.0))
+	for side: float in [-1.0, 1.0]:
+		_box(boat, Vector3(0.06, 0.28, 1.4), wood, Vector3(side * 0.30, 0.22, 0.0))
+	_box(boat, Vector3(0.66, 0.28, 0.06), wood, Vector3(0.0, 0.22, 0.70))
+	var bow := PrismMesh.new()
+	bow.size = Vector3(0.66, 0.60, 0.28)
+	var bow_mi := _mesh(boat, bow, wood, Vector3(0.0, 0.22, -0.95))
+	bow_mi.rotation.x = -PI * 0.5
+	_box(boat, Vector3(0.58, 0.05, 0.14), wood, Vector3(0.0, 0.30, 0.2))
+	_cyl(boat, 0.06, 0.05, 0.10, tin, Vector3(0.12, 0.38, 0.2), Vector3.ZERO, 8)
+	_ao_blob(root, Vector2(4.0, 3.2), Vector3(0.6, 0.02, 0.3), 0.45)
+
+
+## The reed shore's boat (ch27): a rowboat holed on a snag and sunk to its
+## thwarts, bow up out of the water, a lantern still hung on the bow post.
+## What the evidence is about, standing where you can see it from the punt.
+func _landmark_sunken_boat(root: Node3D) -> void:
+	var wood := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
+	var dark := _flat("sb_dark", Color(0.30, 0.24, 0.17), 0.95)
+	var iron := _flat("sb_iron", Color(0.30, 0.30, 0.32), 0.8, 0.3)
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(1.0, 0.86, 0.60)
+	glass.emission_enabled = true
+	glass.emission = Color(1.0, 0.80, 0.50)
+	glass.emission_energy_multiplier = 1.5
+	var boat := Node3D.new()
+	boat.position = Vector3(-1.2, -0.18, 0.4)
+	boat.rotation = Vector3(deg_to_rad(-16.0), deg_to_rad(-25.0), deg_to_rad(6.0))
+	root.add_child(boat)
+	_box(boat, Vector3(0.70, 0.08, 1.8), dark, Vector3(0.0, 0.08, 0.0))
+	for side: float in [-1.0, 1.0]:
+		_box(boat, Vector3(0.06, 0.30, 1.8), wood, Vector3(side * 0.34, 0.23, 0.0))
+	_box(boat, Vector3(0.74, 0.30, 0.06), wood, Vector3(0.0, 0.23, 0.90))
+	var bow := PrismMesh.new()
+	bow.size = Vector3(0.74, 0.70, 0.30)
+	var bow_mi := _mesh(boat, bow, wood, Vector3(0.0, 0.23, -1.20))
+	bow_mi.rotation.x = -PI * 0.5
+	_box(boat, Vector3(0.62, 0.05, 0.14), wood, Vector3(0.0, 0.34, 0.3))
+	# The snag it struck, through the planks.
+	_cyl(boat, 0.09, 0.12, 1.1, dark, Vector3(0.16, 0.2, -0.3), Vector3(0.3, 0.0, 0.5))
+	# Bow post and the lantern on it.
+	_cyl(boat, 0.03, 0.03, 0.7, iron, Vector3(0.0, 0.7, -1.05))
+	_box(boat, Vector3(0.20, 0.26, 0.20), glass, Vector3(0.0, 1.0, -1.05))
+	_box(boat, Vector3(0.26, 0.04, 0.26), iron, Vector3(0.0, 1.16, -1.05))
+	# Two stumps of reed-post where a mooring stood.
+	for x: float in [1.4, 2.0]:
+		_cyl(root, 0.06, 0.07, 0.7, dark, Vector3(x, 0.0, 0.9))
+	_ao_blob(root, Vector2(3.6, 3.0), Vector3(-0.8, 0.02, 0.4), 0.45)
 
 
 ## Case 03 (G19.6). Two places the case had borrowed from Case 02: the gate

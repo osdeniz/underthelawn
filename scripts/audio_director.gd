@@ -35,6 +35,7 @@ const PATHS := {
 	"lamp": "res://audio/lamp_hum_loop",
 	"dog_huff": "res://audio/dog_huff",
 	"robot_beep": "res://audio/robot_beep",
+	"oar": "res://audio/oar_loop",
 	"rabbit": "res://audio/rabbit_rustle",
 	"bird_takeoff": "res://audio/bird_takeoff",
 	"settler": "res://audio/settler_card",
@@ -246,6 +247,20 @@ func set_engine_profile(type_index: int) -> void:
 	if type_index == GameConfig.MOWER_BLADE and _streams.has("blade_spin"):
 		want = _streams["blade_spin"]
 	if want != null and _engine_player.stream != want:
+		_engine_player.stream = want
+		_force_loop(want)
+		_engine_player.play()
+
+
+## The punt has no engine (G21): the oar's rhythm in the water takes the
+## engine player's place, driven by the same speed fraction.
+func set_engine_profile_lake() -> void:
+	_engine_off = false
+	_profile = GameConfig.OAR_PROFILE
+	if _engine_player == null or not _streams.has("oar"):
+		return
+	var want: AudioStream = _streams["oar"]
+	if _engine_player.stream != want:
 		_engine_player.stream = want
 		_force_loop(want)
 		_engine_player.play()

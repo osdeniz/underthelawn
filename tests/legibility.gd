@@ -29,6 +29,9 @@ extends Node
 const FLOOR := 0.030
 
 var _fails := 0
+## Which yard the bands are read on; the lake pass swaps it (G21.2).
+var _chapter := "ch01_aldridge"
+var _hours_only: Array = []
 
 
 func _ready() -> void:
@@ -48,6 +51,11 @@ func _ready() -> void:
 		passes = [false]
 	for wet: bool in passes:
 		await _sweep(wet)
+	# The lake (G21.2): reeds over water, cut water under. One sky, its own
+	# weather, the same floor.
+	_chapter = "ch04_flooded"
+	_hours_only = ["afternoon"]
+	await _sweep(true)
 	if _fails > 0:
 		push_error("%d ISIK OKUNMUYOR" % _fails)
 		print("--- %d OKUNABILIRLIK TESTI BASARISIZ ---" % _fails)
@@ -58,12 +66,14 @@ func _ready() -> void:
 
 func _sweep(wet: bool) -> void:
 	var only_hours := str(OS.get_environment("UTL_HOURS")).split(",", false)
+	if not _hours_only.is_empty():
+		only_hours = PackedStringArray(_hours_only)
 	for id: String in GameConfig.TIME_OF_DAY:
 		if only_hours.size() > 0 and not only_hours.has(id):
 			continue
 		SkyTime.set_mode(GameConfig.SKY_MODE_AUTO)
 		var game: Node = load("res://scenes/Main.tscn").instantiate()
-		game.variant_id = "ch01_aldridge"
+		game.variant_id = _chapter
 		add_child(game)
 		for _i in 8:
 			await get_tree().process_frame

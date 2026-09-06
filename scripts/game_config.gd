@@ -135,6 +135,27 @@ const GRASS_PALETTES := {
 	# B2: dew-grey teal, unmistakably a different morning from B1's warm green —
 	# the first two chapters sit side by side on the board, so THESE two have to
 	# differ the most (G9.2 tuning after they read as siblings).
+	# THE LAKE (G21): reeds standing in water. The cluster is reed — dark at
+	# the waterline, tan at the head — and the "mown" ladder is not cut grass
+	# but CLEAR WATER: dark, blue-green, the bottom showing. Same rule as every
+	# palette, another material: the surface is the cover, the bed is what the
+	# cover hid.
+	"LAKE": {
+		"cluster_base": Color(0.09, 0.17, 0.10),
+		"cluster_tip": Color(0.54, 0.58, 0.30),
+		"accents": [
+			{ "base": Color(0.12, 0.22, 0.10), "tip": Color(0.36, 0.58, 0.24),
+				"weight": 0.22, "flowers": false },
+			{ "base": Color(0.10, 0.16, 0.12), "tip": Color(0.62, 0.60, 0.40),
+				"weight": 0.06, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.10, 0.23, 0.29), Color(0.09, 0.21, 0.27),
+			Color(0.06, 0.15, 0.21), Color(0.08, 0.18, 0.24),
+		],
+		"clipping": Color(0.50, 0.62, 0.44),
+	},
+
 	"GREEN_COOL": {
 		"cluster_base": Color(0.04, 0.19, 0.16),
 		"cluster_tip": Color(0.24, 0.60, 0.52),
@@ -707,6 +728,29 @@ const TRACTOR_DISC_TOOTH_SIZE := Vector3(0.09, 0.022, 0.13)
 # ---------------------------------------------------------------- movement (§7)
 const ACCEL_TIME := 0.4
 const DECEL_TIME := 0.55
+
+## THE PUNT (G21). On a lake level the push mower IS the boat: same controls,
+## a different body and a different hand. Slower, a wider turn, no reverse,
+## nearly a second to get going and longer to stop — and DRIFT: the hull keeps
+## its velocity while the bow turns, so a turn is a curve, not a pivot. `grip`
+## is how fast the velocity follows the heading (per second); the mowers have
+## no grip entry and move exactly as before.
+const BOAT := {
+	"speed": 2.4, "deck": 0.7, "max_turn": 1.35, "body": 0.6, "reverse": 0.0,
+	"turn_drag": 0.35, "accel_time": 0.9, "decel_time": 1.5, "grip": 2.6,
+}
+## A thin animated sheen over the whole lawn plane: the water the reeds stand
+## in. Alpha low so the cell tints (reed-dark / clear-water) read through it.
+const LAKE_SHEEN_COLOUR := Color(0.18, 0.32, 0.36, 0.40)
+const LAKE_SHEEN_Y := 0.035
+## The lake's birds (G21.2).
+const HERON_COUNT := 2
+const HERON_SPEED := 2.6
+const HERON_RISE := 1.6
+const HERON_FLEE_RANGE := 5.0
+## The oar in the water instead of an engine.
+const OAR_PROFILE := { "idle_gain": 0.10, "move_gain": 0.42, "idle_pitch": 0.92,
+	"move_pitch": 1.06, "turn": 0.05 }
 const STEER_SMOOTHING := 9.0
 const STEER_SPEED_RADIUS_FACTOR := 0.45
 const STEER_ERROR_GAIN := 5.0                 # shortestAngle * 5 -> desiredOmega
@@ -1257,6 +1301,8 @@ const LANDMARK_IDS: Array[String] = [
 	"clearing",
 	# Case 03 (G19.6): the line they will stop at, and the square set for them.
 	"gate_line", "square_tables",
+	# The lake (G21.2): the flooded lot's jetty, the reed shore's sunken boat.
+	"jetty", "sunken_boat",
 ]
 
 const HOUSE_MARGIN_Z := 4.8
@@ -1512,6 +1558,9 @@ const BREATH_AMP := 0.008
 
 # Tractor mode (§8): sits on the seat.
 const CHAR_TRACTOR_SEAT := Vector3(0.0, 0.80, 0.42)
+## The punt's stern thwart (G21): the driver sits facing the bow, hands on his
+## knees, and the hull moves under him.
+const CHAR_BOAT_SEAT := Vector3(0.0, 0.66, 0.45)
 const CHAR_SIT_THIGH := 1.35                   # thighs horizontal
 const CHAR_SIT_SHIN := 1.15                    # shins down
 const CHAR_WHEEL_ARM_X := 1.35                 # arms to the wheel

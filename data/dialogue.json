@@ -149,6 +149,10 @@
         {
           "speaker": "marshal",
           "text": "DLG_BRIEF_CH04_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH04_3"
         }
       ],
       "accept": "BRIEF_01_ACCEPT"
@@ -1721,6 +1725,47 @@
         {
           "speaker": "marshal",
           "text": "DLG_FIN3_6"
+        }
+      ]
+    },
+    "brief_ch27": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH27_1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH27_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH27_3"
+        }
+      ],
+      "accept": "BRIEF_27_ACCEPT"
+    },
+    "debrief_ch27_full": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH27_F1"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH27_F2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH27_F3"
+        }
+      ]
+    },
+    "debrief_ch27_partial": {
+      "lines": [
+        {
+          "speaker": "marshal",
+          "text": "DLG_DEB_CH27_P1"
         }
       ]
     }

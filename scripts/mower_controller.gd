@@ -20,6 +20,8 @@ signal food_found(col: int, row: int, value: int)
 
 ## Index into GameConfig.MOWER_TYPES; set by _type_index() in each subclass.
 var params: Dictionary = {}
+## Carried momentum; only a hull with "grip" in its params uses it (G21).
+var _hull_velocity := Vector3.ZERO
 
 var model: LawnModel
 var tuft_field: TuftField
@@ -219,7 +221,14 @@ func _physics_process(delta: float) -> void:
 	_update_speed(delta)
 	_update_steering(delta)
 
-	position += forward() * speed * delta
+	if params.has("grip"):
+		# The punt (G21): velocity follows the heading at `grip` per second, so
+		# the hull slides through a turn instead of pivoting on the spot.
+		var wanted := forward() * speed
+		_hull_velocity = _hull_velocity.lerp(wanted, clampf(float(params["grip"]) * delta, 0.0, 1.0))
+		position += _hull_velocity * delta
+	else:
+		position += forward() * speed * delta
 	_resolve_walls()
 	_resolve_obstacles()
 	_apply_yaw()
@@ -268,8 +277,10 @@ func _gather_input(_delta: float) -> void:
 
 func _update_speed(delta: float) -> void:
 	var target := max_speed() * throttle
-	# rate = maxSpeed / time, 0.4 s up and 0.55 s down (§7).
-	var seconds := GameConfig.ACCEL_TIME if absf(target) > absf(speed) else GameConfig.DECEL_TIME
+	# rate = maxSpeed / time, 0.4 s up and 0.55 s down (§7); a heavy hull may
+	# say otherwise (G21).
+	var seconds: float = float(params.get("accel_time", GameConfig.ACCEL_TIME)) \
+		if absf(target) > absf(speed) else float(params.get("decel_time", GameConfig.DECEL_TIME))
 	var rate := max_speed() / seconds
 	speed += clampf(target - speed, -rate * delta, rate * delta)
 

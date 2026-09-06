@@ -237,6 +237,11 @@ func is_road() -> bool:
 	return level_type == "road"
 
 
+## G21: reeds in water, cut from a punt.
+func is_lake() -> bool:
+	return level_type == "lake"
+
+
 func evidence_count() -> int:
 	return evidence_defs.size()
 
