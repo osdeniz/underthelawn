@@ -4020,3 +4020,26 @@ demo gate. The check allows exactly those two.
 Phase C, in numbers: layouts 4 → 9 and "open" 10 → 4 (C.1); the panel
 12 → 6 (C.2); rain 2 → 6 and one lantern chapter (C.3); Case 03 landmark
 reuse 8/8 → 6/8 (C.4); chapters without a twist 5 → 2 (C.5).
+
+## G19.8 — Phase D: the flow, two walls taken down
+
+**Eight cards after the road → five.** The prologue's after-cards already say
+that nine years passed and that he sent for you; playing the full five-card
+intro on top of them made eight cards in a row before the first real yard.
+`intro.after_prologue` keeps the two that carry the case — her ninth birthday,
+and the poster — and root plays that after the road. The full intro still
+plays from the hub's STORY button, where a player asks for it.
+
+**Seven hub rows → four.** Karakol (the case), Harita, Kasaba, Defter.
+Objectives were already a badge button in the top bar; Restore and Workshop
+are two rows at the top of the Town page — the town is where you spend on the
+town. `FlowCheck` counts four, finds both rows on the town page, and opens the
+workshop through it.
+
+**DayShot** snaps the chase camera and hides the pause layer itself right
+before the capture; the sheet had re-opened between the close and the draw.
+
+**PickupCheck** was the one red suite in the full run (57 ok): a plain Node
+test whose last assertions ran after the background pause had landed, so a
+paused Game never ran `_check_pickups`. On TestBase now; passes alone and in
+the suite's conditions.

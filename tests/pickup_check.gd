@@ -1,13 +1,15 @@
-extends Node
+extends TestBase
 ## G10.1: evidence is a world object you drive over, not a tap target.
 ##
 ## Tap-collection was removed because it fought the drag pad for the same touch
 ## — the "sometimes it doesn't pick up" bug. These assertions pin the new rule.
 
-var _fails := 0
+## On TestBase since G19.8: the headless window has no focus, the game pauses
+## itself for the background a few frames in, and a paused Game never runs
+## _check_pickups — so the LAST assertions failed while the first passed.
 
-
-func _ready() -> void:
+func run() -> void:
+	suite = "TOPLAMA"
 	var game: Node = load("res://scenes/Main.tscn").instantiate()
 	add_child(game)
 	await get_tree().process_frame
@@ -63,16 +65,3 @@ func _ready() -> void:
 			str(game.carry._bills.size()))
 
 	game.queue_free()
-	if _fails > 0:
-		push_error("%d TOPLAMA TESTI BASARISIZ" % _fails)
-		print("--- %d TOPLAMA TESTI BASARISIZ ---" % _fails)
-	else:
-		print("--- TUM TOPLAMA TESTLERI GECTI ---")
-	get_tree().quit()
-
-
-func ck(label: String, passed: bool, detail: String) -> void:
-	if passed:
-		return
-	_fails += 1
-	print("  FAIL %s  %s" % [label, detail])

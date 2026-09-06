@@ -2310,6 +2310,12 @@ func _rebuild_town() -> void:
 	for child in column.get_children():
 		if child is Button or child is PanelContainer:
 			child.queue_free()
+	# The two ways of spending on the town live on the town page (G19.8): the
+	# hub's list went from seven rows to four, and Restore and Workshop were
+	# the two that belonged somewhere rather than everywhere.
+	for id: String in ["restore", "workshop"]:
+		column.add_child(_make_tile({"id": id, "label": "HUB_" + id.to_upper(),
+			"hint": "HUB_RESTORE_HINT" if id == "restore" else "HUB_WORKSHOP_HINT2"}))
 	# Nothing else. The people are witnesses and live in the case file now
 	# (_rebuild_people); what is left on this page is the town, which is the
 	# only screen where the model is drawn at all.

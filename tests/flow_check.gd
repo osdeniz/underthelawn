@@ -55,12 +55,21 @@ func _check_hub() -> void:
 	await get_tree().process_frame
 	ck("hub ekran boyutu var", hub.size.x > 100 and hub.size.y > 100,
 		str(hub.size))
-	# G10 opened the workshop: the tile must exist and be UNLOCKED now.
-	var workshop_open := false
-	for tile: Dictionary in Story.list("hub.tiles"):
-		if str(tile.get("id", "")) == "workshop":
-			workshop_open = not bool(tile.get("locked", false))
-	ck("atolye karti acik", workshop_open, "")
+	# G19.8: four rows on the hub, and the workshop is reached from the town
+	# page rather than from a tile of its own — but reached.
+	ck("hub dort satir", Story.list("hub.tiles").size() == 4,
+		str(Story.list("hub.tiles").size()))
+	hub._on_tile("town", false)
+	await get_tree().process_frame
+	var town_rows := 0
+	var column: VBoxContainer = hub._town_page.get_meta("column")
+	for child in column.get_children():
+		if child is Button and (child as Button).text in [tr("HUB_RESTORE"), tr("HUB_WORKSHOP")]:
+			town_rows += 1
+	ck("onarim ve atolye kasaba sayfasinda", town_rows == 2, str(town_rows))
+	hub._on_tile("workshop", false)
+	await get_tree().process_frame
+	ck("atolye acildi", hub._workshop_page.visible, "")
 	hub.queue_free()
 	await get_tree().process_frame
 

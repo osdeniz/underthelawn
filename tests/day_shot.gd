@@ -20,8 +20,14 @@ func run() -> void:
 		await frames(260)
 		get_tree().paused = false
 		game.hud._close_pause()
+		if game.cam != null and game.cam.has_method("snap_to_target"):
+			game.cam.snap_to_target()
 		game.hud.visible = false
 		await frames(6)
+		# The background pause re-opens its sheet between the close and the
+		# draw on some runs; hide the layer itself, right before the capture.
+		if game.hud._pause_layer != null:
+			game.hud._pause_layer.visible = false
 		await drawn_frame()
 		get_viewport().get_texture().get_image().save_png("res://out/day_%s.png" % id)
 		print("[cekim] out/day_%s.png yazildi" % id)

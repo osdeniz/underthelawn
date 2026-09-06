@@ -107,7 +107,25 @@
         ]
       }
     ],
-    "skip_hint": "INTRO_SKIP_HINT"
+    "skip_hint": "INTRO_SKIP_HINT",
+    "after_prologue": [
+      {
+        "image": "intro/intro_3",
+        "lines": [
+          "INTRO_03_L1",
+          "INTRO_03_L2"
+        ]
+      },
+      {
+        "image": "portraits/ellie",
+        "poster": true,
+        "lines": [
+          "ALERT_TITLE",
+          "ALERT_LINE"
+        ]
+      }
+    ],
+    "_comment": " G19.8: after the road, prologue.after already says nine years passed and he sent for you; playing all five intro cards on top made eight cards in a row. after_prologue keeps the two that carry the case: her ninth birthday, and the poster."
   },
   "case": {
     "id": "CASE_01_ID",
@@ -163,27 +181,9 @@
         "locked": false
       },
       {
-        "id": "objectives",
-        "label": "OBJ_TITLE",
-        "hint": "HUB_OBJECTIVES_HINT",
-        "locked": false
-      },
-      {
         "id": "town",
         "label": "HUB_TOWN",
         "hint": "HUB_TOWN_HINT",
-        "locked": false
-      },
-      {
-        "id": "restore",
-        "label": "HUB_RESTORE",
-        "hint": "HUB_RESTORE_HINT",
-        "locked": false
-      },
-      {
-        "id": "workshop",
-        "label": "HUB_WORKSHOP",
-        "hint": "HUB_WORKSHOP_HINT2",
         "locked": false
       },
       {
@@ -194,7 +194,8 @@
       }
     ],
     "locked_note": "HUB_LOCKED",
-    "background": "hub/town_square"
+    "background": "hub/town_square",
+    "_comment": "G19.8: seven rows became four. Objectives live in the top bar's badge button, Restore and Workshop are two rows at the top of the Town page — the town is where you spend on the town."
   },
   "case_board": {
     "title": "CASEBOARD_TITLE",

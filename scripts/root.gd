@@ -210,7 +210,7 @@ func _finish_prologue() -> void:
 
 func _after_prologue_cards() -> void:
 	_play_cards("prologue.after", func() -> void:
-		_play_cards("intro.cards", func() -> void:
+		_play_cards("intro.after_prologue", func() -> void:
 			GameState.set_setting("story", "intro_seen", true)
 			AudioDirector.stop_ambient()
 			_on_chapter_chosen(ChapterProgress.current_variant_id())))

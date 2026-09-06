@@ -39,7 +39,7 @@ func _text() -> void:
 
 
 func _cards() -> void:
-	for key: String in ["prologue.cards", "prologue.after", "intro.cards"]:
+	for key: String in ["prologue.cards", "prologue.after", "intro.cards", "intro.after_prologue"]:
 		var list := Story.list(key)
 		ck("%s dolu" % key, not list.is_empty(), "bos")
 		for card: Dictionary in list:
