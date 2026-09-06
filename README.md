@@ -4077,3 +4077,24 @@ catch it.
 `tools/run_tests.sh` exports for every suite. `InputMapCheck`, whose claim IS
 the pause, clears the variable for the length of its check and passes. A phone
 never sets it. TestBase's per-frame unpause stays: belt and braces.
+
+## G19.11 — settings a store expects, and an icon the exports need
+
+**Music and effects, separately.** Every AudioStreamPlayer sat on Master with
+one mute switch. `AudioDirector` now creates two buses at boot — Music (theme,
+yard beds) and SFX (engines, cuts, rain, night, lamp, the fx voices, speech) —
+and the settings page has a slider for each, saved under `audio/music` and
+`audio/sfx`, applied before the first note. Zero mutes the bus outright rather
+than trusting -80 dB. `SettingsCheck` (on TestBase now) moves the music slider
+and reads the Music bus, checks the SFX bus did not move, checks the save,
+checks zero mutes and one un-mutes, and counts players off the two buses: none.
+
+**Fullscreen, desktop only.** A toggle under Game, F11 does the same, the
+saved mode comes back at boot (`Root._restore_window_mode`). A phone never
+sees the row: `SettingsCheck` asserts its presence equals "not mobile".
+
+**Icons.** Every icon field in the iOS and Android presets was empty, which
+fails an export before it starts. `tools/make_icon.gd` renders `icon.svg` at
+1024, 512 and 192 and the presets point at them. Placeholders — the SVG is the
+G1 mower on green — until the artist's icon lands; then re-run the tool with
+the new SVG or drop PNGs over these.

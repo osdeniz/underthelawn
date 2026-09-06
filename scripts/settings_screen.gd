@@ -83,6 +83,12 @@ func _ready() -> void:
 	_add_toggle(tr("SETTINGS_SOUND"), tr("SETTINGS_SOUND_HINT"),
 		not AudioDirector.muted,
 		func(on: bool) -> void: AudioDirector.muted = not on)
+	# Two levels under the one switch (G19.11): a store's reviewers and most
+	# players expect music and effects to move separately.
+	_add_slider(tr("SETTINGS_MUSIC"), tr("SETTINGS_MUSIC_HINT"), AudioDirector.music_volume,
+		func(v: float) -> void: AudioDirector.set_music_volume(v))
+	_add_slider(tr("SETTINGS_SFX"), tr("SETTINGS_SFX_HINT"), AudioDirector.sfx_volume,
+		func(v: float) -> void: AudioDirector.set_sfx_volume(v))
 	_add_divider()
 	_add_toggle(tr("SETTINGS_HAPTICS"), tr("SETTINGS_HAPTICS_HINT"),
 		Haptics.enabled,
@@ -109,6 +115,12 @@ func _ready() -> void:
 		func() -> void:
 			SkyTime.set_mode(SkyTime.next_mode())
 			_rebuild())
+	# Desktop only (G19.11): a phone has no window to fill. F11 does the same.
+	if not OS.has_feature("mobile"):
+		_add_divider()
+		_add_toggle(tr("SETTINGS_FULLSCREEN"), tr("SETTINGS_FULLSCREEN_HINT"),
+			DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN,
+			func(on: bool) -> void: GameConfig.set_fullscreen(on))
 	_add_divider()
 	_add_choice_row(tr("SETTINGS_LANGUAGE"),
 		LocaleSupport.name_of(LocaleSupport.current()),
@@ -211,6 +223,42 @@ func _add_toggle(title: String, hint: String, value: bool,
 	text_col.add_child(hint_label)
 
 	row.add_child(_switch(value, on_change))
+
+
+## A level row: title and hint on the left, a slider on the right. The slider
+## is Godot's — it scales with its minimum size, unlike the CheckButton — and
+## it writes on every step so the sound answers under the thumb.
+func _add_slider(title: String, hint: String, value: float, on_change: Callable) -> void:
+	var row := HBoxContainer.new()
+	row.custom_minimum_size = Vector2(0, 150)
+	_rows.add_child(row)
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	text_col.add_theme_constant_override("separation", 6)
+	row.add_child(text_col)
+	var title_label := Label.new()
+	title_label.text = title
+	title_label.add_theme_font_size_override("font_size", GameConfig.UI_HEAD)
+	title_label.add_theme_color_override("font_color", GameConfig.UI_INK)
+	text_col.add_child(title_label)
+	var hint_label := Label.new()
+	hint_label.text = hint
+	hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint_label.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	hint_label.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+	text_col.add_child(hint_label)
+	var slider := HSlider.new()
+	slider.name = "Slider_" + title
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = value
+	slider.custom_minimum_size = Vector2(340, GameConfig.UI_TAP_MIN)
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	slider.focus_mode = Control.FOCUS_NONE
+	slider.value_changed.connect(func(v: float) -> void: on_change.call(v))
+	row.add_child(slider)
 
 
 ## A drawn switch, not a CheckButton.

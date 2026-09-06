@@ -2655,6 +2655,20 @@ static func fit_wide(control: Control) -> void:
 		control.offset_right = kept.y - margin
 
 
+## Desktop window mode (G19.11), saved and restored at boot by Root. A phone
+## ignores it: the OS owns the window there.
+static func set_fullscreen(on: bool) -> void:
+	if OS.has_feature("mobile"):
+		return
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if on
+		else DisplayServer.WINDOW_MODE_WINDOWED)
+	GameState.set_setting("display", "fullscreen", on)
+
+
+static func is_fullscreen() -> bool:
+	return DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+
+
 static func is_landscape(viewport: Viewport) -> bool:
 	if viewport == null:
 		return false

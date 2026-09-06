@@ -85,11 +85,23 @@ var _gust_timer := 0.0
 var _rng := RandomNumberGenerator.new()
 
 
+## Two buses under Master (G19.11): every player is on one of them, and the
+## settings page has a slider for each. Created here rather than in a bus
+## layout resource so a clone without the .tres still has them.
+const BUS_MUSIC := "Music"
+const BUS_SFX := "SFX"
+var music_volume := 1.0
+var sfx_volume := 1.0
+
+
 func _ready() -> void:
 	_rng.randomize()
+	_ensure_buses()
 	_load_streams()
 	_build_players()
 	muted = bool(GameState.get_setting("audio", "muted", false))
+	set_music_volume(float(GameState.get_setting("audio", "music", 1.0)))
+	set_sfx_volume(float(GameState.get_setting("audio", "sfx", 1.0)))
 	# Optional G6 stream: no warning when absent, the pitched loop covers it.
 	for ext in AUDIO_EXTENSIONS:
 		if ResourceLoader.exists("res://audio/blade_spin" + ext):
@@ -132,13 +144,46 @@ func _build_players() -> void:
 	_night = _make_player("Night", "crickets", true)
 	_lamp = _make_player("Lamp", "lamp", true)
 	_bed = _make_player("Bed", "", false)
+	_bed.bus = BUS_MUSIC
 	for i in GameConfig.FX_VOICES:
 		_fx.append(_make_player("Fx%d" % i, "", false))
+
+
+func _ensure_buses() -> void:
+	for bus_name: String in [BUS_MUSIC, BUS_SFX]:
+		if AudioServer.get_bus_index(bus_name) < 0:
+			var idx := AudioServer.bus_count
+			AudioServer.add_bus(idx)
+			AudioServer.set_bus_name(idx, bus_name)
+			AudioServer.set_bus_send(idx, "Master")
+
+
+## 0..1, saved. Zero mutes the bus outright — linear_to_db(0) is -inf and a
+## bus at -80 dB still whispers on some headphones.
+func set_music_volume(value: float) -> void:
+	music_volume = clampf(value, 0.0, 1.0)
+	_apply_volume(BUS_MUSIC, music_volume)
+	GameState.set_setting("audio", "music", music_volume)
+
+
+func set_sfx_volume(value: float) -> void:
+	sfx_volume = clampf(value, 0.0, 1.0)
+	_apply_volume(BUS_SFX, sfx_volume)
+	GameState.set_setting("audio", "sfx", sfx_volume)
+
+
+func _apply_volume(bus_name: String, value: float) -> void:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx < 0:
+		return
+	AudioServer.set_bus_mute(idx, value <= 0.001)
+	AudioServer.set_bus_volume_db(idx, linear_to_db(maxf(value, 0.001)))
 
 
 func _make_player(node_name: String, key: String, looping: bool) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
 	p.name = node_name
+	p.bus = BUS_SFX
 	if key != "" and _streams.has(key):
 		p.stream = _streams[key]
 		if looping:
@@ -289,7 +334,7 @@ func play_theme() -> void:
 		return
 	if _music == null:
 		_music = AudioStreamPlayer.new()
-		_music.bus = "Master"
+		_music.bus = BUS_MUSIC
 		add_child(_music)
 	if _music.playing and _music.stream == _streams["theme"]:
 		return
@@ -388,7 +433,7 @@ func play_voice(text_key: String) -> void:
 		return
 	if _voice == null or not is_instance_valid(_voice):
 		_voice = AudioStreamPlayer.new()
-		_voice.bus = "Master"
+		_voice.bus = BUS_SFX
 		add_child(_voice)
 	_voice.stream = stream
 	_voice.play()

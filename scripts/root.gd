@@ -30,7 +30,25 @@ var _shaders_warmed := false
 const WARMED_FOR := "shaders_warmed_for"
 
 
+## Desktop: the saved window mode comes back at boot, and F11 toggles it
+## (G19.11). Nothing here runs on a phone.
+func _restore_window_mode() -> void:
+	if OS.has_feature("mobile"):
+		return
+	if bool(GameState.get_setting("display", "fullscreen", false)):
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	var key := event as InputEventKey
+	if key != null and key.pressed and not key.echo and key.keycode == KEY_F11 \
+			and not OS.has_feature("mobile"):
+		GameConfig.set_fullscreen(not GameConfig.is_fullscreen())
+		get_viewport().set_input_as_handled()
+
+
 func _ready() -> void:
+	_restore_window_mode()
 	# Before any screen exists, so the first label already draws in the
 	# player's chosen language rather than flipping after the menu appears.
 	LocaleSupport.restore()

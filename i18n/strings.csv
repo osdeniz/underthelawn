@@ -1244,3 +1244,9 @@ ECHO_CH26_LINE,"Painted over once, then painted back. Somebody changed their min
 HUD_LANTERN_LINE,Night. The lantern shows what the moon will not.,"Gece. Fener, ayın göstermediğini gösterir."
 COLE_GARDEN_BEDS_CRUSHED,Run over. The stakes are down and the stems are broken at the tie. Whoever expected August will have to start again.,"Üstünden geçilmiş. Herekler yatmış, saplar bağ yerinden kırılmış. Ağustosu uman yeniden başlayacak."
 COLE_PHOTOGRAPH_CRUSHED,"Creased under a wheel, the emulsion cracked across the road. The man and the basket are still whole. The town behind them is not.","Tekerleğin altında kırışmış, yolun üstünde emülsiyon çatlamış. Adam ve sepet hâlâ bütün. Arkalarındaki kasaba değil."
+SETTINGS_MUSIC,Music,Müzik
+SETTINGS_MUSIC_HINT,The theme and the yard beds,Tema ve bahçe fonu
+SETTINGS_SFX,Effects,Efektler
+SETTINGS_SFX_HINT,"Engines, cuts, rain, the animals","Motorlar, kesim, yağmur, hayvanlar"
+SETTINGS_FULLSCREEN,Fullscreen,Tam ekran
+SETTINGS_FULLSCREEN_HINT,F11 also switches it,F11 de değiştirir
