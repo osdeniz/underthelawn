@@ -1680,6 +1680,9 @@ const DIORAMA_TUFT_SPACING := 0.78
 ## the horizon together were under 20k — the LOD the review guessed at (far
 ## houses, billboard trees) would have saved nothing.
 const DIORAMA_TUFT_DETAIL := 0.4
+## The neighbour crop past the solid band by the fence (G20.6): same dial as
+## the diorama's, for the same reason — a clump at sixty metres is a shape.
+const CROP_FAR_DETAIL := 0.45
 const DIORAMA_TUFT_JITTER := 0.34
 ## Radius around a ruined building that grows thick weeds, and how many extra
 ## clumps go in it.

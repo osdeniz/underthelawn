@@ -81,6 +81,21 @@ static func reject(id: String) -> void:
 	Analytics.track("settler_rejected", {"id": id})
 
 
+## Gone in the night (G20.5): the town ran out of food with them in it. "left"
+## is neither "yes" nor "" — they do not count, and they do not come back to
+## the edge of town to be asked again.
+static func leave(id: String) -> void:
+	GameState.set_setting(SECTION, id, "left")
+	Analytics.track("settler_left", {"id": id})
+
+
+## The most recently taken in, or {} — the one who leaves first when the food
+## is gone: the last to arrive has the least reason to stay.
+static func newest_accepted() -> Dictionary:
+	var taken := accepted()
+	return taken[taken.size() - 1] if not taken.is_empty() else {}
+
+
 static func reset() -> void:
 	for any: Variant in all():
 		GameState.set_setting(SECTION, str((any as Dictionary).get("id", "")), "")

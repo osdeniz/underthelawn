@@ -4141,3 +4141,42 @@ Six items from the third review, each rendered before and after.
 - **Not a bug:** the dialogue's empty upper half in `DialogueShot`. The scrim
   is 55% black over whatever is behind — in the game, the hub — and the shot
   renders the box alone over nothing. The capture misled the review.
+
+## G20.5 — the food economy has teeth
+
+Food at zero had no consequence: the counter went red and the town kept
+eating nothing for ever. The only pressure the economy applies was a colour.
+Now, when a search ends with the stores empty and somebody has been taken in,
+the newest of them leaves in the night — `Settlers.leave` marks them "left",
+which is neither "yes" nor unanswered, so they stop counting and are not asked
+again at the edge of town — and the completion panel says who is gone, on the
+sentence line. Nobody dies, nothing fails; the town is smaller. In theme: what
+you took in, you have to feed. `MechanicsCheck` empties the stores with a
+settler in town and reads the answer, the count, the panel and the gate; then
+fills them and checks nothing happens.
+
+Four dead strings removed (ALERT_CTA, DIORAMA_TOWER_LINE, SHOP_BUY, WS_TITLE:
+in the table, referenced nowhere).
+
+## G20.6 — where a yard's triangles are
+
+The hub had a triangle probe since G16.3; the yards never did. `YardTriProbe`
+counts five representative chapters per top-level node:
+
+| Chapter | Total | Of which |
+|---|---|---|
+| ch01 small | 121k | Lawn 70k, Neighborhood 34k |
+| ch03 medium open | 180k | Lawn 127k |
+| ch06 large | 254k | Lawn 199k |
+| ch19 medium, pond | 169k | Lawn 115k |
+| harvest_field, before | **988k** | Neighborhood 638k, Lawn 327k |
+| harvest_field, after | 631k | Neighborhood 280k, Lawn 327k |
+
+The harvest — played every third chapter — was five to eight yards' worth of
+geometry, and 638k of it was the neighbour crop ring past the fence at full
+clump detail out to sixty metres. The ring past the solid band now uses the
+same reduced cluster the diorama does (`CROP_FAR_DETAIL` 0.45): 638k → 280k,
+the field itself 988k → 631k. The harvest lawn's own 327k (wheat stalks, nine
+a cell, 988 cells) is left for the device to judge: it is the crop the player
+is cutting, and the one place thinning would be seen. Numbers for
+`docs/DEVICE_TEST.md`, where "en büyük ızgara" now has a figure behind it.

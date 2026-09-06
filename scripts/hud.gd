@@ -352,6 +352,8 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	_exit_card.visible = false
 	_exit_badge.visible = false
 	_build_case_notes(collected, total_secrets)
+	if payout.has("left"):
+		_notes_progress.text += "\n" + tr("SETTLER_LEFT_LINE").format({"settler": str(payout["left"])})
 	_build_payout(payout)
 	# Six things on the panel, not twelve (G19.4): the title, the evidence,
 	# one sentence, one line of pay, and two doors. The stats line (cells and

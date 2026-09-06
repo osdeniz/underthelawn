@@ -814,14 +814,27 @@ func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
 	# of them was worth trying and did not pay: the triangle count did not move
 	# — from a camera this low the far rows of every quadrant are in frame —
 	# and it cost twenty-one extra draw calls. Measured, reverted.
+	# Two meshes per variant (G20.6): the solid band by the fence at full
+	# detail, everything past it at CROP_FAR_DETAIL. YardTriProbe put the
+	# harvest field at 988k triangles, 638k of them this ring — five to eight
+	# yards' worth of geometry in the one level played every third chapter —
+	# and a clump three times the size at sixty metres shows a silhouette, not
+	# its leaves. The thinning was already paid for out there; the detail was
+	# not.
 	var meshes: Array[Mesh] = []
+	var far_meshes: Array[Mesh] = []
 	for v in variants.size():
 		var mesh_rng := RandomNumberGenerator.new()
 		mesh_rng.seed = 4400 + v * 7919
 		meshes.append(TuftField.cluster_mesh(mesh_rng, v))
+		var far_rng := RandomNumberGenerator.new()
+		far_rng.seed = 4400 + v * 7919
+		far_meshes.append(TuftField.cluster_mesh(far_rng, v, GameConfig.CROP_FAR_DETAIL))
 	var spots: Array[Array] = []
+	var far_spots: Array[Array] = []
 	for v in variants.size():
 		spots.append([])
+		far_spots.append([])
 
 	var keep_out_x := GameConfig.HALF_X + 1.6
 	var keep_out_z := GameConfig.HALF_Z + 1.6
@@ -865,32 +878,41 @@ func _build_neighbour_crop(parent: Node3D, rng: RandomNumberGenerator) -> void:
 					z + rng.randf_range(-0.4, 0.4))
 				var basis := Basis(Vector3.UP, rng.randf() * TAU)
 				basis = basis.scaled(Vector3.ONE * grow * rng.randf_range(0.9, 1.15))
-				(spots[rng.randi() % variants.size()] as Array).append(
-					Transform3D(basis, at))
+				var pick := rng.randi() % variants.size()
+				if out_by > CROP_SOLID:
+					(far_spots[pick] as Array).append(Transform3D(basis, at))
+				else:
+					(spots[pick] as Array).append(Transform3D(basis, at))
 			z += CROP_STEP
 			iz += 1
 		x += CROP_STEP
 		ix += 1
 
 	var planted := 0
+	var draws := 0
 	for v in variants.size():
-		if (spots[v] as Array).is_empty() or meshes[v] == null:
-			continue
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = meshes[v]
-		mm.instance_count = (spots[v] as Array).size()
-		for i in (spots[v] as Array).size():
-			mm.set_instance_transform(i, (spots[v] as Array)[i] as Transform3D)
-		planted += mm.instance_count
-		var mmi := MultiMeshInstance3D.new()
-		mmi.name = "NeighbourCrop%d" % v
-		mmi.multimesh = mm
-		mmi.material_override = still
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		parent.add_child(mmi)
+		for band: Array in [[spots[v], meshes[v], "NeighbourCrop%d"],
+				[far_spots[v], far_meshes[v], "NeighbourCropFar%d"]]:
+			var list: Array = band[0]
+			var mesh: Mesh = band[1]
+			if list.is_empty() or mesh == null:
+				continue
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.mesh = mesh
+			mm.instance_count = list.size()
+			for i in list.size():
+				mm.set_instance_transform(i, list[i] as Transform3D)
+			planted += mm.instance_count
+			var mmi := MultiMeshInstance3D.new()
+			mmi.name = str(band[2]) % v
+			mmi.multimesh = mm
+			mmi.material_override = still
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			parent.add_child(mmi)
+			draws += 1
 	if GameConfig.PERF_LOG:
-		print("[tarla] komsu ekin: %d kume, %d cizim" % [planted, variants.size()])
+		print("[tarla] komsu ekin: %d kume, %d cizim" % [planted, draws])
 
 
 # ---------------------------------------------------------------- fence (§12)

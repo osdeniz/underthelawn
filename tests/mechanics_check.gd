@@ -14,6 +14,7 @@ func run() -> void:
 	_weather_spread()
 	await _lantern()
 	await _vehicles()
+	await _hunger()
 	await _observer()
 	await _harvest_settler()
 
@@ -112,6 +113,34 @@ func _walk_only() -> void:
 	ck("yuruyerek bulunuyor",
 		model.states[LawnModel.index_of(cell.x, cell.y)] == LawnModel.CellState.SECRET_REVEALED, "")
 	game.queue_free(); await frames(4)
+
+
+## G20.5: the food economy has teeth. Stores at zero with a settler in town:
+## the newest leaves, the panel names them, and they are not asked again.
+func _hunger() -> void:
+	var game: Node = await open("ch01_aldridge")
+	Settlers.reset()
+	var first: Dictionary = Settlers.all()[0]
+	var id := str(first.get("id", ""))
+	Settlers.accept(id)
+	TownStats.add_food(-TownStats.food())
+	ck("gida sifir", TownStats.food() == 0, str(TownStats.food()))
+	var payout := {}
+	game._settle_hunger(payout)
+	ck("en yeni yerlesimci gitti", Settlers.answer(id) == "left", Settlers.answer(id))
+	ck("artik sayilmiyor", Settlers.accepted().is_empty())
+	ck("panel adini soyluyor", payout.has("left") and str(payout["left"]) != "", str(payout))
+	ck("kapida yeniden sorulmuyor", Settlers.pending().get("id", "") != id)
+	# With food in the stores nothing happens.
+	Settlers.reset()
+	Settlers.accept(id)
+	TownStats.add_food(10)
+	var calm := {}
+	game._settle_hunger(calm)
+	ck("gida varken kimse gitmez", not calm.has("left") and Settlers.answer(id) == "yes")
+	Settlers.reset()
+	TownStats.reset()
+	await close(game)
 
 
 ## G20.4: the machines' habits. The tractor's exhaust exists, is off when the

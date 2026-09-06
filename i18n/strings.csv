@@ -188,7 +188,6 @@ OPENING_08_HEADLINE,NO RECORD OF THIS PLACE,BU YERİN KAYDI YOK
 OPENING_08_SUBLINE,But someone kept the garden alive.,Ama biri bahçeyi yaşatmış.
 UI_RESUME,RESUME,DEVAM
 DLG_TOWN_ELLIE_1A,East... then she's past the fence line. Please hurry.,Doğu... o zaman çit hattını geçmiş. Lütfen acele et.
-WS_TITLE,WORKSHOP,ATÖLYE
 WS_ACTIVE,OWNED,SENDE
 WS_LOCKED,LOCKED,KİLİTLİ
 WS_UNLOCK,UNLOCK · {cost},AÇ · {cost}
@@ -356,8 +355,6 @@ POSTER_NAME,Ellie Voss,Ellie Voss
 POSTER_SINCE,since this morning,bu sabahtan beri
 ALERT_TITLE,SHE DIDN'T COME HOME,EVE DÖNMEDİ
 ALERT_LINE,No word since this morning. The town hasn't lost anyone in three years — and nobody wants to say why that might have changed.,Bu sabahtan beri haber yok. Kasaba üç yıldır kimseyi kaybetmedi — ve bunun neden değişmiş olabileceğini kimse söylemek istemiyor.
-ALERT_CTA,FIND HER,ONU BUL
-DIORAMA_TOWER_LINE,Cole keeps the lamp lit. Nothing on the road tonight.,Cole feneri yanık tutuyor. Bu gece yolda bir şey yok.
 HUB_RECLAIMED,TOWN RECLAIMED {percent}%,KASABA GERİ ALINDI %{percent}
 COLE_RABBIT,"Torn seam, and the ears are worn smooth. She carried it by them — the way she always did. Dropped running, not walking.","Dikişi yırtılmış, kulakları aşınmış. Onu kulaklarından taşırdı — hep öyle yapardı. Yürürken değil, koşarken düşürmüş."
 COLE_RADIO,Battery corrosion says it died years ago. Someone changed it this month.,Pil aşınması yıllar önce öldüğünü söylüyor. Biri bu ay değiştirmiş.
@@ -957,7 +954,6 @@ SET_MIRA_LINE,Seeds keep. People forget that. I didn't.,Tohum bekler. İnsanlar 
 HUB_DAILY,{n}/day,Günde {n}
 SHOP_FOOD,Sack of food,Bir çuval gıda
 SHOP_FOOD_HINT,{n} food. The larder does not fill itself.,{n} gıda. Kiler kendi kendine dolmuyor.
-SHOP_BUY,BUY,AL
 SHOP_POOR,Not enough salvage,Hurda yetmiyor
 HARVEST_PAYS_MONEY,Pays well,İyi kazandırır
 HARVEST_PAYS_FOOD,Fills the larder,Kileri doldurur
@@ -1255,3 +1251,4 @@ SETTINGS_ANALYTICS,Anonymous usage events,Anonim kullanım olayları
 SETTINGS_ANALYTICS_HINT,"Which chapter was finished, how long it took, with a random install id. No name, no e-mail, no location.","Hangi bölümün bitirildiği, ne kadar sürdüğü; rastgele bir kurulum kimliğiyle. Ad, e-posta, konum yok."
 TIP_KEYS_TITLE,KEYS,TUŞLAR
 TIP_KEYS_LINE,W A S D or the arrows drive. Space or Tab picks the next machine. Esc pauses. F11 fills the screen.,W A S D ya da oklar sürer. Boşluk ya da Tab sıradaki makineyi seçer. Esc duraklatır. F11 ekranı doldurur.
+SETTLER_LEFT_LINE,{settler} left in the night. There was nothing here to feed them.,{settler} gece gitti. Burada onu doyuracak bir şey kalmamıştı.

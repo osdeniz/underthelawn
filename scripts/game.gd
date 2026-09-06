@@ -1028,6 +1028,22 @@ func _cycle_mower() -> void:
 			return
 
 
+## Food at zero had no consequence (G20.5): the counter went red and the town
+## kept eating nothing for ever. Now, if the search ends with the stores
+## empty and somebody has been taken in, the newest of them leaves in the
+## night. Nobody dies and nothing fails — the town is smaller, and the panel
+## says who is gone. The only pressure this economy applies, made real.
+func _settle_hunger(payout: Dictionary) -> void:
+	if TownStats.food() > 0:
+		return
+	var who := Settlers.newest_accepted()
+	if who.is_empty():
+		return
+	var id := str(who.get("id", ""))
+	Settlers.leave(id)
+	payout["left"] = tr(Settlers.tr_key(str(who.get("name", ""))))
+
+
 ## The lantern (G19.5): one warm omni light that follows whoever is moving —
 ## the machine, or the man once he has stepped off it. Kept under _fx_root
 ## and moved every frame rather than re-parented on every mount and dismount.
@@ -1118,6 +1134,7 @@ func _on_completed() -> void:
 		payout["food"] = _food_banked
 		payout["food_eaten"] = eaten
 		payout["food_left"] = TownStats.food()
+		_settle_hunger(payout)
 		hud.set_food(TownStats.food())
 		search_finished.emit(_collected.size(), _evidence_total())
 		if variant != null and variant.is_harvest():
