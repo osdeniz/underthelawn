@@ -267,6 +267,11 @@ func _build_yard() -> void:
 	var dirt := _tex_mat("mud" if lake else "dirt", "dirt_albedo",
 		Color(0.24, 0.20, 0.15) if lake else Color(0.38, 0.28, 0.18), 1.0,
 		Vector3(14.0, 12.0, 1.0))
+	if lake:
+		# _tex_mat only colours a material when the texture is missing; the
+		# wet bank is the texture multiplied down and cooled.
+		dirt.albedo_color = Color(0.52, 0.50, 0.46)
+		dirt.roughness = 0.7
 	_ground_quad(self, Vector2(90.0, 76.0), dirt, Vector3(0.0, -0.04, 6.0))
 
 
