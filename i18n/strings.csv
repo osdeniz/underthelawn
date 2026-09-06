@@ -1298,3 +1298,20 @@ REUNION_NAME_PLACEHOLDER,a name,bir isim
 REUNION_NAME_OK,"That's him","O işte"
 REUNION_NAME_DONE,"Ellie: ""{Dog}. That's him."" The dog looks up like it always was.","Ellie: ""{Dog}. O işte."" Köpek hep öyleymiş gibi başını kaldırıyor."
 DOG_POINT_LINE,{Dog} has stopped. Look where he's looking.,{Dog} durdu. Baktığı yere bak.
+POSTCARD_TOWN,Hollow Creek,Hollow Creek
+POSTCARD_STAMP,SEARCHED,ARANDI
+UI_POSTCARD,POSTCARD,KARTPOSTAL
+POSTCARD_SAVED,Kept in the Journal's album.,Günlük'teki albüme kondu.
+POSTCARD_CLOSE,CLOSE,KAPAT
+POSTCARD_SHOW_FOLDER,SHOW FILE,DOSYAYI GÖSTER
+JOURNAL_TAB_ALBUM,Album,Albüm
+JOURNAL_ALBUM_COUNT,{count} postcards,{count} kartpostal
+JOURNAL_ALBUM_EMPTY,Finish a yard and its postcard goes here.,Bir bahçeyi bitir; kartpostalı buraya gelir.
+POSTCARD_TOD_DAWN,dawn,şafak
+POSTCARD_TOD_MORNING,morning,sabah
+POSTCARD_TOD_MIDDAY,midday,öğle
+POSTCARD_TOD_AFTERNOON,afternoon,ikindi
+POSTCARD_TOD_GOLDEN,golden hour,altın saat
+POSTCARD_TOD_SUNSET,sunset,gün batımı
+POSTCARD_TOD_DUSK,dusk,alacakaranlık
+POSTCARD_TOD_NIGHT,night,gece

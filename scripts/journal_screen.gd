@@ -17,7 +17,7 @@ extends Control
 
 signal closed()
 
-enum Section { NOTES, DISCOVERIES, ECHOES }
+enum Section { NOTES, DISCOVERIES, ECHOES, ALBUM }
 
 var _section: Section = Section.NOTES
 var _tabs: HBoxContainer
@@ -87,7 +87,8 @@ func _build() -> void:
 	add_child(_tabs)
 	for spec in [[Section.NOTES, "JOURNAL_TAB_NOTES"],
 			[Section.DISCOVERIES, "JOURNAL_TAB_DISCOVERIES"],
-			[Section.ECHOES, "JOURNAL_TAB_ECHOES"]]:
+			[Section.ECHOES, "JOURNAL_TAB_ECHOES"],
+			[Section.ALBUM, "JOURNAL_TAB_ALBUM"]]:
 		var tab := Button.new()
 		tab.text = tr(str(spec[1]))
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -132,6 +133,8 @@ func _refresh() -> void:
 			_fill_discoveries()
 		Section.ECHOES:
 			_fill_echoes()
+		Section.ALBUM:
+			_fill_album()
 
 
 ## What the Marshal wrote down after each finished chapter. A chapter that is
@@ -203,6 +206,48 @@ func _fill_echoes() -> void:
 ## A heading over a run of entries — which chapter they came out of. Drawn as a
 ## label over a hairline rather than as another panel, so the eye reads it as a
 ## divider in a notebook and not as one more card in a stack.
+## The postcards (G27): every finished yard's photograph, newest first, two to
+## a row, each one tappable to see it whole. The empty album says what fills it.
+func _fill_album() -> void:
+	var cards := Postcard.all()
+	_counter.text = tr("JOURNAL_ALBUM_COUNT").format({"count": cards.size()})
+	if cards.is_empty():
+		_list.add_child(_empty_note(tr("JOURNAL_ALBUM_EMPTY")))
+		return
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", GameConfig.UI_GAP)
+	grid.add_theme_constant_override("v_separation", GameConfig.UI_GAP)
+	_list.add_child(grid)
+	var cell_w := (GameConfig.UI_MAX_WIDTH - 120.0 - float(GameConfig.UI_GAP)) * 0.5
+	for card: Dictionary in cards:
+		var tex := Postcard.load_texture(str(card["path"]))
+		if tex == null:
+			continue
+		var box := VBoxContainer.new()
+		box.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
+		var thumb := TextureButton.new()
+		thumb.texture_normal = tex
+		thumb.ignore_texture_size = true
+		thumb.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+		thumb.custom_minimum_size = Vector2(cell_w,
+			cell_w * float(Postcard.CARD.y) / float(Postcard.CARD.x))
+		var path := str(card["path"])
+		thumb.pressed.connect(func() -> void:
+			Haptics.light()
+			var view := PostcardView.new()
+			view.setup(tex, path)
+			add_child(view))
+		box.add_child(thumb)
+		var caption := Label.new()
+		caption.text = Postcard.title_for(str(card["id"]))
+		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		caption.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+		caption.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+		box.add_child(caption)
+		grid.add_child(box)
+
+
 func _group(title: String) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)

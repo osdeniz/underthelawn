@@ -10,6 +10,9 @@ func _ready() -> void:
 	var collected: Array = []
 	for slot in 2:
 		collected.append(variant.evidence_info(slot))
+	# The postcard door shows when a card exists for the yard (G27).
+	if Postcard.has("ch01_aldridge"):
+		game.hud.set_postcard(Postcard.path_for("ch01_aldridge"))
 	game.hud.show_complete(420, "1:32", collected, 3,
 		{"base": 900, "bonus": 300, "total": 1200}, "Neighbour's yard")
 	for _i in 40:

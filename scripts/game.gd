@@ -1264,6 +1264,12 @@ func _on_completed() -> void:
 		_settle_hunger(payout)
 		hud.set_food(TownStats.food())
 		search_finished.emit(_collected.size(), _evidence_total())
+		# The postcard (G27): the yard as it stands, before the panel covers
+		# it. A few frames; the panel waits for them.
+		var card_path: String = await Postcard.make(self, variant_id, _postcard_subtitle())
+		if not is_inside_tree():
+			return
+		hud.set_postcard(card_path)
 		if variant != null and variant.is_harvest():
 			HarvestLog.record()
 			if variant.pays_timber:
@@ -1454,6 +1460,15 @@ func _confirm_exit() -> void:
 
 ## Display name of the chapter after this one, or "" when there is none or when
 ## the scene runs standalone (tests) with no flow above it to serve it.
+## The hour the card was taken, in words, when the game has a word for it.
+func _postcard_subtitle() -> String:
+	if variant == null:
+		return ""
+	var key := "POSTCARD_TOD_" + str(variant.time_of_day).to_upper()
+	var text := tr(key)
+	return text if text != key else ""
+
+
 func _next_chapter_name() -> String:
 	var root := get_parent()
 	if root == null or not root.has_method("start_next_chapter"):

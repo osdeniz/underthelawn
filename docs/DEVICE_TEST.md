@@ -29,6 +29,8 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Hurda ortaya çıkışı (herhangi bahçe) | — | komşu hücre kesilince parça yerden çıkıyor mu; havada duran yok (G19.1) |
 | Yürüme modu | 60 | — |
 | Arka plana al / geri gel ×3 | ses ve durum korunuyor mu | duraklatma testi |
+| Bahçe sonu: KARTPOSTAL | — | düğme panelde görünüyor mu; kart açılıyor, dokununca kapanıyor mu; Günlük → Albüm sekmesinde listeleniyor mu; telefon paylaşım sayfası YOK (eklenti gerekir, bilinen eksik) (G27) |
+| Vaka 1 kapanışı: köpeğe isim | — | klavye açılıyor mu, kutu klavyenin üstünde kalıyor mu; çipler tek dokunuşla onaylıyor mu; sonraki bahçede "X durdu" satırı ismi söylüyor mu (G26) |
 
 ## Masaüstü (Steam ön izleme, 1600×900)
 - Hub → Kasaba sayfası: gökyüzü ve bulutlar kadrajda mı (G19.9). Değilse

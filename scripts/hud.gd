@@ -65,6 +65,9 @@ var _poster: Control
 @onready var _notes_list: VBoxContainer = %NotesList
 @onready var _notes_progress: Label = %NotesProgress
 @onready var _teaser: Button = %Teaser
+## The postcard door on the results panel (G27); "" hides it.
+var _postcard_button: Button
+var _postcard_path := ""
 @onready var _teaser_locked: Label = %TeaserLocked
 @onready var _return_button: Button = %ReturnButton
 @onready var _scrap_label: Label = %ScrapLabel
@@ -155,6 +158,7 @@ func _ready() -> void:
 	# signal nothing had listened to since G8 moved the intro to RootFlow.
 	_story_button.visible = false
 	_teaser.pressed.connect(_on_teaser_pressed)
+	_build_postcard_button()
 	_build_pad_ring()
 	_build_pause()
 	_build_card_preview()
@@ -374,6 +378,7 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	_teaser.visible = next_name != ""
 	if next_name != "":
 		_teaser.text = tr("UI_NEXT_CHAPTER").format({"name": next_name})
+	_postcard_button.visible = _postcard_path != ""
 	_complete_panel.visible = true
 	# The picker and the joystick go away once the lawn is done (§16).
 	selector.visible = false
@@ -627,6 +632,42 @@ func _style_case_panels() -> void:
 	for button: Button in [_exit_keep, _return_button, _board_button,
 			%RestartButton as Button]:
 		_style_button(button)
+
+
+## The postcard (G27): a secondary door under the pay line, shown only when a
+## card was actually saved this run. Tapping it shows the card full-width.
+func _build_postcard_button() -> void:
+	_postcard_button = Button.new()
+	_postcard_button.name = "PostcardButton"
+	_postcard_button.text = tr("UI_POSTCARD")
+	_postcard_button.custom_minimum_size = Vector2(0, 96)
+	_postcard_button.add_theme_font_size_override("font_size", 36)
+	_postcard_button.visible = false
+	_style_button(_postcard_button)
+	var rows := _teaser.get_parent()
+	rows.add_child(_postcard_button)
+	rows.move_child(_postcard_button, _teaser.get_index())
+	_postcard_button.pressed.connect(func() -> void:
+		Haptics.light()
+		show_postcard(_postcard_path))
+
+
+func set_postcard(path: String) -> void:
+	_postcard_path = path
+	if _postcard_button != null:
+		_postcard_button.visible = path != "" and _complete_panel.visible
+
+
+## The card over everything, with where it went and a way to close it. On a
+## desktop a second button opens the file's folder — the nearest thing to a
+## share sheet without a plugin.
+func show_postcard(path: String) -> void:
+	var tex := Postcard.load_texture(path)
+	if tex == null:
+		return
+	var view := PostcardView.new()
+	view.setup(tex, path)
+	add_child(view)
 
 
 ## Same treatment for a button that sits over the 3D scene.

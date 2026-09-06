@@ -4357,3 +4357,65 @@ town needs roofs. `harvest_woodlot` joins the six fields on the farm sheet.
 **Not built, on purpose:** idle mines, a resource per metal, volcano,
 rainforest, a foreign beach. They are good ideas for a different game; this
 one is a town, a county and a rule.
+
+## G26 — the dog's name (gamification sprint 1, item 1)
+
+The man on the road would not name the dog (PRO_ROAD_3A: "Somebody else can
+do that"). Somebody else does: Ellie, the evening she comes home. The
+reunion card gains a page between the party and the door to Case 2.
+
+- **`DogName`** (`scripts/dog_name.gd`): `current()` is the saved name or
+  the localised "the dog"; `store()`, `has_name()`, `clean_name()` (14
+  chars, no line breaks), `suggestions()` (three per language: Pilot /
+  Biscuit / Rook, Pilot / Fındık / Duman) and `fill(text)`, which replaces
+  `{dog}` and `{Dog}` (sentence-start capital) in any line. Every line the
+  game renders passes through it: dialogue box, intro/ending cards, the
+  HUD's scent toast. Not `get_name`/`set_name`: a class_name resolves to its
+  Script resource, whose native methods win over the static ones — the
+  first version "saved" the name to the resource and the file never changed.
+- **The page.** Ellie asks, a box and three chips answer, "That's him"
+  confirms. A tap anywhere does not skip the question; an empty box takes
+  the first chip, so the dog is never left nameless by accident. Ellie says
+  the name back on the same page, and the next tap opens the Case 2 door.
+  A replay of the ending states the name and does not ask again. Buttons
+  are styled dark with the case accent — the theme's grey read as plain
+  text over the night photograph.
+- **Where the name lands.** END_OPEN_2 / END_CLOSED_2 now say `{Dog}`; and
+  the first time the dog stops over a scent in a yard the HUD says
+  "{Dog} has stopped. Look where he's looking." once (`Animals.dog_pointing`,
+  `Game._dog_point_said`). The dialogue box fills `{dog}` too, for lines
+  that come later.
+- `DogNameCheck` (19 claims): fallback, capitalisation, clipping, the page's
+  tap-does-not-skip, empty-box-takes-first-chip, typed name saved trimmed,
+  the ending cards and the toast by name, replay does not ask again.
+  `DogNameShot` renders the two states to `out/dog_name_1.png` / `_2.png`.
+  `ReunionCheck` reads the Case 2 page by `PAGE_CASE2` now that it is page 3.
+
+## G27 — the postcard (gamification sprint 1, item 2)
+
+A finished yard photographs itself. The moment the panel would cover the
+stripes, a second camera in a viewport of its own (same World3D, same sky)
+takes the yard from above the road edge, and the print is mounted on
+parchment with the yard's name, "Hollow Creek · the hour · the date" and a
+stamp — one card per yard under `user://postcards/`, the newest cut
+replacing the last.
+
+- **`Postcard`** (`scripts/postcard.gd`): `make(game, id, subtitle)` =
+  `capture_yard` (SubViewport 1200×800; the camera distance scales with the
+  grid — fixed, it framed ch06 and left ch01 a stamp in the middle of the
+  print) + `compose` (a 2D SubViewport of controls: parchment from `MapArt`,
+  white photo border, name, line, stamp) + `save_png`. A black render (a
+  headless run) makes no card. `all()` lists them newest first,
+  `title_for(id)` names chapters and harvest fields alike.
+- **The door.** The results panel gains POSTCARD under the pay line, shown
+  only when a card was saved this run (`Hud.set_postcard`). It opens
+  `PostcardView`: the card full-width with a slight tilt, "Kept in the
+  Journal's album", CLOSE — and on a desktop SHOW FILE, which opens the
+  folder. No share sheet: that needs a platform plugin (see DEVICE_TEST).
+- **The album.** The Journal's fourth tab: two to a row, tap to see whole,
+  the caption is the yard's name; the empty album says what fills it.
+- `Game._on_completed` awaits the card before `show_complete`; the hour's
+  word comes from `POSTCARD_TOD_*`. `PostcardCheck` (14 claims) saves a card
+  for ch01, reads green in the photograph and parchment at the rim, the
+  door hidden/shown/opened/closed, the album lists it. `PostcardShot`
+  writes `out/postcard_ch01_aldridge.png` and `_ch06_watertower.png`.
