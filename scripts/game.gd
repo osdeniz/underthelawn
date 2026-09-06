@@ -182,11 +182,16 @@ func _ready() -> void:
 	if variant.lantern:
 		_build_lantern()
 		hud.apply_lantern_mode()
+	if variant.sled:
+		# The plough sled (G23): the push mower with a blade and runners.
+		var plough: Node = _mowers[GameConfig.MOWER_PUSH] if GameConfig.MOWER_PUSH < _mowers.size() else null
+		if plough != null and plough.has_method("set_sled"):
+			plough.set_sled(true)
 	# The yard's own sound (G16.1): a bed for the hour instead of the hub theme
 	# running on, rain when it is wet, crickets after dark, the lamp on the
 	# prologue's gate. Birds stay out of play (G9.4).
 	var hour := SkyTime.resolve(variant.time_of_day)
-	AudioDirector.set_scene(hour, Rain.is_wet(), variant.is_road())
+	AudioDirector.set_scene(hour, Rain.is_wet() and not Rain.is_snow(), variant.is_road())
 	AudioDirector.play_bed(hour)
 
 	# G8: the briefing moved to RootFlow's DialogueBox, so by the time this
@@ -947,7 +952,7 @@ func _tick_lapse() -> void:
 			hud.apply_dark_mode()
 		# The sound follows the light: crickets come in with the dark, and the
 		# bed changes if the hour crosses into the evening set.
-		AudioDirector.set_scene(SkyTime.resolve(bucket), Rain.is_wet(), false)
+		AudioDirector.set_scene(SkyTime.resolve(bucket), Rain.is_wet() and not Rain.is_snow(), false)
 		AudioDirector.play_bed(SkyTime.resolve(bucket))
 
 

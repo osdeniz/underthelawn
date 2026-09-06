@@ -82,6 +82,8 @@ var time_lapse: Dictionary = {}
 ## G19.5: the moon is turned down and a lantern rides with the machine; the
 ## yard is seen a few metres at a time.
 var lantern := false
+## G23: the push mower is a plough sled on this level.
+var sled := false
 
 
 static func data() -> Dictionary:
@@ -135,6 +137,7 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.food_budget = int(spec.get("food_budget", -1))
 	variant.walk_only_evidence = bool(spec.get("walk_only_evidence", false))
 	variant.lantern = bool(spec.get("lantern", false))
+	variant.sled = bool(spec.get("sled", false))
 	var lapse: Variant = spec.get("time_lapse", {})
 	if lapse is Dictionary:
 		variant.time_lapse = lapse

@@ -60,6 +60,10 @@ func _ready() -> void:
 	_chapter = "ch10_relay_hill"
 	_hours_only = ["midday"]
 	await _sweep(false)
+	# The snow (G23): white cover over dark frozen ground, in snowfall.
+	_chapter = "ch20_watchtower_road"
+	_hours_only = ["midday"]
+	await _sweep(true)
 	if _fails > 0:
 		push_error("%d ISIK OKUNMUYOR" % _fails)
 		print("--- %d OKUNABILIRLIK TESTI BASARISIZ ---" % _fails)

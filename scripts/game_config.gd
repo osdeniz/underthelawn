@@ -178,6 +178,27 @@ const GRASS_PALETTES := {
 		"clipping": Color(0.54, 0.52, 0.48),
 	},
 
+	# THE SNOW (G23, ch20). First snow, early. The cluster is grass under snow —
+	# blue-white at the tip, a cold grey at the root — and the "mown" ladder is
+	# the frozen ground the plough scrapes to: dark, so the cleared road reads
+	# as a road. Cutting darkens the ground here too, like the burn, and the
+	# sweep has a pass for it.
+	"SNOW": {
+		"cluster_base": Color(0.62, 0.66, 0.72),
+		"cluster_tip": Color(0.94, 0.95, 0.97),
+		"accents": [
+			{ "base": Color(0.60, 0.58, 0.50), "tip": Color(0.86, 0.84, 0.76),
+				"weight": 0.15, "flowers": false },
+			{ "base": Color(0.66, 0.70, 0.78), "tip": Color(0.90, 0.93, 0.98),
+				"weight": 0.06, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.24, 0.22, 0.20), Color(0.21, 0.19, 0.18),
+			Color(0.14, 0.13, 0.12), Color(0.18, 0.16, 0.15),
+		],
+		"clipping": Color(0.95, 0.96, 0.98),
+	},
+
 	"GREEN_COOL": {
 		"cluster_base": Color(0.04, 0.19, 0.16),
 		"cluster_tip": Color(0.24, 0.60, 0.52),
@@ -451,6 +472,15 @@ static func clump_variants() -> Array:
 ## constants exactly, so a chapter that names no profile grows what it always
 ## grew.
 const PLANT_PROFILES := {
+	## Grass under snow (G23): low, bent flat, white, still; it crunches.
+	"SNOWGRASS": {
+		"form": "blade", "per_cell": 7, "blades": 5,
+		"height_min": 0.28, "height_max": 0.55, "tall_chance": 0.15,
+		"base_min": 0.40, "base_max": 0.55,
+		"width_scale": 1.0, "lean_scale": 1.3, "spread": 0.44,
+		"sway": 0.15, "cut_sound": "cut_snow", "cut_pitch": 1.0,
+		"clipping_scale": 1.2, "clipping": Color(0.95, 0.96, 0.98),
+	},
 	## Burnt stalks (G22): short, stiff, sparse, barely moving; they snap dry.
 	"SCORCH": {
 		"form": "blade", "per_cell": 6, "blades": 4,
@@ -770,6 +800,22 @@ const BOAT := {
 	"speed": 2.4, "deck": 0.7, "max_turn": 1.35, "body": 0.6, "reverse": 0.0,
 	"turn_drag": 0.35, "accel_time": 0.9, "decel_time": 1.5, "grip": 2.6,
 }
+## THE PLOUGH SLED (G23). On a snow level the push mower is a sled with a
+## plough blade: pushed, so the push pose stays; it slides — less than the
+## punt, more than a wheel — and it can be hauled back a little.
+const SLED := {
+	"speed": 2.8, "deck": 0.8, "max_turn": 1.5, "body": 0.6, "reverse": 0.3,
+	"turn_drag": 0.4, "accel_time": 0.6, "decel_time": 1.2, "grip": 4.0,
+}
+## Snowfall (G23): the rain system, slowed and whitened. Big soft flakes that
+## drift; the same count is far fewer per second because they fall slowly.
+const SNOW_COLOUR := Color(0.96, 0.97, 1.0, 0.85)
+const SNOW_SPEED := Vector2(1.2, 2.4)
+const SNOW_FLAKE := Vector2(0.11, 0.11)
+const SNOW_SLANT := Vector3(0.45, 0.0, 0.25)
+const SNOW_COUNT := 260
+const SNOW_LIFETIME := 7.0
+const SNOW_ICE_COLOUR := Color(0.78, 0.84, 0.90)
 ## A thin animated sheen over the whole lawn plane: the water the reeds stand
 ## in. Alpha low so the cell tints (reed-dark / clear-water) read through it.
 const LAKE_SHEEN_COLOUR := Color(0.18, 0.32, 0.36, 0.40)

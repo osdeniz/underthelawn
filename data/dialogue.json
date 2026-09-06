@@ -1384,6 +1384,10 @@
           "text": "DLG_BRIEF_CH20_1"
         },
         {
+          "speaker": "gus",
+          "text": "DLG_BRIEF_CH20_1B"
+        },
+        {
           "speaker": "marshal",
           "text": "DLG_BRIEF_CH20_2"
         },

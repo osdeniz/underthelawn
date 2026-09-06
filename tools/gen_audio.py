@@ -584,6 +584,18 @@ def dog_huff():
     return out
 
 
+# ---- a plough through snow (G23): a soft crunch, fast in, quick out.
+def cut_snow():
+    n = seconds(0.18)
+    raw = _lowpass(_noise(n, 33), 0.22)
+    out = []
+    for i in range(n):
+        u = i / n
+        env = min(1.0, u * 12.0) * math.exp(-5.5 * u)
+        out.append(raw[i] * env)
+    return out
+
+
 # ---- an oar in still water (G21): a soft dip, a pull, a drip, once every
 # 1.3 s, looped. Lowpassed noise shaped by a pull envelope, a small splash on
 # the dip, a couple of drips after.
@@ -738,6 +750,7 @@ write("lamp_hum_loop", lamp_hum(), 0.35)
 write("dog_huff", dog_huff(), 0.6)
 write("robot_beep", robot_beep(), 0.5)
 write("oar_loop", oar_loop(), 0.45)
+write("cut_snow", cut_snow(), 0.6)
 write("rabbit_rustle", rabbit_rustle(), 0.6)
 write("bird_takeoff", bird_takeoff(), 0.6)
 write("settler_card", settler_card(), 0.8)

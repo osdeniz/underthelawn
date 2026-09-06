@@ -272,6 +272,12 @@ func _build_yard() -> void:
 		# wet bank is the texture multiplied down and cooled.
 		dirt.albedo_color = Color(0.52, 0.50, 0.46)
 		dirt.roughness = 0.7
+	elif _variant != null and _variant.palette_id == "SNOW":
+		# Snow past the fence too (G23): the texture pushed almost to white.
+		var snowed := _tex_mat("snowfield", "dirt_albedo", Color(0.90, 0.92, 0.95), 1.0,
+			Vector3(14.0, 12.0, 1.0))
+		snowed.albedo_color = Color(1.6, 1.62, 1.66)
+		dirt = snowed
 	elif _variant != null and _variant.palette_id == "ASH":
 		# The burn (G22): the fire did not stop at the fence. Same texture,
 		# grey and dark, out to where the country begins.
@@ -519,6 +525,25 @@ func _build_pond(rect: Rect2, centre: Vector3, stone_mat: Material) -> void:
 	var pond := Node3D.new()
 	pond.name = "Pond"
 	add_child(pond)
+	if _variant != null and _variant.palette_id == "SNOW":
+		# Frozen (G23): no water shader, a flat pale sheet with a snowed rim
+		# and the stones standing out of it.
+		var snow_bank := _flat("pond_snow", Color(0.90, 0.92, 0.95), 1.0)
+		var ice := _flat("pond_ice", GameConfig.SNOW_ICE_COLOUR, 0.25, 0.1)
+		var rim_s := PlaneMesh.new()
+		rim_s.size = rect.size
+		_mesh(pond, rim_s, snow_bank, centre + Vector3(0.0, 0.008, 0.0))
+		var sheet := PlaneMesh.new()
+		sheet.size = rect.size - Vector2(0.9, 0.9)
+		_mesh(pond, sheet, ice, centre + Vector3(0.0, 0.04, 0.0))
+		var rng_s := RandomNumberGenerator.new()
+		rng_s.seed = int(absf(centre.x) * 131.0) + int(absf(centre.z) * 17.0) + 7
+		for i in 4:
+			var a := TAU * float(i) / 4.0 + rng_s.randf_range(-0.3, 0.3)
+			_ball(pond, rng_s.randf_range(0.22, 0.34), stone_mat,
+				centre + Vector3(cos(a) * (rect.size.x * 0.5 - 0.3), 0.12, sin(a) * (rect.size.y * 0.5 - 0.3)),
+				Vector3(1.2, 0.6, 1.0))
+		return
 	var mud := _flat("pond_mud", Color(0.30, 0.24, 0.17), 1.0)
 	var bank := _flat("pond_bank", Color(0.40, 0.33, 0.22), 1.0)
 	var size := rect.size
@@ -1275,7 +1300,7 @@ func _build_smalls() -> void:
 func _flower(kind: int, pos: Vector3) -> void:
 	# Nothing flowers on the burn (G22): the first render of the ash had
 	# daisies and tulips standing in it.
-	if _variant != null and _variant.palette_id == "ASH":
+	if _variant != null and (_variant.palette_id == "ASH" or _variant.palette_id == "SNOW"):
 		return
 	var pivot := Node3D.new()
 	pivot.position = pos

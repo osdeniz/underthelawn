@@ -36,6 +36,7 @@ const PATHS := {
 	"dog_huff": "res://audio/dog_huff",
 	"robot_beep": "res://audio/robot_beep",
 	"oar": "res://audio/oar_loop",
+	"cut_snow": "res://audio/cut_snow",
 	"rabbit": "res://audio/rabbit_rustle",
 	"bird_takeoff": "res://audio/bird_takeoff",
 	"settler": "res://audio/settler_card",

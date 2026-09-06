@@ -1028,7 +1028,7 @@ CH_26_NAME,The Visit,Ziyaret
 OPENING_19_HEADLINE,THE SQUARE,MEYDAN
 OPENING_19_SUBLINE,Twelve days. Start where they will stand.,On iki gün. Duracakları yerden başla.
 OPENING_20_HEADLINE,THE TOWER ROAD,KULE YOLU
-OPENING_20_SUBLINE,Let them see the way in.,Girişi görsünler.
+OPENING_20_SUBLINE,Let them see the way in. The snow will hold their tracks.,Girişi görsünler. Kar izlerini tutar.
 OPENING_21_HEADLINE,THE SCHOOL FIELD,OKUL BAHÇESİ
 OPENING_21_SUBLINE,Where she drew the arrow.,Oku çizdiği yer.
 OPENING_22_HEADLINE,"THE ORCHARD, AGAIN","BAHÇE, YENİDEN"
@@ -1278,3 +1278,4 @@ ECHO_CH27_NAME,Ferry Ticket,Vapur Bileti
 ECHO_CH27_LINE,"Return half, never punched. Somebody paid to cross and never went back.","Dönüş parçası, hiç zımbalanmamış. Biri geçmek için ödemiş, bir daha dönmemiş."
 LOC_SHALLOWS,in the shallows,sığlıkta
 DLG_BRIEF_CH10_1B,"It burned two summers back — the relay, or the lightning that found it. Nothing has come back but black stalks.","İki yaz önce yandı; röle mi, onu bulan yıldırım mı. Kara saplardan başka hiçbir şey geri gelmedi."
+DLG_BRIEF_CH20_1B,First snow came early this year. Good. A road in snow shows who walked it.,"İlk kar bu yıl erken geldi. İyi. Kardaki yol, kimin yürüdüğünü gösterir."

@@ -4273,3 +4273,34 @@ it burned, two summers back — the relay, or the lightning that found it.
 Covers now: grass, wheat and corn, reeds in water, ash. Next in the same
 line, if wanted: snow (ch20 — "let them see the road", winter stores), and
 sand that closes back over slowly, only if a tester does not resent it.
+
+## G23 — the snow: ch20, first snow, early
+
+The third cover. The tower road's brief said "let them see the way in"; now
+the snow holds their tracks.
+
+- **Palette SNOW**: grass under snow, blue-white at the tip, cold grey at the
+  root; the "mown" ladder is the frozen ground the plough scrapes to — dark,
+  so the cleared road reads as a road. Legibility pass in snowfall: gap 0.180.
+- **Snowfall**: the rain system, slowed and whitened — big soft flakes on the
+  cloud texture (a bare quad was a square, the smoke's lesson again), drifting
+  on a gentler slant, seven seconds in the air. The rain SOUND stays off for
+  snow; the chapter still counts as wet, and the overcast dimming stays.
+- **The plough sled**: the push mower's third body (punt, sled). Runners, a
+  frame, a wide blade angled forward, the handlebar the push pose already
+  holds. It slides — `grip` 4, between the punt and a wheel — and can be
+  hauled back a little. Plant profile `SNOWGRASS`: low, bent flat, white,
+  still; it crunches (generated `cut_snow`).
+- **The pond is frozen**: no water shader, a flat pale sheet with a snowed rim
+  and the stones standing out of it. The apron past the fence is snow.
+  Nothing flowers.
+- One line from Gus, the opening subline; en and tr.
+
+**Found on the way:** every Case 03 yard's HUD showed Case 01's case line
+("KAYIP KIZ · Araziyi ara") — the HUD only knew Case 02's list. It reads
+`case_03.hud_line` now; `SnowShot` asserts it.
+
+Covers: grass, wheat and corn, reeds in water, ash, snow. Chapters that are a
+place of their own: ch00 road, ch04 lake, ch10 burn, ch20 snow, ch25 lantern,
+ch27 reed shore, plus four sunsets. Sand — the cover that closes back — waits
+for a tester's verdict.

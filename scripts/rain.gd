@@ -21,6 +21,37 @@ static func build(parent: Node3D) -> Rain:
 	return node
 
 
+var _pm: ParticleProcessMaterial
+var _quad: QuadMesh
+var _mat: StandardMaterial3D
+
+
+## Snow (G23): a wet chapter on the SNOW palette. The same particle system,
+## slowed and whitened in refresh(); the rain SOUND stays off for it.
+static func is_snow() -> bool:
+	return is_wet() and LevelVariant.current != null \
+		and LevelVariant.current.palette_id == "SNOW"
+
+
+func _apply_look() -> void:
+	if _pm == null:
+		return
+	var snow := is_snow()
+	_pm.initial_velocity_min = GameConfig.SNOW_SPEED.x if snow else GameConfig.RAIN_SPEED.x
+	_pm.initial_velocity_max = GameConfig.SNOW_SPEED.y if snow else GameConfig.RAIN_SPEED.y
+	_pm.gravity = GameConfig.SNOW_SLANT if snow else GameConfig.RAIN_SLANT
+	_quad.size = GameConfig.SNOW_FLAKE if snow else GameConfig.RAIN_DROP
+	_mat.albedo_color = GameConfig.SNOW_COLOUR if snow else GameConfig.RAIN_COLOUR
+	_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED if snow \
+		else BaseMaterial3D.BILLBOARD_FIXED_Y
+	# A flake is a soft dot, not a square: the cloud texture on the quad, the
+	# same lesson as the chimney smoke (G20.1). A drop stays a bare line.
+	_mat.albedo_texture = TextureLibrary.find("cloud_billboard") if snow else null
+	amount = GameConfig.SNOW_COUNT if snow else GameConfig.RAIN_COUNT
+	lifetime = GameConfig.SNOW_LIFETIME if snow else GameConfig.RAIN_LIFETIME
+	preprocess = lifetime
+
+
 func _setup() -> void:
 	var pm := ParticleProcessMaterial.new()
 	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
@@ -36,6 +67,7 @@ func _setup() -> void:
 	pm.scale_min = 0.7
 	pm.scale_max = 1.25
 	process_material = pm
+	_pm = pm
 
 	var quad := QuadMesh.new()
 	quad.size = GameConfig.RAIN_DROP
@@ -49,6 +81,8 @@ func _setup() -> void:
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
 	quad.material = mat
 	draw_pass_1 = quad
+	_quad = quad
+	_mat = mat
 
 	amount = GameConfig.RAIN_COUNT
 	lifetime = GameConfig.RAIN_LIFETIME
@@ -68,6 +102,7 @@ func _setup() -> void:
 ## On for a wet chapter, off otherwise. A stopped system draws nothing, so a
 ## dry yard pays nothing for this node existing.
 func refresh() -> void:
+	_apply_look()
 	var wet := is_wet()
 	emitting = wet
 	visible = wet

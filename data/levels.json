@@ -963,7 +963,7 @@
       }
     },
     "ch20_watchtower_road": {
-      "palette_id": "DRY_GOLD",
+      "palette_id": "SNOW",
       "grid_size": "large",
       "obstacle_layout_id": "ring_pond",
       "landmark_id": "water_tower",
@@ -991,7 +991,7 @@
         }
       ],
       "house_variant": "house_none",
-      "plant_profile_id": "GRASS",
+      "plant_profile_id": "SNOWGRASS",
       "scrap_multiplier": 0.68,
       "opening": {
         "headline": "OPENING_20_HEADLINE",
@@ -1004,7 +1004,9 @@
         "name": "ECHO_CH20_NAME",
         "flavor_text": "ECHO_CH20_LINE"
       },
-      "weather": "rain"
+      "weather": "rain",
+      "sled": true,
+      "_comment": "G23: first snow, early. The wet weather is snowfall here; the push mower is a plough sled; the pond is frozen."
     },
     "ch21_school_field": {
       "palette_id": "LUSH",

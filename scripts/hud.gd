@@ -650,7 +650,11 @@ func _style_button(button: Button) -> void:
 ## than of ChapterProgress, because the HUD must name the right case even while
 ## the case is still locked on the board (a replay, or a dev run).
 func _belongs_to_case_two(variant_id: String) -> bool:
-	for chapter: Dictionary in Story.list("case_02.chapters"):
+	return _belongs_to_case(variant_id, "case_02.chapters")
+
+
+func _belongs_to_case(variant_id: String, list_path: String) -> bool:
+	for chapter: Dictionary in Story.list(list_path):
 		if str(chapter.get("variant_id", "")) == variant_id:
 			return true
 	return false
@@ -670,6 +674,9 @@ func _apply_story_text() -> void:
 		var case_path := "case.hud_line"
 		if variant != null and _belongs_to_case_two(variant.id):
 			case_path = "case_02.hud_line"
+		elif variant != null and _belongs_to_case(variant.id, "case_03.chapters"):
+			# Case 03's yards showed Case 01's line since G17 (G23 render).
+			case_path = "case_03.hud_line"
 		_case_line.text = Story.text(case_path)
 	_complete_title.text = Story.text("complete.title", "AREA SEARCHED")
 	_missed_label.text = Story.text("complete.incomplete",
