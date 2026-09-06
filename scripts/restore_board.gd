@@ -141,10 +141,23 @@ static func scrap_bonus() -> int:
 ## What a project actually costs, after the carpenter's discount (G14.13).
 ## Every screen that shows a price and the code that takes the money must agree,
 ## so both ask this rather than reading the raw number.
+## Timber lots banked by woodlot cuts (G25). One is spent on the next
+## restoration bought, for TIMBER_DISCOUNT off, on top of the carpenter's.
+static func timber() -> int:
+	return int(GameState.get_setting(SECTION, "timber", 0))
+
+
+static func add_timber(lots: int) -> void:
+	GameState.set_setting(SECTION, "timber", maxi(timber() + lots, 0))
+
+
 static func price(project_id: String) -> int:
 	var project := of(project_id)
 	var cost := int(project.get("cost", 0))
-	return int(round(float(cost) * (1.0 - Settlers.build_discount())))
+	var discount := Settlers.build_discount()
+	if timber() > 0:
+		discount = minf(0.9, discount + GameConfig.TIMBER_DISCOUNT)
+	return int(round(float(cost) * (1.0 - discount)))
 
 
 static func buy(project_id: String) -> bool:
@@ -155,6 +168,8 @@ static func buy(project_id: String) -> bool:
 	if GameState.scrap_total() < cost:
 		return false
 	GameState.spend_scrap(cost)
+	if timber() > 0:
+		add_timber(-1)
 	GameState.set_setting(SECTION, project_id, true)
 	Analytics.track(AnalyticsEvents.RESTORE_BOUGHT,
 		{"id": project_id, "cost": cost, "tier": int(project.get("tier", 1))})
@@ -164,5 +179,6 @@ static func buy(project_id: String) -> bool:
 
 
 static func reset() -> void:
+	GameState.set_setting(SECTION, "timber", 0)
 	for project: Dictionary in projects():
 		GameState.set_setting(SECTION, str(project.get("id", "")), false)

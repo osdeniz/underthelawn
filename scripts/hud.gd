@@ -669,7 +669,7 @@ func _apply_story_text() -> void:
 	# a girl who was found in the first act (G13).
 	var variant := LevelVariant.current
 	if variant != null and variant.is_harvest():
-		_case_line.text = tr("HARVEST_HUD_LINE")
+		_case_line.text = tr("HUD_WOODLOT_LINE" if variant.pays_timber else "HARVEST_HUD_LINE")
 	else:
 		var case_path := "case.hud_line"
 		if variant != null and _belongs_to_case_two(variant.id):
@@ -771,6 +771,9 @@ func _build_case_notes(collected: Array, total: int) -> void:
 		# achieved and gets out of the way.
 		_notes_progress.text = tr(HarvestLog.crumb_key())
 		_notes_header.text = tr("HARVEST_COMPLETE")
+		if LevelVariant.current.pays_timber:
+			_notes_progress.text = tr("HARVEST_TIMBER_LINE").format(
+				{"pct": int(round(GameConfig.TIMBER_DISCOUNT * 100.0))})
 		return
 	_notes_progress.text = Story.text("complete.notes_full") if collected.size() >= total \
 		else Story.text("complete.notes_partial")
@@ -1560,7 +1563,8 @@ func apply_sand_mode() -> void:
 
 
 func apply_harvest_mode() -> void:
-	_case_line.text = tr("HARVEST_HUD_LINE")
+	var woodlot := LevelVariant.current != null and LevelVariant.current.pays_timber
+	_case_line.text = tr("HUD_WOODLOT_LINE" if woodlot else "HARVEST_HUD_LINE")
 	_evidence_chip.visible = false
 	set_poster_visible(false)
 

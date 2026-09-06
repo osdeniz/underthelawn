@@ -496,6 +496,8 @@ func _build_obstacle_props() -> void:
 				_build_patio(rect, centre)
 			"outcrop":
 				_build_outcrop(rect, centre, stone_mat, dirt)
+			"trunk":
+				_build_trunk(centre)
 
 
 ## The yard shapes (G19.3): each block the model refuses to mow is a thing
@@ -1467,9 +1469,66 @@ func _build_landmark(landmark_id: String) -> void:
 		"jetty": _landmark_jetty(root)
 		"sunken_boat": _landmark_sunken_boat(root)
 		"relay": _landmark_relay(root)
+		"woodlot": _landmark_woodlot(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
+
+
+## A standing tree in the coppice (G25): a trunk the cut goes round and a
+## crown overhead that the camera looks down through. The same leaf balls as
+## the yard's trees, taller, so the shade falls on the machine.
+func _build_trunk(centre: Vector3) -> void:
+	var bark := _tex_mat("bark", "bark_albedo", Color(0.34, 0.25, 0.16), 0.95)
+	var leaf_dark := _flat("leaf_dark", GameConfig.TREE_LEAF_DARK, 1.0)
+	var leaf_light := _flat("leaf_light", GameConfig.TREE_LEAF_LIGHT, 1.0)
+	var tree := Node3D.new()
+	tree.position = centre
+	add_child(tree)
+	_cyl(tree, 0.22, 0.30, 4.2, bark, Vector3(0.0, 2.1, 0.0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(absf(centre.x) * 71.0) + int(absf(centre.z) * 13.0) + 5
+	for i in 7:
+		var a := TAU * float(i) / 7.0
+		var r := 0.9 + rng.randf_range(-0.2, 0.3)
+		var y := 4.0 + (0.9 if i % 2 == 0 else 0.3) + rng.randf_range(-0.2, 0.2)
+		_ball(tree, 0.85, leaf_light if y > 4.6 else leaf_dark,
+			Vector3(cos(a) * r, y, sin(a) * r),
+			Vector3(rng.randf_range(0.9, 1.3), rng.randf_range(0.6, 0.9), rng.randf_range(0.9, 1.3)))
+	_ao_blob(tree, Vector2(2.6, 2.2), Vector3(0.6, 0.02, 0.4), 0.55)
+
+
+## The woodlot's stack (G25): sawn lengths piled between two posts, a
+## sawhorse with a length across it, and the axe left in a stump.
+func _landmark_woodlot(root: Node3D) -> void:
+	var wood := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
+	var bark := _tex_mat("bark", "bark_albedo", Color(0.34, 0.25, 0.16), 0.95)
+	var cut := _flat("wl_cut", Color(0.78, 0.66, 0.44), 0.9)
+	var iron := _flat("wl_iron", Color(0.34, 0.34, 0.36), 0.6, 0.4)
+	# The stack: five rows of logs between two posts, ends showing.
+	for sx: float in [-1.6, 1.6]:
+		_cyl(root, 0.07, 0.08, 1.6, bark, Vector3(sx, 0.8, 0.0))
+	for row in 5:
+		var count := 6 - (row / 2)
+		for i in count:
+			var x := (float(i) - float(count - 1) * 0.5) * 0.5
+			_cyl(root, 0.20, 0.20, 2.6, bark,
+				Vector3(x, 0.22 + float(row) * 0.36, 0.0), Vector3(PI * 0.5, 0.0, 0.0), 10)
+			_cyl(root, 0.19, 0.19, 0.02, cut,
+				Vector3(x, 0.22 + float(row) * 0.36, 1.31), Vector3(PI * 0.5, 0.0, 0.0), 10)
+	# Sawhorse and a length across it.
+	for sx2: float in [-0.5, 0.5]:
+		for lean: float in [-1.0, 1.0]:
+			_cyl(root, 0.04, 0.05, 0.9, wood, Vector3(2.9 + sx2, 0.45, 1.8 + lean * 0.22),
+				Vector3(lean * 0.35, 0.0, 0.0))
+	_cyl(root, 0.14, 0.14, 2.2, bark, Vector3(2.9, 0.98, 1.8), Vector3(0.0, 0.0, PI * 0.5), 10)
+	# The stump with the axe in it.
+	_cyl(root, 0.32, 0.36, 0.5, bark, Vector3(-3.0, 0.25, 1.6), Vector3.ZERO, 12)
+	_cyl(root, 0.31, 0.31, 0.02, cut, Vector3(-3.0, 0.51, 1.6), Vector3.ZERO, 12)
+	var handle := _box(root, Vector3(0.05, 0.9, 0.05), wood, Vector3(-2.85, 0.95, 1.5))
+	handle.rotation = Vector3(deg_to_rad(20.0), 0.0, deg_to_rad(-18.0))
+	_box(root, Vector3(0.22, 0.14, 0.05), iron, Vector3(-3.0, 0.56, 1.6))
+	_ao_blob(root, Vector2(6.0, 3.0), Vector3(0.0, 0.02, 0.5), 0.5)
 
 
 ## The burn (G22). The relay on the bald crest, after the fire: a lattice

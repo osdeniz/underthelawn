@@ -87,6 +87,8 @@ var sled := false
 ## G24: {"after": seconds, "behind": cells} — the wind refills cut cells that
 ## far behind the machine after that long. {} on every other yard.
 var recover: Dictionary = {}
+## G25: a harvest that pays the restore board in timber instead of the larder.
+var pays_timber := false
 
 
 static func data() -> Dictionary:
@@ -141,6 +143,7 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.walk_only_evidence = bool(spec.get("walk_only_evidence", false))
 	variant.lantern = bool(spec.get("lantern", false))
 	variant.sled = bool(spec.get("sled", false))
+	variant.pays_timber = bool(spec.get("pays_timber", false))
 	var rec: Variant = spec.get("recover", {})
 	if rec is Dictionary:
 		variant.recover = rec

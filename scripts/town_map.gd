@@ -959,6 +959,8 @@ func _field_note(variant_id: String) -> String:
 		parts.append(tr("HARVEST_PAYS_FOOD"))
 	elif variant.food_budget >= 8:
 		parts.append(tr("HARVEST_SOME_FOOD"))
+	if variant.pays_timber:
+		parts.append(tr("HARVEST_PAYS_TIMBER"))
 	if variant.scrap_budget >= 24:
 		parts.append(tr("HARVEST_PAYS_MONEY"))
 	if variant.grid_size == "harvest_small":

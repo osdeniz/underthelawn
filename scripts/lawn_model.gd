@@ -76,6 +76,15 @@ const OBSTACLE_LAYOUTS := {
 		{ "name": "patio", "fx": 0.04, "fz": 0.58, "fcols": 0.42, "frows": 0.30, "flush": true },
 		{ "name": "flowerbed", "fx": 0.66, "fz": 0.26, "cols": 2, "rows": 1 },
 	],
+	# A grove (G25): standing trees the cut goes round. Each is one cell and
+	# one prop — a trunk with its crown overhead — so the coppice has shade.
+	"grove": [
+		{ "name": "trunk", "fx": 0.22, "fz": 0.24, "cols": 1, "rows": 1 },
+		{ "name": "trunk", "fx": 0.62, "fz": 0.30, "cols": 1, "rows": 1 },
+		{ "name": "trunk", "fx": 0.40, "fz": 0.50, "cols": 1, "rows": 1 },
+		{ "name": "trunk", "fx": 0.76, "fz": 0.60, "cols": 1, "rows": 1 },
+		{ "name": "trunk", "fx": 0.24, "fz": 0.70, "cols": 1, "rows": 1 },
+	],
 	# A bite: boulders in the north-west, a stone loose in the open.
 	"outcrop": [
 		{ "name": "outcrop", "fx": 0.06, "fz": 0.06, "fcols": 0.32, "frows": 0.30, "flush": true },

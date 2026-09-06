@@ -4331,3 +4331,29 @@ pressure you can see, and a debrief line that says so.
 
 Covers now: grass, wheat and corn, reeds in water, ash, snow, sand. Every
 case has one that moves the ground under the rule without changing the rule.
+
+## G25 — the woodlot: the harvest's second material
+
+The player asked for mines, logging, biomes, an idle loop. What fits this
+game is one of them: a coppice to cut, because cutting is the rule and the
+town needs roofs. `harvest_woodlot` joins the six fields on the farm sheet.
+
+- **Timber, not a counter.** A woodlot cut banks one lot (`RestoreBoard.timber`);
+  the next restoration bought is `TIMBER_DISCOUNT` (20%) cheaper and spends
+  it. The restore row says "(timber ready)", the panel says the next roof
+  comes cheaper, the farm sheet says "Timber for the board". No third
+  resource on the bar — the wood becomes a roof, which is the theme.
+- **The coppice.** Plant profile `SAPLING` (a stalk profile: green-grey young
+  stems, big leaves high up, taller than the machine — the corn's corridors
+  on a woodland floor), palette `WOODLOT` (leaf litter where it stood), layout
+  `grove` — five standing trees the cut goes round, each a trunk with a crown
+  overhead so the shade falls on the machine. Landmark `woodlot`: the stack
+  between two posts, a sawhorse, the axe in a stump. Almost nothing for the
+  larder (food 2), scrap 14, small grid: quick, and for the board.
+- `WoodlotCheck` measures: in the rotation, price 300 → 240, buying spends
+  the lot, the sheet's note, the HUD line, five collision rects for the
+  trunks. `HarvestFieldsCheck` still finds seven different days.
+
+**Not built, on purpose:** idle mines, a resource per metal, volcano,
+rainforest, a foreign beach. They are good ideas for a different game; this
+one is a town, a county and a rule.

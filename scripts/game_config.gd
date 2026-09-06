@@ -218,6 +218,27 @@ const GRASS_PALETTES := {
 		"clipping": Color(0.86, 0.80, 0.62),
 	},
 
+	# THE WOODLOT (G25). Coppice on forest floor: the saplings are green-brown
+	# stems, the "mown" ladder is leaf litter and dark soil where they stood.
+	# The cluster colours are the LEAVES (a stalk profile paints its stem from
+	# stalk_root/stalk_tip); the first pass had them brown and the coppice read
+	# as dry corn.
+	"WOODLOT": {
+		"cluster_base": Color(0.18, 0.30, 0.12),
+		"cluster_tip": Color(0.42, 0.64, 0.28),
+		"accents": [
+			{ "base": Color(0.22, 0.34, 0.14), "tip": Color(0.56, 0.70, 0.32),
+				"weight": 0.20, "flowers": false },
+			{ "base": Color(0.16, 0.26, 0.12), "tip": Color(0.34, 0.50, 0.24),
+				"weight": 0.08, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.30, 0.22, 0.14), Color(0.27, 0.20, 0.13),
+			Color(0.20, 0.15, 0.10), Color(0.24, 0.18, 0.12),
+		],
+		"clipping": Color(0.44, 0.52, 0.28),
+	},
+
 	"GREEN_COOL": {
 		"cluster_base": Color(0.04, 0.19, 0.16),
 		"cluster_tip": Color(0.24, 0.60, 0.52),
@@ -545,6 +566,18 @@ const PLANT_PROFILES := {
 		"stalk_width": 0.055, "leaf_length": 0.62, "spread": 0.42,
 		"sway": 0.45, "cut_sound": "cut_corn", "cut_pitch": 0.78,
 		"clipping_scale": 2.2, "clipping": Color(0.74, 0.68, 0.34),
+	},
+	## Saplings (G25): a coppice, taller than the machine, thin stems with a few
+	## big leaves high up; the corn's corridors with a woodland floor.
+	"SAPLING": {
+		"form": "stalk", "per_cell": 3, "leaves": 5,
+		"height_min": 1.90, "height_max": 2.60, "tall_chance": 0.45,
+		"stalk_width": 0.07, "leaf_length": 0.70, "spread": 0.44,
+		# Young growth is green-grey, not bark brown: from above the stems are
+		# most of what shows, and brown stems read as dry corn (G25 render).
+		"stalk_root": Color(0.30, 0.30, 0.18), "stalk_tip": Color(0.50, 0.58, 0.30),
+		"sway": 0.35, "cut_sound": "cut_corn", "cut_pitch": 0.66,
+		"clipping_scale": 2.0, "clipping": Color(0.44, 0.52, 0.28),
 	},
 	## Every head turned the same way. One detail, and the field is alive.
 	"SUNFLOWER": {
@@ -1413,6 +1446,8 @@ const LANDMARK_IDS: Array[String] = [
 	"jetty", "sunken_boat",
 	# The burn (G22): what stood on the bald crest.
 	"relay",
+	# The woodlot (G25): where the timber is stacked.
+	"woodlot",
 ]
 
 const HOUSE_MARGIN_Z := 4.8
@@ -2062,12 +2097,20 @@ const HARVEST_VARIANT := "harvest_field"
 const HARVEST_VARIANTS: Array[String] = [
 	"harvest_field", "harvest_sunflower", "harvest_corn",
 	"harvest_lavender", "harvest_pumpkin", "harvest_cotton",
+	# The woodlot (G25): the harvest's second material — timber for the
+	# restore board instead of food for the larder.
+	"harvest_woodlot",
 ]
 ## What each field is called on the farm sheet, in the same order.
 const HARVEST_NAMES: Array[String] = [
 	"HARVEST_FIELD_WHEAT", "HARVEST_FIELD_SUN", "HARVEST_FIELD_CORN",
 	"HARVEST_FIELD_LAVENDER", "HARVEST_FIELD_PUMPKIN", "HARVEST_FIELD_COTTON",
+	"HARVEST_FIELD_WOODLOT",
 ]
+## THE WOODLOT (G25). A coppice cut pays in timber, not food: each cut banks
+## one lot, and the next restoration bought spends it for this much off. Not a
+## third counter — a line on the restore row and a line on the panel.
+const TIMBER_DISCOUNT := 0.2
 
 
 ## True for any of the fields. Comparing against HARVEST_VARIANT alone

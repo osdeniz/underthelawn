@@ -1330,6 +1330,27 @@
         "name": "ECHO_CH27_NAME",
         "flavor_text": "ECHO_CH27_LINE"
       }
+    },
+    "harvest_woodlot": {
+      "_comment": "G25: the woodlot — the harvest's second material. Pays a lot of timber to the restore board, almost nothing to the larder.",
+      "level_type": "harvest",
+      "palette_id": "WOODLOT",
+      "grid_size": "harvest_small",
+      "obstacle_layout_id": "grove",
+      "house_variant": "house_none",
+      "landmark_id": "woodlot",
+      "decor_seed": 7373,
+      "scrap_budget": 14,
+      "opening": {
+        "headline": "HARVEST_WOOD_HEADLINE",
+        "subline": "HARVEST_WOOD_SUBLINE"
+      },
+      "evidence_defs": [],
+      "time_of_day": "morning",
+      "plant_profile_id": "SAPLING",
+      "food_budget": 2,
+      "mid_chat": "chat_harvest",
+      "pays_timber": true
     }
   }
 }

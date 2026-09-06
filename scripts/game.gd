@@ -1257,6 +1257,10 @@ func _on_completed() -> void:
 		search_finished.emit(_collected.size(), _evidence_total())
 		if variant != null and variant.is_harvest():
 			HarvestLog.record()
+			if variant.pays_timber:
+				# The woodlot (G25): a lot of timber for the restore board.
+				RestoreBoard.add_timber(1)
+				payout["timber"] = RestoreBoard.timber()
 			Analytics.track(AnalyticsEvents.HARVEST_COMPLETED,
 				{"scrap": int(payout["total"]), "run": HarvestLog.count()})
 		hud.show_complete(model.mowed_count, GameState.format_elapsed(),

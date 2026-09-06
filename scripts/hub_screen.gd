@@ -1229,6 +1229,9 @@ func _make_project_row(project: Dictionary) -> Button:
 	button.add_theme_font_size_override("font_size", 38)
 	var tail := tr("RESTORE_DONE") if built \
 		else tr("RESTORE_BUY").format({"cost": cost})
+	if not built and RestoreBoard.timber() > 0:
+		# The woodlot's lot is in the price already; the row says so (G25).
+		tail += "  " + tr("RESTORE_TIMBER_HINT")
 	if locked and not built:
 		# Locked doors stay priced and visible: that is what makes them a goal.
 		tail = "%s   ·   %s" % [RestoreBoard.lock_reason(id),
