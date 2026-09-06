@@ -115,6 +115,8 @@ func _load_settings() -> void:
 		Analytics.track("save_recovered", {"from": _store.loaded_from})
 	_pull_cloud()
 	_migrate()
+	# The player's word on usage events (G19.12), read before the first track.
+	Analytics.enabled = bool(get_setting("privacy", "analytics", true))
 
 
 ## A cloud copy, if a provider has one: the side with more chapters done wins,

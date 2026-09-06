@@ -105,6 +105,14 @@ func _ready() -> void:
 	_add_toggle(tr("SET_BIGTEXT_TITLE"), tr("SET_BIGTEXT_HINT"),
 		bool(GameState.get_setting("display", "large_text", false)),
 		func(on: bool) -> void: GameState.set_setting("display", "large_text", on))
+	_add_section(tr("SETTINGS_GROUP_PRIVACY"))
+	# Usage events go to our own endpoint with a random install id (G14.5);
+	# that is pseudonymous data and the player gets the switch (G19.12). The
+	# hint says exactly what is sent and what is not.
+	_add_toggle(tr("SETTINGS_ANALYTICS"), tr("SETTINGS_ANALYTICS_HINT"), Analytics.enabled,
+		func(on: bool) -> void:
+			Analytics.enabled = on
+			GameState.set_setting("privacy", "analytics", on))
 	_add_section(tr("SETTINGS_GROUP_GAME"))
 	# The same switch as the one on the game's top bar, in the place a player
 	# goes looking for it (G14.8). Cycles the four positions in order, and the

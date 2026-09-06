@@ -199,6 +199,14 @@ func _ready() -> void:
 ## The first time a resource is ever picked up, say what it is for (G14.23).
 ## Once per resource, ever, recorded in the save — and it does not pause the
 ## game: the mower keeps rolling behind the card.
+## The desktop's keys, once (G19.12): the phone teaches by touch, a keyboard
+## player has no way to know Space cycles the machine or Esc pauses.
+func _desktop_keys_tip() -> void:
+	if OS.has_feature("mobile"):
+		return
+	_first_pickup_tip("keys", "TIP_KEYS_TITLE", "TIP_KEYS_LINE")
+
+
 func _first_pickup_tip(key: String, title: String, line: String) -> void:
 	if bool(GameState.get_setting("tips", key, false)):
 		return
@@ -1169,6 +1177,7 @@ func _return_to_hub() -> void:
 ## The briefing was accepted (or there is none): drop the camera onto the
 ## property, hold the opening title, and start the clock.
 func _begin_search() -> void:
+	_desktop_keys_tip()
 	if _search_started:
 		return
 	_search_started = true

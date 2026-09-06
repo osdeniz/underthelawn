@@ -65,5 +65,25 @@ func run() -> void:
 		if pl.bus != AudioDirector.BUS_MUSIC and pl.bus != AudioDirector.BUS_SFX:
 			stray += 1
 	ck("her ses oynatici bir busta", stray == 0, "%d Master'da" % stray)
+	# Privacy: the toggle exists, flips the sink, and is saved.
+	var privacy: Button = null
+	for any4: Variant in screen.find_children("*", "Button", true, false):
+		var b4 := any4 as Button
+		if b4.toggle_mode and b4.get_parent() is HBoxContainer:
+			for lab in (b4.get_parent() as HBoxContainer).find_children("*", "Label", true, false):
+				if (lab as Label).text == tr("SETTINGS_ANALYTICS"):
+					privacy = b4
+	ck("gizlilik anahtari var", privacy != null, "")
+	if privacy != null:
+		var was := Analytics.enabled
+		privacy.button_pressed = not was
+		privacy.toggled.emit(not was)
+		await frames(2)
+		ck("anahtar olay gonderimini kapatiyor/aciyor", Analytics.enabled == (not was), str(Analytics.enabled))
+		ck("tercih kaydedildi",
+			bool(GameState.get_setting("privacy", "analytics", true)) == (not was), "")
+		privacy.button_pressed = was
+		privacy.toggled.emit(was)
+		await frames(2)
 	print("  [olcum] buslar: %s=%d %s=%d" % [AudioDirector.BUS_MUSIC, mi, AudioDirector.BUS_SFX, si])
 	screen.queue_free()

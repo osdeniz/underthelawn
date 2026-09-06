@@ -4098,3 +4098,18 @@ fails an export before it starts. `tools/make_icon.gd` renders `icon.svg` at
 1024, 512 and 192 and the presets point at them. Placeholders — the SVG is the
 G1 mower on green — until the artist's icon lands; then re-run the tool with
 the new SVG or drop PNGs over these.
+
+## G19.12 — the player's word on usage events, and the desktop's keys
+
+**Privacy.** `Analytics` posts events to our own endpoint with a random
+install id (G14.5). That is pseudonymous data and the player had no switch.
+Settings has a Privacy section now with one toggle, on by default, whose hint
+says exactly what goes (which chapter was finished, how long it took, the
+random id) and what does not (name, e-mail, location). Saved under
+`privacy/analytics` and read by `GameState` before the first track.
+`SettingsCheck` flips it and reads both the sink and the save.
+
+**Keys.** A keyboard player had no way to learn that Space cycles the machine
+or Esc pauses. On a desktop build the first search shows the one-time resource
+card with the keys (W A S D / arrows, Space / Tab, Esc, F11); a phone never
+sees it. Same once-gate as the salvage and food cards.
