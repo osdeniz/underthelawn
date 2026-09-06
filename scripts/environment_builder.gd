@@ -458,6 +458,140 @@ func _build_obstacle_props() -> void:
 				_build_rubble(rect, centre, stone_mat)
 			"patch":
 				_build_basket(centre)
+			"shed":
+				_build_shed(rect, centre, wood)
+			"pond":
+				_build_pond(rect, centre, stone_mat)
+			"hedge":
+				_build_hedge(rect, centre, dirt)
+			"patio":
+				_build_patio(rect, centre)
+			"outcrop":
+				_build_outcrop(rect, centre, stone_mat, dirt)
+
+
+## The yard shapes (G19.3): each block the model refuses to mow is a thing
+## the eye accepts as un-mowable. All built to the rect they were given.
+
+## A garden shed: plank walls, a gabled shingle roof, a door on the south
+## face, sitting on a low slab.
+func _build_shed(rect: Rect2, centre: Vector3, wood: Material) -> void:
+	var w := rect.size.x - 0.5
+	var d := rect.size.y - 0.5
+	var h := 1.7
+	var shingles := _tex_mat("shingles_shed", "roof_shingles_albedo",
+		Color(0.36, 0.24, 0.20), 0.9)
+	var dark := _flat("shed_dark", Color(0.22, 0.16, 0.11), 0.9)
+	var slab := _flat("shed_slab", Color(0.50, 0.49, 0.46), 0.95)
+	_box(self, Vector3(w + 0.4, 0.10, d + 0.4), slab, centre + Vector3(0.0, 0.05, 0.0))
+	_box(self, Vector3(w, h, d), wood, centre + Vector3(0.0, 0.10 + h * 0.5, 0.0))
+	# Gable: a prism the width of the shed, ridge running east-west.
+	var prism := PrismMesh.new()
+	prism.size = Vector3(w + 0.5, 0.9, d + 0.5)
+	var roof := _mesh(self, prism, shingles, centre + Vector3(0.0, 0.10 + h + 0.45, 0.0))
+	roof.rotation.y = PI * 0.5
+	# Door and a small window, on the south face where the mower sees them.
+	_box(self, Vector3(0.7, 1.3, 0.06), dark, centre + Vector3(-w * 0.2, 0.10 + 0.65, d * 0.5 + 0.02))
+	_box(self, Vector3(0.5, 0.45, 0.06), _flat("shed_glass", Color(0.62, 0.72, 0.78), 0.3),
+		centre + Vector3(w * 0.25, 0.10 + 1.15, d * 0.5 + 0.02))
+	_ao_blob(self, Vector2(w + 1.6, d + 1.6), centre + Vector3(0.3, 0.02, 0.3), 0.55)
+
+
+## A pond: the pool's water on a mud floor, no coping, a rim of trodden earth
+## and a few stones where the bank fell in.
+func _build_pond(rect: Rect2, centre: Vector3, stone_mat: Material) -> void:
+	var pond := Node3D.new()
+	pond.name = "Pond"
+	add_child(pond)
+	var mud := _flat("pond_mud", Color(0.30, 0.24, 0.17), 1.0)
+	var bank := _flat("pond_bank", Color(0.40, 0.33, 0.22), 1.0)
+	var size := rect.size
+	# The bank: a soft rim that reads as earth worn bare around the water.
+	var rim := PlaneMesh.new()
+	rim.size = size
+	var rim_mi := _mesh(pond, rim, bank, centre + Vector3(0.0, 0.008, 0.0))
+	rim_mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var floor_mesh := PlaneMesh.new()
+	floor_mesh.size = size - Vector2(0.9, 0.9)
+	var floor := _mesh(pond, floor_mesh, mud, centre + Vector3(0.0, 0.012, 0.0))
+	floor.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var water_mesh := PlaneMesh.new()
+	water_mesh.size = size - Vector2(0.9, 0.9)
+	water_mesh.subdivide_width = 12
+	water_mesh.subdivide_depth = 10
+	var water_mat := ShaderMaterial.new()
+	water_mat.shader = load("res://shaders/pool_water.gdshader")
+	water_mat.set_shader_parameter("water_color", GameConfig.POND_WATER_COLOR)
+	water_mat.set_shader_parameter("water_roughness", GameConfig.POOL_WATER_ROUGHNESS)
+	water_mat.set_shader_parameter("wave_speed", GameConfig.POOL_WAVE_SPEED * 0.6)
+	water_mat.set_shader_parameter("wave_amp", GameConfig.POOL_WAVE_AMP * 0.7)
+	water_mat.set_shader_parameter("fancy", GameConfig.WATER_FANCY_ENABLED)
+	water_mat.set_shader_parameter("wave2_speed", GameConfig.WATER_WAVE2_SPEED)
+	water_mat.set_shader_parameter("wave2_freq", GameConfig.WATER_WAVE2_FREQ)
+	water_mat.set_shader_parameter("wave2_amp", GameConfig.WATER_WAVE2_AMP)
+	water_mat.set_shader_parameter("fresnel_power", GameConfig.WATER_FRESNEL_POWER)
+	water_mat.set_shader_parameter("alpha_facing", GameConfig.WATER_ALPHA_FACING)
+	water_mat.set_shader_parameter("alpha_grazing", GameConfig.WATER_ALPHA_GRAZING)
+	var water := _mesh(pond, water_mesh, water_mat, centre + Vector3(0.0, 0.05, 0.0))
+	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(absf(centre.x) * 131.0) + int(absf(centre.z) * 17.0) + 7
+	for i in 5:
+		var a := TAU * float(i) / 5.0 + rng.randf_range(-0.3, 0.3)
+		var at := centre + Vector3(cos(a) * (size.x * 0.5 - 0.3), 0.12, sin(a) * (size.y * 0.5 - 0.3))
+		_ball(pond, rng.randf_range(0.22, 0.36), stone_mat, at,
+			Vector3(1.2, 0.6, 1.0))
+
+
+## A hedge: a row of overlapping leaf mounds on a soil strip, two greens.
+func _build_hedge(rect: Rect2, centre: Vector3, dirt: Material) -> void:
+	var leaf_dark := _flat("leaf_dark", GameConfig.TREE_LEAF_DARK, 1.0)
+	var leaf_light := _flat("leaf_light", GameConfig.TREE_LEAF_LIGHT, 1.0)
+	_box(self, Vector3(rect.size.x, 0.08, rect.size.y * 0.8), dirt,
+		centre + Vector3(0.0, 0.04, 0.0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(absf(centre.x) * 97.0) + int(absf(centre.z) * 13.0) + 3
+	var step := 0.62
+	var x := rect.position.x + 0.4
+	var i := 0
+	while x < rect.end.x - 0.3:
+		var r := rng.randf_range(0.42, 0.52)
+		_ball(self, r, leaf_light if i % 3 == 1 else leaf_dark,
+			Vector3(x, 0.48 + rng.randf_range(-0.04, 0.06), centre.z + rng.randf_range(-0.08, 0.08)),
+			Vector3(1.15, 1.05, 0.95))
+		x += step
+		i += 1
+
+
+## A patio: paving slabs in two tones, a low step at the grass edge.
+func _build_patio(rect: Rect2, centre: Vector3) -> void:
+	var pale := _flat("slab_pale", Color(0.66, 0.63, 0.58), 0.95)
+	var warm := _flat("slab_warm", Color(0.58, 0.53, 0.47), 0.95)
+	var edge := _flat("slab_edge", Color(0.46, 0.43, 0.40), 0.95)
+	_box(self, Vector3(rect.size.x, 0.10, rect.size.y), edge, centre + Vector3(0.0, 0.05, 0.0))
+	var cols := int(rect.size.x)
+	var rows := int(rect.size.y)
+	for r in rows:
+		for c in cols:
+			var at := Vector3(rect.position.x + float(c) + 0.5, 0.115,
+				rect.position.y + float(r) + 0.5)
+			_box(self, Vector3(0.90, 0.03, 0.90), pale if (r + c) % 2 == 0 else warm, at)
+
+
+## An outcrop: boulders shouldering out of bare ground.
+func _build_outcrop(rect: Rect2, centre: Vector3, stone_mat: Material, dirt: Material) -> void:
+	var dark_stone := _flat("stone_dark", Color(0.44, 0.43, 0.42), 0.95)
+	_box(self, Vector3(rect.size.x, 0.06, rect.size.y), dirt, centre + Vector3(0.0, 0.03, 0.0))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(absf(centre.x) * 61.0) + int(absf(centre.z) * 29.0) + 11
+	var count := 5 + int(rect.size.x * rect.size.y / 9.0)
+	for i in count:
+		var at := Vector3(
+			rng.randf_range(rect.position.x + 0.6, rect.end.x - 0.6), 0.0,
+			rng.randf_range(rect.position.y + 0.6, rect.end.y - 0.6))
+		var r := rng.randf_range(0.45, 0.85)
+		_ball(self, r, stone_mat if i % 2 == 0 else dark_stone, at + Vector3(0.0, r * 0.35, 0.0),
+			Vector3(rng.randf_range(1.0, 1.5), rng.randf_range(0.55, 0.8), rng.randf_range(0.9, 1.3)))
 
 
 ## A fallen trunk lying across the road (G15.1), built to the WIDTH of its rect

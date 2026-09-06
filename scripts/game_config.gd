@@ -1121,6 +1121,8 @@ const HAPTIC_SUCCESS_GAP := 0.10
 ## outbreak — a car cruising past told the player the world was fine, which is
 ## the opposite of what every other surface in the scene says.
 const TRAFFIC_ENABLED := false
+## The pond's water (G19.3): greener and murkier than the pool's.
+const POND_WATER_COLOR := Color(0.18, 0.30, 0.26, 0.85)
 const WATER_FANCY_ENABLED := true        # two-layer waves, fresnel, glints
 const SKY_HIGH_CLOUDS_ENABLED := true    # thin static cirrus layer at y~40
 const GLOW_ENABLED := true               # subtle bloom on bright spots only

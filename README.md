@@ -3875,3 +3875,41 @@ and the sun carry the hour. Rendered at the listening post before and after.
 **Left to the artist:** `docs/ART_PROMPTS.md` — the Marshal without the
 rifle, the Case 02 card without the scrawled word — in the prologue prompts'
 format, with the rules that the current images broke written into YASAK.
+
+## G19.3 — Phase C.1: yards that are not rectangles
+
+Thirty-three yards, four obstacle layouts, ten of them "open": the review's
+repetition finding, in numbers. The fence is still a rectangle — that is what
+a fence is — but the ground inside it now takes five more shapes, each a block
+the model refuses to mow and the eye accepts as un-mowable:
+
+- **L_shed** — a garden shed in the north-east corner (plank walls, gabled
+  shingles, a door on the face the mower sees). ch05, ch09.
+- **ring_pond** — a pond in the middle, mown round: the pool's water on a mud
+  floor, a bank of bare earth, stones where it fell in. ch16, ch19, ch20.
+- **split_hedge** — a hedge across the middle with a gap at the east end;
+  two halves and one way between them. ch13, ch21.
+- **courtyard** — paving in the south-west quarter, the grass wrapping it.
+  ch15, ch24, ch25.
+- **outcrop** — boulders shouldering out of bare ground in the north-west
+  corner. ch10, ch11.
+
+Blocks are sized as FRACTIONS of the grid (`fcols`/`frows` in
+`OBSTACLE_LAYOUTS`), so an L is an L at 12x18 and at 20x30, and corner blocks
+are `flush`: `resolve_layout` used to keep a one-cell lane on every side, and
+beside a shed that lane is a corridor a push mower fits and no tractor deck
+can reach — `ShapeCheck` counted five to seven such cells in every corner
+layout before the flag. Never flush to the south: the spawn strip stays clear.
+
+`ShapeCheck` runs the prologue road's contract over every variant: a flood
+fill from the spawn cell reaches every mowable cell (proven able to say no
+first), every mowable cell is in or beside a fully mowable 2x2 (a one-cell
+strip along a fence is cut by the deck from the next cell; a one-cell
+corridor is not), at least 45% of the grid is grass, at least eight layouts
+are in use and none more than seven times. Layout count: 4 → 9; "open" 10 → 4.
+`ShapeShot` renders the five from above. The walk-only piece (G15.5) and the
+push-only road are the two exceptions, named in the test.
+
+Not changed: the fence line itself. An L-shaped fence would need the fence
+builder to follow cell edges; the shed against the fence reads as an L yard
+without it.

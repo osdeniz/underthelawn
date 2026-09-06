@@ -32,7 +32,7 @@ const OBSTACLE_LAYOUTS := {
 	],
 	# A pool dominates the south-east and forces a long way round.
 	"pool": [
-		{ "name": "pool", "fx": 0.64, "fz": 0.72, "cols": 4, "rows": 3 },
+		{ "name": "pool", "fx": 0.64, "fz": 0.72, "cols": 4, "rows": 3, "flush": true },
 		{ "name": "sunbed", "fx": 0.90, "fz": 0.76, "cols": 1, "rows": 1 },
 		{ "name": "flowerbed", "fx": 0.22, "fz": 0.55, "cols": 2, "rows": 1 },
 	],
@@ -46,6 +46,41 @@ const OBSTACLE_LAYOUTS := {
 	],
 	# Nothing in the way: for the big field and the playground.
 	"open": [],
+
+	# --- Yard SHAPES (G19.3). Every yard was a rectangle with a few small
+	# things in it; the review counted ten "open" layouts and four in total.
+	# These blocks are big — a fraction of the grid (fcols/frows), so an L is
+	# an L at 12x18 and at 20x30 — and each is a real thing with a builder in
+	# EnvironmentBuilder: a shed, a pond, a hedge, a patio, an outcrop. The
+	# mowable ground around them is an L, a ring, two halves, a courtyard, a
+	# bite. resolve_layout's border keeps a lane on every side and ShapeCheck
+	# proves every cell reachable through lanes two cells wide.
+	# An L: the shed takes the north-east corner.
+	"L_shed": [
+		{ "name": "shed", "fx": 0.60, "fz": 0.06, "fcols": 0.36, "frows": 0.32, "flush": true },
+		{ "name": "flowerbed", "fx": 0.14, "fz": 0.62, "cols": 2, "rows": 1 },
+	],
+	# A ring: the pond in the middle, mown round.
+	"ring_pond": [
+		{ "name": "pond", "fx": 0.34, "fz": 0.36, "fcols": 0.32, "frows": 0.28 },
+		{ "name": "stone", "fx": 0.16, "fz": 0.22, "cols": 1, "rows": 1 },
+		{ "name": "stone", "fx": 0.78, "fz": 0.68, "cols": 1, "rows": 1 },
+	],
+	# Two halves: a hedge across the middle with a gap at the east end.
+	"split_hedge": [
+		{ "name": "hedge", "fx": 0.04, "fz": 0.47, "fcols": 0.66, "rows": 1 },
+		{ "name": "stone", "fx": 0.30, "fz": 0.22, "cols": 1, "rows": 1 },
+	],
+	# A courtyard: paving in the south-west quarter, the grass wraps it.
+	"courtyard": [
+		{ "name": "patio", "fx": 0.04, "fz": 0.58, "fcols": 0.42, "frows": 0.30, "flush": true },
+		{ "name": "flowerbed", "fx": 0.66, "fz": 0.26, "cols": 2, "rows": 1 },
+	],
+	# A bite: boulders in the north-west, a stone loose in the open.
+	"outcrop": [
+		{ "name": "outcrop", "fx": 0.06, "fz": 0.06, "fcols": 0.32, "frows": 0.30, "flush": true },
+		{ "name": "stone", "fx": 0.64, "fz": 0.56, "cols": 1, "rows": 1 },
+	],
 	# The prologue's road (G15.1): fallen timber and rubble alternating from
 	# each side, so the clear line weaves across the lane instead of running
 	# straight up the middle.
@@ -314,12 +349,36 @@ static func resolve_layout(id: String) -> Array[Dictionary]:
 	for spec: Dictionary in layout:
 		var cols := int(spec.get("cols", 1))
 		var rows := int(spec.get("rows", 1))
+		# A block may be sized as a FRACTION of the grid instead (G19.3), so
+		# the yard shapes scale with the yard. Never smaller than two cells.
+		if spec.has("fcols"):
+			cols = maxi(2, int(round(float(spec["fcols"]) * GameConfig.GRID_COLS)))
+		if spec.has("frows"):
+			rows = maxi(2, int(round(float(spec["frows"]) * GameConfig.GRID_ROWS)))
 		# Clamped, so a layout authored for a medium yard cannot hang off the
 		# edge of a small one.
 		var col := clampi(int(round(float(spec["fx"]) * GameConfig.GRID_COLS)),
 			1, maxi(GameConfig.GRID_COLS - cols - 1, 1))
 		var row := clampi(int(round(float(spec["fz"]) * GameConfig.GRID_ROWS)),
 			2, maxi(GameConfig.GRID_ROWS - rows - 2, 2))
+		# A block that stands against the fence (G19.3). The one-cell border
+		# the clamp keeps is a lane a push mower fits and a tractor does not,
+		# and beside a block the size of a shed that lane is a corridor no
+		# deck can reach from the open side: ShapeCheck counted five to seven
+		# such cells in every corner layout. "flush" lets the block reach the
+		# fence on the sides it was authored against. Never the south edge:
+		# the spawn strip stays clear.
+		if bool(spec.get("flush", false)):
+			var fx := float(spec["fx"])
+			var fz := float(spec["fz"])
+			var fw := float(cols) / float(GameConfig.GRID_COLS)
+			var fh := float(rows) / float(GameConfig.GRID_ROWS)
+			if fx <= 0.08:
+				col = 0
+			elif fx + fw >= 0.90:
+				col = GameConfig.GRID_COLS - cols
+			if fz <= 0.08:
+				row = 0
 		out.append({ "name": spec["name"], "grid": Rect2i(col, row, cols, rows) })
 	return out
 

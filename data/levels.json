@@ -180,7 +180,7 @@
     "ch05_greenhouse": {
       "palette_id": "LUSH",
       "grid_size": "small",
-      "obstacle_layout_id": "beds",
+      "obstacle_layout_id": "L_shed",
       "house_variant": "house_none",
       "landmark_id": "greenhouse",
       "decor_seed": 5505,
@@ -363,7 +363,7 @@
     "ch09_radio_room": {
       "palette_id": "GREEN_COOL",
       "grid_size": "medium",
-      "obstacle_layout_id": "beds",
+      "obstacle_layout_id": "L_shed",
       "house_variant": "house_none",
       "landmark_id": "antenna_mast",
       "decor_seed": 9909,
@@ -405,7 +405,7 @@
     "ch10_relay_hill": {
       "palette_id": "AMBER",
       "grid_size": "medium",
-      "obstacle_layout_id": "open",
+      "obstacle_layout_id": "outcrop",
       "house_variant": "house_none",
       "landmark_id": "",
       "decor_seed": 1010,
@@ -447,7 +447,7 @@
     "ch11_orchard": {
       "palette_id": "LUSH",
       "grid_size": "large",
-      "obstacle_layout_id": "stones",
+      "obstacle_layout_id": "outcrop",
       "house_variant": "house_none",
       "landmark_id": "orchard",
       "decor_seed": 1111,
@@ -536,7 +536,7 @@
       "palette_id": "DRY_GOLD",
       "plant_profile_id": "CORN",
       "grid_size": "large",
-      "obstacle_layout_id": "stones",
+      "obstacle_layout_id": "split_hedge",
       "house_variant": "house_none",
       "landmark_id": "roadside_camp",
       "decor_seed": 1313,
@@ -625,7 +625,7 @@
       "palette_id": "EMERALD",
       "plant_profile_id": "GRASS",
       "grid_size": "medium",
-      "obstacle_layout_id": "beds",
+      "obstacle_layout_id": "courtyard",
       "house_variant": "house_none",
       "landmark_id": "old_clinic",
       "decor_seed": 1515,
@@ -669,7 +669,7 @@
       "palette_id": "DRY_GOLD",
       "plant_profile_id": "SUNFLOWER",
       "grid_size": "large",
-      "obstacle_layout_id": "open",
+      "obstacle_layout_id": "ring_pond",
       "house_variant": "house_none",
       "landmark_id": "meeting_stone",
       "decor_seed": 1616,
@@ -903,7 +903,7 @@
     "ch19_town_square": {
       "palette_id": "GREEN",
       "grid_size": "medium",
-      "obstacle_layout_id": "beds",
+      "obstacle_layout_id": "ring_pond",
       "landmark_id": "meeting_stone",
       "time_of_day": "morning",
       "decor_seed": 1919,
@@ -946,7 +946,7 @@
     "ch20_watchtower_road": {
       "palette_id": "DRY_GOLD",
       "grid_size": "large",
-      "obstacle_layout_id": "stones",
+      "obstacle_layout_id": "ring_pond",
       "landmark_id": "water_tower",
       "time_of_day": "midday",
       "decor_seed": 2020,
@@ -989,7 +989,7 @@
     "ch21_school_field": {
       "palette_id": "LUSH",
       "grid_size": "medium",
-      "obstacle_layout_id": "open",
+      "obstacle_layout_id": "split_hedge",
       "landmark_id": "playground",
       "time_of_day": "afternoon",
       "decor_seed": 2121,
@@ -1122,7 +1122,7 @@
     "ch24_the_gate_line": {
       "palette_id": "GREEN_COOL",
       "grid_size": "medium",
-      "obstacle_layout_id": "stones",
+      "obstacle_layout_id": "courtyard",
       "landmark_id": "crossing",
       "time_of_day": "dawn",
       "decor_seed": 2424,
@@ -1165,7 +1165,7 @@
     "ch25_night_watch": {
       "palette_id": "EMERALD",
       "grid_size": "medium",
-      "obstacle_layout_id": "open",
+      "obstacle_layout_id": "courtyard",
       "landmark_id": "water_tower",
       "time_of_day": "night",
       "decor_seed": 2525,
