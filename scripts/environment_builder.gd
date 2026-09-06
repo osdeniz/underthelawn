@@ -278,6 +278,12 @@ func _build_yard() -> void:
 			Vector3(14.0, 12.0, 1.0))
 		snowed.albedo_color = Color(1.6, 1.62, 1.66)
 		dirt = snowed
+	elif _variant != null and _variant.palette_id == "SAND":
+		# Sand past the verge (G24): the texture warmed and lifted.
+		var sandy := _tex_mat("sandfield", "dirt_albedo", Color(0.78, 0.68, 0.48), 1.0,
+			Vector3(14.0, 12.0, 1.0))
+		sandy.albedo_color = Color(1.35, 1.22, 0.96)
+		dirt = sandy
 	elif _variant != null and _variant.palette_id == "ASH":
 		# The burn (G22): the fire did not stop at the fence. Same texture,
 		# grey and dark, out to where the country begins.
@@ -1300,7 +1306,7 @@ func _build_smalls() -> void:
 func _flower(kind: int, pos: Vector3) -> void:
 	# Nothing flowers on the burn (G22): the first render of the ash had
 	# daisies and tulips standing in it.
-	if _variant != null and (_variant.palette_id == "ASH" or _variant.palette_id == "SNOW"):
+	if _variant != null and _variant.palette_id in ["ASH", "SNOW", "SAND"]:
 		return
 	var pivot := Node3D.new()
 	pivot.position = pos

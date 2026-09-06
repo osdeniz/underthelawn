@@ -494,6 +494,19 @@ func refresh_all() -> void:
 
 
 ## Starts the topple animation for one cell. `yaw` is the mower's Godot yaw.
+## The wind has filled a cell back in (G24): its tuft stands again.
+func restore_cell(col: int, row: int) -> void:
+	var i := LawnModel.index_of(col, row)
+	if i < 0 or i >= _cell_slot.size() or _cell_slot[i] < 0:
+		return
+	var still := []
+	for entry in _animating:
+		if int(entry["cell"]) != i:
+			still.append(entry)
+	_animating = still
+	_write(i, _cell_origin[i], _cell_yaw[i], 0.0)
+
+
 func cut_cell(col: int, row: int, yaw: float) -> void:
 	var i := LawnModel.index_of(col, row)
 	if i < 0 or i >= _cell_slot.size() or _cell_slot[i] < 0:

@@ -64,6 +64,10 @@ func _ready() -> void:
 	_chapter = "ch20_watchtower_road"
 	_hours_only = ["midday"]
 	await _sweep(true)
+	# The sand (G24): pale grass on pale sand, at dusk — the tightest pair.
+	_chapter = "ch18_long_road_home"
+	_hours_only = ["dusk"]
+	await _sweep(false)
 	if _fails > 0:
 		push_error("%d ISIK OKUNMUYOR" % _fails)
 		print("--- %d OKUNABILIRLIK TESTI BASARISIZ ---" % _fails)

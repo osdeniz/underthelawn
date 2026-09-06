@@ -120,6 +120,14 @@ var obstacles: Array[Dictionary] = []
 ## Which OBSTACLE_LAYOUTS entry to build. Set before _init by LevelVariant.
 static var layout_id := "beds"
 
+## THE SAND (G24). On a recovering yard the wind fills cut cells back in
+## behind the machine. Completion counts cells cut AT LEAST ONCE, so the
+## drift can never keep a yard from finishing; the pay is read from what is
+## open at the end, so what you did not hold, the wind took.
+var recovering := false
+var ever_cut: PackedByteArray = PackedByteArray()
+var ever_cut_count: int = 0
+
 var states: PackedByteArray = PackedByteArray()
 ## Direction bucket of the last pass over each cell; -1 = never mown.
 var stripes: PackedByteArray = PackedByteArray()
@@ -144,6 +152,7 @@ func _init(seed_value: int = 0) -> void:
 		_rng.randomize()
 	states.resize(GameConfig.CELL_COUNT)
 	stripes.resize(GameConfig.CELL_COUNT)
+	ever_cut.resize(GameConfig.CELL_COUNT)
 	_build_obstacles()
 	reset()
 
@@ -209,11 +218,34 @@ func is_cut(col: int, row: int) -> bool:
 func completion_ratio() -> float:
 	if mowable_cells == 0:
 		return 0.0
+	return float(ever_cut_count if recovering else mowed_count) / float(mowable_cells)
+
+
+## What is open RIGHT NOW, drift and all. Same as completion_ratio on every
+## yard that does not recover; the pay on a sand yard reads this one.
+func cut_now_ratio() -> float:
+	if mowable_cells == 0:
+		return 0.0
 	return float(mowed_count) / float(mowable_cells)
 
 
 func is_complete() -> bool:
-	return mowed_count >= mowable_cells
+	return (ever_cut_count if recovering else mowed_count) >= mowable_cells
+
+
+## The wind takes a cut cell back (G24). Evidence cells stay open — a find is
+## a find. Returns whether anything changed.
+func recover(col: int, row: int) -> bool:
+	if not in_bounds(col, row):
+		return false
+	var i := index_of(col, row)
+	if states[i] != CellState.MOWED:
+		return false
+	states[i] = CellState.TALL
+	stripes[i] = 255
+	mowed_count -= 1
+	cell_tint_changed.emit(col, row)
+	return true
 
 
 ## Mows one cell from a pass travelling in `stripe_dir` (0=N 1=E 2=S 3=W).
@@ -244,6 +276,9 @@ func mow(col: int, row: int, stripe_dir: int) -> MowResult:
 
 	stripes[i] = stripe_dir
 	mowed_count += 1
+	if ever_cut[i] == 0:
+		ever_cut[i] = 1
+		ever_cut_count += 1
 
 	var result := MowResult.MOWED
 	if state == CellState.SECRET:
@@ -327,6 +362,8 @@ func _place_walk_only() -> void:
 func reset() -> void:
 	_completed = false
 	mowed_count = 0
+	ever_cut_count = 0
+	ever_cut.fill(0)
 	for row in GameConfig.GRID_ROWS:
 		for col in GameConfig.GRID_COLS:
 			var i := index_of(col, row)

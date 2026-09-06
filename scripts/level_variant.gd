@@ -84,6 +84,9 @@ var time_lapse: Dictionary = {}
 var lantern := false
 ## G23: the push mower is a plough sled on this level.
 var sled := false
+## G24: {"after": seconds, "behind": cells} — the wind refills cut cells that
+## far behind the machine after that long. {} on every other yard.
+var recover: Dictionary = {}
 
 
 static func data() -> Dictionary:
@@ -138,6 +141,9 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.walk_only_evidence = bool(spec.get("walk_only_evidence", false))
 	variant.lantern = bool(spec.get("lantern", false))
 	variant.sled = bool(spec.get("sled", false))
+	var rec: Variant = spec.get("recover", {})
+	if rec is Dictionary:
+		variant.recover = rec
 	var lapse: Variant = spec.get("time_lapse", {})
 	if lapse is Dictionary:
 		variant.time_lapse = lapse

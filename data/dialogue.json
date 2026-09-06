@@ -1191,6 +1191,10 @@
         {
           "speaker": "stranger",
           "text": "DLG_BRIEF_CH18_2"
+        },
+        {
+          "speaker": "marshal",
+          "text": "DLG_BRIEF_CH18_3"
         }
       ],
       "accept": "BRIEF_18_ACCEPT"

@@ -772,8 +772,8 @@
       "scrap_multiplier": 0.68
     },
     "ch18_long_road_home": {
-      "palette_id": "WHEAT",
-      "plant_profile_id": "WILD_WHEAT",
+      "palette_id": "SAND",
+      "plant_profile_id": "DUNEGRASS",
       "grid_size": "road",
       "obstacle_layout_id": "open",
       "house_variant": "house_none",
@@ -822,7 +822,12 @@
         0.5,
         0.75
       ],
-      "scrap_multiplier": 0.68
+      "scrap_multiplier": 0.68,
+      "recover": {
+        "after": 12.0,
+        "behind": 5
+      },
+      "_comment": "G24: the sand. The wind has been at the east road all summer; what you cut, it fills in behind you. Finishing is never blocked; the pay reads what is still open."
     },
     "harvest_sunflower": {
       "level_type": "harvest",

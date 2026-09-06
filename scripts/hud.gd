@@ -1554,6 +1554,11 @@ func apply_lake_mode() -> void:
 	_case_line.text = tr("HUD_LAKE_LINE")
 
 
+## The sand (G24).
+func apply_sand_mode() -> void:
+	_case_line.text = tr("HUD_SAND_LINE")
+
+
 func apply_harvest_mode() -> void:
 	_case_line.text = tr("HARVEST_HUD_LINE")
 	_evidence_chip.visible = false

@@ -4304,3 +4304,30 @@ Covers: grass, wheat and corn, reeds in water, ash, snow. Chapters that are a
 place of their own: ch00 road, ch04 lake, ch10 burn, ch20 snow, ch25 lantern,
 ch27 reed shore, plus four sunsets. Sand — the cover that closes back — waits
 for a tester's verdict.
+
+## G24 — the sand: ch18, the road the wind takes back
+
+The fourth cover, and the one that moves. The long road home — Case 02's
+closing walk, at dusk — is dune grass on sand now, and what you cut, the wind
+fills in behind you.
+
+**The mechanic, kept kind.** A cut cell farther than `behind` (5) cells from
+whoever is working and open longer than `after` (12 s) goes back to cover, at
+most `SAND_RECOVER_PER_TICK` (4) per half second — a tide, not a wipe. Never
+near you, never an evidence cell (a find is a find). Finishing is never
+blocked: `LawnModel.completion_ratio()` counts cells cut AT LEAST ONCE on a
+recovering yard. The pay reads `cut_now_ratio()` — what is still open at the
+end — so what you did not hold, the wind took. No fail state, no timer; a
+pressure you can see, and a debrief line that says so.
+
+- Palette `SAND`: straw-pale dune grass, wind-bent (`DUNEGRASS`, sway 1.7),
+  on packed sand a shade darker where the road shows. Legibility at dusk:
+  gap 0.081 — the tightest pair of all the covers, above the floor.
+- The verge past the fence is sand. Nothing flowers. `TuftField.restore_cell`
+  stands a tuft back up. HUD: "The wind fills the road behind you. Keep going."
+- `SandCheck` measures: far cell taken, near cell kept, completion unchanged,
+  open-now ratio down, tuft standing, evidence cell refused. `SandShot` is the
+  render, with the far end of the strip already drifting back.
+
+Covers now: grass, wheat and corn, reeds in water, ash, snow, sand. Every
+case has one that moves the ground under the rule without changing the rule.

@@ -182,6 +182,8 @@ func _ready() -> void:
 	if variant.lantern:
 		_build_lantern()
 		hud.apply_lantern_mode()
+	if not variant.recover.is_empty():
+		apply_sand_mode()
 	if variant.sled:
 		# The plough sled (G23): the push mower with a blade and runners.
 		var plough: Node = _mowers[GameConfig.MOWER_PUSH] if GameConfig.MOWER_PUSH < _mowers.size() else null
@@ -277,6 +279,7 @@ func _process(delta: float) -> void:
 	_update_animals()
 	_tick_lapse()
 	_tick_lantern(get_process_delta_time())
+	_tick_recover(get_process_delta_time())
 	_check_walk_only()
 	_check_observer()
 	_sway_settler(delta)
@@ -1089,6 +1092,60 @@ func _build_lake_sheen() -> void:
 	_fx_root.add_child(sheen)
 
 
+## THE SAND (G24). The wind fills the road in behind you: a cut cell farther
+## than `behind` cells from whoever is working, open for longer than `after`
+## seconds, goes back to cover — a few per tick, never near you, never an
+## evidence cell. Finishing is never blocked (LawnModel counts cells cut at
+## least once); the pay reads what is still open. What you did not hold, the
+## wind took.
+var _cut_at := {}
+var _recover_clock := 0.0
+func apply_sand_mode() -> void:
+	model.recovering = true
+	hud.apply_sand_mode()
+	model.cell_tint_changed.connect(_note_cut_for_sand)
+
+
+func _note_cut_for_sand(col: int, row: int) -> void:
+	var i := LawnModel.index_of(col, row)
+	if model.is_cut(col, row):
+		if not _cut_at.has(i):
+			_cut_at[i] = Time.get_ticks_msec()
+	else:
+		_cut_at.erase(i)
+
+
+func _tick_recover(delta: float) -> void:
+	if variant == null or variant.recover.is_empty() or not _search_started or _complete_shown:
+		return
+	_recover_clock += delta
+	if _recover_clock < 0.5:
+		return
+	_recover_clock = 0.0
+	var after_ms := int(float(variant.recover.get("after", 12.0)) * 1000.0)
+	var behind := float(variant.recover.get("behind", 5.0))
+	var worker: Node3D = _walker if walking() else mower
+	if worker == null:
+		return
+	var here := LawnModel.cell_at(worker.global_position)
+	var now := Time.get_ticks_msec()
+	var taken := 0
+	for i: int in _cut_at.keys():
+		if taken >= GameConfig.SAND_RECOVER_PER_TICK:
+			break
+		if now - int(_cut_at[i]) < after_ms:
+			continue
+		var col := i % GameConfig.GRID_COLS
+		var row := i / GameConfig.GRID_COLS
+		if Vector2(col - here.x, row - here.y).length() < behind:
+			continue
+		if model.recover(col, row):
+			if lawn != null and lawn.tuft_field != null:
+				lawn.tuft_field.restore_cell(col, row)
+			taken += 1
+		_cut_at.erase(i)
+
+
 ## Food at zero had no consequence (G20.5): the counter went red and the town
 ## kept eating nothing for ever. Now, if the search ends with the stores
 ## empty and somebody has been taken in, the newest of them leaves in the
@@ -1329,7 +1386,9 @@ func _days_elapsed() -> float:
 ## The end-of-chapter scrap breakdown.
 func _payout() -> Dictionary:
 	var budget := variant.scrap_budget if variant != null else 9
-	var payout := ScrapField.payout(_scrap_banked, model.completion_ratio(), budget)
+	# On a recovering yard the pay reads what is open NOW (G24).
+	var payout := ScrapField.payout(_scrap_banked,
+		model.cut_now_ratio() if model.recovering else model.completion_ratio(), budget)
 	# A harvest is the paying job, and the multiplier is applied HERE rather
 	# than in ScrapField so ScrapField's own math stays a pure, unit-tested
 	# function (G13.6). The search multiplier below follows the same pattern

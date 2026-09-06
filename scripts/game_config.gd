@@ -199,6 +199,25 @@ const GRASS_PALETTES := {
 		"clipping": Color(0.95, 0.96, 0.98),
 	},
 
+	# THE SAND (G24, ch18). Dune grass, straw-pale and wind-bent, on sand; the
+	# "mown" ladder is packed sand, a shade darker and warmer, the road under
+	# the drift. The one palette whose cut cells do not stay cut.
+	"SAND": {
+		"cluster_base": Color(0.62, 0.52, 0.34),
+		"cluster_tip": Color(0.90, 0.84, 0.62),
+		"accents": [
+			{ "base": Color(0.56, 0.50, 0.36), "tip": Color(0.80, 0.78, 0.62),
+				"weight": 0.18, "flowers": false },
+			{ "base": Color(0.50, 0.44, 0.30), "tip": Color(0.72, 0.62, 0.42),
+				"weight": 0.08, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.56, 0.46, 0.32), Color(0.52, 0.42, 0.29),
+			Color(0.42, 0.34, 0.23), Color(0.48, 0.39, 0.26),
+		],
+		"clipping": Color(0.86, 0.80, 0.62),
+	},
+
 	"GREEN_COOL": {
 		"cluster_base": Color(0.04, 0.19, 0.16),
 		"cluster_tip": Color(0.24, 0.60, 0.52),
@@ -472,6 +491,15 @@ static func clump_variants() -> Array:
 ## constants exactly, so a chapter that names no profile grows what it always
 ## grew.
 const PLANT_PROFILES := {
+	## Dune grass (G24): sparse, tall, bent hard by the wind, always moving.
+	"DUNEGRASS": {
+		"form": "blade", "per_cell": 6, "blades": 4,
+		"height_min": 0.45, "height_max": 0.95, "tall_chance": 0.30,
+		"base_min": 0.40, "base_max": 0.55,
+		"width_scale": 0.7, "lean_scale": 1.5, "spread": 0.44,
+		"sway": 1.7, "cut_pitch": 1.08, "clipping_scale": 0.8,
+		"clipping": Color(0.86, 0.80, 0.62),
+	},
 	## Grass under snow (G23): low, bent flat, white, still; it crunches.
 	"SNOWGRASS": {
 		"form": "blade", "per_cell": 7, "blades": 5,
@@ -800,6 +828,9 @@ const BOAT := {
 	"speed": 2.4, "deck": 0.7, "max_turn": 1.35, "body": 0.6, "reverse": 0.0,
 	"turn_drag": 0.35, "accel_time": 0.9, "decel_time": 1.5, "grip": 2.6,
 }
+## THE SAND (G24): how many cells the wind may take back per half second.
+## Low, so the drift is a tide and not a wipe.
+const SAND_RECOVER_PER_TICK := 4
 ## THE PLOUGH SLED (G23). On a snow level the push mower is a sled with a
 ## plough blade: pushed, so the push pose stays; it slides — less than the
 ## punt, more than a wheel — and it can be hauled back a little.
