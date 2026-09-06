@@ -23,8 +23,17 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | ch04 (yağmur) | 60 | yağmur parçacığı maliyeti |
 | ch06 (gün batımı → gece akışı) | 60 | gölge + fireflies |
 | Hasat (26×38 ızgara) | 60 | en büyük ızgara |
+| ch09 (kulübe, L bahçe) | 60 | büyük engel bloğu + kiremit çatı (G19.3) |
+| ch19 (gölet) | 60 | su shader'ı; 45'in altı = `WATER_FANCY_ENABLED` kapat |
+| ch25 (fener, gece) | 60 | tek OmniLight + karanlık; ışık kırpışması takılıyor mu (G19.5) |
+| Hurda ortaya çıkışı (herhangi bahçe) | — | komşu hücre kesilince parça yerden çıkıyor mu; havada duran yok (G19.1) |
 | Yürüme modu | 60 | — |
 | Arka plana al / geri gel ×3 | ses ve durum korunuyor mu | duraklatma testi |
+
+## Masaüstü (Steam ön izleme, 1600×900)
+- Hub → Kasaba sayfası: gökyüzü ve bulutlar kadrajda mı (G19.9). Değilse
+  `TownDiorama._fit_camera_aspect` çağrılmamış demektir.
+- Diyalog, kartlar, hub sayfaları 1170'lik sütunda mı (G18).
 
 ## Isı ve pil
 - 15 dakika kesintisiz hasat: cihaz ısınıyor mu, fps düşüyor mu (thermal throttling)?

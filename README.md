@@ -3741,7 +3741,8 @@ centred. The desktop window default is landscape now (1600 x 900); mobile
 ignores that override and stays portrait. Mouse already emulates touch and
 WASD has driven the mowers since G14, so the desktop has its input.
 
-**Not done here, on purpose:** a landscape-specific camera. The default
+**Not done here, on purpose** (done in G19.9 for the hub's town camera): a
+landscape-specific camera. The default
 `KEEP_HEIGHT` shows MORE of the yard sideways on a wide screen, which is a
 gift on a monitor rather than a problem; retuning the chase offsets for it is a
 feel pass for a desktop build with a desktop tester, and the macOS preset is
@@ -3970,9 +3971,9 @@ material's remembered colour by it; called from `HUD.refresh_sky` and the
 diorama's `apply_sky_mode`, so it follows presets, blends and the switch.
 Dusk before/after at the listening post; night in `LanternShot`.
 
-**Known:** `DayShot` still captures the pause sheet on some runs — the
-background pause re-opens between the close and the draw — its verdict is
-about the scene, not the image. The horizon check used PeopleShot instead.
+**Known** (fixed in G19.8): `DayShot` captured the pause sheet on some runs —
+the background pause re-opened between the close and the draw. It hides the
+layer itself at the capture now. The horizon check here used PeopleShot.
 
 ## G19.6 — Phase C.4: Case 03 gets two places of its own
 
