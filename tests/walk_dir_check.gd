@@ -1,11 +1,11 @@
-extends Node
+extends TestBase
 ## G14.17: on foot, "forward" has to mean what it means on the machine.
+## On TestBase since G19.9: the keys are read in _physics_process, which a
+## background-paused tree never runs, and the walker "moved 0.11" in a suite
+## run — the pause had landed under a plain-Node test again.
 
-var _fails := 0
-
-
-func _ready() -> void:
-	GameState.set_setting("meta", "orientation_done", true)
+func run() -> void:
+	suite = "YON"
 	var game: Node = load("res://scenes/Main.tscn").instantiate()
 	game.variant_id = "ch01_aldridge"
 	add_child(game)
@@ -39,8 +39,9 @@ func _ready() -> void:
 	walker.camera_yaw = 0.0
 	var from := walker.position
 	Input.action_press("move_forward")
-	for _i in 30:
-		await get_tree().process_frame
+	# A second on the wall clock, not thirty frames: at a slow frame rate
+	# thirty frames is a fraction of a second and the walker barely moves.
+	await settle(1.0)
 	Input.action_release("move_forward")
 	var moved := walker.position - from
 	ck("tuslar yuruyucuye ulasiyor", moved.length() > 0.3,
@@ -62,13 +63,6 @@ func _ready() -> void:
 
 	game.queue_free()
 
-	if _fails > 0:
-		push_error("%d YON TESTI BASARISIZ" % _fails)
-		print("--- %d YON TESTI BASARISIZ ---" % _fails)
-	else:
-		print("--- YURUME YONU MAKINEYLE AYNI ---")
-	get_tree().quit()
-
 
 ## Where the mower would go — ASKED, not restated. The first version of this
 ## function copied the formula out by hand as Vector2(cos(yaw), sin(yaw)),
@@ -88,10 +82,3 @@ func _machine_direction(mower: MowerController, camera_yaw: float,
 ## Where the walker goes, read out of the walker itself rather than restated.
 func _walk_direction(camera_yaw: float, stick: Vector2) -> Vector2:
 	return Walker.direction_for(camera_yaw, stick)
-
-
-func ck(label: String, passed: bool, detail: String) -> void:
-	if passed:
-		return
-	_fails += 1
-	print("  FAIL %s  %s" % [label, detail])
