@@ -297,7 +297,12 @@
         "flavor_text": "ECHO_CH07_LINE"
       },
       "reclaim_line": "RECLAIM_CH07",
-      "time_of_day": "dusk"
+      "time_of_day": "dusk",
+      "time_lapse": {
+        "from": "dusk",
+        "to": "night",
+        "seconds": 160
+      }
     },
     "ch08_cellar": {
       "palette_id": "EMERALD",
@@ -709,7 +714,12 @@
       "reclaim_line": "RECLAIM_CH16",
       "time_of_day": "golden",
       "mid_chat": "chat_ch16",
-      "scrap_multiplier": 0.68
+      "scrap_multiplier": 0.68,
+      "time_lapse": {
+        "from": "golden",
+        "to": "sunset",
+        "seconds": 160
+      }
     },
     "ch17_signal_garden": {
       "palette_id": "LUSH",
@@ -737,7 +747,9 @@
           "flavor_text": "EV_CH17_B_LINE",
           "location_tag": "LOC_BEDS",
           "cole_note": "COLE_GARDEN_BEDS",
-          "marshal_note": "MN_CH17_B"
+          "marshal_note": "MN_CH17_B",
+          "fragile": true,
+          "cole_note_crushed": "COLE_GARDEN_BEDS_CRUSHED"
         }
       ],
       "opening": {
@@ -1076,6 +1088,11 @@
         "icon": "✉️",
         "name": "ECHO_CH22_NAME",
         "flavor_text": "ECHO_CH22_LINE"
+      },
+      "time_lapse": {
+        "from": "golden",
+        "to": "dusk",
+        "seconds": 170
       }
     },
     "ch23_the_grave_row": {
@@ -1236,7 +1253,9 @@
           "flavor_text": "EV_CH26_B_LINE",
           "location_tag": "LOC_TABLE",
           "cole_note": "COLE_PHOTOGRAPH",
-          "marshal_note": "MN_CH26_B"
+          "marshal_note": "MN_CH26_B",
+          "fragile": true,
+          "cole_note_crushed": "COLE_PHOTOGRAPH_CRUSHED"
         }
       ],
       "house_variant": "house_none",

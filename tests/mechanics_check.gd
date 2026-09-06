@@ -126,6 +126,40 @@ func _weather_spread() -> void:
 	ck("en az alti yagmurlu bolum", wet >= 6, str(wet))
 	ck("yasak saatte yagmur yok", illegal == 0, str(illegal))
 	print("  [olcum] yagmurlu bolum: %d" % wet)
+	# G19.7: a twist per chapter. Shapes, rain, a moving sun, a piece found on
+	# foot, a fragile piece, the lantern, the observer, a mid-yard word, the
+	# road. Chapters with none of them are the two the tutorial owns.
+	var shapes := ["L_shed", "ring_pond", "split_hedge", "courtyard", "outcrop"]
+	var plain: Array[String] = []
+	var lapses := 0
+	var fragile := 0
+	for vid2: String in LevelVariant.ids():
+		var v2 := LevelVariant.of(vid2)
+		if v2.is_harvest():
+			continue
+		var twists := 0
+		if shapes.has(v2.obstacle_layout_id):
+			twists += 1
+		if v2.weather == GameConfig.WEATHER_RAIN:
+			twists += 1
+		if not v2.time_lapse.is_empty():
+			twists += 1
+			lapses += 1
+		if v2.walk_only_evidence or v2.lantern or v2.signal_layers or v2.is_road():
+			twists += 1
+		for i in v2.evidence_count():
+			if v2.is_fragile(i):
+				twists += 1
+				fragile += 1
+				break
+		if str(v2.mid_chat) != "":
+			twists += 1
+		if twists == 0:
+			plain.append(vid2)
+	ck("sapmasiz bolum en fazla iki (ogretici)", plain.size() <= 2, str(plain))
+	ck("en az dort gun batimi bolumu", lapses >= 4, str(lapses))
+	ck("en az dort kirilgan kanit", fragile >= 4, str(fragile))
+	print("  [olcum] sapmasiz: %s, gun batimi %d, kirilgan %d" % [str(plain), lapses, fragile])
 
 
 ## G19.5: the lantern chapter. The moon is a fraction of the night preset,

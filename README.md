@@ -3993,3 +3993,30 @@ visit was the meeting stone, twice each. Now:
 
 `LandmarkShot` renders both from the player's low camera; VariantCheck and
 Case3Check pass with the new ids. Case 03's landmark reuse: 8/8 → 6/8.
+
+## G19.7 — Phase C.5: a twist in every chapter but the two that teach
+
+The review's repetition finding, closed from the other side: not more
+systems, but the systems the game already has, placed so that no chapter after
+the tutorial plays exactly like another. Counted in `MechanicsCheck` across
+every non-harvest chapter — a shape, rain, a moving sun, a piece found on foot,
+a fragile piece, the lantern, the observer, a word in mid-yard, the road:
+
+- **Three more sunsets.** The mill (ch07, dusk → night), the meeting stone
+  (ch16, golden → sunset over the pond) and the orchard again (ch22,
+  golden → dusk) now run the G15.5 lapse with the G18.1 dark penalty. Four
+  chapters in all where the light is the clock.
+- **Two more fragile pieces.** The watered beds at the signal garden (ch17) —
+  run over, the stakes are down, whoever expected August starts again — and
+  the photograph at the visit (ch26): creased under a wheel, the man and the
+  basket still whole, the town behind them not. Cole's torn readings are
+  written; the debriefs stay as they were (ch17's is the confrontation, ch26's
+  is the finale).
+
+Chapters with no twist: `ch01_aldridge` and `ch03_playground`, on purpose —
+the first yard teaches the machine, the third teaches the walk and carries the
+demo gate. The check allows exactly those two.
+
+Phase C, in numbers: layouts 4 → 9 and "open" 10 → 4 (C.1); the panel
+12 → 6 (C.2); rain 2 → 6 and one lantern chapter (C.3); Case 03 landmark
+reuse 8/8 → 6/8 (C.4); chapters without a twist 5 → 2 (C.5).
