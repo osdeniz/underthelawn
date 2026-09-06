@@ -10,6 +10,7 @@ func _ready() -> void:
 	await _check_data()
 	await _check_hub()
 	await _check_chapter_round_trip()
+	await _check_completion_panel()
 	await _check_dialogue()
 	await _check_engine_stops_at_the_end()
 	_check_next_chain()
@@ -260,3 +261,37 @@ func ck(label: String, passed: bool, detail: String) -> void:
 		return
 	_fails += 1
 	print("  FAIL %s  %s" % [label, detail])
+
+
+## G19.4: the panel after a yard is six things — title, evidence row, one
+## sentence, one line of pay, NEXT, RETURN — and stays six. Counted on the
+## panel's own column, so a row that creeps back in is caught by number.
+func _check_completion_panel() -> void:
+	var game: Node = load("res://scenes/Main.tscn").instantiate()
+	game.set("variant_id", "ch01_aldridge")
+	add_child(game)
+	await get_tree().process_frame
+	get_tree().paused = false
+	var hud: Node = game.hud
+	hud.show_complete(120, "1:00", [], 2,
+		{"total": 900, "ground": 0, "bonus": 300, "ratio": 0.5, "food": 2,
+			"food_eaten": 1, "food_left": 41}, "Sonraki")
+	await get_tree().process_frame
+	var rows: Control = hud._complete_title.get_parent()
+	var visible_rows := 0
+	for child in rows.get_children():
+		if child is Control and (child as Control).visible:
+			visible_rows += 1
+	ck("bitis paneli alti oge", visible_rows == 6, str(visible_rows))
+	ck("istatistik satiri gizli", not hud._complete_stats.visible, "")
+	ck("not listesi ve basligi gizli",
+		not hud._notes_list.visible and not hud._notes_header.visible, "")
+	ck("pano ve yeniden basla dugmeleri panelde yok",
+		not hud._board_button.visible and not (hud.get_node("%RestartButton") as Button).visible, "")
+	ck("odeme tek satir", hud._payout_list.get_child_count() == 1,
+		str(hud._payout_list.get_child_count()))
+	ck("kasaba satiri notun ikinci satiri", hud._notes_progress.text.find("\n") > 0,
+		hud._notes_progress.text)
+	game.queue_free()
+	await get_tree().process_frame
+	get_tree().paused = false
