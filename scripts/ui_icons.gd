@@ -76,6 +76,11 @@ static func house() -> Texture2D:
 	return _make("house")
 
 
+## The mowing pattern chips (G28): rows, rings, crosshatch.
+static func pattern(id: String) -> Texture2D:
+	return _make("pattern_" + id)
+
+
 static func _make(id: String) -> Texture2D:
 	if _cache.has(id):
 		return _cache[id]
@@ -101,9 +106,31 @@ static func _make(id: String) -> Texture2D:
 		"sky_day": _draw_sky(img, "day")
 		"sky_dusk": _draw_sky(img, "dusk")
 		"sky_night": _draw_sky(img, "night")
+		"pattern_rows": _draw_pattern(img, "rows")
+		"pattern_rings": _draw_pattern(img, "rings")
+		"pattern_cross": _draw_pattern(img, "cross")
 	var tex := ImageTexture.create_from_image(img)
 	_cache[id] = tex
 	return tex
+
+
+## Three bars, three nested frames, or a lattice — the cut seen from above.
+static func _draw_pattern(img: Image, kind: String) -> void:
+	var light := Color(0.66, 0.84, 0.50)
+	var dark := Color(0.30, 0.50, 0.26)
+	_rect(img, 6, 6, 52, 52, dark)
+	match kind:
+		"rows":
+			for i in 3:
+				_rect(img, 6, 10 + i * 17, 52, 8, light)
+		"rings":
+			_frame(img, 6, 6, 52, 52, 7, light)
+			_frame(img, 20, 20, 24, 24, 6, light)
+		"cross":
+			for i in 3:
+				_rect(img, 6, 10 + i * 17, 52, 8, light)
+			for i in 3:
+				_rect(img, 10 + i * 17, 6, 8, 52, light)
 
 
 static func _rect(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:

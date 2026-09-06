@@ -68,11 +68,11 @@ static func title_for(variant_id: String) -> String:
 
 ## Photograph, mount, save. Runs inside the scene (it needs its World3D and a
 ## few frames), returns the saved path or "" when the render produced nothing.
-static func make(game: Node3D, variant_id: String, subtitle := "") -> String:
+static func make(game: Node3D, variant_id: String, subtitle := "", stamp := "") -> String:
 	var photo := await capture_yard(game)
 	if photo == null or not is_instance_valid(game):
 		return ""
-	var card := await compose(game, photo, title_for(variant_id), subtitle)
+	var card := await compose(game, photo, title_for(variant_id), subtitle, stamp)
 	if card == null:
 		return ""
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
@@ -124,7 +124,7 @@ static func capture_yard(game: Node3D) -> Image:
 ## The mount: parchment, a white photo border, the name, the town, the date
 ## and a stamp in the corner. Built as controls in a 2D viewport so the text
 ## is the game's own type, then read back as one image.
-static func compose(host: Node, photo: Image, title: String, subtitle: String) -> Image:
+static func compose(host: Node, photo: Image, title: String, subtitle: String, stamp := "") -> Image:
 	var vp := SubViewport.new()
 	vp.size = CARD
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -174,30 +174,30 @@ static func compose(host: Node, photo: Image, title: String, subtitle: String) -
 	where.add_theme_color_override("font_color", ink.lightened(0.25))
 	root.add_child(where)
 
-	# The stamp: a square of the case accent with a serrated look drawn as a
-	# lighter inset, and the cut count of the day inside.
-	var stamp := Control.new()
-	stamp.position = Vector2(CARD.x - MOUNT - 190, MOUNT + PHOTO.y + 22)
-	stamp.size = Vector2(190, 150)
-	root.add_child(stamp)
+	# The stamp: a square of the case accent on a lighter mount, and a word
+	# inside — SEARCHED, or the mowing pattern when there was one (G28).
+	var stamp_box := Control.new()
+	stamp_box.position = Vector2(CARD.x - MOUNT - 190, MOUNT + PHOTO.y + 22)
+	stamp_box.size = Vector2(190, 150)
+	root.add_child(stamp_box)
 	var stamp_bg := ColorRect.new()
 	stamp_bg.color = Color(0.97, 0.96, 0.92)
-	stamp_bg.size = stamp.size
-	stamp.add_child(stamp_bg)
+	stamp_bg.size = stamp_box.size
+	stamp_box.add_child(stamp_bg)
 	var stamp_in := ColorRect.new()
 	stamp_in.color = GameConfig.CASE_ACCENT.darkened(0.15)
 	stamp_in.position = Vector2(10, 10)
-	stamp_in.size = stamp.size - Vector2(20, 20)
-	stamp.add_child(stamp_in)
+	stamp_in.size = stamp_box.size - Vector2(20, 20)
+	stamp_box.add_child(stamp_in)
 	var stamp_text := Label.new()
-	stamp_text.text = TranslationServer.translate("POSTCARD_STAMP")
-	stamp_text.size = stamp.size
+	stamp_text.text = stamp if stamp != "" else TranslationServer.translate("POSTCARD_STAMP")
+	stamp_text.size = stamp_box.size
 	stamp_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stamp_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	stamp_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	stamp_text.add_theme_font_size_override("font_size", 30)
 	stamp_text.add_theme_color_override("font_color", Color(0.98, 0.96, 0.90))
-	stamp.add_child(stamp_text)
+	stamp_box.add_child(stamp_text)
 
 	var tree := Engine.get_main_loop() as SceneTree
 	for _i in 3:

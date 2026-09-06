@@ -537,7 +537,13 @@ func _check_ending_cards_dismiss(method: String) -> void:
 		if live == null:
 			break
 		if float(live.get("_lock")) <= 0.0:
-			_push_tap()
+			# The reunion card's naming page waits for its button, not a tap
+			# anywhere (G26): a real player picks a chip; the test does too.
+			if live is ReunionCard and int(live.get("_page")) == ReunionCard.PAGE_NAME \
+					and not bool(live.get("_named")):
+				(live.get("_name_ok") as Button).pressed.emit()
+			else:
+				_push_tap()
 		await settle(0.15)
 		waited += 0.15
 	ck("%s dokununca kapandi" % method, _find_card(root) == null, "")

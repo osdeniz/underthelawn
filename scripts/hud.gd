@@ -991,6 +991,14 @@ func _build_payout(payout: Dictionary) -> void:
 		gap.custom_minimum_size = Vector2(28, 0)
 		line.add_child(gap)
 		_payout_chip(line, UiIcons.food(), text, colour)
+	if str(payout.get("pattern", "")) != "":
+		# The pattern (G28), in the same line: a way of cutting, not a pay.
+		var gap2 := Control.new()
+		gap2.custom_minimum_size = Vector2(28, 0)
+		line.add_child(gap2)
+		var pattern := str(payout["pattern"])
+		_payout_chip(line, UiIcons.pattern(pattern), tr(MowPattern.name_key(pattern)),
+			Color(0.84, 0.86, 0.78))
 	_payout_list.add_child(line)
 
 

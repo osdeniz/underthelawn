@@ -1243,6 +1243,11 @@ func _on_completed() -> void:
 			search_finished.emit(0, 0)
 			return
 		var payout := _payout()
+		# How it was cut (G28): a word on the panel, a stamp on the card.
+		var pattern := MowPattern.classify(model)
+		if pattern != "":
+			payout["pattern"] = pattern
+			MowPattern.record(pattern)
 		GameState.add_scrap(int(payout["total"]))
 		hud.set_scrap(GameState.scrap_total())
 		# Food is banked and the town's share is eaten in the same breath, so
@@ -1266,7 +1271,8 @@ func _on_completed() -> void:
 		search_finished.emit(_collected.size(), _evidence_total())
 		# The postcard (G27): the yard as it stands, before the panel covers
 		# it. A few frames; the panel waits for them.
-		var card_path: String = await Postcard.make(self, variant_id, _postcard_subtitle())
+		var card_path: String = await Postcard.make(self, variant_id, _postcard_subtitle(),
+			tr(MowPattern.stamp_key(pattern)))
 		if not is_inside_tree():
 			return
 		hud.set_postcard(card_path)

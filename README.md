@@ -4419,3 +4419,27 @@ replacing the last.
   for ch01, reads green in the photograph and parchment at the rim, the
   door hidden/shown/opened/closed, the album lists it. `PostcardShot`
   writes `out/postcard_ch01_aldridge.png` and `_ch06_watertower.png`.
+
+## G28 — the mowing pattern (gamification sprint 1, item 3)
+
+The model has kept every cell's pass direction since §4, for the stripe
+tint. Read at the end of a cut, those directions say how the yard was mown.
+
+- **`MowPattern.classify(model)`**: `rows` when ≥85% of cells share an axis
+  and ≥40% of neighbouring lanes run the opposite way (a single pass that
+  never turns back is not rows — a tractor's straight run says nothing);
+  `rings` when ≥75% of cells run along their ring's nearest edge; `cross`
+  when both axes hold ≥35% AND ≥70% of cut neighbours share an axis (a
+  random cut is also half and half — what tells a crosshatch from it is
+  that the axes come in blocks, not specks; measured: random read as
+  cross before the coherence test); "" for a free cut or fewer than 40
+  cells. All six thresholds are `PATTERN_*` in GameConfig.
+- **What it earns.** A word, not a pay: a chip in the panel's pay line
+  ("Straight rows" / "Rings" / "Crosshatch", `UiIcons.pattern`), and the
+  postcard's stamp says it instead of SEARCHED — the pattern becomes part
+  of the card the player keeps. `MowPattern.record` counts each pattern
+  under `patterns/` for the achievements sprint. No diorama change: the
+  stamp is the better keepsake and costs no triangles.
+- `PatternCheck` (15 claims): rows both ways, one-way is nothing, rings,
+  crosshatch, random is nothing, a small cut is nothing, keys translated,
+  icons, the counter, the chip shown only with a pattern.

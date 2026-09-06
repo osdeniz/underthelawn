@@ -30,6 +30,7 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Yürüme modu | 60 | — |
 | Arka plana al / geri gel ×3 | ses ve durum korunuyor mu | duraklatma testi |
 | Bahçe sonu: KARTPOSTAL | — | düğme panelde görünüyor mu; kart açılıyor, dokununca kapanıyor mu; Günlük → Albüm sekmesinde listeleniyor mu; telefon paylaşım sayfası YOK (eklenti gerekir, bilinen eksik) (G27) |
+| Bahçeyi düz sıralarla biç | — | panelde "Düz sıralar" çipi ve kartpostal damgasında DÜZ SIRALAR çıkıyor mu; serbest kesimde çip yok (G28) |
 | Vaka 1 kapanışı: köpeğe isim | — | klavye açılıyor mu, kutu klavyenin üstünde kalıyor mu; çipler tek dokunuşla onaylıyor mu; sonraki bahçede "X durdu" satırı ismi söylüyor mu (G26) |
 
 ## Masaüstü (Steam ön izleme, 1600×900)

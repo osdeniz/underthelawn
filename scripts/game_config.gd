@@ -1962,6 +1962,19 @@ const SCENT_TOAST_SECONDS := 3.4
 ## Purists can switch the hints off.
 static var hint_moments := true
 
+## Mowing patterns (G28): read from the stripe directions at the end of a cut.
+## A yard smaller than PATTERN_MIN_CELLS says nothing; straight rows need this
+## share of cells on one axis and this share of neighbouring lanes running the
+## opposite way; rings need this share of cells running along their ring's
+## edge; a crosshatch needs at least this much on each axis.
+const PATTERN_MIN_CELLS := 40
+const PATTERN_ROWS_AXIS_SHARE := 0.85
+const PATTERN_ROWS_ALTERNATE := 0.4
+const PATTERN_RINGS_MATCH := 0.75
+const PATTERN_CROSS_MIN_AXIS := 0.35
+## …and this share of cut neighbours on the same axis (a random cut is ~0.5).
+const PATTERN_COHERENCE := 0.7
+
 ## How long a restore card has to be held before the camera glances at the plot
 ## it would build, and how long the glance lasts.
 const DIORAMA_PEEK_HOLD := 0.35
