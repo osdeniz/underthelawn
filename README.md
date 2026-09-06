@@ -4249,3 +4249,27 @@ watcher subshell inherited the caller's pipe and its orphaned `sleep` held it
 open after Godot had exited, so `tmo … | grep` returned when the sleep did.
 TextCheck: 120 s → 1 s. The watcher runs with its stdio closed now. Not the
 game, not the tests — the ruler.
+
+## G22 — the burn: ch10 after the fire
+
+The second "cover" after the lake, chosen from the same list the review
+produced: the systems the game has, placed so that no two chapters play alike.
+The relay hill's brief had always said "the bald crest"; now it is bald because
+it burned, two summers back — the relay, or the lightning that found it.
+
+- **Palette ASH**: charcoal at the root, ash at the tip; the "mown" ladder is
+  scorched earth — the one palette where cutting makes the ground DARKER. The
+  legibility sweep has a pass for it: gap 0.062 against the 0.030 floor.
+- **Plant profile SCORCH**: burnt stalks — short, stiff, sparse, barely
+  moving, and they snap dry (the reed cut at a lower pitch).
+- **Landmark `relay`**: the lattice mast leaning where two legs gave, cross-bars
+  gone from the middle up, a hut of charred boards with the roof fallen in,
+  the dish face-down, fence stumps.
+- The apron past the fence is scorched too; nothing flowers on the hill.
+- One brief line from the stranger, one sentence at the head of Cole's
+  boot-print note ("Ash keeps a print the way snow does."), the opening
+  subline. No fire, no ember, no red: the morning after, years later.
+
+Covers now: grass, wheat and corn, reeds in water, ash. Next in the same
+line, if wanted: snow (ch20 — "let them see the road", winter stores), and
+sand that closes back over slowly, only if a tester does not resent it.

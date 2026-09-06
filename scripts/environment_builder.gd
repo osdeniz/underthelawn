@@ -272,6 +272,13 @@ func _build_yard() -> void:
 		# wet bank is the texture multiplied down and cooled.
 		dirt.albedo_color = Color(0.52, 0.50, 0.46)
 		dirt.roughness = 0.7
+	elif _variant != null and _variant.palette_id == "ASH":
+		# The burn (G22): the fire did not stop at the fence. Same texture,
+		# grey and dark, out to where the country begins.
+		var scorched := _tex_mat("scorched", "dirt_albedo", Color(0.18, 0.17, 0.16), 1.0,
+			Vector3(14.0, 12.0, 1.0))
+		scorched.albedo_color = Color(0.40, 0.39, 0.37)
+		dirt = scorched
 	_ground_quad(self, Vector2(90.0, 76.0), dirt, Vector3(0.0, -0.04, 6.0))
 
 
@@ -1266,6 +1273,10 @@ func _build_smalls() -> void:
 ## One flower: stem + head, pivoted at the ground so the §12 wind sway can
 ## rotate the whole plant. kind 0 = daisy, 1 = tulip, 2 = lavender.
 func _flower(kind: int, pos: Vector3) -> void:
+	# Nothing flowers on the burn (G22): the first render of the ash had
+	# daisies and tulips standing in it.
+	if _variant != null and _variant.palette_id == "ASH":
+		return
 	var pivot := Node3D.new()
 	pivot.position = pos
 	add_child(pivot)
@@ -1424,9 +1435,54 @@ func _build_landmark(landmark_id: String) -> void:
 		"square_tables": _landmark_square_tables(root)
 		"jetty": _landmark_jetty(root)
 		"sunken_boat": _landmark_sunken_boat(root)
+		"relay": _landmark_relay(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
+
+
+## The burn (G22). The relay on the bald crest, after the fire: a lattice
+## mast leaning where two legs gave, its cross-bars gone from the middle up,
+## a hut of charred boards with the roof fallen in, the dish face-down in the
+## ash, and the stumps of a fence. Everything the colour of the palette.
+func _landmark_relay(root: Node3D) -> void:
+	var steel := _flat("rl_steel", Color(0.24, 0.24, 0.25), 0.7, 0.3)
+	var char_wood := _flat("rl_char", Color(0.10, 0.09, 0.09), 1.0)
+	var dish := _flat("rl_dish", Color(0.40, 0.39, 0.36), 0.6, 0.2)
+	var ash := _flat("rl_ash", Color(0.20, 0.19, 0.18), 1.0)
+	_box(root, Vector3(6.0, 0.04, 4.0), ash, Vector3(0.0, 0.02, 0.4))
+	# The mast: four legs, two of them buckled, leaning east by fifteen degrees.
+	var mast := Node3D.new()
+	mast.position = Vector3(-0.6, 0.0, 0.0)
+	mast.rotation.z = deg_to_rad(-15.0)
+	root.add_child(mast)
+	for sx: float in [-1.0, 1.0]:
+		for sz: float in [-1.0, 1.0]:
+			var h := 6.2 if sz < 0.0 else 4.1
+			_cyl(mast, 0.05, 0.08, h, steel, Vector3(sx * 0.55, h * 0.5, sz * 0.55))
+	for level in 3:
+		var y := 0.9 + float(level) * 1.3
+		for face in 4:
+			var a := TAU * float(face) / 4.0
+			var mid := Vector3(cos(a) * 0.55, y, sin(a) * 0.55)
+			_cyl(mast, 0.022, 0.022, 1.1, steel, mid, Vector3(PI * 0.5, a, 0.0))
+	# The hut: two charred walls standing, the roof down between them.
+	_box(root, Vector3(2.4, 1.3, 0.12), char_wood, Vector3(2.2, 0.65, -0.8))
+	_box(root, Vector3(0.12, 1.1, 1.8), char_wood, Vector3(3.35, 0.55, 0.05))
+	var roof := _box(root, Vector3(2.4, 0.08, 1.9), char_wood, Vector3(2.2, 0.55, 0.15))
+	roof.rotation = Vector3(deg_to_rad(28.0), 0.0, deg_to_rad(-6.0))
+	# The dish, face down.
+	var bowl := CylinderMesh.new()
+	bowl.top_radius = 0.9
+	bowl.bottom_radius = 0.35
+	bowl.height = 0.35
+	bowl.radial_segments = 14
+	var d := _mesh(root, bowl, dish, Vector3(-2.6, 0.18, 1.0))
+	d.rotation.x = PI
+	# Fence stumps.
+	for x: float in [-3.4, -2.2, 1.6, 2.8]:
+		_cyl(root, 0.06, 0.07, 0.5, char_wood, Vector3(x, 0.25, 1.8))
+	_ao_blob(root, Vector2(5.0, 3.6), Vector3(0.4, 0.02, 0.4), 0.5)
 
 
 ## The lake (G21.2).

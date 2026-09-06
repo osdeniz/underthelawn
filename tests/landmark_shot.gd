@@ -2,7 +2,7 @@ extends TestBase
 ## G19.6: Case 03's two new places from the player's low camera.
 
 const SHOTS := {"ch24_the_gate_line": "gate_line", "ch26_the_visit": "square_tables",
-	"ch04_flooded": "jetty", "ch27_the_reed_shore": "sunken_boat"}
+	"ch04_flooded": "jetty", "ch27_the_reed_shore": "sunken_boat", "ch10_relay_hill": "relay"}
 
 func run() -> void:
 	suite = "YER CEKIM"

@@ -453,6 +453,10 @@
           "text": "DLG_BRIEF_CH10_1"
         },
         {
+          "speaker": "stranger",
+          "text": "DLG_BRIEF_CH10_1B"
+        },
+        {
           "speaker": "marshal",
           "text": "DLG_BRIEF_CH10_2"
         },

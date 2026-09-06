@@ -411,11 +411,11 @@
       "scrap_multiplier": 0.68
     },
     "ch10_relay_hill": {
-      "palette_id": "AMBER",
+      "palette_id": "ASH",
       "grid_size": "medium",
       "obstacle_layout_id": "outcrop",
       "house_variant": "house_none",
-      "landmark_id": "",
+      "landmark_id": "relay",
       "decor_seed": 1010,
       "scrap_budget": 12,
       "evidence_defs": [
@@ -450,7 +450,9 @@
       },
       "reclaim_line": "RECLAIM_CH10",
       "time_of_day": "midday",
-      "scrap_multiplier": 0.68
+      "scrap_multiplier": 0.68,
+      "plant_profile_id": "SCORCH",
+      "_comment": "G22: the hill burned two summers back — the bald crest the brief always described. Ash palette, burnt stalks, the relay after the fire."
     },
     "ch11_orchard": {
       "palette_id": "LUSH",

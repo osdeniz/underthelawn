@@ -478,7 +478,7 @@ CH_11_NAME,The Orchard,Elma Bahçesi
 OPENING_09_HEADLINE,THE RADIO ROOM,TELSİZ ODASI
 OPENING_09_SUBLINE,Someone is feeding a dead machine.,Biri ölü bir makineyi besliyor.
 OPENING_10_HEADLINE,THE RELAY HILL,RÖLE TEPESİ
-OPENING_10_SUBLINE,The signal climbs. So do we.,Sinyal yokuş çıkıyor. Biz de.
+OPENING_10_SUBLINE,"The signal climbs. So do we, through what the fire left.","Sinyal yokuş çıkıyor. Biz de, yangının bıraktığının içinden."
 OPENING_11_HEADLINE,THE ORCHARD,ELMA BAHÇESİ
 OPENING_11_SUBLINE,Someone eats here. Carefully.,Biri burada yiyor. Dikkatlice.
 EV_CH09_A_NAME,Tuned Receiver,Ayarlı Alıcı
@@ -501,7 +501,7 @@ EV_CH10_B_LINE,Not ours. Not Ellie's. Even diamonds on the sole - a traveller's 
 LOC_CREST,at the crest,tepe sırtında
 LOC_TRACK,on the track,patikada
 COLE_BATTERY,Nine again. I would like to stop noticing that number.,Yine dokuz. Bu sayıyı fark etmeyi bırakmak isterdim.
-COLE_BOOT_PRINT,The depth says a heavy pack. The stride says he was not tired. That is a bad combination.,Derinlik ağır bir sırt çantası diyor. Adım aralığı yorgun değil diyor. Kötü bir birleşim.
+COLE_BOOT_PRINT,Ash keeps a print the way snow does. The depth says a heavy pack. The stride says he was not tired. That is a bad combination.,Kül izi kar gibi tutar. Derinlik ağır bir sırt çantası diyor. Adım aralığı yorgun değil diyor. Kötü bir birleşim.
 MN_CH10_A,"Counted, wrapped, hidden. Somebody is being supplied.","Sayılmış, sarılmış, saklanmış. Birine ikmal yapılıyor."
 MN_CH10_B,He read the sole pattern from memory. Who memorises boot soles?,Taban desenini ezbere okudu. Kim bot tabanı ezberler?
 ECHO_CH10_NAME,Evacuation Leaflet,Tahliye Bildirisi
@@ -1277,3 +1277,4 @@ RECLAIM_CH27,Town reclaimed: the lake road is open.,Kasaba geri alındı: göl y
 ECHO_CH27_NAME,Ferry Ticket,Vapur Bileti
 ECHO_CH27_LINE,"Return half, never punched. Somebody paid to cross and never went back.","Dönüş parçası, hiç zımbalanmamış. Biri geçmek için ödemiş, bir daha dönmemiş."
 LOC_SHALLOWS,in the shallows,sığlıkta
+DLG_BRIEF_CH10_1B,"It burned two summers back — the relay, or the lightning that found it. Nothing has come back but black stalks.","İki yaz önce yandı; röle mi, onu bulan yıldırım mı. Kara saplardan başka hiçbir şey geri gelmedi."

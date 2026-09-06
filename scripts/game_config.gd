@@ -156,6 +156,28 @@ const GRASS_PALETTES := {
 		"clipping": Color(0.50, 0.62, 0.44),
 	},
 
+	# THE BURN (G22, ch10). The hill burned two summers back and nothing has
+	# come back but black stalks. The cluster is charcoal at the root and ash
+	# at the tip; the "mown" ladder is scorched earth, darker than the stalks
+	# — the one palette where cutting makes the ground DARKER, and the
+	# legibility sweep has a pass to prove the gap survives it. No fire, no
+	# ember, no red: this is the morning after, years later.
+	"ASH": {
+		"cluster_base": Color(0.09, 0.08, 0.08),
+		"cluster_tip": Color(0.46, 0.44, 0.40),
+		"accents": [
+			{ "base": Color(0.12, 0.11, 0.10), "tip": Color(0.58, 0.56, 0.52),
+				"weight": 0.20, "flowers": false },
+			{ "base": Color(0.14, 0.10, 0.08), "tip": Color(0.42, 0.32, 0.24),
+				"weight": 0.06, "flowers": false },
+		],
+		"ground_mowed": [
+			Color(0.14, 0.12, 0.11), Color(0.12, 0.11, 0.10),
+			Color(0.08, 0.07, 0.07), Color(0.10, 0.09, 0.08),
+		],
+		"clipping": Color(0.54, 0.52, 0.48),
+	},
+
 	"GREEN_COOL": {
 		"cluster_base": Color(0.04, 0.19, 0.16),
 		"cluster_tip": Color(0.24, 0.60, 0.52),
@@ -429,6 +451,15 @@ static func clump_variants() -> Array:
 ## constants exactly, so a chapter that names no profile grows what it always
 ## grew.
 const PLANT_PROFILES := {
+	## Burnt stalks (G22): short, stiff, sparse, barely moving; they snap dry.
+	"SCORCH": {
+		"form": "blade", "per_cell": 6, "blades": 4,
+		"height_min": 0.35, "height_max": 0.75, "tall_chance": 0.20,
+		"base_min": 0.30, "base_max": 0.42,
+		"width_scale": 0.6, "lean_scale": 0.5, "spread": 0.40,
+		"sway": 0.3, "cut_sound": "cut_reed", "cut_pitch": 0.80,
+		"clipping_scale": 0.7, "clipping": Color(0.54, 0.52, 0.48),
+	},
 	"GRASS": {
 		"form": "blade", "per_cell": 9, "blades": 6,
 		"height_min": 0.40, "height_max": 0.90, "tall_chance": 0.30,
@@ -1303,6 +1334,8 @@ const LANDMARK_IDS: Array[String] = [
 	"gate_line", "square_tables",
 	# The lake (G21.2): the flooded lot's jetty, the reed shore's sunken boat.
 	"jetty", "sunken_boat",
+	# The burn (G22): what stood on the bald crest.
+	"relay",
 ]
 
 const HOUSE_MARGIN_Z := 4.8

@@ -56,6 +56,10 @@ func _ready() -> void:
 	_chapter = "ch04_flooded"
 	_hours_only = ["afternoon"]
 	await _sweep(true)
+	# The burn (G22): the one palette where cutting makes the ground DARKER.
+	_chapter = "ch10_relay_hill"
+	_hours_only = ["midday"]
+	await _sweep(false)
 	if _fails > 0:
 		push_error("%d ISIK OKUNMUYOR" % _fails)
 		print("--- %d OKUNABILIRLIK TESTI BASARISIZ ---" % _fails)
