@@ -1246,6 +1246,8 @@ const LANDMARK_IDS: Array[String] = [
 	"meeting_stone", "signal_garden",
 	# The prologue: what he was walking towards (G15.1).
 	"clearing",
+	# Case 03 (G19.6): the line they will stop at, and the square set for them.
+	"gate_line", "square_tables",
 ]
 
 const HOUSE_MARGIN_Z := 4.8

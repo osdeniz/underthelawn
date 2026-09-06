@@ -37,9 +37,9 @@ görünür kılma. Kimin için görünür — soru bu.
 | 21 | ch21_school_field | okul bahçesi | playground | LUSH | afternoon | Ellie'nin ok çizdiği oyun alanı; kırılgan kanıt: tebeşir çizimi (fragile) |
 | 22 | ch22_the_orchard_again | bahçenin bahçesi | orchard | AMBER | golden | Yabancı'nın diktiği; hasat duygusu; yerleşimciler yardım eder (mid_chat) |
 | 23 | ch23_the_grave_row | mezarlık sırası | clearing | DUSK_VIOLET | dusk | **tek yankı**: küçük bir tahta işaret, yazısız; walk_only kanıt (yürüyerek) |
-| 24 | ch24_the_gate_line | kasaba kapısı, çit hattı | crossing | GREEN_COOL | dawn | kapının önü; sazlık; "buradan geçecekler" |
+| 24 | ch24_the_gate_line | kasaba kapısı, çit hattı | gate_line (G19.6) | GREEN_COOL | dawn | kapının önü; sazlık; "buradan geçecekler" |
 | 25 | ch25_night_watch | gece nöbeti, kule altı | water_tower | EMERALD | night | fireflies; **zaman baskısı**: farlar yaklaşır (HUD hattı) |
-| 26 | ch26_the_visit | ziyaret | meeting_stone | WHEAT | sunset | **finale**: biçme kısa (small); sonunda **Kapı Kartı** (seçim) |
+| 26 | ch26_the_visit | ziyaret | square_tables (G19.6) | WHEAT | sunset | **finale**: biçme kısa (small); sonunda **Kapı Kartı** (seçim) |
 
 Landmark'lar mevcut olanlardan seçildi; yeni mesh yok. Palet ve saatler bir
 gün + bir gece + bir şafak döngüsü çiziyor: 19 sabah → 26 gün batımı.

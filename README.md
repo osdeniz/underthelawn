@@ -3973,3 +3973,23 @@ Dusk before/after at the listening post; night in `LanternShot`.
 **Known:** `DayShot` still captures the pause sheet on some runs — the
 background pause re-opens between the close and the draw — its verdict is
 about the scene, not the image. The horizon check used PeopleShot instead.
+
+## G19.6 — Phase C.4: Case 03 gets two places of its own
+
+Eight chapters, no new landmark: the gate line was the river crossing and the
+visit was the meeting stone, twice each. Now:
+
+- **gate_line (ch24).** A wire fence re-strung across the north — posts every
+  two metres, three strands — with a farm gate in the middle swung sixty
+  degrees open toward the yard ("the gate itself is clear"), a planed sign
+  with nothing on it (the evidence, and the debrief: a town that has decided
+  to be seen and not what to say), a lamp on a post — the prologue's porch
+  light, higher, as Cole's note has it — and a coil of the new wire on the
+  ground where the work stopped.
+- **square_tables (ch26).** The square set for the visit: two trestle tables
+  with benches, cups and a jug laid, a string of five lit lanterns between two
+  posts, the houses' odd chairs pulled up at the ends. Nobody sitting: they
+  are at the gate.
+
+`LandmarkShot` renders both from the player's low camera; VariantCheck and
+Case3Check pass with the new ids. Case 03's landmark reuse: 8/8 → 6/8.

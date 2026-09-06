@@ -1389,9 +1389,127 @@ func _build_landmark(landmark_id: String) -> void:
 		"meeting_stone": _landmark_meeting_stone(root)
 		"signal_garden": _landmark_signal_garden(root)
 		"clearing": _landmark_clearing(root)
+		"gate_line": _landmark_gate_line(root)
+		"square_tables": _landmark_square_tables(root)
 		_:
 			push_warning("[Env] bilinmeyen landmark: %s" % landmark_id)
 			root.queue_free()
+
+
+## Case 03 (G19.6). Two places the case had borrowed from Case 02: the gate
+## line was the river crossing and the visit was the meeting stone. Now they
+## are their own.
+
+## The gate line (ch24): a wire fence re-strung across the north, posts every
+## two metres, three strands; a farm gate in the middle standing half open
+## ("the gate itself is clear"); a planed sign with nothing on it; a lamp on
+## a post — the porch light of the prologue, higher (COLE_LANTERN); and a
+## coil of the new wire left on the ground where the work stopped.
+func _landmark_gate_line(root: Node3D) -> void:
+	var post := _flat("gl_post", Color(0.36, 0.29, 0.21), 0.95)
+	var wire := _flat("gl_wire", Color(0.62, 0.63, 0.60), 0.6, 0.4)
+	var gate := _flat("gl_gate", Color(0.44, 0.36, 0.26), 0.95)
+	var board := _flat("gl_board", Color(0.80, 0.74, 0.62), 0.9)
+	var iron := _flat("gl_iron", Color(0.30, 0.30, 0.32), 0.8, 0.3)
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(1.0, 0.86, 0.60)
+	glass.emission_enabled = true
+	glass.emission = Color(1.0, 0.80, 0.50)
+	glass.emission_energy_multiplier = 1.6
+	# The fence: eleven posts each side of a four-metre gap.
+	var z := 0.0
+	for side: float in [-1.0, 1.0]:
+		for i in 11:
+			var x := side * (2.4 + float(i) * 2.2)
+			_cyl(root, 0.07, 0.09, 1.5, post, Vector3(x, 0.75, z))
+		for strand in 3:
+			var y := 0.45 + float(strand) * 0.42
+			_box(root, Vector3(22.0, 0.025, 0.025), wire,
+				Vector3(side * (2.4 + 11.0), y, z))
+	# Gate posts, taller, and the gate hung on the west one, swung open
+	# toward the yard by sixty degrees.
+	for sx: float in [-1.0, 1.0]:
+		_cyl(root, 0.11, 0.13, 2.0, post, Vector3(sx * 2.4, 1.0, z))
+		_ball(root, 0.14, post, Vector3(sx * 2.4, 2.02, z), Vector3(1.0, 0.6, 1.0))
+	var hinge := Node3D.new()
+	hinge.position = Vector3(-2.4, 0.0, z)
+	hinge.rotation.y = -deg_to_rad(62.0)
+	root.add_child(hinge)
+	for bar in 4:
+		_box(hinge, Vector3(4.3, 0.09, 0.07), gate, Vector3(2.2, 0.38 + float(bar) * 0.38, 0.0))
+	_box(hinge, Vector3(0.09, 1.55, 0.07), gate, Vector3(0.12, 0.95, 0.0))
+	_box(hinge, Vector3(0.09, 1.55, 0.07), gate, Vector3(4.3, 0.95, 0.0))
+	var brace := _box(hinge, Vector3(4.4, 0.07, 0.06), gate, Vector3(2.2, 0.95, 0.03))
+	brace.rotation.z = deg_to_rad(17.0)
+	# The blank sign, beside the east post, facing the yard.
+	_cyl(root, 0.06, 0.07, 2.2, post, Vector3(3.6, 1.1, z + 0.5))
+	_box(root, Vector3(1.6, 0.7, 0.06), board, Vector3(3.6, 1.95, z + 0.5))
+	# The lamp post, west of the gate, and its lit glass.
+	_cyl(root, 0.07, 0.09, 3.4, iron, Vector3(-3.7, 1.7, z + 0.4))
+	_box(root, Vector3(0.6, 0.05, 0.05), iron, Vector3(-3.45, 3.35, z + 0.4))
+	_box(root, Vector3(0.26, 0.34, 0.26), glass, Vector3(-3.2, 3.1, z + 0.4))
+	_box(root, Vector3(0.34, 0.05, 0.34), iron, Vector3(-3.2, 3.3, z + 0.4))
+	# A coil of new wire on the ground where the work stopped.
+	var coil := TorusMesh.new()
+	coil.inner_radius = 0.22
+	coil.outer_radius = 0.34
+	coil.rings = 10
+	coil.ring_segments = 14
+	_mesh(root, coil, wire, Vector3(1.4, 0.06, z + 1.2))
+	_ao_blob(root, Vector2(9.0, 2.6), Vector3(0.0, 0.02, z + 0.4), 0.45)
+
+
+## The square set for the visit (ch26): two trestle tables with benches, cups
+## and a jug set out, a string of lanterns between two posts, and the town's
+## chairs brought out of the houses. Nobody sitting yet: they are at the gate.
+func _landmark_square_tables(root: Node3D) -> void:
+	var wood := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
+	var pale := _flat("sq_pale", Color(0.72, 0.64, 0.50), 0.9)
+	var cloth := _flat("sq_cloth", Color(0.90, 0.88, 0.80), 0.95)
+	var tin := _flat("sq_tin", Color(0.64, 0.66, 0.64), 0.55, 0.3)
+	var rope := _flat("sq_rope", Color(0.60, 0.54, 0.40), 0.9)
+	var glass := StandardMaterial3D.new()
+	glass.albedo_color = Color(1.0, 0.86, 0.60)
+	glass.emission_enabled = true
+	glass.emission = Color(1.0, 0.78, 0.46)
+	glass.emission_energy_multiplier = 1.4
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2026
+	for row: float in [-1.0, 1.0]:
+		var tz := row * 1.7
+		# Table: top, cloth, two trestles.
+		_box(root, Vector3(5.2, 0.08, 0.9), wood, Vector3(0.0, 0.78, tz))
+		_box(root, Vector3(2.4, 0.02, 1.0), cloth, Vector3(-0.9, 0.83, tz))
+		for tx: float in [-1.9, 1.9]:
+			_box(root, Vector3(0.08, 0.74, 0.9), pale, Vector3(tx, 0.37, tz),
+				Vector3(0.0, 0.0, 0.0))
+		# Benches either side.
+		for bz: float in [-0.85, 0.85]:
+			_box(root, Vector3(5.0, 0.06, 0.32), wood, Vector3(0.0, 0.45, tz + bz))
+			for bx: float in [-2.0, 2.0]:
+				_box(root, Vector3(0.08, 0.42, 0.30), pale, Vector3(bx, 0.21, tz + bz))
+		# Cups and a jug.
+		for i in 6:
+			_cyl(root, 0.06, 0.05, 0.10, tin,
+				Vector3(-2.2 + float(i) * 0.75 + rng.randf_range(-0.08, 0.08), 0.87,
+					tz + rng.randf_range(-0.22, 0.22)), Vector3.ZERO, 8)
+		_cyl(root, 0.14, 0.11, 0.30, tin, Vector3(2.0, 0.97, tz + 0.05), Vector3.ZERO, 10)
+	# Lantern string: two posts and a rope with five lit glasses.
+	for px: float in [-3.6, 3.6]:
+		_cyl(root, 0.06, 0.08, 3.0, pale, Vector3(px, 1.5, 0.0))
+	_cyl(root, 0.02, 0.02, 7.2, rope, Vector3(0.0, 2.85, 0.0), Vector3(0.0, 0.0, PI * 0.5), 6)
+	for i in 5:
+		var lx := -2.4 + float(i) * 1.2
+		var sag := 0.18 * (1.0 - pow(lx / 3.0, 2.0))
+		_box(root, Vector3(0.20, 0.26, 0.20), glass, Vector3(lx, 2.85 - sag - 0.2, 0.0))
+	# Chairs from the houses, odd ones, pulled up at the ends.
+	for cx: float in [-3.1, 3.1]:
+		_box(root, Vector3(0.44, 0.05, 0.44), wood, Vector3(cx, 0.46, 0.0))
+		_box(root, Vector3(0.44, 0.5, 0.05), wood, Vector3(cx, 0.72, -0.2))
+		for lx2: float in [-0.18, 0.18]:
+			for lz: float in [-0.18, 0.18]:
+				_box(root, Vector3(0.04, 0.44, 0.04), wood, Vector3(cx + lx2, 0.22, lz))
+	_ao_blob(root, Vector2(7.0, 4.6), Vector3(0.0, 0.02, 0.0), 0.5)
 
 
 ## The man they were an hour behind (G15.6): a figure on the far ridge beyond
