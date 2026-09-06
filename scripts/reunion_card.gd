@@ -112,8 +112,9 @@ func _build() -> void:
 	for suggestion in DogName.suggestions():
 		var chip := Button.new()
 		chip.text = suggestion
-		chip.custom_minimum_size = Vector2(0, 84)
-		chip.add_theme_font_size_override("font_size", 38)
+		chip.custom_minimum_size = Vector2(230, 96)
+		chip.add_theme_font_size_override("font_size", 42)
+		_style_button(chip, false)
 		chip.pressed.connect(func() -> void:
 			_name_edit.text = suggestion
 			_confirm_name())
@@ -121,8 +122,9 @@ func _build() -> void:
 
 	_name_ok = Button.new()
 	_name_ok.text = tr("REUNION_NAME_OK")
-	_name_ok.custom_minimum_size = Vector2(0, 104)
-	_name_ok.add_theme_font_size_override("font_size", 42)
+	_name_ok.custom_minimum_size = Vector2(0, 108)
+	_name_ok.add_theme_font_size_override("font_size", 44)
+	_style_button(_name_ok, true)
 	_name_ok.pressed.connect(_confirm_name)
 	_name_box.add_child(_name_ok)
 
@@ -231,6 +233,28 @@ func _apply() -> void:
 	if _page == PAGE_REUNION:
 		var tw := create_tween()
 		tw.tween_property(_fade, "color:a", 0.0, FADE)
+
+
+## The default button is a grey rectangle drawn for a light theme; over the
+## night photograph it read as plain text (measured on the first render). Dark
+## card, the case accent for its edge, filled for the one that confirms.
+func _style_button(button: Button, primary: bool) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = GameConfig.CASE_ACCENT.darkened(0.55) if primary \
+		else Color(0.09, 0.11, 0.10, 0.88)
+	style.border_color = GameConfig.CASE_ACCENT
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(16)
+	style.set_content_margin_all(14)
+	button.add_theme_stylebox_override("normal", style)
+	var hover := style.duplicate() as StyleBoxFlat
+	hover.bg_color = hover.bg_color.lightened(0.12)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", hover)
+	button.add_theme_stylebox_override("focus", style)
+	button.add_theme_color_override("font_color", Color(0.96, 0.94, 0.88))
+	button.add_theme_color_override("font_hover_color", Color(1, 1, 1))
+	button.add_theme_color_override("font_pressed_color", Color(1, 1, 1))
 
 
 ## The box or, empty, the first chip: skipping the question still leaves the dog
