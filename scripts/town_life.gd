@@ -139,8 +139,17 @@ func _make_smoke() -> GPUParticles3D:
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	mat.albedo_color = GameConfig.SMOKE_COLOUR
+	# A soft radial puff, not a bare quad (G20.1): without a texture every
+	# particle was a hard-edged white square over the rooftops — the first
+	# thing on the first screen, and it read as a glitch. The same texture the
+	# far clouds use; the ramp above still does the fade.
+	var soft := TextureLibrary.find("cloud_billboard")
+	if soft != null:
+		mat.albedo_texture = soft
+	else:
+		TextureLibrary.warn_missing("cloud_billboard", "kare duman")
 	mat.disable_receive_shadows = true
 	quad.material = mat
 
