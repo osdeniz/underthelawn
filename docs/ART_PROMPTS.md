@@ -30,7 +30,8 @@ kenarlar, kısık renk, ochre-zeytin-toz mavi paleti.
 üstünde büyük gösterilir; el ve yüz okunur olmalı.
 
 **YASAK:** Tüfek, tabanca, kılıf, mermi, herhangi bir silah. Yazı, harf, tabela
-metni. Ateş, kan, kafatası, askerî işaret, kırmızı alarm ışığı.
+metni (mevcut resimde "HOPE HOLLOW" ve "SHERIFF" yazıyor; kasabanın adı oyunda
+**Hollow Creek**, tabelada isim olmayacak). Ateş, kan, kafatası, askerî işaret, kırmızı alarm ışığı.
 Rozetin üstünde okunur yazı olmasın.
 
 ## 2. Case 02 card — `textures/story/case2_card.jpg` (replaces the current one)

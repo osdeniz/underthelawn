@@ -34,6 +34,7 @@ const PATHS := {
 	"step_dirt": "res://audio/footstep_dirt",
 	"lamp": "res://audio/lamp_hum_loop",
 	"dog_huff": "res://audio/dog_huff",
+	"robot_beep": "res://audio/robot_beep",
 	"rabbit": "res://audio/rabbit_rustle",
 	"bird_takeoff": "res://audio/bird_takeoff",
 	"settler": "res://audio/settler_card",
@@ -595,6 +596,11 @@ func play_bird_takeoff() -> void:
 
 func play_dog_huff() -> void:
 	_shot("dog_huff", 0.6)
+
+
+## The robot says it has the yard (G20.4).
+func play_robot_beep() -> void:
+	_shot("robot_beep", 0.45)
 
 
 func _process(delta: float) -> void:

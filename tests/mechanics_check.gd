@@ -13,6 +13,7 @@ func run() -> void:
 	await _time_lapse()
 	_weather_spread()
 	await _lantern()
+	await _vehicles()
 	await _observer()
 	await _harvest_settler()
 
@@ -111,6 +112,32 @@ func _walk_only() -> void:
 	ck("yuruyerek bulunuyor",
 		model.states[LawnModel.index_of(cell.x, cell.y)] == LawnModel.CellState.SECRET_REVEALED, "")
 	game.queue_free(); await frames(4)
+
+
+## G20.4: the machines' habits. The tractor's exhaust exists, is off when the
+## tractor is parked, on when it is the active machine, and thickens with
+## speed; the robot's beep is a stream the director can play.
+func _vehicles() -> void:
+	var game: Node = await open("ch01_aldridge")
+	game.select_mower(GameConfig.MOWER_TRACTOR)
+	await frames(3)
+	var tractor: Node = game.mower
+	var exhaust: GPUParticles3D = tractor.find_child("Exhaust", true, false)
+	ck("traktorde egzoz var", exhaust != null)
+	if exhaust != null:
+		ck("aktifken egzoz tutuyor", exhaust.emitting)
+		var idle := exhaust.amount_ratio
+		tractor.speed = tractor.max_speed()
+		await frames(2)
+		ck("hizlanince egzoz kalinlasiyor", exhaust.amount_ratio > idle + 0.3,
+			"%.2f -> %.2f" % [idle, exhaust.amount_ratio])
+		game.select_mower(GameConfig.MOWER_PUSH)
+		await frames(3)
+		ck("park edince egzoz susuyor", not exhaust.emitting)
+	ck("robot bip sesi yuklu", AudioDirector._streams.has("robot_beep"))
+	ck("bicak kivilcimi daha sik", GameConfig.BLADE_SPARK_COOLDOWN <= 0.3,
+		str(GameConfig.BLADE_SPARK_COOLDOWN))
+	await close(game)
 
 
 ## G19.5: six wet chapters, none at an hour the game forbids rain in.

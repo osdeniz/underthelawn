@@ -251,7 +251,7 @@ func _build_world() -> void:
 	title.offset_top = 70.0
 	title.offset_bottom = 150.0
 	title.add_theme_font_size_override("font_size", 54)
-	title.add_theme_color_override("font_color", GameConfig.MAP_INK)
+	title.add_theme_color_override("font_color", GameConfig.MAP_PARCHMENT)
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_world.add_child(title)
 
@@ -261,8 +261,11 @@ func _build_world() -> void:
 	sub.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	sub.offset_top = 146.0
 	sub.offset_bottom = 196.0
-	sub.add_theme_font_size_override("font_size", 30)
-	sub.add_theme_color_override("font_color", GameConfig.MAP_INK_FAINT)
+	# Parchment-light on the dark desk (G20.2): the ink colours were written
+	# for the sheet, and above the sheet they sat on the desk unreadable —
+	# "the only lights for forty miles" was the line nobody could read.
+	sub.add_theme_font_size_override("font_size", 34)
+	sub.add_theme_color_override("font_color", Color(GameConfig.MAP_PARCHMENT, 0.85))
 	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_world.add_child(sub)
 

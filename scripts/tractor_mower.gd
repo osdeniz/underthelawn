@@ -15,10 +15,37 @@ var carry_anchor: Node3D
 var _discs: Array[Node3D] = []
 
 
+var _exhaust: GPUParticles3D
+
+
 func _ready() -> void:
 	_build_bed()
 	_build_discs()
+	_build_exhaust()
 	super()
+
+
+## An upright pipe by the hood and a puff of blue-grey exhaust out of it that
+## thickens with the throttle (G20.4). The four machines were four coloured
+## boxes with different speeds; this is the tractor's one visible habit.
+func _build_exhaust() -> void:
+	var body := get_node_or_null("Body") as Node3D
+	if body == null:
+		return
+	var iron := StandardMaterial3D.new()
+	iron.albedo_color = Color(0.22, 0.22, 0.24)
+	iron.roughness = 0.6
+	iron.metallic = 0.3
+	var at := GameConfig.TRACTOR_EXHAUST_POS
+	_box(body, Vector3(0.07, 0.42, 0.07), iron, at)
+	_box(body, Vector3(0.11, 0.05, 0.11), iron, at + Vector3(0.0, 0.22, 0.0))
+	_exhaust = TownLife.make_smoke_puff(GameConfig.EXHAUST_SIZE, GameConfig.EXHAUST_COLOUR,
+		GameConfig.EXHAUST_COUNT, GameConfig.EXHAUST_LIFETIME, GameConfig.EXHAUST_RISE)
+	_exhaust.name = "Exhaust"
+	_exhaust.position = at + Vector3(0.0, 0.26, 0.0)
+	_exhaust.visible = true
+	_exhaust.emitting = false
+	body.add_child(_exhaust)
 
 
 ## An open cargo bed behind the seat: a floor and three low walls, built from the
@@ -118,7 +145,18 @@ func _mesh_child(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3,
 	parent.add_child(mi)
 
 
+## A parked machine stops processing, so the exhaust is switched here, on the
+## change, not only in _process.
+func _on_active_changed(value: bool) -> void:
+	if _exhaust != null:
+		_exhaust.emitting = value
+
+
 func _process(delta: float) -> void:
+	# Exhaust: a thread at idle, a plume under load; nothing when parked.
+	if _exhaust != null:
+		_exhaust.emitting = is_active
+		_exhaust.amount_ratio = 0.25 + 0.75 * speed_fraction()
 	# The discs idle slowly and spin up with the machine, like the Blade's.
 	var rate := deg_to_rad(GameConfig.TRACTOR_DISC_SPIN_DEG)
 	var turn := (0.15 + 0.85 * speed_fraction()) * rate * delta

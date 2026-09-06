@@ -43,6 +43,7 @@ func _on_active_changed(value: bool) -> void:
 	_has_override = false
 	if value:
 		plan_route()
+		AudioDirector.play_robot_beep()
 	else:
 		route.clear()
 		route_index = 0

@@ -692,6 +692,13 @@ const TRACTOR_DISC_RADIUS := 0.46
 ## not inside it: the first pass buried both discs in the deck box.
 const TRACTOR_DISC_OFFSET := Vector3(0.54, 0.20, -1.50)
 const TRACTOR_DISC_SPIN_DEG := 900.0
+## The exhaust (G20.4): pipe by the hood, puff sized for a machine not a house.
+const TRACTOR_EXHAUST_POS := Vector3(0.34, 0.62, -0.62)
+const EXHAUST_SIZE := 0.26
+const EXHAUST_COLOUR := Color(0.62, 0.64, 0.70, 0.34)
+const EXHAUST_COUNT := 10
+const EXHAUST_LIFETIME := 1.4
+const EXHAUST_RISE := Vector2(0.6, 1.1)
 ## Saw teeth around the rim. They are what reads as "this cuts" at phone size —
 ## a plain plate just looks like a wheel (G12.10).
 const TRACTOR_DISC_TEETH := 14
@@ -1204,7 +1211,9 @@ const BLADE_GOLD := Color(0.62, 0.44, 0.09)
 const BLADE_CREAM := Color(0.78, 0.66, 0.34)
 const BLADE_SILVER := Color(0.80, 0.80, 0.76)
 const BLADE_GEM := Color(0.42, 0.10, 0.72)
-const BLADE_SPARK_COOLDOWN := 0.5
+## 0.5 -> 0.3 (G20.4): the sparks were the blade's whole personality and
+## came twice a second at most.
+const BLADE_SPARK_COOLDOWN := 0.3
 ## Uniform grow factor: chakram mesh, deck radius and body radius all scale
 ## from this one number (future Size upgrades hook in here). 1.0 for now.
 ## G10: grown by the workshop upgrade (1.0 + tier * UPGRADE_BLADE_SCALE_STEP);

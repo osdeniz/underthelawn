@@ -4113,3 +4113,31 @@ random id) and what does not (name, e-mail, location). Saved under
 or Esc pauses. On a desktop build the first search shows the one-time resource
 card with the keys (W A S D / arrows, Space / Tab, Esc, F11); a phone never
 sees it. Same once-gate as the salvage and food cards.
+
+## G20 — Phase F: polish the third review asked for
+
+Six items from the third review, each rendered before and after.
+
+- **G20.1 Smoke.** The chimney puffs over the hub were hard-edged white
+  squares: a dokusuz quad. The particle quad carries the cloud texture now;
+  soft puffs, first screen.
+- **G20.2 Map title.** "Hollow Creek" and "the only lights for forty miles"
+  were ink colours written for the sheet and sat on the dark desk unreadable.
+  Parchment-light now. The world layer's letterboxing stays: G13.5 chose it
+  ("the world is large and you are one dot in it"), and the far light at 0.90
+  of the sheet is lost the moment the sheet is cropped to cover.
+- **G20.3 Sky.** A visible sun (`sun_angle_max` 6°, `sun_curve` 0.32) and a
+  broader horizon band on both the yard's and the diorama's sky. Honest
+  note: from the chase camera the sun is rarely in frame; the disc shows in
+  the hub and on a wide screen.
+- **G20.4 The machines' habits.** The tractor has an exhaust pipe by the hood
+  and a blue-grey puff that thickens with the throttle (`TownLife.make_smoke_puff`,
+  the one smoke recipe, so chimneys and exhaust read as one world) and stops
+  when it is parked; the robot says it has the yard with a two-note beep
+  (generated, `robot_beep`); the blade sparks twice as often. `MechanicsCheck`
+  measures the exhaust on, thicker, off.
+- **Town name.** `docs/ART_PROMPTS.md` now says the sign carries no name; the
+  current portrait reads "HOPE HOLLOW" and the game says Hollow Creek.
+- **Not a bug:** the dialogue's empty upper half in `DialogueShot`. The scrim
+  is 55% black over whatever is behind — in the game, the hub — and the shot
+  renders the box alone over nothing. The capture misled the review.

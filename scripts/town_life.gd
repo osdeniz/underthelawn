@@ -107,13 +107,21 @@ func _add_window(tool: SurfaceTool, at: Vector3, yaw: float) -> void:
 
 
 func _make_smoke() -> GPUParticles3D:
+	return make_smoke_puff(GameConfig.SMOKE_SIZE, GameConfig.SMOKE_COLOUR,
+		GameConfig.SMOKE_COUNT, GameConfig.SMOKE_LIFETIME, GameConfig.SMOKE_RISE)
+
+
+## The one smoke recipe (G20.4): chimneys and the tractor's exhaust are the
+## same soft puff at different sizes, so they read as the same world.
+static func make_smoke_puff(size: float, colour: Color, count: int, lifetime: float,
+		rise: Vector2) -> GPUParticles3D:
 	var pm := ParticleProcessMaterial.new()
 	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 	pm.emission_sphere_radius = 0.12
 	pm.direction = Vector3(0.0, 1.0, 0.0)
 	pm.spread = 12.0
-	pm.initial_velocity_min = GameConfig.SMOKE_RISE.x
-	pm.initial_velocity_max = GameConfig.SMOKE_RISE.y
+	pm.initial_velocity_min = rise.x
+	pm.initial_velocity_max = rise.y
 	pm.gravity = Vector3(0.12, 0.05, 0.0)   # a little drift, no fall
 	pm.scale_min = 0.6
 	pm.scale_max = 1.4
@@ -135,12 +143,12 @@ func _make_smoke() -> GPUParticles3D:
 	pm.alpha_curve = ramp_tex
 
 	var quad := QuadMesh.new()
-	quad.size = Vector2(GameConfig.SMOKE_SIZE, GameConfig.SMOKE_SIZE)
+	quad.size = Vector2(size, size)
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-	mat.albedo_color = GameConfig.SMOKE_COLOUR
+	mat.albedo_color = colour
 	# A soft radial puff, not a bare quad (G20.1): without a texture every
 	# particle was a hard-edged white square over the rooftops — the first
 	# thing on the first screen, and it read as a glitch. The same texture the
@@ -156,9 +164,9 @@ func _make_smoke() -> GPUParticles3D:
 	var puff := GPUParticles3D.new()
 	puff.process_material = pm
 	puff.draw_pass_1 = quad
-	puff.amount = GameConfig.SMOKE_COUNT
-	puff.lifetime = GameConfig.SMOKE_LIFETIME
-	puff.preprocess = GameConfig.SMOKE_LIFETIME
+	puff.amount = count
+	puff.lifetime = lifetime
+	puff.preprocess = lifetime
 	puff.randomness = 0.7
 	puff.local_coords = false
 	puff.emitting = false

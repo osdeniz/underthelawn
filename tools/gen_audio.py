@@ -584,6 +584,28 @@ def dog_huff():
     return out
 
 
+# ---- the robot's two-note acknowledgement when it takes the yard (G20.4):
+# a low tone then a higher one, each 90 ms, clean sines with a soft edge.
+def robot_beep():
+    n = seconds(0.24)
+    out = []
+    for i in range(n):
+        t = i / SR
+        if t < 0.09:
+            f, u = 880.0, t / 0.09
+        elif t < 0.12:
+            out.append(0.0)
+            continue
+        elif t < 0.21:
+            f, u = 1320.0, (t - 0.12) / 0.09
+        else:
+            out.append(0.0)
+            continue
+        env = math.sin(math.pi * u) ** 0.5
+        out.append(math.sin(TAU * f * t) * env * 0.8)
+    return out
+
+
 # ---- a rabbit going through grass: a quick rustle, rising then gone.
 def rabbit_rustle():
     n = seconds(0.55)
@@ -697,6 +719,7 @@ write("footstep_grass_b", footstep(True, 6), 0.55)
 write("footstep_dirt", footstep(False, 7), 0.55)
 write("lamp_hum_loop", lamp_hum(), 0.35)
 write("dog_huff", dog_huff(), 0.6)
+write("robot_beep", robot_beep(), 0.5)
 write("rabbit_rustle", rabbit_rustle(), 0.6)
 write("bird_takeoff", bird_takeoff(), 0.6)
 write("settler_card", settler_card(), 0.8)

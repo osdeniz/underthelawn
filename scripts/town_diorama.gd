@@ -278,7 +278,11 @@ func _build_environment() -> void:
 	var sky_mat := ProceduralSkyMaterial.new()
 	sky_mat.sky_top_color = Color(0.36, 0.60, 0.90)
 	sky_mat.sky_horizon_color = Color(0.97, 0.88, 0.72)
-	sky_mat.sky_curve = 0.16
+	sky_mat.sky_curve = 0.12
+	# A sun you can see (G20.3): the default 30-degree disc is a wash, not a
+	# sun. Same values as the yard's SkyMat.
+	sky_mat.sun_angle_max = 6.0
+	sky_mat.sun_curve = 0.32
 	# The camera looks down, so most of the backdrop is the sky's GROUND half.
 	# Warm and dim: the model should sit in haze, not on a grey wall.
 	sky_mat.ground_bottom_color = Color(0.42, 0.36, 0.28)
