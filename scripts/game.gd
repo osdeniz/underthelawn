@@ -997,6 +997,15 @@ func _glance_at(at: Vector3) -> void:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+			# The test runner sets UTL_NO_BG_PAUSE (G19.10). A headless window
+			# has no focus, so this fired under every suite a few frames in and
+			# a paused Game ran neither its physics nor its pickups; four
+			# suites were moved onto TestBase one at a time for it (Pickup,
+			# WalkDir, Pace, the shot tests) and forty more could still catch
+			# it. The one suite whose CLAIM is this pause (InputMapCheck) clears
+			# the variable for the length of its check. A phone never sets it.
+			if OS.get_environment("UTL_NO_BG_PAUSE") == "1":
+				return
 			if _search_started and hud != null and is_instance_valid(hud):
 				hud.pause_for_background()
 

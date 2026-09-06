@@ -5,6 +5,10 @@
 #   UTL_LIMIT  seconds per test (default 150)
 GODOT="${GODOT:-/Applications/Godot.app/Contents/MacOS/Godot}"
 LIMIT="${UTL_LIMIT:-150}"
+# The headless window has no focus and the game pauses itself for the
+# background a few frames into every suite; Game._notification honours this
+# (G19.10). InputMapCheck, whose claim is that pause, clears it for its check.
+export UTL_NO_BG_PAUSE=1
 PATTERN="${1:-}"
 cd "$(dirname "$0")/.." || exit 1
 pass=0; fail=0; unknown=0

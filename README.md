@@ -4061,3 +4061,19 @@ a hub backdrop can carry that.
 
 The town page's scroll area was 200 px tall and cut the second of the two
 rows G19.8 moved onto it in half; 420 now.
+
+## G19.10 — the background pause, switched off for the suite at the source
+
+Every headless suite ran in a window with no focus, so a few frames in the
+game did what it should on a phone: paused itself for the background. A paused
+Game runs neither its physics (where the keys are read) nor its pickups, and a
+plain-Node test kept awaiting `process_frame` regardless — so the LAST
+assertions failed while the first passed, and shot tests photographed the
+pause sheet. Four suites were moved onto TestBase one at a time for it in
+G19.1–G19.9 (Pickup, WalkDir, Pace, the shots); thirty-six more could still
+catch it.
+
+`Game._notification` now returns early when `UTL_NO_BG_PAUSE=1`, which
+`tools/run_tests.sh` exports for every suite. `InputMapCheck`, whose claim IS
+the pause, clears the variable for the length of its check and passes. A phone
+never sets it. TestBase's per-frame unpause stays: belt and braces.

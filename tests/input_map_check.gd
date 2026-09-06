@@ -63,7 +63,12 @@ func _check_background() -> void:
 		get_tree().paused = false
 		await get_tree().process_frame
 	ck("arama basladi", get_tree().paused == false, "zaten duraklamis")
+	# The runner turns the background pause off for every suite; this suite's
+	# claim is the pause, so it turns it back on for the length of the check.
+	var no_pause := OS.get_environment("UTL_NO_BG_PAUSE")
+	OS.set_environment("UTL_NO_BG_PAUSE", "")
 	game.notification(NOTIFICATION_APPLICATION_PAUSED)
+	OS.set_environment("UTL_NO_BG_PAUSE", no_pause)
 	await get_tree().process_frame
 	ck("arka plana alininca duraklar", get_tree().paused, "duraklamadi")
 	get_tree().paused = false
