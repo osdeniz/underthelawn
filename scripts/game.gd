@@ -177,6 +177,9 @@ func _ready() -> void:
 	_animals = Animals.build(_fx_root, model, variant.decor_seed,
 		variant.is_harvest(), variant.vignette)
 	_activate(GameConfig.MOWER_PUSH, true)
+	if variant.lantern:
+		_build_lantern()
+		hud.apply_lantern_mode()
 	# The yard's own sound (G16.1): a bed for the hour instead of the hub theme
 	# running on, rain when it is wet, crickets after dark, the lamp on the
 	# prologue's gate. Birds stay out of play (G9.4).
@@ -258,6 +261,7 @@ func _process(delta: float) -> void:
 	_update_look_target(delta)
 	_update_animals()
 	_tick_lapse()
+	_tick_lantern(get_process_delta_time())
 	_check_walk_only()
 	_check_observer()
 	_sway_settler(delta)
@@ -1005,6 +1009,36 @@ func _cycle_mower() -> void:
 		if Garage.is_unlocked(next):
 			select_mower(next)
 			return
+
+
+## The lantern (G19.5): one warm omni light that follows whoever is moving —
+## the machine, or the man once he has stepped off it. Kept under _fx_root
+## and moved every frame rather than re-parented on every mount and dismount.
+var _lantern: OmniLight3D
+var _lantern_time := 0.0
+func _build_lantern() -> void:
+	_lantern = OmniLight3D.new()
+	_lantern.name = "Lantern"
+	_lantern.light_color = GameConfig.LANTERN_COLOUR
+	_lantern.light_energy = GameConfig.LANTERN_ENERGY
+	_lantern.omni_range = GameConfig.LANTERN_RANGE
+	_lantern.omni_attenuation = 1.4
+	_lantern.shadow_enabled = false
+	_fx_root.add_child(_lantern)
+	_tick_lantern(0.0)
+
+
+func _tick_lantern(delta: float) -> void:
+	if _lantern == null or not is_instance_valid(_lantern):
+		return
+	var target: Node3D = _walker if walking() else mower
+	if target == null:
+		return
+	_lantern.global_position = target.global_position + Vector3(0.0, GameConfig.LANTERN_HEIGHT, 0.0)
+	_lantern_time += delta
+	# Two incommensurate sines: a flame, not a metronome.
+	var wobble := sin(_lantern_time * 7.3) * 0.6 + sin(_lantern_time * 11.9) * 0.4
+	_lantern.light_energy = GameConfig.LANTERN_ENERGY * (1.0 + wobble * GameConfig.LANTERN_FLICKER)
 
 
 func _on_cells_mown(_count: int) -> void:

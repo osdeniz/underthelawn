@@ -530,7 +530,8 @@
       "evidence_zone": "far",
       "mid_chat": "chat_ch12",
       "scrap_multiplier": 0.68,
-      "walk_only_evidence": true
+      "walk_only_evidence": true,
+      "weather": "rain"
     },
     "ch13_roadside_camp": {
       "palette_id": "DRY_GOLD",
@@ -663,7 +664,8 @@
       "reclaim_line": "RECLAIM_CH15",
       "time_of_day": "afternoon",
       "mid_chat": "chat_ch15",
-      "scrap_multiplier": 0.68
+      "scrap_multiplier": 0.68,
+      "weather": "rain"
     },
     "ch16_meeting_stone": {
       "palette_id": "DRY_GOLD",
@@ -984,7 +986,8 @@
         "icon": "🥫",
         "name": "ECHO_CH20_NAME",
         "flavor_text": "ECHO_CH20_LINE"
-      }
+      },
+      "weather": "rain"
     },
     "ch21_school_field": {
       "palette_id": "LUSH",
@@ -1160,7 +1163,8 @@
         "icon": "🗺️",
         "name": "ECHO_CH24_NAME",
         "flavor_text": "ECHO_CH24_LINE"
-      }
+      },
+      "weather": "rain"
     },
     "ch25_night_watch": {
       "palette_id": "EMERALD",
@@ -1204,7 +1208,8 @@
         "icon": "📓",
         "name": "ECHO_CH25_NAME",
         "flavor_text": "ECHO_CH25_LINE"
-      }
+      },
+      "lantern": true
     },
     "ch26_the_visit": {
       "palette_id": "WHEAT",

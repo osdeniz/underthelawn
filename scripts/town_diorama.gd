@@ -240,8 +240,10 @@ func apply_sky_mode() -> void:
 		GameConfig.WINDOW_HOURS.has(SkyTime.resolve(DIORAMA_HOUR)))
 	if SkyTime.mode() == GameConfig.SKY_MODE_AUTO:
 		_restore_authored()
+		Horizon.shade(self, _sun, _world.environment)
 		return
 	SkyTime.apply(_world, _sun, DIORAMA_HOUR)
+	Horizon.shade(self, _sun, _world.environment)
 
 
 ## Puts the hand-tuned lighting back, exactly as it was built.

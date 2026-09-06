@@ -79,6 +79,9 @@ var level_type := "search"
 ## cutting the grass AROUND it, crushed by driving over it.
 var walk_only_evidence := false
 var time_lapse: Dictionary = {}
+## G19.5: the moon is turned down and a lantern rides with the machine; the
+## yard is seen a few metres at a time.
+var lantern := false
 
 
 static func data() -> Dictionary:
@@ -131,6 +134,7 @@ static func of(variant_id: String) -> LevelVariant:
 	variant.weather = str(spec.get("weather", GameConfig.WEATHER_CLEAR))
 	variant.food_budget = int(spec.get("food_budget", -1))
 	variant.walk_only_evidence = bool(spec.get("walk_only_evidence", false))
+	variant.lantern = bool(spec.get("lantern", false))
 	var lapse: Variant = spec.get("time_lapse", {})
 	if lapse is Dictionary:
 		variant.time_lapse = lapse

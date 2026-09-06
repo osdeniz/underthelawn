@@ -125,3 +125,9 @@ static func _write_spec(env_host: WorldEnvironment, sun: DirectionalLight3D,
 			if dark else GameConfig.RAIN_AMBIENT_ENERGY
 		env.fog_light_color = (spec["fog"] as Color).lerp(GameConfig.RAIN_FOG,
 			GameConfig.RAIN_DARK_FOG_MIX if dark else GameConfig.RAIN_FOG_MIX)
+	# The lantern chapter (G19.5): the moon and the sky's fill go down to a
+	# fraction, and the light the player has is the one riding with them.
+	if LevelVariant.current != null and LevelVariant.current.lantern:
+		if sun != null:
+			sun.light_energy *= GameConfig.LANTERN_SUN_ENERGY
+		env.ambient_light_energy *= GameConfig.LANTERN_AMBIENT_ENERGY

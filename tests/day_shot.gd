@@ -18,6 +18,8 @@ func run() -> void:
 		game.hud._close_pause()
 		game._begin_search()
 		await frames(260)
+		get_tree().paused = false
+		game.hud._close_pause()
 		game.hud.visible = false
 		await frames(6)
 		await drawn_frame()

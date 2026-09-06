@@ -2266,6 +2266,22 @@ const RAIN_DARK_HOURS: Array[String] = ["sunset"]
 ## is a rule, not another tuning pass: no rain in the last two hours of the
 ## day. A chapter that asks for both simply plays dry.
 const RAIN_FORBIDDEN_HOURS: Array[String] = ["dusk", "night"]
+
+## THE LANTERN CHAPTER (G19.5, ch25). "Night" in this game is a bright
+## moonlit blue the whole yard can be read by; the review asked for one
+## chapter where the dark costs something other than speed. Here the moon is
+## turned down to a fraction and a warm lamp rides with the machine (or the
+## man, on foot), so the yard is known a few metres at a time and the cut
+## line is the trail you leave in it. Evidence still glows (SecretGlow), so
+## the search is no harder to WIN — only to see.
+const LANTERN_SUN_ENERGY := 0.22
+const LANTERN_AMBIENT_ENERGY := 0.34
+const LANTERN_RANGE := 7.5
+const LANTERN_ENERGY := 3.0
+const LANTERN_COLOUR := Color(1.0, 0.80, 0.52)
+const LANTERN_HEIGHT := 1.7
+## Flame wobble on the energy, never a clean sine (see the diorama's lamps).
+const LANTERN_FLICKER := 0.07
 const RAIN_DARK_SUN_ENERGY := 0.94
 const RAIN_DARK_AMBIENT_ENERGY := 0.92
 const RAIN_DARK_FOG_MIX := 0.22

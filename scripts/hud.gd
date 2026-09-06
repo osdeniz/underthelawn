@@ -1279,6 +1279,8 @@ func refresh_sky() -> void:
 		if swarm != null:
 			swarm.refresh()
 	Horizon.light_windows(root, GameConfig.WINDOW_HOURS.has(SkyTime.resolve(hour)))
+	if env != null and env.environment != null:
+		Horizon.shade(root, sun, env.environment)
 
 
 ## A one-time card explaining a resource the first time it is picked up
@@ -1531,6 +1533,11 @@ func apply_lapse_mode() -> void:
 ## Night has fallen on a time-lapse yard: the promise line becomes the cost.
 func apply_dark_mode() -> void:
 	_case_line.text = tr("HUD_DARK_LINE")
+
+
+## The lantern chapter (G19.5).
+func apply_lantern_mode() -> void:
+	_case_line.text = tr("HUD_LANTERN_LINE")
 
 
 func apply_harvest_mode() -> void:

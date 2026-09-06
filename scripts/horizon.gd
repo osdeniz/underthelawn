@@ -220,9 +220,37 @@ static func _build_country(root: Node3D, radius: float,
 				root.add_child(crown)
 
 
+## Unshaded means the hour never touches these (G19.5): at night the country
+## past the fence stayed daylight green under a blue sky, and in the lantern
+## chapter it was the brightest thing on screen. Every material built here
+## remembers its authored colour and shade() multiplies it by a tint read from
+## the light that was actually written — sun energy, ambient colour, ambient
+## energy — so the horizon follows every preset, blend and override for free.
+static func shade(parent: Node, sun: DirectionalLight3D, env: Environment) -> void:
+	if parent == null or env == null:
+		return
+	var sun_energy := sun.light_energy if sun != null else 1.0
+	var strength := clampf((sun_energy * 0.5 + env.ambient_light_energy * 0.9) / 1.2,
+		0.18, 1.0)
+	var tint := Color.WHITE.lerp(env.ambient_light_color, 0.45) * strength
+	tint.a = 1.0
+	for any: Variant in parent.find_children("Horizon", "", true, false):
+		var root := any as Node
+		if root == null:
+			continue
+		for mi_any: Variant in root.find_children("*", "MeshInstance3D", true, false):
+			var mi := mi_any as MeshInstance3D
+			var mat := mi.material_override as StandardMaterial3D if mi != null else null
+			if mat == null or not mat.has_meta("base_colour"):
+				continue
+			var base: Color = mat.get_meta("base_colour")
+			mat.albedo_color = Color(base.r * tint.r, base.g * tint.g, base.b * tint.b, base.a)
+
+
 static func _unshaded(_key: String, colour: Color) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = colour
+	mat.set_meta("base_colour", colour)
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.roughness = 1.0
 	# The mounds are single-sided fans seen from either side of the ring.

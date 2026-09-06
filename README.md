@@ -3940,3 +3940,36 @@ editor open since before those changes writing its stale copy on save.
 `project.godot` is restored to the G19.3 state here; the panel edits were
 finished on top of `def14b2`. Nothing else in that commit was anyone's work
 but mine.
+
+## G19.5 — Phase C.3: weather, and one chapter in the dark
+
+**Rain, 2 → 6.** Two of thirty-three yards were wet. Four more are now: the
+river crossing (ch12, marsh, morning), the old clinic (ch15), the watchtower
+road (ch20) and the gate line (ch24, dawn). None at dusk or night, which the
+game forbids; `MechanicsCheck` counts six and checks the hours.
+
+**The lantern chapter (ch25, `lantern: true`).** "Night" in this game is a
+bright moonlit blue the whole yard reads by, so the dark had never cost
+anything but speed (G18.1). At the night watch the moon is turned down to a
+fraction (`LANTERN_SUN_ENERGY` 0.22, ambient 0.34 of the preset) and a warm
+omni light rides with the machine — or the man, once he steps off — moved
+every frame under `_fx_root` rather than re-parented, flame wobble on two
+incommensurate sines. The yard is known a few metres at a time; the cut line
+is the trail you leave in it. Evidence still glows, so the search is no
+harder to win, only to see. HUD line: "Night. The lantern shows what the
+moon will not." `MechanicsCheck` measures: sun at 0.11 against the preset's
+0.52, the lamp over the mower, following it, and following the walker.
+`LanternShot` is the render.
+
+**The horizon learns the hour.** Rendering the lantern chapter showed the
+country past the fence in full daylight green under a black sky: every
+Horizon material is unshaded, so no preset had ever touched it — at every
+night and dusk in the game. `Horizon.shade()` reads the light that was
+actually written (sun energy, ambient colour and energy) and multiplies each
+material's remembered colour by it; called from `HUD.refresh_sky` and the
+diorama's `apply_sky_mode`, so it follows presets, blends and the switch.
+Dusk before/after at the listening post; night in `LanternShot`.
+
+**Known:** `DayShot` still captures the pause sheet on some runs — the
+background pause re-opens between the close and the draw — its verdict is
+about the scene, not the image. The horizon check used PeopleShot instead.

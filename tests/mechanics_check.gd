@@ -11,6 +11,8 @@ func run() -> void:
 	await _fragile()
 	await _walk_only()
 	await _time_lapse()
+	_weather_spread()
+	await _lantern()
 	await _observer()
 	await _harvest_settler()
 
@@ -109,6 +111,55 @@ func _walk_only() -> void:
 	ck("yuruyerek bulunuyor",
 		model.states[LawnModel.index_of(cell.x, cell.y)] == LawnModel.CellState.SECRET_REVEALED, "")
 	game.queue_free(); await frames(4)
+
+
+## G19.5: six wet chapters, none at an hour the game forbids rain in.
+func _weather_spread() -> void:
+	var wet := 0
+	var illegal := 0
+	for vid: String in LevelVariant.ids():
+		var v := LevelVariant.of(vid)
+		if v.weather == GameConfig.WEATHER_RAIN:
+			wet += 1
+			if GameConfig.RAIN_FORBIDDEN_HOURS.has(v.time_of_day):
+				illegal += 1
+	ck("en az alti yagmurlu bolum", wet >= 6, str(wet))
+	ck("yasak saatte yagmur yok", illegal == 0, str(illegal))
+	print("  [olcum] yagmurlu bolum: %d" % wet)
+
+
+## G19.5: the lantern chapter. The moon is a fraction of the night preset,
+## the lamp exists, and it follows the machine, then the man on foot.
+func _lantern() -> void:
+	var game: Node = await open("ch25_night_watch")
+	ck("ch25 fener bolumu", game.variant.lantern)
+	var sun: DirectionalLight3D = game.get_node("Sun")
+	var night: Dictionary = GameConfig.TIME_OF_DAY["night"]
+	ck("ay kisilmis", sun.light_energy < float(night["sun_energy"]) * 0.5,
+		"%.2f vs %.2f" % [sun.light_energy, float(night["sun_energy"])])
+	var lamp: OmniLight3D = game._lantern
+	ck("fener var", lamp != null)
+	if lamp != null:
+		var d := Vector2(lamp.global_position.x - game.mower.global_position.x,
+			lamp.global_position.z - game.mower.global_position.z).length()
+		ck("fener makinenin ustunde", d < 0.3, "%.2f" % d)
+		game.mower.position += Vector3(2.0, 0.0, -1.5)
+		await frames(3)
+		var d2 := Vector2(lamp.global_position.x - game.mower.global_position.x,
+			lamp.global_position.z - game.mower.global_position.z).length()
+		ck("fener makineyi izliyor", d2 < 0.3, "%.2f" % d2)
+		game.toggle_walk()
+		await frames(3)
+		if game.walking():
+			var w: Node3D = game._walker
+			var d3 := Vector2(lamp.global_position.x - w.global_position.x,
+				lamp.global_position.z - w.global_position.z).length()
+			ck("fener yurunuce adami izliyor", d3 < 0.3, "%.2f" % d3)
+		ck("HUD fener satiri", game.hud._case_line.text == tr("HUD_LANTERN_LINE"),
+			game.hud._case_line.text)
+		print("  [olcum] fener: menzil %.1f, gunes %.2f, ambient %.2f" % [lamp.omni_range,
+			sun.light_energy, (game.get_node("WorldEnvironment") as WorldEnvironment).environment.ambient_light_energy])
+	await close(game)
 
 
 ## ch06: the light moves from sunset to night over the search.
