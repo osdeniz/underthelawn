@@ -353,18 +353,25 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	_exit_badge.visible = false
 	_build_case_notes(collected, total_secrets)
 	_build_payout(payout)
+	# Six things on the panel, not twelve (G19.4): the title, the evidence,
+	# one sentence, one line of pay, and two doors. The stats line (cells and
+	# time — nothing the player acts on), the "incomplete" nudge (the partial
+	# sentence already says it), the CASE NOTES header and its per-piece list
+	# (the evidence row above it, again, with a place name), the board button
+	# (the hub is one tap away and has the board) and RESTART (on the pause
+	# sheet, where a two-tap guard lives) are gone from here. The stats text is
+	# still set, for the harvest suite and for anyone who asks.
+	_complete_stats.visible = false
+	_missed_label.visible = false
+	_notes_header.visible = false
+	_notes_list.visible = false
+	_board_button.visible = false
+	(%RestartButton as Button).visible = false
 	# A real door when a next chapter exists; hidden when there is none (last
 	# chapter, or the scene is running standalone with no flow above it).
 	_teaser.visible = next_name != ""
 	if next_name != "":
 		_teaser.text = tr("UI_NEXT_CHAPTER").format({"name": next_name})
-	# "The search feels incomplete..." is a nudge, not a verdict, and a nudge
-	# repeated on every partial yard becomes nagging (G19.1). Once.
-	var missed := collected.size() < total_secrets
-	var nudged: bool = GameState.get_setting("hints", "incomplete_seen", false)
-	_missed_label.visible = missed and not nudged
-	if missed and not nudged:
-		GameState.set_setting("hints", "incomplete_seen", true)
 	_complete_panel.visible = true
 	# The picker and the joystick go away once the lawn is done (§16).
 	selector.visible = false
@@ -759,15 +766,11 @@ func _build_case_notes(collected: Array, total: int) -> void:
 	_notes_progress.text = Story.text("complete.notes_full") if collected.size() >= total \
 		else Story.text("complete.notes_partial")
 	# What this search did to the TOWN, not to the case. The theme of G13.4 in
-	# one line: every lawn you clear, the town breathes a little easier.
+	# one line: every lawn you clear, the town breathes a little easier. On the
+	# same label as the case sentence (G19.4), as its second line.
 	var variant := LevelVariant.current
 	if variant != null and variant.reclaim_line != "":
-		var reclaimed := Label.new()
-		reclaimed.text = "+ " + tr(variant.reclaim_line)
-		reclaimed.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		reclaimed.add_theme_font_size_override("font_size", 32)
-		reclaimed.add_theme_color_override("font_color", Color(0.62, 0.86, 0.54))
-		_notes_list.add_child(reclaimed)
+		_notes_progress.text += "\n" + tr(variant.reclaim_line)
 
 
 func _on_teaser_pressed() -> void:
@@ -918,51 +921,39 @@ func _build_payout(payout: Dictionary) -> void:
 		child.queue_free()
 	if payout.is_empty():
 		return
-	var bonus_key := "HARVEST_PAYOUT_BONUS" if LevelVariant.current != null \
-		and LevelVariant.current.is_harvest() else "PAYOUT_BONUS"
-	var rows := [
-		[tr("PAYOUT_GROUND"), int(payout.get("ground", 0)), false],
-		[tr(bonus_key).format(
-			{"pct": int(round(float(payout.get("ratio", 0.0)) * 100.0))}),
-			int(payout.get("bonus", 0)), false],
-	]
-	if int(payout.get("thorough", 0)) > 0:
-		rows.append([tr("PAYOUT_THOROUGH").format(
-			{"pct": int(round(GameConfig.SCRAP_THOROUGH_BONUS * 100.0))}),
-			int(payout.get("thorough", 0)), true])
-	rows.append([tr("PAYOUT_TOTAL"), int(payout.get("total", 0)), true])
-	# Food is its own ledger, under the money one: what the yard gave and what
-	# the town ate while you were in it (G14.12).
+	# One line (G19.4): what you carried out. The ledger it replaces — ground,
+	# bonus, thorough, total, food found, food eaten, food left — was seven
+	# rows of arithmetic the player never checks; the town's books are in the
+	# hub. Salvage total, and the food's net change when the yard had any.
+	var line := HBoxContainer.new()
+	line.alignment = BoxContainer.ALIGNMENT_CENTER
+	line.add_theme_constant_override("separation", 14)
+	_payout_chip(line, UiIcons.salvage(), "+%d" % int(payout.get("total", 0)),
+		GameConfig.CASE_ACCENT)
 	if payout.has("food_left"):
-		rows.append([tr("PAYOUT_FOOD"), int(payout.get("food", 0)), false])
-		if int(payout.get("food_eaten", 0)) > 0:
-			rows.append([tr("PAYOUT_FOOD_EATEN"),
-				-int(payout.get("food_eaten", 0)), false])
-		rows.append([tr("PAYOUT_FOOD_LEFT"), int(payout.get("food_left", 0)),
-			true])
-	for row: Array in rows:
-		var line := HBoxContainer.new()
-		var name_label := Label.new()
-		name_label.text = str(row[0])
-		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_label.add_theme_font_size_override("font_size", 34)
-		var coin := TextureRect.new()
-		coin.texture = UiIcons.salvage()
-		coin.custom_minimum_size = Vector2(34, 34)
-		coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		var value_label := Label.new()
-		value_label.text = "%d" % int(row[1])
-		value_label.add_theme_font_size_override("font_size", 34)
-		if bool(row[2]):
-			for label in [name_label, value_label]:
-				label.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
-		line.add_theme_constant_override("separation", 8)
-		line.add_child(name_label)
-		line.add_child(coin)
-		line.add_child(value_label)
-		_payout_list.add_child(line)
+		var net := int(payout.get("food", 0)) - int(payout.get("food_eaten", 0))
+		var text := ("+%d" if net >= 0 else "%d") % net
+		var colour := Color(0.62, 0.86, 0.54) if net >= 0 else Color(0.92, 0.62, 0.48)
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(28, 0)
+		line.add_child(gap)
+		_payout_chip(line, UiIcons.food(), text, colour)
+	_payout_list.add_child(line)
+
+
+func _payout_chip(into: HBoxContainer, icon: Texture2D, text: String, colour: Color) -> void:
+	var pic := TextureRect.new()
+	pic.texture = icon
+	pic.custom_minimum_size = Vector2(40, 40)
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	pic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 40)
+	label.add_theme_color_override("font_color", colour)
+	into.add_child(pic)
+	into.add_child(label)
 
 
 # ---------------------------------------------------------------- pad ring (G9.2)
