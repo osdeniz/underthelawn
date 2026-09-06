@@ -233,7 +233,7 @@ func _show_line(entry: Dictionary) -> void:
 	var speaker := str(entry.get("speaker", ""))
 	_name_label.text = tr(_speaker_name_key(speaker))
 	_set_portrait(speaker)
-	_full_text = tr(str(entry.get("text", "")))
+	_full_text = DogName.fill(tr(str(entry.get("text", ""))))
 	_shown = 0.0
 	_typing = true
 	_hint.visible = false

@@ -168,7 +168,7 @@ func _apply(card: Dictionary) -> void:
 	for raw in card.get("lines", []):
 		var label := Label.new()
 		# Each line is a translation key.
-		label.text = TranslationServer.translate(str(raw))
+		label.text = DogName.fill(TranslationServer.translate(str(raw)))
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", GameConfig.fs(62))
 		label.add_theme_color_override("font_color", Color(1, 1, 1))

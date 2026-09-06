@@ -257,6 +257,9 @@ func _update_look_target(delta: float) -> void:
 ## Where the animals think the player is. It is the MACHINE that startles them
 ## when one is being driven and the man when he is on foot — a robot mower is
 ## exactly as alarming to a rabbit as a person is, and the blade more so.
+var _dog_point_said := false
+
+
 func _update_animals() -> void:
 	if _animals == null or not is_instance_valid(_animals):
 		return
@@ -268,6 +271,12 @@ func _update_animals() -> void:
 		_animals.player_on = true
 	else:
 		_animals.player_on = false
+	# The first time the dog stops over something in this yard, the HUD says
+	# so — by name, now that it has one (G26). Once; the dog holds the pose
+	# itself after that.
+	if _animals.dog_pointing and not _dog_point_said and not _complete_shown:
+		_dog_point_said = true
+		hud.show_scent("DOG_POINT_LINE")
 
 
 func _process(delta: float) -> void:

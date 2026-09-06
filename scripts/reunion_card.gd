@@ -12,6 +12,11 @@ extends Control
 signal finished()
 
 const FADE := 0.4
+## Page order: reunion, party, the dog's name, the door to Case 2 (G26).
+const PAGE_REUNION := 0
+const PAGE_PARTY := 1
+const PAGE_NAME := 2
+const PAGE_CASE2 := 3
 
 var _page := 0
 var _art: TextureRect
@@ -21,6 +26,11 @@ var _line: Label
 var _hint: Label
 var _fade: ColorRect
 var _lock := 0.0
+## The naming page: a box, three chips, one button. Hidden on every other page.
+var _name_box: VBoxContainer
+var _name_edit: LineEdit
+var _name_ok: Button
+var _named := false
 
 
 func _ready() -> void:
@@ -81,6 +91,41 @@ func _build() -> void:
 	_line.add_theme_constant_override("shadow_offset_y", 3)
 	rows.add_child(_line)
 
+	_name_box = VBoxContainer.new()
+	_name_box.add_theme_constant_override("separation", 22)
+	_name_box.visible = false
+	rows.add_child(_name_box)
+
+	_name_edit = LineEdit.new()
+	_name_edit.placeholder_text = tr("REUNION_NAME_PLACEHOLDER")
+	_name_edit.max_length = DogName.MAX_CHARS
+	_name_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_edit.custom_minimum_size = Vector2(0, 110)
+	_name_edit.add_theme_font_size_override("font_size", 50)
+	_name_edit.text_submitted.connect(func(_t: String) -> void: _confirm_name())
+	_name_box.add_child(_name_edit)
+
+	var chips := HBoxContainer.new()
+	chips.alignment = BoxContainer.ALIGNMENT_CENTER
+	chips.add_theme_constant_override("separation", 18)
+	_name_box.add_child(chips)
+	for suggestion in DogName.suggestions():
+		var chip := Button.new()
+		chip.text = suggestion
+		chip.custom_minimum_size = Vector2(0, 84)
+		chip.add_theme_font_size_override("font_size", 38)
+		chip.pressed.connect(func() -> void:
+			_name_edit.text = suggestion
+			_confirm_name())
+		chips.add_child(chip)
+
+	_name_ok = Button.new()
+	_name_ok.text = tr("REUNION_NAME_OK")
+	_name_ok.custom_minimum_size = Vector2(0, 104)
+	_name_ok.add_theme_font_size_override("font_size", 42)
+	_name_ok.pressed.connect(_confirm_name)
+	_name_box.add_child(_name_ok)
+
 	_hint = Label.new()
 	_hint.text = Story.text("intro.skip_hint", "tap to continue")
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -110,9 +155,13 @@ func _gui_input(event: InputEvent) -> void:
 	var clicked := event is InputEventMouseButton and (event as InputEventMouseButton).pressed
 	if not (pressed or clicked):
 		return
+	# The naming page waits for the button, not a tap anywhere: a tap that meant
+	# "dismiss the keyboard" must not skip the question.
+	if _page == PAGE_NAME and not _named:
+		return
 	accept_event()
 	_page += 1
-	if _page > 2:
+	if _page > PAGE_CASE2:
 		_close()
 		return
 	var tw := create_tween()
@@ -124,13 +173,29 @@ func _gui_input(event: InputEvent) -> void:
 func _apply() -> void:
 	_lock = 0.5
 	_scrim.color.a = 0.55
-	if _page == 0:
+	_name_box.visible = _page == PAGE_NAME and not _named
+	_hint.visible = not _name_box.visible
+	if _page == PAGE_NAME:
+		# Ellie asks; the reunion photograph stays behind her. If a name was
+		# already given (a replay of the ending), the page just says it.
+		_art.texture = TextureLibrary.find("story/reunion")
+		_title.text = tr("REUNION_NAME_TITLE")
+		if DogName.has_name():
+			_named = true
+			_name_box.visible = false
+			_hint.visible = true
+			_line.text = DogName.fill(tr("REUNION_NAME_DONE"))
+		else:
+			_line.text = tr("REUNION_NAME_LINE")
+			_name_edit.text = ""
+			_name_edit.grab_focus()
+	elif _page == PAGE_REUNION:
 		_art.texture = TextureLibrary.find("story/reunion")
 		if _art.texture == null:
 			TextureLibrary.warn_missing("story/reunion", "kavusma karti = duz zemin")
 		_title.text = tr("REUNION_TITLE")
 		_line.text = tr("REUNION_LINE")
-	elif _page == 1:
+	elif _page == PAGE_PARTY:
 		# The party in the square. Its own art if it has been drawn; the reunion
 		# photograph carries the beat until then, and the words do the work.
 		_art.texture = TextureLibrary.find("story/birthday")
@@ -163,9 +228,26 @@ func _apply() -> void:
 			_line.text = tr("CASE_02_WAITING").format({"done": progress.x,
 				"total": progress.y})
 	_art.visible = _art.texture != null
-	if _page == 0:
+	if _page == PAGE_REUNION:
 		var tw := create_tween()
 		tw.tween_property(_fade, "color:a", 0.0, FADE)
+
+
+## The box or, empty, the first chip: skipping the question still leaves the dog
+## with a name, because "the dog" for the rest of the game would read as the
+## man's refusal winning. Ellie says the name back, and the next tap moves on.
+func _confirm_name() -> void:
+	if _named:
+		return
+	var typed := DogName.clean_name(_name_edit.text)
+	if typed == "":
+		typed = DogName.suggestions()[0]
+	DogName.store(typed)
+	_named = true
+	_name_box.visible = false
+	_hint.visible = true
+	_line.text = DogName.fill(tr("REUNION_NAME_DONE"))
+	_lock = 0.4
 
 
 func _close() -> void:

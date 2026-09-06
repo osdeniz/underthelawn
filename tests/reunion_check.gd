@@ -50,7 +50,7 @@ func _ready() -> void:
 func _read_case_page() -> Dictionary:
 	var card := ReunionCard.new()
 	add_child(card)
-	card._page = 2
+	card._page = ReunionCard.PAGE_CASE2
 	card._apply()
 	var out := {"title": card._title.text, "line": card._line.text}
 	card.queue_free()

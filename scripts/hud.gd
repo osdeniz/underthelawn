@@ -528,7 +528,7 @@ func show_scent(key: String) -> void:
 	mark.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
 	row.add_child(mark)
 	var line := Label.new()
-	line.text = tr(key)
+	line.text = DogName.fill(tr(key))
 	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	line.add_theme_font_size_override("font_size", 30)

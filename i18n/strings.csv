@@ -1212,10 +1212,10 @@ GATE_CLOSE,Keep it closed,Kapalı tut
 GATE_CLOSE_SUB,Tell them the file is wrong. There was never a child here.,Dosyanın yanlış olduğunu söyle. Burada hiç çocuk olmadı.
 END_OPEN_T,MORNING,SABAH
 END_OPEN_1,She stood in the square with the whole town behind her and told four strangers about dragons.,"Bütün kasaba arkasında, meydanda durdu ve dört yabancıya ejderhaları anlattı."
-END_OPEN_2,The man with the notebook closed it without writing anything down. The dog did not leave her side.,Defterli adam hiçbir şey yazmadan defterini kapattı. Köpek yanından ayrılmadı.
+END_OPEN_2,The man with the notebook closed it without writing anything down. {Dog} did not leave her side.,Defterli adam hiçbir şey yazmadan defterini kapattı. {Dog} yanından ayrılmadı.
 END_CLOSED_T,MORNING,SABAH
 END_CLOSED_1,They thanked us for our time and turned the trucks around. Nobody rang the bell.,Zaman ayırdığımız için teşekkür edip kamyonları çevirdiler. Kimse zili çalmadı.
-END_CLOSED_2,"She watched them go from Sarah's window. The dog stood at the gate, beside you, and did not look back at the house.","Sarah'nın penceresinden gidişlerini izledi. Köpek kapıda, yanında durdu ve eve dönüp bakmadı."
+END_CLOSED_2,"She watched them go from Sarah's window. {Dog} stood at the gate, beside you, and did not look back at the house.","Sarah'nın penceresinden gidişlerini izledi. {Dog} kapıda, yanında durdu ve eve dönüp bakmadı."
 CASE_03_COMPLETE,CASE 03 CLOSED,VAKA 03 KAPANDI
 CASE_03_UNLOCKED,CASE 03 UNLOCKED,VAKA 03 AÇILDI
 UI_RESTART_CONFIRM,TAP AGAIN TO RESTART,SIFIRLAMAK İÇİN TEKRAR DOKUN
@@ -1288,3 +1288,13 @@ HARVEST_PAYS_TIMBER,Timber for the board,Panoya kereste
 HARVEST_TIMBER_LINE,"A lot of timber, stacked. The next roof on the board comes {pct}% cheaper.","Bir yığın kereste, dizilmiş. Panodaki sıradaki çatı %{pct} ucuza gelir."
 HUD_WOODLOT_LINE,WOODLOT — Clear the coppice,KORU — Fidanlığı aç
 RESTORE_TIMBER_HINT,(timber ready),(kereste hazır)
+DOG_UNNAMED,the dog,köpek
+DOG_SUGGEST_1,Pilot,Pilot
+DOG_SUGGEST_2,Biscuit,Fındık
+DOG_SUGGEST_3,Rook,Duman
+REUNION_NAME_TITLE,HE NEEDS A NAME,ONA BİR İSİM LAZIM
+REUNION_NAME_LINE,"Ellie: ""He walked all the way here with you. What do we call him?""","Ellie: ""Buraya kadar seninle yürüdü. Ona ne diyeceğiz?"""
+REUNION_NAME_PLACEHOLDER,a name,bir isim
+REUNION_NAME_OK,"That's him","O işte"
+REUNION_NAME_DONE,"Ellie: ""{Dog}. That's him."" The dog looks up like it always was.","Ellie: ""{Dog}. O işte."" Köpek hep öyleymiş gibi başını kaldırıyor."
+DOG_POINT_LINE,{Dog} has stopped. Look where he's looking.,{Dog} durdu. Baktığı yere bak.

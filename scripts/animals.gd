@@ -37,6 +37,8 @@ var player_at := Vector3.ZERO
 var player_on := false
 
 ## Whether the dog is the player's yet, and whether this is the prologue road.
+## True while the dog stands over a scent (G26: the game says its name once).
+var dog_pointing := false
 var _owned := false
 var _road := false
 
@@ -420,8 +422,10 @@ func _tick_dog_follow(entry: Dictionary, root: Node3D, body: Node3D,
 			if not bool(entry.get("scent_on", false)):
 				entry["scent_on"] = true
 				AudioDirector.play_dog_huff()
+			dog_pointing = true
 		else:
 			entry["scent_on"] = false
+			dog_pointing = false
 			_wag(body, delta)
 		return
 	var step := minf(GameConfig.DOG_FOLLOW_SPEED * delta, maxf(gap - 0.2, 0.0))
