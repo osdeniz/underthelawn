@@ -4528,3 +4528,29 @@ placeholder rectangles — a drawing that is a grey box is worse than no
 drawing. When the art lands: `textures/story/drawing_0N.jpg`, a DRAWINGS
 strip under the Journal's Discoveries tab, unlock keyed to
 `ChapterProgress.is_done` of Case 02's chapters.
+
+## G35 — the first phone run (iPhone 16 Pro simulator)
+
+The iOS export builds and runs in the simulator (x86_64 under Rosetta: Godot
+4.7.2's simulator slice of libgodot is x86_64 only, so the build passes
+`ARCHS=x86_64`; the pck can be swapped into the built .app without
+rebuilding). Two things the desktop never showed, both read from screenshots:
+
+- **The cover lost its title.** `cover_portrait.jpg` is 1122×1402 with the
+  title on its right half; on a phone (0.46 wide for its height)
+  KEEP_ASPECT_COVERED cropped both sides equally and the menu read
+  "UNDE / THE / LAW". The menu now covers by hand (`_place_cover`,
+  `COVER_FOCUS_X` 0.66): fill the height, slide so that share of the picture
+  sits mid-screen, clamp so no ground shows. `MenuShot` renders
+  `out/menu_phone.png` at 1170×2532.
+- **The engine's splash.** Launch showed the Godot logo twice over: the
+  export's default launch storyboard image and the project's boot splash.
+  Storyboard: the game's ground colour with the icon; boot splash: the same
+  ground, no image.
+- `Root._ready` prints one `[cihaz]` line with the window, visible rect,
+  scale and dpi the device reports, for the next device log.
+
+Not yet walked on the phone: everything past the menu (touch sizes, the
+naming page's keyboard, the panel, the album, the hub scroll). The simulator
+panel needs the user's one-time access grant; `xcrun simctl` can screenshot
+but not tap.

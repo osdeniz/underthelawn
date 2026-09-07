@@ -40,13 +40,15 @@ func _build() -> void:
 	add_child(ground)
 
 	var art := TextureRect.new()
-	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.stretch_mode = TextureRect.STRETCH_SCALE
 	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	art.texture = _cover_art()
 	art.visible = art.texture != null
 	add_child(art)
+	_art = art
+	_place_cover()
+	get_viewport().size_changed.connect(_place_cover)
 
 	# A gradient rather than a flat scrim: the top stays legible for the title
 	# and the art stays visible near the horizon, where the game's subject is.
@@ -176,6 +178,29 @@ func _build() -> void:
 ## Set before the title is built, which is the only reason the order in _build
 ## matters.
 var _has_cover := false
+var _art: TextureRect
+## Where the cover's subject sits, as a share of its width. The portrait cover
+## is 1122×1402 with the title on its right half; on a phone (0.46 wide for
+## its height) KEEP_ASPECT_COVERED cropped both sides equally and cut the
+## title to "UNDE / THE / LAW" (measured on the iPhone 16 Pro simulator).
+## Covering by hand lets the crop keep the title and lose the trunk instead.
+const COVER_FOCUS_X := 0.66
+
+
+## Scale the cover to fill the height (or the width, when the screen is the
+## wider of the two) and slide it so COVER_FOCUS_X of the picture sits at the
+## middle of the screen — clamped so no ground shows at either edge.
+func _place_cover() -> void:
+	if _art == null or _art.texture == null:
+		return
+	var view := get_viewport_rect().size
+	var tex := _art.texture.get_size()
+	var scale := maxf(view.x / tex.x, view.y / tex.y)
+	var size := tex * scale
+	var x := view.x * 0.5 - size.x * COVER_FOCUS_X
+	x = clampf(x, view.x - size.x, 0.0)
+	_art.position = Vector2(x, (view.y - size.y) * 0.5)
+	_art.size = size
 
 
 func _cover_art() -> Texture2D:

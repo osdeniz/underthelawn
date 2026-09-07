@@ -49,6 +49,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _ready() -> void:
 	_restore_window_mode()
+	# One line at boot for the device log: what the phone actually reports.
+	print("[cihaz] pencere=%s gorunur=%s olcek=%.2f dpi=%d" % [
+		DisplayServer.window_get_size(), get_viewport().get_visible_rect().size,
+		DisplayServer.screen_get_scale(), DisplayServer.screen_get_dpi()])
 	# Before any screen exists, so the first label already draws in the
 	# player's chosen language rather than flipping after the menu appears.
 	LocaleSupport.restore()
