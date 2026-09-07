@@ -57,3 +57,42 @@ boş/loş kalır — kart başlığı ve alt metin oraya biner. Lamba sağ kenar
 şekillerden oluşur (bir önceki üretimde "MOMMY" benzeri bozuk bir yazı çıktı;
 bu kart o yüzden yeniden üretiliyor). Yüz detayı yok. Silah, ateş, kan,
 kafatası yok.
+
+## 3. Ellie's drawings — `textures/story/drawing_01.jpg` … `drawing_04.jpg` (new, G34 pending art)
+
+Sprint 3's second item waits on these. Four crayon drawings by a
+nine-year-old, one unlocked after each of Case 02's first four chapters
+and shown in the Journal (a DRAWINGS strip under Discoveries) and once, small,
+on the results panel of the chapter that unlocks it. No text on the paper,
+no faces that need to be "right" — a child's marks. Deliver as JPG, 4:3
+(1600×1200 or larger), all four in the same hand.
+
+**Ortak görsel dil:** Beyaz-krem kağıt, kenarları hafif kıvrık, üstte iki
+bant izi. Balmumu pastel: kalın, düzensiz, bastırılmış izler; kağıdın dokusu
+renklerin arasından görünür. Perspektif yok, çocuk çizimi orantısı (başlar
+büyük, eller beş çubuk). Palet: yeşil, kahverengi, gök mavisi, sarı, bir
+parça kırmızı — kırmızı yalnızca elbise ve çiçek için, asla kan veya ışık.
+
+**YASAK (projenin görsel kuralları):** yazı yok, silah yok, ateş yok, kan
+yok, askerî simge yok, kafatası/zombi yok, kırmızı alarm ışığı yok.
+
+**drawing_01 — "Bahçe":** Ellie'nin evi ve önündeki çim; çimin bir şeridi
+biçilmiş (koyu yeşil-açık yeşil çizgiler), köşede küçük kahverengi bir köpek
+oturuyor, gökte turuncu bir uçurtma. Güneş sağ üstte, ışınları çubuk çubuk.
+
+**drawing_02 — "Göl":** Sazlıklar arasında küçük bir kayık, içinde şapkalı
+bir figür kürek çekiyor; kıyıda uzun bacaklı iki gri kuş. Su, üst üste mavi
+dalgalı çizgiler.
+
+**drawing_03 — "Kasaba":** Yan yana dört ev, birinin penceresi sarı
+(yanıyor), ötekiler koyu; önlerinde masalar ve bir sıra çocuk figürü el ele.
+Bir evin çatısında yeni tahtalar (açık sarı çubuklar).
+
+**drawing_04 — "Ne gördüm":** Ormanın kenarı, ağaçların arasında iki iri
+sarı nokta (bir hayvanın gözleri gibi ama belirsiz), önde arkası dönük küçük
+bir kız figürü, saçında kırmızı kurdele. Korku değil merak: gökte yıldızlar,
+ay dolunay. Bu resim Vaka 02'nin sorusunu çizer, cevabını değil.
+
+**Kompozisyon notu:** Kağıt kadrajı doldurur, çevresinde koyu masa yüzeyi
+görünür (parşömen albümüyle aynı masa). Günlük'te 2 sütun küçük gösterilir;
+kalın çizgiler ve az ayrıntı okunur kalmalı.

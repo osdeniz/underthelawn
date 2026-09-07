@@ -4517,3 +4517,14 @@ after dark.
   fourteen, a blank save earns nothing, name/rings/streak flip their own
   record once and only once, a broken streak keeps the record, the panel
   line, the tab's earned and open sections.
+
+## G34 — Ellie's drawings (sprint 3, item 2): waiting on art
+
+Four crayon drawings, one after each of Case 02's first four chapters, shown
+in the Journal and once on the unlocking panel. The prompts are written
+(`docs/ART_PROMPTS.md` §3, within the image rules: no text, no weapons, no
+fire, no blood); the code waits for the four JPGs rather than shipping
+placeholder rectangles — a drawing that is a grey box is worse than no
+drawing. When the art lands: `textures/story/drawing_0N.jpg`, a DRAWINGS
+strip under the Journal's Discoveries tab, unlock keyed to
+`ChapterProgress.is_done` of Case 02's chapters.
