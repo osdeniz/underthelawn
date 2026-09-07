@@ -150,7 +150,13 @@ func _start(id: String) -> bool:
 	ev["t"] = 0.0
 	_live.append(ev)
 	_fired.append(id)
+	# Remembered across yards, for the records (G33).
+	GameState.set_setting("surprises", id, true)
 	return true
+
+
+static func seen(id: String) -> bool:
+	return bool(GameState.get_setting("surprises", id, false))
 
 
 # ---------------------------------------------------------------- kite

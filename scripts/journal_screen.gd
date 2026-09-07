@@ -17,7 +17,7 @@ extends Control
 
 signal closed()
 
-enum Section { NOTES, DISCOVERIES, ECHOES, ALBUM }
+enum Section { NOTES, DISCOVERIES, ECHOES, ALBUM, RECORDS }
 
 var _section: Section = Section.NOTES
 var _tabs: HBoxContainer
@@ -91,7 +91,8 @@ func _build() -> void:
 	for spec in [[Section.NOTES, "JOURNAL_TAB_NOTES"],
 			[Section.DISCOVERIES, "JOURNAL_TAB_DISCOVERIES"],
 			[Section.ECHOES, "JOURNAL_TAB_ECHOES"],
-			[Section.ALBUM, "JOURNAL_TAB_ALBUM"]]:
+			[Section.ALBUM, "JOURNAL_TAB_ALBUM"],
+			[Section.RECORDS, "JOURNAL_TAB_RECORDS"]]:
 		var tab := Button.new()
 		tab.text = tr(str(spec[1]))
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -170,6 +171,8 @@ func _refresh() -> void:
 			_fill_echoes()
 		Section.ALBUM:
 			_fill_album()
+		Section.RECORDS:
+			_fill_records()
 
 
 ## What the Marshal wrote down after each finished chapter. A chapter that is
@@ -241,6 +244,34 @@ func _fill_echoes() -> void:
 ## A heading over a run of entries — which chapter they came out of. Drawn as a
 ## label over a hairline rather than as another panel, so the eye reads it as a
 ## divider in a notebook and not as one more card in a stack.
+## The records (G33): what has been done, dated, then what has not, greyed,
+## each with the sentence that says what it is. Opening the tab also checks
+## the list, so a record earned outside a yard (the dog's name) appears.
+func _fill_records() -> void:
+	Achievements.evaluate()
+	var earned: Array[String] = []
+	var open: Array[String] = []
+	for id in Achievements.ids():
+		if Achievements.is_earned(id):
+			earned.append(id)
+		else:
+			open.append(id)
+	_counter.text = tr("JOURNAL_RECORDS_COUNT").format(
+		{"done": earned.size(), "total": Achievements.ids().size()})
+	var index := 0
+	for id in earned:
+		index += 1
+		_list.add_child(_entry(tr(Achievements.name_key(id)),
+			"%s · %s" % [tr(Achievements.line_key(id)), Achievements.earned_on(id)], index))
+	if not open.is_empty():
+		_list.add_child(_group(tr("JOURNAL_RECORDS_OPEN")))
+	for id in open:
+		index += 1
+		var row := _entry(tr(Achievements.name_key(id)), tr(Achievements.line_key(id)), index)
+		row.modulate = Color(1, 1, 1, 0.55)
+		_list.add_child(row)
+
+
 ## The postcards (G27): every finished yard's photograph, newest first, two to
 ## a row, each one tappable to see it whole. The empty album says what fills it.
 func _fill_album() -> void:

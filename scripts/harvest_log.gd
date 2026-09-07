@@ -21,6 +21,13 @@ static func count() -> int:
 
 static func record() -> void:
 	GameState.set_setting(SECTION, KEY, count() + 1)
+	if LevelVariant.current != null:
+		GameState.set_setting(SECTION, "field_" + LevelVariant.current.id, true)
+
+
+## Whether this field has ever been cut (G33: the records read it).
+static func field_cut(variant_id: String) -> bool:
+	return bool(GameState.get_setting(SECTION, "field_" + variant_id, false))
 	GameState.set_setting(SECTION, KEY_SINCE, ChapterProgress.done_count())
 
 

@@ -358,6 +358,9 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	_build_case_notes(collected, total_secrets)
 	if payout.has("left"):
 		_notes_progress.text += "\n" + tr("SETTLER_LEFT_LINE").format({"settler": str(payout["left"])})
+	for id: String in payout.get("records", []):
+		# A record written (G33): one line each, no fanfare.
+		_notes_progress.text += "\n" + tr("ACH_WRITTEN_LINE").format({"name": tr(Achievements.name_key(id))})
 	if int(payout.get("streak", 0)) >= 2:
 		# The thorough streak (G30): one line, from the second yard up.
 		_notes_progress.text += "\n" + tr("THOROUGH_STREAK_LINE").format({"n": int(payout["streak"])})

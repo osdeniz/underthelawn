@@ -1330,3 +1330,35 @@ GREET_NIGHT,"Late, isn't it.","Geç oldu, değil mi."
 GREET_LEFT,{n} yards left in this case.,Bu vakada {n} bahçe kaldı.
 GREET_ONE_LEFT,One yard left in this case.,Bu vakada bir bahçe kaldı.
 GREET_ALL_DONE,The board is clear. The fields are waiting.,Pano temiz. Tarlalar bekliyor.
+JOURNAL_TAB_RECORDS,Records,Kayıtlar
+JOURNAL_RECORDS_COUNT,{done} of {total} written,{total} kayıttan {done} yazıldı
+JOURNAL_RECORDS_OPEN,Not yet,Henüz değil
+ACH_WRITTEN_LINE,Written in the Journal: {name}.,Günlüğe yazıldı: {name}.
+ACH_FIRST_YARD,First yard,İlk bahçe
+ACH_FIRST_YARD_LINE,A yard searched to the last blade.,Son otuna kadar aranan bir bahçe.
+ACH_DOG_NAMED,A name for the dog,Köpeğe bir isim
+ACH_DOG_NAMED_LINE,Somebody else did it.,Onu başkası yaptı.
+ACH_CASE_ONE,Ellie home,Ellie evde
+ACH_CASE_ONE_LINE,Case 01 closed.,Vaka 01 kapandı.
+ACH_THOROUGH_3,Nothing missed,Hiçbir şey kaçmadı
+ACH_THOROUGH_3_LINE,Three yards in a row with every piece found.,Arka arkaya üç bahçe; her parça bulundu.
+ACH_ROWS_3,Straight rows,Düz sıralar
+ACH_ROWS_3_LINE,Three yards cut in rows.,Sıra sıra biçilen üç bahçe.
+ACH_RINGS_1,Rings,Halkalar
+ACH_RINGS_1_LINE,A yard cut from the fence inward.,Çitten içe doğru biçilen bir bahçe.
+ACH_CROSS_1,Crosshatch,Çapraz
+ACH_CROSS_1_LINE,A yard cut both ways.,İki yönde biçilen bir bahçe.
+ACH_POSTCARDS_5,Five postcards,Beş kartpostal
+ACH_POSTCARDS_5_LINE,Five yards in the album.,Albümde beş bahçe.
+ACH_EVERY_FIELD,Every field,Her tarla
+ACH_EVERY_FIELD_LINE,All seven fields cut at least once.,Yedi tarlanın hepsi en az bir kez biçildi.
+ACH_ECHOES_ALL,Every echo,Her yankı
+ACH_ECHOES_ALL_LINE,Everything the ground remembered.,Toprağın hatırladığı her şey.
+ACH_TOWN_REBUILT,Hollow Creek,Hollow Creek
+ACH_TOWN_REBUILT_LINE,The town rebuilt.,Kasaba yeniden kuruldu.
+ACH_SURPRISES_ALL,Looked up,Başını kaldırdı
+ACH_SURPRISES_ALL_LINE,"Kite, butterflies, ball, bird, cloud, window: seen every one.","Uçurtma, kelebek, top, kuş, bulut, pencere: hepsi görüldü."
+ACH_LAKE,Rowed,Kürek çekti
+ACH_LAKE_LINE,The flooded yard crossed.,Su basmış bahçe geçildi.
+ACH_NIGHT,By lantern,Fenerle
+ACH_NIGHT_LINE,A yard searched after dark.,Karanlıkta aranan bir bahçe.

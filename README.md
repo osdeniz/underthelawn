@@ -4494,3 +4494,26 @@ still open, or "The board is clear. The fields are waiting." No streak, no
 timer, no reward for coming back: a town saying hello.
 
 `LoopCheck` (12 claims, headless) covers G30–G32.
+
+## G33 — the records (gamification sprint 3, item 1)
+
+Fourteen things worth writing down, none of them a popup: first yard, the
+dog's name, Case 01 closed, three thorough yards in a row, three yards in
+rows, a yard in rings, a crosshatch, five postcards, every field cut, every
+echo, the town rebuilt, all six surprises seen, the lake crossed, a yard
+after dark.
+
+- **`Achievements`** (`scripts/achievements.gd`): `LIST` of id/name/line,
+  `evaluate()` checks the unearned ones against state that already exists
+  and stores the date each came true; `earned_on`, `earned_count`, `reset`.
+  New state it needed: `ThoroughStreak.best()`, `HarvestLog.field_cut(id)`
+  (per field, set on record), `Surprises.seen(id)` (set when one starts).
+- **Where it shows.** The finished yard's panel gains one line per fresh
+  record ("Written in the Journal: Rings."). The Journal's fifth tab,
+  RECORDS: earned first with the date, then "Not yet" — the open ones
+  greyed, each with its sentence, so the list reads as invitations. The tab
+  evaluates on open, so a record earned outside a yard appears.
+- `AchievementCheck` (40 claims, headless): names and lines for all
+  fourteen, a blank save earns nothing, name/rings/streak flip their own
+  record once and only once, a broken streak keeps the record, the panel
+  line, the tab's earned and open sections.

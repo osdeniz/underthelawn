@@ -33,6 +33,7 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Bahçeyi düz sıralarla biç | — | panelde "Düz sıralar" çipi ve kartpostal damgasında DÜZ SIRALAR çıkıyor mu; serbest kesimde çip yok (G28) |
 | Bahçede küçük sürprizler | — | bir bahçede en fazla iki: uçurtma / kelebek / top / makineye konan kuş / bulut gölgesi / akşam yanan pencere; hiçbiri oyunu kesmiyor, FPS düşmüyor (G29) |
 | Hub selamı ve Günlük yüzdesi | — | saat dilimine göre selam, kalan bahçe sayısı doğru; Günlük başlığında yüzde (G31–G32) |
+| Günlük → Kayıtlar | — | kazanılanlar tarihli, kalanlar soluk; bahçe sonunda "Günlüğe yazıldı" satırı tek seferlik (G33) |
 | Vaka 1 kapanışı: köpeğe isim | — | klavye açılıyor mu, kutu klavyenin üstünde kalıyor mu; çipler tek dokunuşla onaylıyor mu; sonraki bahçede "X durdu" satırı ismi söylüyor mu (G26) |
 
 ## Masaüstü (Steam ön izleme, 1600×900)

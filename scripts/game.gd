@@ -1303,6 +1303,10 @@ func _on_completed() -> void:
 		hud.set_postcard(card_path)
 		if variant != null and variant.is_harvest():
 			HarvestLog.record()
+		# The records (G33): anything that just came true gets a line.
+		var fresh := Achievements.evaluate()
+		if not fresh.is_empty():
+			payout["records"] = fresh
 			if variant.pays_timber:
 				# The woodlot (G25): a lot of timber for the restore board.
 				RestoreBoard.add_timber(1)

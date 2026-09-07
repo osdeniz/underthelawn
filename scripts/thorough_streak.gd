@@ -5,6 +5,7 @@ extends RefCounted
 
 const SECTION := "story"
 const KEY := "thorough_streak"
+const KEY_BEST := "thorough_best"
 
 
 static func current() -> int:
@@ -15,7 +16,14 @@ static func current() -> int:
 static func bump(thorough: bool) -> int:
 	var next := current() + 1 if thorough else 0
 	GameState.set_setting(SECTION, KEY, next)
+	if next > best():
+		GameState.set_setting(SECTION, KEY_BEST, next)
 	return next
+
+
+## The longest run ever, for the records.
+static func best() -> int:
+	return int(GameState.get_setting(SECTION, KEY_BEST, 0))
 
 
 static func reset() -> void:
