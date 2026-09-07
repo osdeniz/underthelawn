@@ -40,7 +40,10 @@ func _build() -> void:
 	add_child(backdrop)
 
 	var header := Label.new()
-	header.text = tr("JOURNAL_TITLE")
+	header.name = "JournalHeader"
+	# The whole journal's fill, as a number the player can watch grow (G31).
+	header.text = "%s · %s" % [tr("JOURNAL_TITLE"),
+		tr("JOURNAL_PERCENT").format({"percent": completion_percent()})]
 	header.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	header.offset_top = 96.0
 	header.offset_bottom = 180.0
@@ -116,6 +119,38 @@ func _build() -> void:
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", GameConfig.UI_GAP_WIDE)
 	scroll.add_child(_list)
+
+
+## Notes written, evidence found, echoes found and postcards kept, over what
+## the whole game holds of each — one percentage for the header.
+static func completion_percent() -> int:
+	var found := 0
+	var total := 0
+	for pin: Dictionary in Story.list("board.pins"):
+		if str(pin.get("note", "")) == "":
+			continue
+		total += 1
+		if ChapterProgress.is_done(str(pin.get("chapter", ""))):
+			found += 1
+	for chapter: Dictionary in ChapterProgress.chapters():
+		var vid := str(chapter.get("variant_id", ""))
+		var variant := LevelVariant.of(vid)
+		total += variant.evidence_count()
+		found += mini(ChapterProgress.evidence_found(vid), variant.evidence_count())
+		if not variant.echo_info().is_empty():
+			total += 1
+			if EchoLog.is_found(vid):
+				found += 1
+		total += 1
+		if Postcard.has(vid):
+			found += 1
+	for vid: String in GameConfig.HARVEST_VARIANTS:
+		total += 1
+		if Postcard.has(vid):
+			found += 1
+	if total == 0:
+		return 0
+	return int(round(100.0 * float(found) / float(total)))
 
 
 func _refresh() -> void:

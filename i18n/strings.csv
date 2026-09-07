@@ -1321,3 +1321,12 @@ PATTERN_CROSS,Crosshatch,Çapraz
 PATTERN_STAMP_ROWS,STRAIGHT ROWS,DÜZ SIRALAR
 PATTERN_STAMP_RINGS,RINGS,HALKALAR
 PATTERN_STAMP_CROSS,CROSSHATCH,ÇAPRAZ
+THOROUGH_STREAK_LINE,"{n} yards in a row with nothing missed.","Arka arkaya {n} bahçe, hiçbir şey kaçırmadan."
+JOURNAL_PERCENT,{percent}% filled,%{percent} dolu
+GREET_MORNING,Good morning.,Günaydın.
+GREET_AFTERNOON,Good afternoon.,İyi günler.
+GREET_EVENING,Good evening.,İyi akşamlar.
+GREET_NIGHT,"Late, isn't it.","Geç oldu, değil mi."
+GREET_LEFT,{n} yards left in this case.,Bu vakada {n} bahçe kaldı.
+GREET_ONE_LEFT,One yard left in this case.,Bu vakada bir bahçe kaldı.
+GREET_ALL_DONE,The board is clear. The fields are waiting.,Pano temiz. Tarlalar bekliyor.

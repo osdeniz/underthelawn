@@ -178,6 +178,8 @@ func _ready() -> void:
 	# model belongs to this node.
 	_animals = Animals.build(_fx_root, model, variant.decor_seed,
 		variant.is_harvest(), variant.vignette)
+	# Once-a-yard small things (G29): a kite, a ball, a lit window.
+	_surprises = Surprises.build(_fx_root, model, variant, _animals)
 	_activate(GameConfig.MOWER_PUSH, true)
 	if variant.lantern:
 		_build_lantern()
@@ -258,6 +260,22 @@ func _update_look_target(delta: float) -> void:
 ## when one is being driven and the man when he is on foot — a robot mower is
 ## exactly as alarming to a rabbit as a person is, and the blade more so.
 var _dog_point_said := false
+var _surprises: Surprises
+var _parked_seconds := 0.0
+
+
+## What the surprises need to know: where the player is, whether the machine
+## has been left standing, and for how long.
+func _update_surprises(delta: float) -> void:
+	if _surprises == null or not is_instance_valid(_surprises):
+		return
+	var parked := mower != null and is_instance_valid(mower) and mower.visible \
+		and not mower.is_active and _walker != null and is_instance_valid(_walker) and _walker.visible
+	_parked_seconds = _parked_seconds + delta if parked else 0.0
+	_surprises.parked_seconds = _parked_seconds
+	_surprises.mower = mower if parked else null
+	_surprises.player_at = _animals.player_at if _animals != null and is_instance_valid(_animals) \
+		else (mower.global_position if mower != null and is_instance_valid(mower) else Vector3.ZERO)
 
 
 func _update_animals() -> void:
@@ -286,6 +304,7 @@ func _process(delta: float) -> void:
 		_search_seconds += delta
 	_update_look_target(delta)
 	_update_animals()
+	_update_surprises(delta)
 	_tick_lapse()
 	_tick_lantern(get_process_delta_time())
 	_tick_recover(get_process_delta_time())
@@ -1248,6 +1267,12 @@ func _on_completed() -> void:
 		if pattern != "":
 			payout["pattern"] = pattern
 			MowPattern.record(pattern)
+		# Yards in a row with nothing missed (G30); a field has nothing to miss.
+		if variant != null and not variant.is_harvest():
+			var streak := ThoroughStreak.bump(_evidence_total() > 0
+				and _collected.size() >= _evidence_total())
+			if streak >= 2:
+				payout["streak"] = streak
 		GameState.add_scrap(int(payout["total"]))
 		hud.set_scrap(GameState.scrap_total())
 		# Food is banked and the town's share is eaten in the same breath, so

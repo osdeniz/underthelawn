@@ -807,6 +807,17 @@ func _build_tiles() -> Control:
 	# lines of copy, which said they all mattered the same amount and answered
 	# none of "what should I be doing". The lead card answers that; everything
 	# else is a place you can go, and places you can go are a list.
+	# A line for the hour (G32): the town says hello and what is left.
+	var greeting := Label.new()
+	greeting.name = "Greeting"
+	greeting.text = greeting_text(Time.get_time_dict_from_system()["hour"])
+	greeting.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	greeting.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	greeting.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+	greeting.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+	greeting.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	greeting.add_theme_constant_override("shadow_offset_y", 2)
+	column.add_child(greeting)
 	column.add_child(_build_lead_card())
 	for tile: Dictionary in Story.list("hub.tiles"):
 		column.add_child(_make_tile(tile))
@@ -829,6 +840,31 @@ func _build_tiles() -> Control:
 	column.add_child(story)
 	column.add_child(_main_menu_button())
 	return page
+
+
+## "Good morning. Two yards left in this case." — the hour from the clock,
+## the rest from the board. No streaks, no timers: a greeting, not a nag.
+static func greeting_text(hour: int) -> String:
+	var hello := "GREET_NIGHT"
+	if hour >= 5 and hour < 12:
+		hello = "GREET_MORNING"
+	elif hour >= 12 and hour < 18:
+		hello = "GREET_AFTERNOON"
+	elif hour >= 18 and hour < 23:
+		hello = "GREET_EVENING"
+	var left := 0
+	for chapter: Dictionary in ChapterProgress.chapters():
+		if bool(chapter.get("playable", false)) \
+				and not ChapterProgress.is_done(str(chapter.get("variant_id", ""))):
+			left += 1
+	var rest := ""
+	if left == 0:
+		rest = TranslationServer.translate("GREET_ALL_DONE")
+	elif left == 1:
+		rest = TranslationServer.translate("GREET_ONE_LEFT")
+	else:
+		rest = TranslationServer.translate("GREET_LEFT").format({"n": left})
+	return "%s %s" % [TranslationServer.translate(hello), rest]
 
 
 ## The door back to the front door. Styled like the story replay because it is

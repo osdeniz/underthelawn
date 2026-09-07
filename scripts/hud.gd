@@ -358,6 +358,9 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	_build_case_notes(collected, total_secrets)
 	if payout.has("left"):
 		_notes_progress.text += "\n" + tr("SETTLER_LEFT_LINE").format({"settler": str(payout["left"])})
+	if int(payout.get("streak", 0)) >= 2:
+		# The thorough streak (G30): one line, from the second yard up.
+		_notes_progress.text += "\n" + tr("THOROUGH_STREAK_LINE").format({"n": int(payout["streak"])})
 	_build_payout(payout)
 	# Six things on the panel, not twelve (G19.4): the title, the evidence,
 	# one sentence, one line of pay, and two doors. The stats line (cells and

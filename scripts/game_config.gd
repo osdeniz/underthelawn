@@ -884,6 +884,24 @@ const SNOW_ICE_COLOUR := Color(0.78, 0.84, 0.90)
 ## in. Alpha low so the cell tints (reed-dark / clear-water) read through it.
 const LAKE_SHEEN_COLOUR := Color(0.18, 0.32, 0.36, 0.40)
 const LAKE_SHEEN_Y := 0.035
+## Small surprises (G29): at most this many per yard, each planned at a
+## completion ratio inside the window; the bird also waits for a machine left
+## standing this long. Sizes and timings are what a phone sees, measured.
+const SURPRISES_ENABLED := true
+const SURPRISE_MAX_PER_YARD := 2
+const SURPRISE_WINDOW := Vector2(0.15, 0.75)
+const SURPRISE_KITE_HEIGHT := 4.0
+const SURPRISE_KITE_SECONDS := 26.0
+const SURPRISE_BUTTERFLY_SECONDS := 14.0
+const SURPRISE_BALL_RADIUS := 0.28
+const SURPRISE_BALL_SPEED := 3.4
+const SURPRISE_BALL_DRAG := 0.9
+const SURPRISE_BIRD_PARK_SECONDS := 5.0
+const SURPRISE_BIRD_PERCH := 0.72
+const SURPRISE_CLOUD_SIZE := Vector2(22.0, 14.0)
+const SURPRISE_CLOUD_COLOUR := Color(0.0, 0.0, 0.0, 0.32)
+const SURPRISE_CLOUD_SECONDS := 20.0
+const SURPRISE_WINDOW_GLOW := 2.4
 ## The lake's birds (G21.2).
 const HERON_COUNT := 2
 const HERON_SPEED := 2.6

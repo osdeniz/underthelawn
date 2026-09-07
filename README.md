@@ -4443,3 +4443,54 @@ tint. Read at the end of a cut, those directions say how the yard was mown.
 - `PatternCheck` (15 claims): rows both ways, one-way is nothing, rings,
   crosshatch, random is nothing, a small cut is nothing, keys translated,
   icons, the counter, the chip shown only with a pattern.
+
+## G29 — small surprises (gamification sprint 2, item 1)
+
+Six things that happen once in a yard and pay nothing: a kite over the
+fence on a clear day, two butterflies over the cut grass near the machine,
+a ball that rolls in from the neighbour's side and stops, a bird that lands
+on a mower left standing (and leaves when it moves), a cloud's shadow
+crossing the yard, a window in the house lighting up at dusk.
+
+- **`Surprises`** (`scripts/surprises.gd`), built by the game after the
+  animals, absent on the road and in the cellar. `eligible(variant)` reads
+  the weather, the hour and the palette (no kite at night, no butterflies
+  on ash/snow/sand, no ball on the lake, a window only from golden hour
+  on); `plan(seed)` shuffles with the yard's own seed and keeps
+  `SURPRISE_MAX_PER_YARD` (2), each at a completion ratio in
+  `SURPRISE_WINDOW`; the bird also waits for `SURPRISE_BIRD_PARK_SECONDS`.
+  The window is not a new mesh: a window box already in the scene gets a
+  warm emissive material that fades in — the house's glass, or a derelict
+  neighbour's dark pane; no evening chapter has the main house, so it is an
+  empty house across the way that lights, which in a town being resettled
+  is the right story. The ball stays as a prop; the rest
+  free themselves. `force(id)` starts one on demand (tests, dev).
+- `SurpriseCheck` (26 claims, headless): eligibility by hour/weather/lake,
+  plan size and determinism, each of the six spawning and moving, the bird
+  refusing to land without a parked machine and leaving when it is moved,
+  the road having none. `SurpriseShot` renders `out/surprise_ch01.png` and
+  `out/surprise_ch07_window.png`.
+
+## G30 — the thorough streak (sprint 2, item 2)
+
+`ThoroughStreak` (story/thorough_streak): +1 for a search yard closed with
+every piece found, back to 0 for one that missed something, untouched by
+fields. From two up the panel's sentence gains one line: "3 yards in a row
+with nothing missed." Nothing paid, nothing lost — a habit named.
+
+## G31 — the Journal's percentage (sprint 2, item 3)
+
+The Journal header reads "Journal · 42% filled": notes written, evidence
+found, echoes found and postcards kept, over what the whole game holds
+(`JournalScreen.completion_percent`). One number the player can watch grow,
+in the one place they go to look back.
+
+## G32 — the greeting (sprint 2, item 4)
+
+The hub's tile column opens with a line from the clock and the board:
+"Good morning. Two yards left in this case." — `HubScreen.greeting_text(hour)`;
+morning / afternoon / evening / late, then how many playable chapters are
+still open, or "The board is clear. The fields are waiting." No streak, no
+timer, no reward for coming back: a town saying hello.
+
+`LoopCheck` (12 claims, headless) covers G30–G32.
