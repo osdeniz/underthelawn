@@ -103,10 +103,8 @@ func _build() -> void:
 
 func _process(delta: float) -> void:
 	_lock = maxf(_lock - delta, 0.0)
-	var was_typing := _typer.typing()
 	_typer.advance(delta)
-	if was_typing and not _typer.typing():
-		_hint.visible = true
+	_hint.visible = not _typer.typing()
 
 
 ## _gui_input, NOT _unhandled_input.

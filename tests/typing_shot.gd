@@ -23,6 +23,14 @@ func _ready() -> void:
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png("res://out/typing_2.png")
-	print("[cekim] out/typing_1.png ve out/typing_2.png yazildi")
+	# The skip bar, mid-hold (G40): its own capture, because a 6 px bar at the
+	# bottom of a phone screen is exactly the kind of thing that lands on top
+	# of the hint or under the home indicator.
+	intro._hold = GameConfig.INTRO_SKIP_HOLD * 0.62
+	for _i in 3:
+		await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png("res://out/typing_3_skip.png")
+	print("[cekim] out/typing_1.png, _2.png ve _3_skip.png yazildi")
 	print("--- TUM YAZI CEKIM TESTLERI GECTI ---")
 	get_tree().quit()

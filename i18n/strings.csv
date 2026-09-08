@@ -1364,3 +1364,4 @@ ACH_NIGHT,By lantern,Fenerle
 ACH_NIGHT_LINE,A yard searched after dark.,Karanlıkta aranan bir bahçe.
 SET_TYPING_TITLE,Letter-by-letter text,Harf harf yazı
 SET_TYPING_HINT,"Story cards and dialogue write themselves out; a tap finishes a line. Off, every line arrives whole.","Hikâye kartları ve diyaloglar kendini yazar; dokunuş satırı tamamlar. Kapalıyken her satır bir anda görünür."
+INTRO_HOLD_SKIP,hold to skip,atlamak için basılı tut

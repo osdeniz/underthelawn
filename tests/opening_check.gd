@@ -85,4 +85,60 @@ func run() -> void:
 						where = "%s %s" % [locale, key]
 	ck("kart satirlari 16 kelimeyi asmaz", longest <= 16, "%d @ %s" % [longest, where])
 	ck("ve oncesi virgul yok", not tr("PRO_05_L1").contains(", ve "), tr("PRO_05_L1"))
+	await _hold_to_skip()
 	finish()
+
+
+## Holding to skip (G40): a tap does not, a short press does not, a long one
+## ends the whole sequence — and the bar shows it filling on the way.
+func _hold_to_skip() -> void:
+	var intro := IntroSequence.new()
+	intro.cards_key = "prologue.cards"
+	add_child(intro)
+	var done := [false]
+	intro.finished.connect(func() -> void: done[0] = true)
+	await frames(6)
+	var track: ColorRect = intro.find_child("SkipTrack", true, false)
+	ck("atlama cubugu basta gizli", track != null and not track.visible, "")
+	ck("atlama ipucu var",
+		intro.find_child("SkipHint", true, false) != null
+		and tr("INTRO_HOLD_SKIP") != "INTRO_HOLD_SKIP", "")
+
+	# A tap: press then release, nothing skipped.
+	intro._tap_lock = 0.0
+	intro._gui_input(_press(true))
+	intro._gui_input(_press(false))
+	# Long enough to cover the hold AND the fade a skip would run: a hold left
+	# counting by a swallowed release would have finished the sequence by now.
+	await settle(GameConfig.INTRO_SKIP_HOLD + IntroSequence.FADE_TIME + 0.4)
+	ck("dokunus atlamaz", not done[0], "")
+	ck("dokunus sonrasi sayac durdu", intro._hold < 0.0, str(intro._hold))
+	ck("birakinca cubuk gizlenir", not track.visible, "")
+
+	# Half a hold: the bar shows, nothing skips.
+	intro._tap_lock = 0.0
+	intro._gui_input(_press(true))
+	await settle(GameConfig.INTRO_SKIP_HOLD * 0.45)
+	ck("yarim basisla atlamaz", not done[0], "")
+	ck("basarken cubuk gorunur", track.visible, "")
+	ck("cubuk doluyor", intro._skip_fill.size.x > 1.0 and intro._skip_fill.size.x < track.size.x,
+		"%.1f / %.1f" % [intro._skip_fill.size.x, track.size.x])
+	intro._gui_input(_press(false))
+	ck("birakinca sifirlanir", intro._hold < 0.0, str(intro._hold))
+
+	# The full hold.
+	intro._tap_lock = 0.0
+	intro._gui_input(_press(true))
+	# The skip fires at INTRO_SKIP_HOLD and then fades out before it reports.
+	await settle(GameConfig.INTRO_SKIP_HOLD + IntroSequence.FADE_TIME + 0.4)
+	ck("uzun basis tum kartlari atlar", done[0], "")
+	if is_instance_valid(intro):
+		intro.queue_free()
+	await frames(2)
+
+
+func _press(down: bool) -> InputEventMouseButton:
+	var event := InputEventMouseButton.new()
+	event.pressed = down
+	event.button_index = MOUSE_BUTTON_LEFT
+	return event

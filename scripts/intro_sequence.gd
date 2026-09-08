@@ -25,6 +25,11 @@ var _index := -1
 var _tap_lock := 0.0
 var _closing := false
 var _typer := Typewriter.new()
+## Holding to skip (G40): how long the press has lasted, and the bar that
+## shows it. -1.0 means no finger is down.
+var _hold := -1.0
+var _skip_track: ColorRect
+var _skip_fill: ColorRect
 
 var _image: TextureRect
 var _ground: ColorRect
@@ -118,6 +123,38 @@ func _build() -> void:
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_hint)
 
+	# "hold to skip", and the bar that fills while a finger is down. The bar
+	# is what makes the gesture safe: a thumb left on the screen shows its
+	# progress and can be lifted before it counts (G40).
+	var skip_hint := Label.new()
+	skip_hint.name = "SkipHint"
+	skip_hint.text = tr("INTRO_HOLD_SKIP")
+	skip_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	skip_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	skip_hint.offset_top = -96
+	skip_hint.offset_bottom = -50
+	skip_hint.add_theme_font_size_override("font_size", 26)
+	skip_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.28))
+	skip_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(skip_hint)
+
+	_skip_track = ColorRect.new()
+	_skip_track.name = "SkipTrack"
+	_skip_track.color = Color(1, 1, 1, 0.14)
+	_skip_track.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_skip_track.offset_left = -140
+	_skip_track.offset_right = 140
+	_skip_track.offset_top = -44
+	_skip_track.offset_bottom = -38
+	_skip_track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skip_track.visible = false
+	add_child(_skip_track)
+	_skip_fill = ColorRect.new()
+	_skip_fill.color = GameConfig.CASE_ACCENT
+	_skip_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skip_fill.size = Vector2(0, 6)
+	_skip_track.add_child(_skip_fill)
+
 	_fade = ColorRect.new()
 	_fade.color = Color(0, 0, 0, 1)
 	_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -127,18 +164,37 @@ func _build() -> void:
 
 func _process(delta: float) -> void:
 	_tap_lock = maxf(_tap_lock - delta, 0.0)
-	var was_typing := _typer.typing()
 	_typer.advance(delta)
-	if was_typing and not _typer.typing():
-		_hint.visible = true
+	# Asked every frame rather than caught on the transition: a skip or a
+	# settings change can finish the typing too, and the first version left
+	# the hint hidden for good when it did (seen in out/typing_3_skip.png).
+	_hint.visible = not _typer.typing()
+	_tick_hold(delta)
 
 
 func _gui_input(event: InputEvent) -> void:
-	if _closing or _tap_lock > 0.0:
-		return
 	var pressed := event is InputEventScreenTouch and (event as InputEventScreenTouch).pressed
 	var clicked := event is InputEventMouseButton and (event as InputEventMouseButton).pressed
+	var lifted := (event is InputEventScreenTouch
+			and not (event as InputEventScreenTouch).pressed) \
+		or (event is InputEventMouseButton and not (event as InputEventMouseButton).pressed)
+	# A lift clears the hold BEFORE the tap lock is consulted. The first
+	# version checked the lock first, so the release after a tap was swallowed
+	# and the press went on counting: tapping one card and then touching
+	# nothing skipped the whole prologue a second later (measured).
+	if lifted:
+		_hold = -1.0
+		if _skip_track != null:
+			_skip_track.visible = false
+		return
 	if pressed or clicked:
+		# The timer starts even inside the tap lock — a finger going down
+		# right after a tap is still a finger going down — but nothing else
+		# happens until the lock has run out.
+		if _hold < 0.0:
+			_hold = 0.0
+		if _closing or _tap_lock > 0.0:
+			return
 		accept_event()
 		if _typer.typing():
 			# First tap finishes the words, second turns the page: the same two
@@ -148,6 +204,29 @@ func _gui_input(event: InputEvent) -> void:
 			_tap_lock = TAP_LOCK
 			return
 		_advance()
+
+
+## A press that outlasts INTRO_SKIP_HOLD ends the whole sequence, not just the
+## card: the flow takes it from there exactly as it would after the last one.
+func _tick_hold(delta: float) -> void:
+	if _closing:
+		return
+	if _hold < 0.0:
+		if _skip_track.visible:
+			_skip_track.visible = false
+		return
+	_hold += delta
+	# The bar appears only once the press has clearly outlived a tap.
+	_skip_track.visible = _hold > 0.18
+	_skip_fill.size = Vector2(_skip_track.size.x
+		* clampf(_hold / GameConfig.INTRO_SKIP_HOLD, 0.0, 1.0), _skip_track.size.y)
+	if _hold >= GameConfig.INTRO_SKIP_HOLD:
+		_hold = -1.0
+		_skip_track.visible = false
+		Haptics.medium()
+		Analytics.track(AnalyticsEvents.INTRO_SKIPPED,
+			{"cards": cards_key, "at": _index})
+		_finish()
 
 
 ## Fades out the current card, swaps in the next one, fades back in.

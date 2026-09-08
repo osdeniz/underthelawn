@@ -2000,6 +2000,12 @@ const BUMP_COOLDOWN := 0.35
 const BUMP_CAMERA_KICK := 0.34
 const BUMP_CAMERA_DECAY := 7.0
 
+## HOLDING TO SKIP THE CARDS (G40). A replay had to be tapped through card by
+## card, and G37's typing added a tap to each one. A press this long — with a
+## bar filling under the hint the whole time, so a thumb resting on the screen
+## can be lifted before it counts — ends the whole sequence.
+const INTRO_SKIP_HOLD := 1.2
+
 ## Mowing patterns (G28): read from the stripe directions at the end of a cut.
 ## A yard smaller than PATTERN_MIN_CELLS says nothing; straight rows need this
 ## share of cells on one axis and this share of neighbouring lanes running the

@@ -4687,3 +4687,28 @@ subtitle. It types now, on the machine G37 built:
 stranded *after* `field_cut`'s `return`, so `since_chapter` was never
 written and the invitation stopped withdrawing — Gus asked for another
 harvest forever. The stamp is back inside `record()`.
+
+## G40 — holding to skip the cards
+
+A replay had to be tapped through card by card, and G37 added a tap to each
+one. A press held for `INTRO_SKIP_HOLD` (1.2 s) ends the whole sequence and
+the flow carries on exactly as it would after the last card.
+
+- The gesture is **shown while it happens**: "atlamak için basılı tut" under
+  the usual hint, and a bar that appears once the press has outlived a tap
+  (0.18 s) and fills to the end. A thumb resting on the screen can be lifted
+  before it counts. `Analytics.INTRO_SKIPPED` records where it was used —
+  an opening people skip is an opening to shorten.
+- **Found while testing:** the first version consulted the tap lock before
+  the lift, so the release after a tap was swallowed and the press went on
+  counting — tapping one card and then touching nothing skipped the whole
+  prologue a second later. A lift now clears the hold before anything else,
+  and the press starts the timer even inside the lock.
+- **Found in a render:** the "tap to continue" hint stayed hidden for good
+  when something other than a tap finished the typing (a skip, the settings
+  switch), because the hint was flipped on the typing's *transition*. The
+  story, convoy and gate cards now ask the typer every frame instead.
+- `OpeningCheck` gains 9 claims: the bar hidden at rest, a tap not skipping
+  (and the counter stopped afterwards), half a hold showing a partly filled
+  bar without skipping, a lift resetting it, and the full hold finishing the
+  sequence. `TypingShot` also writes `out/typing_3_skip.png`.

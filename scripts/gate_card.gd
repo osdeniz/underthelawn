@@ -107,10 +107,11 @@ func _add_choice(open: bool, key: String, sub_key: String) -> void:
 
 func _process(delta: float) -> void:
 	_lock = maxf(_lock - delta, 0.0)
-	var was_typing := _typer.typing()
 	_typer.advance(delta)
-	if was_typing and not _typer.typing() and _page < 2:
-		_hint.visible = true
+	# The last page hides the hint for good: the two choices are the only way
+	# on from there.
+	if _page < 2:
+		_hint.visible = not _typer.typing()
 
 
 func _gui_input(event: InputEvent) -> void:
