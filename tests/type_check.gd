@@ -10,6 +10,7 @@ func run() -> void:
 	await _story_card()
 	await _reunion()
 	await _dialogue()
+	await _radio()
 	_switch()
 	GameConfig.text_instant = false
 	finish()
@@ -168,6 +169,42 @@ func _dialogue() -> void:
 	GameConfig.text_instant = false
 	box.queue_free()
 	await frames(2)
+
+
+## The Marshal on the radio (G39): the toast types, its marker blinks while it
+## does, and the toast lives long enough to be read after the last letter.
+func _radio() -> void:
+	var game := await open("ch01_aldridge")
+	game.hud.show_scent("SCENT_OAK")
+	await frames(2)
+	var toast: Node = game.hud.find_child("ScentToast", true, false)
+	ck("koku bildirimi acilir", toast != null, "")
+	var line: Label = null
+	for any: Variant in toast.find_children("*", "Label", true, false):
+		if (any as Label).text.length() > 3:
+			line = any as Label
+	ck("telsiz satiri yaziyor", line != null and line.visible_characters != -1,
+		"" if line == null else str(line.visible_characters))
+	ck("satirin tam metni yerinde", line != null and line.text == tr("SCENT_OAK"),
+		"" if line == null else line.text)
+	ck("yazarken isaret yanip soner",
+		game.hud._scent_mark != null and game.hud._scent_mark.modulate.a < 1.0,
+		"%.2f" % game.hud._scent_mark.modulate.a)
+	# It must outlive its own typing by the usual read.
+	var typing := float(tr("SCENT_OAK").length()) / GameConfig.TEXT_CPS
+	await settle(typing + 0.5)
+	ck("yazma bitince bildirim hala duruyor",
+		game.hud.find_child("ScentToast", true, false) != null, "")
+	ck("bitince isaret sabit", game.hud._scent_mark.modulate.a >= 0.99,
+		"%.2f" % game.hud._scent_mark.modulate.a)
+
+	# The panel's sentence.
+	game.hud.show_complete(100, "1:00", [], 2, {"total": 10}, "")
+	await frames(2)
+	ck("panel cumlesi yaziyor", game.hud._notes_progress.visible_characters != -1,
+		str(game.hud._notes_progress.visible_characters))
+	ck("panel cumlesinin metni tam", game.hud._notes_progress.text.length() > 0, "")
+	close(game)
 
 
 ## The settings row drives the same flag the machine reads.

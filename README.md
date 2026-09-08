@@ -4662,3 +4662,28 @@ was the one the game never acknowledged.
   leaning on it, a **second** report after backing off and going in again, no
   report at all for a machine standing against it, the camera kick appearing
   and settling, and the hard bump reading lower than the soft one.
+
+## G39 — the Marshal on the radio
+
+The scent line appeared whole, which made a radio transmission read like a
+subtitle. It types now, on the machine G37 built:
+
+- `Hud.show_scent` types the line and blinks the "//" marker while it comes
+  in — a cursor, not decoration; once the line has landed the marker sits
+  steady. The toast then holds for its usual read **after** the last letter
+  (`SCENT_TOAST_SECONDS` plus the typing time) rather than spending that
+  read being written.
+- The results panel's one sentence types itself in as the panel settles; the
+  pay row and the doors are readable from the first frame, so nothing waits
+  on it. The HUD keeps two typers, because the last scent of a yard can land
+  the same second the yard is finished and one would clobber the other.
+- The resource tips (salvage, food) stay instant on purpose: they are
+  instructions, shown once, and a player should not wait on a letter to be
+  told what a gear is.
+- `TypeCheck` gains the radio and panel claims (39 total).
+
+**Fixed, found by running HarvestCheck against changed code:** G33's edit to
+`HarvestLog.record()` had left the line that stamps the harvest cadence
+stranded *after* `field_cut`'s `return`, so `since_chapter` was never
+written and the invitation stopped withdrawing — Gus asked for another
+harvest forever. The stamp is back inside `record()`.

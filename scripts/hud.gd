@@ -87,6 +87,12 @@ var _postcard_path := ""
 var _shown_percent := 0.0
 ## The Marshal's radio line, if one is on screen (G13.4).
 var _scent_toast: PanelContainer
+## The Marshal's radio and the panel's one sentence type themselves out (G39).
+## Two machines, not one: the last scent can land the same second the yard is
+## finished, and one would clobber the other.
+var _scent_typer := Typewriter.new()
+var _panel_typer := Typewriter.new()
+var _scent_mark: Label
 var _target_percent := 0.0
 var _card_home := Vector2.ZERO
 var _card_tween: Tween
@@ -206,6 +212,13 @@ func set_progress(ratio: float) -> void:
 
 
 func _process(delta: float) -> void:
+	_scent_typer.advance(delta)
+	_panel_typer.advance(delta)
+	if _scent_mark != null and is_instance_valid(_scent_mark):
+		# A cursor, not decoration: while the line is still coming in, the
+		# marker pulses; once it has landed it sits steady.
+		_scent_mark.modulate.a = 1.0 if not _scent_typer.typing() \
+			else 0.45 + 0.55 * absf(sin(Time.get_ticks_msec() * 0.008))
 	if absf(_target_percent - _shown_percent) > 0.01:
 		_shown_percent = lerpf(_shown_percent, _target_percent,
 			clampf(delta * 9.0, 0.0, 1.0))
@@ -364,6 +377,9 @@ func show_complete(cells: int, elapsed: String, collected: Array,
 	if int(payout.get("streak", 0)) >= 2:
 		# The thorough streak (G30): one line, from the second yard up.
 		_notes_progress.text += "\n" + tr("THOROUGH_STREAK_LINE").format({"n": int(payout["streak"])})
+	# The sentence that says what this yard meant types itself in as the panel
+	# settles (G39); the pay row and the doors are already readable.
+	_panel_typer.play([_notes_progress], 0.3)
 	_build_payout(payout)
 	# Six things on the panel, not twelve (G19.4): the title, the evidence,
 	# one sentence, one line of pay, and two doors. The stats line (cells and
@@ -547,10 +563,18 @@ func show_scent(key: String) -> void:
 	row.add_child(line)
 	add_child(toast)
 	_scent_toast = toast
+	_scent_mark = mark
 	toast.modulate.a = 0.0
+	# He is on the radio: the words arrive as he says them, and the "//" marker
+	# blinks while they do (G39). The toast then holds for its usual read AFTER
+	# the last letter instead of spending that read being written.
+	_scent_typer.play([line], 0.25)
+	var typing := 0.0
+	if _scent_typer.typing():
+		typing = float(line.text.length()) / GameConfig.TEXT_CPS
 	var fade := create_tween()
 	fade.tween_property(toast, "modulate:a", 1.0, 0.25)
-	fade.tween_interval(GameConfig.SCENT_TOAST_SECONDS)
+	fade.tween_interval(GameConfig.SCENT_TOAST_SECONDS + typing)
 	fade.tween_property(toast, "modulate:a", 0.0, 0.45)
 	fade.tween_callback(toast.queue_free)
 
