@@ -25,6 +25,9 @@ var _bird_view := false
 var freeze_yaw := false
 var _glance_point := Vector3.ZERO
 var _glance_weight := 0.0
+## A short lurch after an impact (G38), decaying to nothing. Cosmetic: the
+## focus and the yaw are untouched, so nothing about driving changes.
+var _kick := Vector3.ZERO
 
 
 func _ready() -> void:
@@ -61,12 +64,22 @@ func _process(delta: float) -> void:
 		_focus = _focus.lerp(_glance_point, _glance_weight * 0.65)
 	if not target.camera_yaw_locked() and not freeze_yaw:
 		yaw += wrapf(target.yaw - yaw, -PI, PI) * (1.0 - exp(-GameConfig.CAMERA_YAW_LERP * delta))
+	if _kick.length_squared() > 0.000001:
+		_kick = _kick.lerp(Vector3.ZERO, 1.0 - exp(-GameConfig.BUMP_CAMERA_DECAY * delta))
 	_place()
 
 
 ## G12.6: a brief look at a point, then back to the mower. The rig keeps
 ## following its target throughout — this only biases the focus, so the player
 ## never loses control of the machine.
+## The machine stopped and the camera did not: a small push along the heading
+## that decays in about a third of a second.
+func kick(direction: Vector3, amount: float) -> void:
+	if direction.length_squared() < 0.0001 or amount <= 0.0:
+		return
+	_kick = direction.normalized() * amount
+
+
 func glance_at(at: Vector3, duration: float) -> void:
 	var tw := create_tween()
 	tw.tween_method(func(weight: float) -> void: _glance_weight = weight,
@@ -105,7 +118,7 @@ func _place() -> void:
 	var ahead := look_ahead
 	if target and look_ahead_speed_gain != 0.0:
 		ahead += look_ahead_speed_gain * target.speed_fraction()
-	position = _focus - fwd * back + Vector3(0.0, height, 0.0)
+	position = _focus - fwd * back + Vector3(0.0, height, 0.0) + _kick
 	_look(_focus + fwd * ahead + Vector3(0.0, GameConfig.CAMERA_LOOK_UP, 0.0))
 
 

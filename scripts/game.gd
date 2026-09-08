@@ -120,6 +120,10 @@ func _ready() -> void:
 	_mowers.sort_custom(func(a: MowerController, b: MowerController) -> bool:
 		return a.type_index() < b.type_index())
 	_ensure_all_mowers()
+	# Every machine reports its own impacts; the answer to them lives in one
+	# place (G38).
+	for any: MowerController in _mowers:
+		any.bumped.connect(_on_bumped)
 
 	var tractor := _mowers[GameConfig.MOWER_TRACTOR] as TractorMower
 	if tractor:
@@ -328,6 +332,21 @@ func _process(delta: float) -> void:
 	mower.camera = cam
 	var turn := clampf(absf(mower.omega) / mower.max_turn(), 0.0, 1.0)
 	AudioDirector.set_engine_state(mower.speed_fraction(), turn)
+
+
+## Driving into a shed, a fence post or the lawn's own edge: a knock, a lurch
+## and something in the hand, scaled by how hard it was (G38). No penalty and
+## no stun — the machine has already been pushed clear by the solver; this is
+## only the game admitting that something happened.
+func _on_bumped(strength: float, direction: Vector3) -> void:
+	var force := clampf(strength / GameConfig.BUMP_FULL_IMPACT, 0.15, 1.0)
+	AudioDirector.play_bump(force)
+	if strength >= GameConfig.BUMP_HARD_IMPACT:
+		Haptics.medium()
+	else:
+		Haptics.light()
+	if cam != null and is_instance_valid(cam):
+		cam.kick(direction, GameConfig.BUMP_CAMERA_KICK * force)
 
 
 ## The scene is the editor's territory and it has eaten externally-added nodes

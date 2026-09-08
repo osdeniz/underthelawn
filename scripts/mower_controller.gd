@@ -22,6 +22,13 @@ signal food_found(col: int, row: int, value: int)
 var params: Dictionary = {}
 ## Carried momentum; only a hull with "grip" in its params uses it (G21).
 var _hull_velocity := Vector3.ZERO
+## Driving into something (G38): the strength is the speed the wall took, and
+## the direction is where the machine was heading when it lost it.
+signal bumped(strength: float, direction: Vector3)
+## True while the machine is still pressed against whatever it hit, so contact
+## sounds once instead of every frame.
+var _touching := false
+var _bump_cool := 0.0
 
 var model: LawnModel
 var tuft_field: TuftField
@@ -221,6 +228,7 @@ func _physics_process(delta: float) -> void:
 	_update_speed(delta)
 	_update_steering(delta)
 
+	var was := position
 	if params.has("grip"):
 		# The punt (G21): velocity follows the heading at `grip` per second, so
 		# the hull slides through a turn instead of pivoting on the spot.
@@ -231,6 +239,7 @@ func _physics_process(delta: float) -> void:
 		position += forward() * speed * delta
 	_resolve_walls()
 	_resolve_obstacles()
+	_note_bump(was, delta)
 	_apply_yaw()
 
 	_mow(delta)
@@ -357,6 +366,33 @@ func _resolve_obstacles() -> void:
 		var push := away / dist * (radius - dist)
 		position.x += push.x
 		position.z += push.y
+
+
+## How much of the step the wall ate. Comparing where the machine WANTED to be
+## with where it ended up catches the fence and the shed and the pond with one
+## measurement, and it scales: a glancing slide loses a little and reads as
+## nothing, driving straight in loses all of it.
+func _note_bump(was: Vector3, delta: float) -> void:
+	_bump_cool = maxf(_bump_cool - delta, 0.0)
+	var wanted := absf(speed) * delta
+	if params.has("grip"):
+		wanted = _hull_velocity.length() * delta
+	if wanted < 0.0001:
+		_touching = false
+		return
+	var moved := Vector2(position.x - was.x, position.z - was.z).length()
+	var lost := clampf(1.0 - moved / wanted, 0.0, 1.0)
+	if lost < GameConfig.BUMP_FREE_AGAIN:
+		_touching = false
+		return
+	if _touching or _bump_cool > 0.0:
+		return
+	var impact := absf(speed) * lost
+	if impact < GameConfig.BUMP_MIN_IMPACT:
+		return
+	_touching = true
+	_bump_cool = GameConfig.BUMP_COOLDOWN
+	bumped.emit(impact, forward() * signf(speed))
 
 
 # ---------------------------------------------------------------- mowing (§4)

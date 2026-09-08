@@ -4631,3 +4631,34 @@ both type, at one speed.
 Also fixed: `OpeningCheck`'s trial claim read whatever the save happened to
 have unlocked instead of setting `Garage.trial` itself — it now sets it, so
 the claim is about the prologue rather than about the last test run.
+
+## G38 — driving into something
+
+The obstacle solver has pushed the machine back out of sheds, fence posts and
+pond walls since §7, and it did it in silence: you stopped dead, with no
+sound, no shake and nothing in your hand. The most frequent event in the loop
+was the one the game never acknowledged.
+
+- **Contact is measured, not guessed.** `MowerController._note_bump` compares
+  where the step wanted to end with where it actually ended: the fraction the
+  wall ate, times the speed, is the impact. One measurement catches the
+  fence, the shed and the lawn's own edge, and it scales — a glancing slide
+  along a fence loses little and stays quiet, a shed taken head on loses all
+  of it. `bumped(strength, direction)` fires **once on contact**, not every
+  frame you lean on a wall: `_touching` holds until the machine is free again
+  (`BUMP_FREE_AGAIN`), with a `BUMP_COOLDOWN` under it.
+- **One place answers it.** `Game._on_bumped`: `AudioDirector.play_bump` (its
+  own player, so a bump never cuts off the chime of the thing you just found;
+  lower and louder the harder it was), `Haptics.medium` past
+  `BUMP_HARD_IMPACT` and `light` under it, and `CameraRig.kick` — a short
+  lurch along the heading that decays in about a third of a second. The focus
+  and the yaw are untouched, so nothing about driving changes and there is no
+  stun or penalty: the game is only admitting that something happened.
+- `bump.wav` from `tools/gen_audio.py`: a 74 Hz body thud, a woody knock and
+  a little grit, 0.26 s.
+- `BumpCheck` (11 claims, headless) drives the push mower into the first
+  collision rect for real: one report on contact, the strength above the
+  threshold, the machine stopped in front of the obstacle, nothing more while
+  leaning on it, a **second** report after backing off and going in again, no
+  report at all for a machine standing against it, the camera kick appearing
+  and settling, and the hard bump reading lower than the soft one.

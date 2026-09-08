@@ -37,6 +37,7 @@ const PATHS := {
 	"robot_beep": "res://audio/robot_beep",
 	"oar": "res://audio/oar_loop",
 	"cut_snow": "res://audio/cut_snow",
+	"bump": "res://audio/bump",
 	"rabbit": "res://audio/rabbit_rustle",
 	"bird_takeoff": "res://audio/bird_takeoff",
 	"settler": "res://audio/settler_card",
@@ -59,6 +60,7 @@ var _engine_player: AudioStreamPlayer
 var _engine_off := false
 var _ambient_player: AudioStreamPlayer
 var _one_shot: AudioStreamPlayer
+var _bump_player: AudioStreamPlayer
 var _voice: AudioStreamPlayer
 var _cut_players: Array[AudioStreamPlayer] = []
 var _cut_index := 0
@@ -139,6 +141,9 @@ func _build_players() -> void:
 	_engine_player = _make_player("EngineLoop", "engine", true)
 	_ambient_player = _make_player("Ambient", "ambient", true)
 	_one_shot = _make_player("OneShot", "", false)
+	# Its own player: a bump happens often and must not cut off the chime of
+	# the thing you just found (G38).
+	_bump_player = _make_player("Bump", "bump", false)
 	_signal_static = _make_player("SignalStatic", "signal_static", true)
 	_signal_clear = _make_player("SignalClear", "signal_clear", true)
 	for i in CUT_VOICES:
@@ -328,6 +333,18 @@ func play_cut() -> void:
 		* (1.0 if plant_stream != null else float(GameConfig.plant("cut_pitch", 1.0)))
 	p.volume_db = GameConfig.linear_to_db_safe(GameConfig.CUT_GAIN)
 	p.play()
+
+
+## Driving into something (G38). Louder and lower the harder it was, so the
+## ear can tell a scrape along a fence from a shed taken head on.
+func play_bump(force: float) -> void:
+	if _bump_player == null or not _streams.has("bump"):
+		return
+	_bump_player.stream = _streams["bump"]
+	_bump_player.pitch_scale = lerpf(1.16, 0.88, clampf(force, 0.0, 1.0))
+	_bump_player.volume_db = GameConfig.linear_to_db_safe(
+		lerpf(0.25, 1.0, clampf(force, 0.0, 1.0)))
+	_bump_player.play()
 
 
 ## The metallic "tink" of a salvage pickup (G9). Silent if the file is missing,

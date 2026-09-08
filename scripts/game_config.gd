@@ -1987,6 +1987,19 @@ static var hint_moments := true
 const TEXT_CPS := 42.0
 static var text_instant := false
 
+## DRIVING INTO SOMETHING (G38). The obstacle solver has always pushed the
+## machine back out silently, so a shed stopped you dead with no sound, no
+## shake and nothing in your hand. A bump fires once on contact, not every
+## frame you lean on a wall: impact is the speed lost to the wall, so a
+## glancing slide along a fence is quiet and driving straight into it is not.
+const BUMP_MIN_IMPACT := 0.8
+const BUMP_HARD_IMPACT := 2.0
+const BUMP_FULL_IMPACT := 4.0
+const BUMP_FREE_AGAIN := 0.3
+const BUMP_COOLDOWN := 0.35
+const BUMP_CAMERA_KICK := 0.34
+const BUMP_CAMERA_DECAY := 7.0
+
 ## Mowing patterns (G28): read from the stripe directions at the end of a cut.
 ## A yard smaller than PATTERN_MIN_CELLS says nothing; straight rows need this
 ## share of cells on one axis and this share of neighbouring lanes running the

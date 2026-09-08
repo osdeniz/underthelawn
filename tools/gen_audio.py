@@ -559,6 +559,20 @@ def footstep(grass=True, seed=5):
     return out
 
 
+# ---- driving into a fence post: a low body thud, a woody knock, a little grit.
+def bump():
+    n = seconds(0.26)
+    grit = _lowpass(_noise(n, 11), 0.35)
+    out = []
+    for i in range(n):
+        t = i / SR
+        thud = math.sin(TAU * 74 * t) * math.exp(-30 * t)
+        knock = (math.sin(TAU * 196 * t) * 0.5
+                 + math.sin(TAU * 331 * t) * 0.3) * math.exp(-55 * t)
+        out.append(thud * 0.7 + knock * 0.45 + grit[i] * math.exp(-70 * t) * 0.5)
+    return out
+
+
 # ---- the lamp on the gate: a faint mains hum with a flicker in it.
 def lamp_hum():
     n = seconds(3.0)
@@ -757,4 +771,5 @@ write("settler_card", settler_card(), 0.8)
 write("food_pickup", food_pickup(), 0.8)
 write("bed_day", bed_day(), 0.8)
 write("bed_evening", bed_evening(), 0.8)
+write("bump", bump(), 0.7)
 print("[gen_audio] bitti")
