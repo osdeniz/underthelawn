@@ -4843,6 +4843,21 @@ and never open the hub.
   body height back to neutral every frame at `IDLE_RECOVER_RATE`, so the new
   pose could only ever reach a weighted average of the two pulls — it asked
   for 0.22 and got 0.07. A resting dog now owns those two values.
-- `FeelCheck` grows to 30 claims: the resting pose arriving and reversing, the
+- `FeelCheck` grows to 32 claims: the resting pose arriving and reversing, the
   portrait lifting and settling (and holding still under reduced motion), and
   thick grass reading lower than thin.
+
+**Two test-hygiene bugs of my own, both caught by running the suites for the
+code I had changed:**
+
+- `FeelCheck` needs the dog to follow the player, so it set
+  `story/prologue_done`. The suites share one save file, so AnimalCheck's
+  house-dog claims — the dog pacing its own line beside the porch — failed
+  three suites later. FeelCheck puts the flag back now, and AnimalCheck sets
+  the flag its section depends on instead of trusting whatever the save
+  happens to hold.
+- The first cut-pitch claim averaged eight cuts each way. Every cut already
+  carries a random variant of ±13%, which is wider than the 7% this effect
+  is, so with eight samples the test was measuring its own noise and it
+  reported the comparison backwards. It now draws the SAME variants both
+  times from a fixed seed and checks the factor itself, which is exact.

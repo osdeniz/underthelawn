@@ -31,6 +31,10 @@ func _facing_maths() -> void:
 
 
 func _ordinary_yard() -> void:
+	# The house dog, which is what this section is about: it only paces its own
+	# line while the long walk is still ahead. Set rather than assumed — the
+	# save is shared with every other suite (G44).
+	GameState.set_setting("story", "prologue_done", false)
 	var game: Node = await open("ch01_aldridge")
 	var animals := game._animals as Animals
 	ck("bahcede hayvanlar var", animals != null, "null")
@@ -264,6 +268,7 @@ func _ordinary_yard() -> void:
 
 
 func _harvest_and_cellar() -> void:
+	GameState.set_setting("story", "prologue_done", false)
 	var farm: Node = await open("harvest_field")
 	var animals := farm._animals as Animals
 	if animals == null:

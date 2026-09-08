@@ -113,6 +113,10 @@ func run() -> void:
 ## The dog when nobody has moved for a while (G44): the head lowers, the body
 ## settles, and both come straight back when the player moves.
 func _dog_at_ease() -> void:
+	# The dog only follows the player once the long walk is done. The suites
+	# share one save file, so this is put back at the end: leaving it on made
+	# AnimalCheck's house-dog claims fail three suites later.
+	var owned_before: Variant = GameState.get_setting("story", "prologue_done", false)
 	GameState.set_setting("story", "prologue_done", true)
 	var game := await open("ch01_aldridge")
 	await settle(0.6)
@@ -120,6 +124,7 @@ func _dog_at_ease() -> void:
 	ck("kopek yanimizda", dog != null, "")
 	if dog == null:
 		close(game)
+		GameState.set_setting("story", "prologue_done", owned_before)
 		return
 	dog.position = game.mower.position + Vector3(1.2, 0.0, 0.8)
 	await settle(0.6)
@@ -141,6 +146,7 @@ func _dog_at_ease() -> void:
 	ck("oyuncu kimildayinca bas kalkar", head != null and head.rotation.x < 0.1,
 		"%.2f" % (0.0 if head == null else head.rotation.x))
 	close(game)
+	GameState.set_setting("story", "prologue_done", owned_before)
 
 
 ## The portrait answers a line, and the cut answers the yard (G44).
@@ -164,17 +170,35 @@ func _portrait_and_cut() -> void:
 	box.queue_free()
 	await frames(2)
 
-	# Thick grass reads lower than a lawn that is nearly finished. Averaged:
-	# each cut carries a random variant on top, and one sample proves nothing.
-	var thick := 0.0
-	var thin := 0.0
-	for i in 8:
-		AudioDirector.play_cut(1.0)
-		thick += AudioDirector._cut_players[AudioDirector._cut_index - 1].pitch_scale
-		await frames(1)
-	for i in 8:
-		AudioDirector.play_cut(0.0)
-		thin += AudioDirector._cut_players[AudioDirector._cut_index - 1].pitch_scale
-		await frames(1)
-	ck("dolu bahce daha kalin biciliyor", thick / 8.0 < thin / 8.0,
-		"%.3f < %.3f" % [thick / 8.0, thin / 8.0])
+	# Thick grass reads lower than a lawn that is nearly finished. Each cut
+	# also carries a random pitch variant (±13%), which is wider than this
+	# effect — averaging eight of them measured the noise and reported the
+	# comparison backwards. So the SAME variants are drawn both times, from
+	# the same seed, and what is compared is the factor itself.
+	var thick := await _cut_pitches(1.0)
+	var thin := await _cut_pitches(0.0)
+	ck("ayni tonlar cizildi", thick.size() == thin.size() and thick.size() >= 4,
+		"%d / %d" % [thick.size(), thin.size()])
+	var ratio := 0.0
+	for i in thick.size():
+		ratio += float(thick[i]) / float(thin[i])
+	ratio /= float(thick.size())
+	ck("dolu bahce daha kalin biciliyor", ratio < 1.0, "%.3f" % ratio)
+	ck("kalinlik carpani beklenen kadar",
+		absf(ratio - GameConfig.CUT_THICK_PITCH) < 0.001,
+		"%.4f vs %.4f" % [ratio, GameConfig.CUT_THICK_PITCH])
+
+
+## Six cut pitches at the given thickness, drawn from a fixed seed so the two
+## runs pick the same variants. play_cut refuses two calls in one frame, hence
+## the wait.
+func _cut_pitches(thickness: float) -> Array:
+	AudioDirector._rng.seed = 424242
+	var out: Array = []
+	for i in 6:
+		AudioDirector.play_cut(thickness)
+		var pool: int = AudioDirector._cut_players.size()
+		var idx: int = (AudioDirector._cut_index - 1 + pool) % pool
+		out.append(AudioDirector._cut_players[idx].pitch_scale)
+		await frames(2)
+	return out
