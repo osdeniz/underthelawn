@@ -314,7 +314,10 @@ func _plant_cut_stream() -> AudioStream:
 
 
 ## One cut sound per frame maximum, matching the haptics rule.
-func play_cut() -> void:
+## `thickness` is how much of the yard is still standing (1.0 at the first
+## pass, 0.0 at the last): a lawn with everything still up sounds heavier
+## than one with a lane through it (G44).
+func play_cut(thickness := 0.0) -> void:
 	if _streams.is_empty() or not _streams.has("cut"):
 		return
 	var frame := Engine.get_process_frames()
@@ -330,7 +333,8 @@ func play_cut() -> void:
 	p.stream = plant_stream if plant_stream != null else _streams["cut"]
 	p.pitch_scale = GameConfig.CUT_PITCH_VARIANTS[
 		_rng.randi_range(0, GameConfig.CUT_PITCH_VARIANTS.size() - 1)] \
-		* (1.0 if plant_stream != null else float(GameConfig.plant("cut_pitch", 1.0)))
+		* (1.0 if plant_stream != null else float(GameConfig.plant("cut_pitch", 1.0))) \
+		* lerpf(1.0, GameConfig.CUT_THICK_PITCH, clampf(thickness, 0.0, 1.0))
 	p.volume_db = GameConfig.linear_to_db_safe(GameConfig.CUT_GAIN)
 	p.play()
 

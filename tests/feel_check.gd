@@ -105,4 +105,76 @@ func run() -> void:
 	GameState.set_setting("display", "reduced_motion", false)
 	screen.queue_free()
 	GameConfig.reduced_motion = keep
+	await _dog_at_ease()
+	await _portrait_and_cut()
 	finish()
+
+
+## The dog when nobody has moved for a while (G44): the head lowers, the body
+## settles, and both come straight back when the player moves.
+func _dog_at_ease() -> void:
+	GameState.set_setting("story", "prologue_done", true)
+	var game := await open("ch01_aldridge")
+	await settle(0.6)
+	var dog: Node3D = game._animals.find_child("Dog", false, false)
+	ck("kopek yanimizda", dog != null, "")
+	if dog == null:
+		close(game)
+		return
+	dog.position = game.mower.position + Vector3(1.2, 0.0, 0.8)
+	await settle(0.6)
+	var body: Node3D = dog.get_node_or_null("Body")
+	var head: Node3D = body.get_node_or_null("Head") if body != null else null
+	ck("beklerken bas yukarda", head != null and head.rotation.x < 0.1,
+		"%.2f" % (0.0 if head == null else head.rotation.x))
+	# Set after the frame that noticed the machine move, or the tick zeroes it.
+	game._animals._player_still = GameConfig.DOG_SIT_AFTER + 1.0
+	await settle(1.4)
+	ck("uzun duraklamada bas duser", head != null and head.rotation.x > 0.12,
+		"%.2f" % (0.0 if head == null else head.rotation.x))
+	ck("uzun duraklamada govde coker", body != null and body.position.y < -0.015,
+		"%.3f" % (0.0 if body == null else body.position.y))
+	ck("kuyruk yavaslar", game._animals._resting, "")
+	# And it lifts its head the moment the player moves.
+	game.mower.position += Vector3(1.5, 0.0, 0.0)
+	await settle(0.9)
+	ck("oyuncu kimildayinca bas kalkar", head != null and head.rotation.x < 0.1,
+		"%.2f" % (0.0 if head == null else head.rotation.x))
+	close(game)
+
+
+## The portrait answers a line, and the cut answers the yard (G44).
+func _portrait_and_cut() -> void:
+	var box := DialogueBox.new()
+	add_child(box)
+	await frames(3)
+	var home := box._portrait_image.position.y
+	box.play(Dialogue.conversation("brief_ch01"), "")
+	ck("portre satir baslarken yukselir", box._portrait_image.position.y > home,
+		"%.1f -> %.1f" % [home, box._portrait_image.position.y])
+	await settle(GameConfig.PORTRAIT_SETTLE + 0.3)
+	ck("portre yerine oturur",
+		absf(box._portrait_image.position.y - home) < 1.0,
+		"%.1f" % box._portrait_image.position.y)
+	GameConfig.reduced_motion = true
+	box.play(Dialogue.conversation("brief_ch01"), "")
+	ck("azaltilmis hareket portreyi oynatmaz",
+		absf(box._portrait_image.position.y - home) < 0.01, "")
+	GameConfig.reduced_motion = false
+	box.queue_free()
+	await frames(2)
+
+	# Thick grass reads lower than a lawn that is nearly finished. Averaged:
+	# each cut carries a random variant on top, and one sample proves nothing.
+	var thick := 0.0
+	var thin := 0.0
+	for i in 8:
+		AudioDirector.play_cut(1.0)
+		thick += AudioDirector._cut_players[AudioDirector._cut_index - 1].pitch_scale
+		await frames(1)
+	for i in 8:
+		AudioDirector.play_cut(0.0)
+		thin += AudioDirector._cut_players[AudioDirector._cut_index - 1].pitch_scale
+		await frames(1)
+	ck("dolu bahce daha kalin biciliyor", thick / 8.0 < thin / 8.0,
+		"%.3f < %.3f" % [thick / 8.0, thin / 8.0])

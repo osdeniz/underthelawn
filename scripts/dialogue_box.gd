@@ -273,8 +273,20 @@ func _set_portrait(speaker_id: String) -> void:
 	var tex: Texture2D = null
 	if speaker_id != "":
 		tex = TextureLibrary.find("portraits/" + speaker_id)
+	var changed := _portrait_image.texture != tex
 	_portrait_image.texture = tex
 	_portrait_image.visible = tex != null
+	# A line is somebody speaking, so the portrait moves when one starts: it
+	# rises a little and settles (G44). A new face rises further than the same
+	# face saying another line, which is the difference between somebody
+	# arriving and somebody continuing.
+	if tex != null and not GameConfig.reduced_motion:
+		var lift := GameConfig.PORTRAIT_LIFT_NEW if changed else GameConfig.PORTRAIT_LIFT_SAME
+		var home := _portrait_image.position.y
+		_portrait_image.position.y = home + lift
+		var tw := create_tween()
+		tw.tween_property(_portrait_image, "position:y", home,
+			GameConfig.PORTRAIT_SETTLE).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_portrait_initial.visible = tex == null
 	if tex == null:
 		if speaker_id != "":

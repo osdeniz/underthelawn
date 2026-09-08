@@ -461,7 +461,7 @@ func _mow(delta: float) -> void:
 
 	if mown > 0:
 		Haptics.light()
-		AudioDirector.play_cut()
+		AudioDirector.play_cut(1.0 - model.completion_ratio() if model != null else 0.0)
 		cells_mown.emit(mown)
 	for cell in revealed:
 		secret_uncovered.emit(cell.x, cell.y)

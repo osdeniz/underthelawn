@@ -2019,6 +2019,27 @@ static var reduced_motion := false
 ## is this much mowing.
 const YARD_SAVE_EVERY := 4.0
 
+## SMALL ANSWERS (G44). The portrait rises when its owner speaks — further for
+## a face that has just arrived than for one carrying on. The cut sound drops
+## towards CUT_THICK_PITCH while the whole lawn is still standing and comes
+## back up to normal as it opens. The dog sits when the player has stood still
+## for DOG_SIT_AFTER seconds and gets up the moment they move.
+const PORTRAIT_LIFT_NEW := 26.0
+const PORTRAIT_LIFT_SAME := 9.0
+const PORTRAIT_SETTLE := 0.34
+const CUT_THICK_PITCH := 0.93
+const DOG_SIT_AFTER := 6.0
+## What the dog does when nobody has moved for a while: it stands AT EASE —
+## the head lowers, the body settles a few centimetres and the tail slows to a
+## sway. Not a sit: a sit was tried twice and rendered twice, and a rigid body
+## rotated about either its origin or its shoulder rears up like a horse
+## instead of folding, because these legs have no knee. An honest small
+## gesture beats a broken big one.
+const DOG_REST_HEAD := 0.22
+const DOG_REST_SINK := 0.035
+const DOG_REST_TAIL := 1.4
+const DOG_SIT_SPEED := 3.2
+
 ## Mowing patterns (G28): read from the stripe directions at the end of a cut.
 ## A yard smaller than PATTERN_MIN_CELLS says nothing; straight rows need this
 ## share of cells on one axis and this share of neighbouring lanes running the

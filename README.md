@@ -4817,3 +4817,32 @@ and never open the hub.
   back exactly as they were, the ring appearing around the focus and
   following it, the focused button pressing, and a screen change not leaving
   the ring behind.
+
+## G44 — three small answers
+
+- **The portrait moves when its owner speaks.** A line starting lifts the
+  portrait and lets it settle (`PORTRAIT_LIFT_NEW` for a face that has just
+  arrived, `PORTRAIT_LIFT_SAME` for one carrying on — the difference between
+  somebody arriving and somebody continuing). Off under reduced motion.
+- **The cut answers the yard.** `play_cut(thickness)` drops the pitch towards
+  `CUT_THICK_PITCH` while the whole lawn is still standing and comes back to
+  normal as it opens, so the first pass through waist-high grass sounds
+  heavier than the last pass through a lane. Measured as an average of eight
+  cuts each way, because every cut already carries a random variant.
+- **The dog stands at ease.** After `DOG_SIT_AFTER` (6 s) with nobody moving,
+  its head lowers, its body settles 3.5 cm and its tail slows; all three
+  reverse the moment the player moves.
+
+  **What this was meant to be, and why it is not:** a sit. Tried twice and
+  rendered twice — rotating a rigid body about its origin (which sits on the
+  ground between the paws) or about its shoulder makes the dog rear up like a
+  horse, because these legs have no knee to fold. An honest small gesture
+  beats a broken big one; a real sit wants a jointed model.
+
+  **Also found by measuring:** `_settle_legs` and `_wag` pull the head and the
+  body height back to neutral every frame at `IDLE_RECOVER_RATE`, so the new
+  pose could only ever reach a weighted average of the two pulls — it asked
+  for 0.22 and got 0.07. A resting dog now owns those two values.
+- `FeelCheck` grows to 30 claims: the resting pose arriving and reversing, the
+  portrait lifting and settling (and holding still under reduced motion), and
+  thick grass reading lower than thin.

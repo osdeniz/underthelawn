@@ -39,6 +39,11 @@ var player_on := false
 ## Whether the dog is the player's yet, and whether this is the prologue road.
 ## True while the dog stands over a scent (G26: the game says its name once).
 var dog_pointing := false
+## How long the player has stood still, so the dog can stop standing too.
+var _player_still := 0.0
+## True while the dog is standing at ease, which is also when its tail slows.
+var _resting := false
+var _last_player_at := Vector3.ZERO
 var _owned := false
 var _road := false
 
@@ -146,6 +151,11 @@ func _populate(seed_value: int, farmland: bool) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	if player_at.distance_to(_last_player_at) > 0.05:
+		_player_still = 0.0
+		_last_player_at = player_at
+	else:
+		_player_still += delta
 	for entry: Dictionary in _entries:
 		match int(entry["kind"]):
 			Kind.RABBIT:
@@ -423,11 +433,20 @@ func _tick_dog_follow(entry: Dictionary, root: Node3D, body: Node3D,
 				entry["scent_on"] = true
 				AudioDirector.play_dog_huff()
 			dog_pointing = true
+			_set_sit(body, 0.0, delta)
 		else:
 			entry["scent_on"] = false
 			dog_pointing = false
+			# Nothing to point at and nobody going anywhere: it sits down
+			# (G44). A dog that stands to attention beside a parked machine
+			# for two minutes is furniture.
 			_wag(body, delta)
+			# After the wag, not before: _wag pulls the head and legs back to
+			# neutral, and the two fought to a standstill half way there.
+			_set_sit(body,
+				1.0 if _player_still >= GameConfig.DOG_SIT_AFTER else 0.0, delta)
 		return
+	_set_sit(body, 0.0, delta)
 	var step := minf(GameConfig.DOG_FOLLOW_SPEED * delta, maxf(gap - 0.2, 0.0))
 	var dir := flat.normalized()
 	root.position += Vector3(dir.x, 0.0, dir.y) * step
@@ -455,6 +474,17 @@ func _scent_cell(root: Node3D) -> Vector2i:
 	return best
 
 
+## At ease: the head lowers and the body settles. Every other pose lerps it
+## back, so the dog lifts its head the moment the player moves (G44).
+func _set_sit(body: Node3D, amount: float, delta: float) -> void:
+	var w := minf(1.0, GameConfig.DOG_SIT_SPEED * delta)
+	var head := body.get_node_or_null("Head") as Node3D
+	if head != null:
+		head.rotation.x = lerpf(head.rotation.x, GameConfig.DOG_REST_HEAD * amount, w)
+	body.position.y = lerpf(body.position.y, -GameConfig.DOG_REST_SINK * amount, w)
+	_resting = amount > 0.5
+
+
 ## Pointing: legs settle, the tail goes STILL, and the head drops towards the
 ## ground. The stillness is the signal — a wagging dog is a dog with nothing to
 ## say.
@@ -475,9 +505,13 @@ func _wag(body: Node3D, delta: float) -> void:
 	_settle_legs(body, delta)
 	var tail := body.get_node_or_null("Tail") as Node3D
 	if tail != null:
-		tail.rotation.y = sin(_t * GameConfig.DOG_TAIL_FREQ) * 0.5
+		# A dog at ease still wags, just slower.
+		var freq := GameConfig.DOG_TAIL_FREQ
+		if _resting:
+			freq /= GameConfig.DOG_REST_TAIL
+		tail.rotation.y = sin(_t * freq) * 0.5
 	var head := body.get_node_or_null("Head") as Node3D
-	if head != null:
+	if head != null and not _resting:
 		head.rotation.x = lerpf(head.rotation.x, 0.0,
 			minf(1.0, GameConfig.IDLE_RECOVER_RATE * delta))
 
@@ -506,7 +540,10 @@ func _trot(body: Node3D) -> void:
 
 func _settle_legs(body: Node3D, delta: float) -> void:
 	var w := minf(1.0, GameConfig.IDLE_RECOVER_RATE * delta)
-	body.position.y = lerpf(body.position.y, 0.0, w)
+	# A resting dog owns its own height: this pull and _set_sit's would
+	# otherwise average each other out part way (G44).
+	if not _resting:
+		body.position.y = lerpf(body.position.y, 0.0, w)
 	for leg: String in ["LegFL", "LegBR", "LegFR", "LegBL"]:
 		var node := body.get_node_or_null(leg) as Node3D
 		if node != null:
