@@ -1365,3 +1365,5 @@ ACH_NIGHT_LINE,A yard searched after dark.,Karanlıkta aranan bir bahçe.
 SET_TYPING_TITLE,Letter-by-letter text,Harf harf yazı
 SET_TYPING_HINT,"Story cards and dialogue write themselves out; a tap finishes a line. Off, every line arrives whole.","Hikâye kartları ve diyaloglar kendini yazar; dokunuş satırı tamamlar. Kapalıyken her satır bir anda görünür."
 INTRO_HOLD_SKIP,hold to skip,atlamak için basılı tut
+SET_MOTION_TITLE,Reduced motion,Azaltılmış hareket
+SET_MOTION_HINT,"Stops the drifting card images, the camera's lurch after a knock and the give under a button. Rain, animals and the camera's own glances stay.","Kartların kayan görüntüsünü, çarpma sonrası kamera itmesini ve düğmelerin altındaki esnemeyi durdurur. Yağmur, hayvanlar ve kameranın bakışları kalır."

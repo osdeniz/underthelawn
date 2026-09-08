@@ -299,7 +299,7 @@ func _apply(card: Dictionary) -> void:
 	# Restart the Ken Burns push for this card.
 	_image.pivot_offset = _image.size * 0.5
 	_image.scale = Vector2.ONE
-	if tex != null and not bool(card.get("poster", false)):
+	if tex != null and not bool(card.get("poster", false)) and not GameConfig.reduced_motion:
 		var push := create_tween()
 		push.tween_property(_image, "scale", Vector2.ONE * KEN_BURNS_TO,
 			KEN_BURNS_TIME).set_trans(Tween.TRANS_LINEAR)

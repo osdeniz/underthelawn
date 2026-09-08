@@ -4712,3 +4712,37 @@ the flow carries on exactly as it would after the last card.
   (and the counter stopped afterwards), half a hold showing a partly filled
   bar without skipping, a lift resetting it, and the full hold finishing the
   sequence. `TypingShot` also writes `out/typing_3_skip.png`.
+
+## G41 — a finger gets an answer, and a switch to stop the rest moving
+
+Haptics fired on presses, so the phone buzzed while the screen sat perfectly
+still: nothing moved, dimmed or gave, which on a touch screen is the only way
+a control can say it felt something.
+
+- **`PressFeel`** sinks a button to 0.965 under a finger and brings it back
+  when the finger lifts. Installed **once**, on the tree's `node_added`,
+  rather than at forty button factories — the hub, the map, the workshop, the
+  cards and the panel all build their own buttons and several do it lazily, so
+  a helper called by hand is a helper that is missed at the forty-first.
+  `BaseButton` covers Button, TextureButton and CheckButton, so the postcard
+  thumbnails get it too. `scale` is visual on a Control: layout, hit areas and
+  container arithmetic are untouched. The pivot is set on the press, not at
+  build time, because a Control's size is unknown until its container has laid
+  it out and a zero pivot scales from the corner (a shift, not a press). The
+  previous tween is killed on each press, or drumming on a tile stacks them
+  and the scale drifts. `TWEEN_PAUSE_PROCESS`, so the pause sheet's own
+  buttons still answer.
+- **Reduced motion** (`GameConfig.reduced_motion`, settings → "Azaltılmış
+  hareket", `display/reduced_motion`) stops the movement the player did not
+  ask for: the cards' Ken Burns push, the camera's lurch after a bump, the
+  give under a button, the counter's pop. It deliberately leaves the motion
+  that carries meaning — rain, animals, the camera's own glances at what it
+  is telling you about — and a locked row still answers: `HubScreen.flash`
+  replaces the shake with a beat of the case accent, because swallowing a
+  refusal is worse than moving. A bump is still heard and felt.
+- `FeelCheck` (19 claims, headless): a button added to the tree gets the
+  behaviour without being asked, shrinks from its centre, returns on release,
+  survives being drummed on, is not wired twice; reduced motion stops the
+  press, the card drift, the camera kick and the counter pop; a locked row
+  holds its position and answers in colour instead, and moves again with
+  motion on; and both settings rows drive their flags and save.

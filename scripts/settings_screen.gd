@@ -113,6 +113,13 @@ func _ready() -> void:
 		func(on: bool) -> void:
 			GameConfig.text_instant = not on
 			GameState.set_setting("display", "text_instant", not on))
+	# Reduced motion (G41): stops the movement the player did not ask for and
+	# leaves the movement that means something.
+	_add_toggle(tr("SET_MOTION_TITLE"), tr("SET_MOTION_HINT"),
+		GameConfig.reduced_motion,
+		func(on: bool) -> void:
+			GameConfig.reduced_motion = on
+			GameState.set_setting("display", "reduced_motion", on))
 	_add_section(tr("SETTINGS_GROUP_PRIVACY"))
 	# Usage events go to our own endpoint with a random install id (G14.5);
 	# that is pseudonymous data and the player gets the switch (G19.12). The

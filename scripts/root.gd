@@ -56,6 +56,8 @@ func _ready() -> void:
 	# Before any screen exists, so the first label already draws in the
 	# player's chosen language rather than flipping after the menu appears.
 	LocaleSupport.restore()
+	# One hook for every button the game will ever build (G41).
+	PressFeel.install(get_tree())
 	_layer = CanvasLayer.new()
 	_layer.layer = 100
 	add_child(_layer)

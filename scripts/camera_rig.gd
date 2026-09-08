@@ -77,6 +77,10 @@ func _process(delta: float) -> void:
 func kick(direction: Vector3, amount: float) -> void:
 	if direction.length_squared() < 0.0001 or amount <= 0.0:
 		return
+	# An impact lurch is motion nobody asked for; the sound and the haptic
+	# still report the bump (G41).
+	if GameConfig.reduced_motion:
+		return
 	_kick = direction.normalized() * amount
 
 

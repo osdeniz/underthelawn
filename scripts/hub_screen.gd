@@ -1172,13 +1172,28 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 ## The refusal wobble, as a static so any screen can use it. The workshop's
 ## larder needed the same "no" the locked tiles give.
 static func shake(control: Control) -> void:
+	if GameConfig.reduced_motion:
+		flash(control)
+		return
 	var start := control.position.x
 	var tween := control.create_tween()
 	for step: float in [-14.0, 12.0, -8.0, 5.0, 0.0]:
 		tween.tween_property(control, "position:x", start + step, 0.05)
 
 
+## What a locked row does when the player has asked for less movement (G41):
+## it still answers — the refusal is information, and swallowing it would be
+## worse than moving — but it answers in colour instead of position.
+static func flash(control: Control) -> void:
+	var tween := control.create_tween()
+	tween.tween_property(control, "modulate", GameConfig.CASE_ACCENT, 0.09)
+	tween.tween_property(control, "modulate", Color.WHITE, 0.22)
+
+
 func _shake(control: Control) -> void:
+	if GameConfig.reduced_motion:
+		HubScreen.flash(control)
+		return
 	var home := control.position
 	# Owned by the control, so a refresh that rebuilds the row takes the tween
 	# with it rather than leaving it writing to a freed node.

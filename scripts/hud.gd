@@ -958,6 +958,8 @@ func fly_scrap(amount: int, from_screen: Vector2) -> void:
 
 
 func _pulse(control: Control) -> void:
+	if GameConfig.reduced_motion:
+		return
 	control.pivot_offset = control.size * 0.5
 	control.scale = Vector2(1.25, 1.25)
 	var tw := create_tween()

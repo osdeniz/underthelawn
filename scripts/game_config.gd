@@ -2006,6 +2006,14 @@ const BUMP_CAMERA_DECAY := 7.0
 ## can be lifted before it counts — ends the whole sequence.
 const INTRO_SKIP_HOLD := 1.2
 
+## REDUCED MOTION (G41). Off by default. On, the game stops moving things the
+## player did not move: the cards' slow push, the camera's lurch after an
+## impact, the buttons' give under a finger, the counter's pop. What it does
+## NOT touch is motion that carries meaning — a locked row still answers, with
+## a flash instead of a shake; the camera still glances at what it is telling
+## you about; rain still falls.
+static var reduced_motion := false
+
 ## Mowing patterns (G28): read from the stripe directions at the end of a cut.
 ## A yard smaller than PATTERN_MIN_CELLS says nothing; straight rows need this
 ## share of cells on one axis and this share of neighbouring lanes running the
