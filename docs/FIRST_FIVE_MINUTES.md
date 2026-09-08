@@ -84,3 +84,13 @@ C. Koridor: after_prologue tek kart; brifing 3+seçim+onay; menteşe kartı.
 D. Metin düzeltmeleri (madde 6–7); Robot yolda gizli.
 E. `FlowCheck`'e "yolda bayrak yanmaz", "ch01'de ipucu tonu var", "yol son
    sıraya varınca biter" iddiaları; `TextCheck`'e kart satırı ≤ 16 kelime.
+
+## Sonradan: yazılar harf harf (G37)
+
+Kartlar ve diyaloglar artık harf harf yazılıyor (42 karakter/saniye). İlk
+koşunun sekiz kartı 797 Türkçe karakter: hiç dokunmayan oyuncu için **+19
+saniye**, dokunan için **+8 dokunuş** (ilk dokunuş satırı tamamlıyor, ikincisi
+sayfayı çeviriyor). Yani yukarıdaki 15 dokunuşluk koridor, sabırsız bir
+oyuncuda 23 dokunuşa çıkıyor; okuyan oyuncu için dokunuş sayısı aynı kalıyor,
+okuma temposu ölçülü hale geliyor. Ayarlarda "Harf harf yazı" kapatılabiliyor.
+Hız tek bir sayı: `GameConfig.TEXT_CPS`.

@@ -4,6 +4,9 @@ extends TestBase
 
 func run() -> void:
 	suite = "KOPEK ISMI"
+	# This suite reads a card's words the frame they are set, so it asks for
+	# them whole rather than typed (G37).
+	GameConfig.text_instant = true
 	GameState.set_setting("story", "dog_name", "")
 
 	ck("isimsizken 'the dog'", DogName.current() == tr("DOG_UNNAMED"), DogName.current())

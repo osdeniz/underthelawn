@@ -31,6 +31,7 @@ var _name_box: VBoxContainer
 var _name_edit: LineEdit
 var _name_ok: Button
 var _named := false
+var _typer := Typewriter.new()
 
 
 func _ready() -> void:
@@ -148,6 +149,10 @@ func _build() -> void:
 
 func _process(delta: float) -> void:
 	_lock = maxf(_lock - delta, 0.0)
+	var was_typing := _typer.typing()
+	_typer.advance(delta)
+	if was_typing and not _typer.typing():
+		_reveal_after_typing()
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -156,6 +161,13 @@ func _gui_input(event: InputEvent) -> void:
 	var pressed := event is InputEventScreenTouch and (event as InputEventScreenTouch).pressed
 	var clicked := event is InputEventMouseButton and (event as InputEventMouseButton).pressed
 	if not (pressed or clicked):
+		return
+	if _typer.typing():
+		# First tap finishes the words (G37).
+		accept_event()
+		_typer.finish()
+		_reveal_after_typing()
+		_lock = 0.35
 		return
 	# The naming page waits for the button, not a tap anywhere: a tap that meant
 	# "dismiss the keyboard" must not skip the question.
@@ -230,9 +242,27 @@ func _apply() -> void:
 			_line.text = tr("CASE_02_WAITING").format({"done": progress.x,
 				"total": progress.y})
 	_art.visible = _art.texture != null
+	# The words type themselves in (G37); this block, not the branches above,
+	# is what decides whether the hint and the naming box are showing yet.
+	_typer.play([_title, _line], FADE)
+	if _typer.typing():
+		_name_box.visible = false
+		_hint.visible = false
+	else:
+		_reveal_after_typing()
 	if _page == PAGE_REUNION:
 		var tw := create_tween()
 		tw.tween_property(_fade, "color:a", 0.0, FADE)
+
+
+## What waits for the last letter: the hint, and the box that asks for a name.
+## Ellie asks the question first and only then is there somewhere to answer —
+## a text field sitting under a half-written question reads as a form.
+func _reveal_after_typing() -> void:
+	_name_box.visible = _page == PAGE_NAME and not _named
+	_hint.visible = not _name_box.visible
+	if _name_box.visible:
+		_name_edit.grab_focus()
 
 
 ## The default button is a grey rectangle drawn for a light theme; over the
@@ -269,8 +299,10 @@ func _confirm_name() -> void:
 	DogName.store(typed)
 	_named = true
 	_name_box.visible = false
-	_hint.visible = true
 	_line.text = DogName.fill(tr("REUNION_NAME_DONE"))
+	# Ellie says the name back, letter by letter like everything else.
+	_typer.play([_line])
+	_hint.visible = not _typer.typing()
 	_lock = 0.4
 
 

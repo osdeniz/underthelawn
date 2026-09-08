@@ -117,6 +117,7 @@ func _load_settings() -> void:
 	_migrate()
 	# The player's word on usage events (G19.12), read before the first track.
 	Analytics.enabled = bool(get_setting("privacy", "analytics", true))
+	GameConfig.text_instant = bool(get_setting("display", "text_instant", false))
 
 
 ## A cloud copy, if a provider has one: the side with more chapters done wins,

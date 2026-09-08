@@ -15,6 +15,7 @@ var _hint: Label
 var _choices: VBoxContainer
 var _fade: ColorRect
 var _lock := 0.0
+var _typer := Typewriter.new()
 var _done := false
 
 
@@ -106,6 +107,10 @@ func _add_choice(open: bool, key: String, sub_key: String) -> void:
 
 func _process(delta: float) -> void:
 	_lock = maxf(_lock - delta, 0.0)
+	var was_typing := _typer.typing()
+	_typer.advance(delta)
+	if was_typing and not _typer.typing() and _page < 2:
+		_hint.visible = true
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -115,6 +120,13 @@ func _gui_input(event: InputEvent) -> void:
 		or (event is InputEventMouseButton and (event as InputEventMouseButton).pressed)
 	if tap:
 		accept_event()
+		if _typer.typing():
+			# First tap finishes the words, second turns the page (G37). The
+			# two choices are not reachable until the last page anyway.
+			_typer.finish()
+			_hint.visible = true
+			_lock = 0.35
+			return
 		advance()
 
 
@@ -137,6 +149,11 @@ func _apply() -> void:
 			_lines.text = ""
 			_choices.visible = true
 			_hint.visible = false
+	# Page 0 types its heading too; after that the heading stands (G37).
+	_typer.play([_title, _lines] if _page == 0 else [_lines],
+		FADE if _page == 0 else 0.0)
+	if _page < 2:
+		_hint.visible = not _typer.typing()
 
 
 func _on_choice(open: bool) -> void:

@@ -5,6 +5,9 @@ var _fails := 0
 
 
 func _ready() -> void:
+	# This suite reads a card's words the frame they are set, so it asks for
+	# them whole rather than typed (G37).
+	GameConfig.text_instant = true
 	ChapterProgress.reset()
 	RestoreBoard.reset()
 

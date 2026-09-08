@@ -14,8 +14,13 @@ func run() -> void:
 	await settle(GameConfig.FIRST_RUN_MODAL_AFTER + 1.0)
 	ck("yol bayragi yakmaz", GameState.is_first_run(), "")
 	ck("yolda yonlendirme sayfasi yok", road.hud.find_child("OrientationDim", true, false) == null, "")
+	# The trial belongs to the flow, not to the level, so it is set here rather
+	# than read: without this the claim passed or failed on whatever the SAVE
+	# happened to have unlocked, which is no claim at all.
+	Garage.trial = true
 	ck("denemede traktor acik", Garage.is_unlocked(GameConfig.MOWER_TRACTOR), "")
 	ck("denemede robot kapali", not Garage.is_unlocked(GameConfig.MOWER_ROBOT), "")
+	Garage.trial = false
 	# A lane up the road: the level ends when the far rows are reached.
 	var col := GameConfig.GRID_COLS / 2
 	for row in range(GameConfig.GRID_ROWS - 1, 1, -1):

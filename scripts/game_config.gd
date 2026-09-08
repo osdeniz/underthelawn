@@ -1980,6 +1980,13 @@ const SCENT_TOAST_SECONDS := 3.4
 ## Purists can switch the hints off.
 static var hint_moments := true
 
+## TYPED-OUT TEXT (G37). Characters a second, for the dialogue box and for
+## every story card — one number, because it is one voice. `text_instant` is
+## the settings switch: every line arrives whole, for a player who reads fast,
+## replays, or finds animated text distracting.
+const TEXT_CPS := 42.0
+static var text_instant := false
+
 ## Mowing patterns (G28): read from the stripe directions at the end of a cut.
 ## A yard smaller than PATTERN_MIN_CELLS says nothing; straight rows need this
 ## share of cells on one axis and this share of neighbouring lanes running the

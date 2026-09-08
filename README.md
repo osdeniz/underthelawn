@@ -4580,3 +4580,54 @@ From the audit in `docs/FIRST_FIVE_MINUTES.md`:
   suite that did not ask for it.
 - `OpeningCheck` (20 claims, headless) measures all of it, including a
   16-word ceiling on every opening card line in both languages.
+
+## G37 — the words arrive letter by letter
+
+The dialogue box has typed its lines since G6. The story cards showed theirs
+whole, so the game had two voices: one that spoke and one that appeared. Now
+both type, at one speed.
+
+- **`Typewriter`** (`scripts/typewriter.gd`): the caller sets each label's
+  text the way it always did and hands the labels over; `play(labels, delay)`
+  hides every character and reveals them again in order, one label finishing
+  before the next starts. `advance(delta)` from the host's `_process`,
+  `finish()` on the first tap, `typing()` to decide whether the "tap to
+  continue" hint is showing yet.
+- **It reveals with `visible_characters`, not by slicing `text`.** Slicing
+  re-wraps the label on every letter, so a line that ends up two rows tall
+  starts one row tall and the block jumps the moment a word crosses the
+  margin — on the cards' bottom-aligned column that jump is the text sliding
+  up under the reader. `VC_CHARS_AFTER_SHAPING` lays the whole line out and
+  draws a prefix of it. Measured on `prologue.cards`: half typed and fully
+  typed, the text block starts on the same row (2013) in both frames. It also
+  means `label.text` still holds the whole line, which is what the rest of
+  the game and its suites read.
+- **The delay** holds the first letter back while a card's fade brings the
+  picture in — typing nobody can see is typing that never happened. The step
+  that ends the delay keeps its remainder rather than losing a frame.
+- **Two taps, the dialogue box's own rule:** the first finishes the words,
+  the second turns the page — and the finishing tap arms the tap lock, or a
+  double tap would complete a card and skip it in the same twitch. Wired into
+  the story cards (`IntroSequence`), the Case 01 ending (`ReunionCard` — the
+  naming box now waits until Ellie has finished asking), the Case 02 ending
+  (`ConvoyCard`) and the Case 03 gate (`GateCard`). The paywall card is left
+  instant on purpose: nobody should wait on a letter to read a price.
+- **One speed, one switch.** `GameConfig.TEXT_CPS` (42 chars/second) is
+  shared with the dialogue box, which keeps its own loop from G6.
+  `GameConfig.text_instant` (settings → "Harf harf yazı", `display/
+  text_instant`) turns the animation off everywhere for a player who reads
+  fast, replays, or finds moving text distracting.
+- **What it costs the opening:** 797 Turkish characters across the first
+  run's eight cards, so 19 seconds for a player who never taps, and about
+  eight extra taps for one who does. `TEXT_CPS` is one number if that reads
+  slow.
+- `TypeCheck` (34 claims, headless) drives `advance()` with its own deltas so
+  the letter counts are arithmetic rather than timing: sequential reveal, the
+  exact count at half a second, Turkish characters arriving whole, the delay,
+  empty labels skipped, the off switch, and then the wiring on a story card,
+  the naming page and the dialogue box. `TypingShot` renders
+  `out/typing_1.png` (half) and `_2.png` (whole).
+
+Also fixed: `OpeningCheck`'s trial claim read whatever the save happened to
+have unlocked instead of setting `Garage.trial` itself — it now sets it, so
+the claim is about the prologue rather than about the last test run.

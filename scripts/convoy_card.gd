@@ -26,6 +26,7 @@ var _line: Label
 var _hint: Label
 var _fade: ColorRect
 var _lock := 0.0
+var _typer := Typewriter.new()
 
 
 func _ready() -> void:
@@ -102,6 +103,10 @@ func _build() -> void:
 
 func _process(delta: float) -> void:
 	_lock = maxf(_lock - delta, 0.0)
+	var was_typing := _typer.typing()
+	_typer.advance(delta)
+	if was_typing and not _typer.typing():
+		_hint.visible = true
 
 
 ## _gui_input, NOT _unhandled_input.
@@ -121,6 +126,12 @@ func _gui_input(event: InputEvent) -> void:
 	if not tapped and not clicked:
 		return
 	accept_event()
+	if _typer.typing():
+		# First tap finishes the words, second turns the page (G37).
+		_typer.finish()
+		_hint.visible = true
+		_lock = 0.35
+		return
 	_page += 1
 	if _page >= PAGES:
 		_close()
@@ -141,6 +152,10 @@ func _apply() -> void:
 		_line.text = tr("FINAL_02_LINE")
 	_art.visible = _art.texture != null
 	_scrim.visible = _art.texture != null
+	# Letter by letter (G37). The first page waits for the fade to bring the
+	# picture in; the second is already on screen, so it starts at once.
+	_typer.play([_title, _line], FADE if _page == 0 else 0.0)
+	_hint.visible = not _typer.typing()
 	if _page == 0:
 		var tw := create_tween()
 		tw.tween_property(_fade, "color:a", 0.0, FADE)

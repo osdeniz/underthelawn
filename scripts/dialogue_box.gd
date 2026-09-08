@@ -19,7 +19,8 @@ signal finished()
 ## reading-speed limiter.
 ## G11: 55 cps outran comfortable reading on the longer Case 1 lines. The tap
 ## still completes a line instantly, so this only sets the unhurried pace.
-const TYPE_CPS := 42.0
+## Shared with every story card (G37), so the game types at one speed.
+const TYPE_CPS := GameConfig.TEXT_CPS
 const FADE_TIME := 0.25
 ## Ignore taps briefly after one lands, so a double tap cannot skip a whole line
 ## plus the next one.
@@ -235,9 +236,10 @@ func _show_line(entry: Dictionary) -> void:
 	_set_portrait(speaker)
 	_full_text = DogName.fill(tr(str(entry.get("text", ""))))
 	_shown = 0.0
-	_typing = true
-	_hint.visible = false
-	_text_label.text = ""
+	# Typing off (G37): the line is simply there, and the hint with it.
+	_typing = not GameConfig.text_instant
+	_hint.visible = not _typing and not _awaiting_choice
+	_text_label.text = "" if _typing else _full_text
 	_speak(str(entry.get("text", "")))
 
 

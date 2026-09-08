@@ -105,6 +105,14 @@ func _ready() -> void:
 	_add_toggle(tr("SET_BIGTEXT_TITLE"), tr("SET_BIGTEXT_HINT"),
 		bool(GameState.get_setting("display", "large_text", false)),
 		func(on: bool) -> void: GameState.set_setting("display", "large_text", on))
+	# Typed-out text (G37). On by default; off, every line arrives whole. The
+	# switch is here rather than buried because the first tap already completes
+	# a line — this is for the player who never wants to make that tap.
+	_add_toggle(tr("SET_TYPING_TITLE"), tr("SET_TYPING_HINT"),
+		not GameConfig.text_instant,
+		func(on: bool) -> void:
+			GameConfig.text_instant = not on
+			GameState.set_setting("display", "text_instant", not on))
 	_add_section(tr("SETTINGS_GROUP_PRIVACY"))
 	# Usage events go to our own endpoint with a random install id (G14.5);
 	# that is pseudonymous data and the player gets the switch (G19.12). The
@@ -230,7 +238,11 @@ func _add_toggle(title: String, hint: String, value: bool,
 	hint_label.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 	text_col.add_child(hint_label)
 
-	row.add_child(_switch(value, on_change))
+	# Named like the level rows' sliders, so a suite can find one row's switch
+	# rather than guessing at the tree (G37).
+	var switch := _switch(value, on_change)
+	switch.name = "Toggle_" + title
+	row.add_child(switch)
 
 
 ## A level row: title and hint on the left, a slider on the right. The slider

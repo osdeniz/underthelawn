@@ -24,6 +24,7 @@ var _cards: Array = []
 var _index := -1
 var _tap_lock := 0.0
 var _closing := false
+var _typer := Typewriter.new()
 
 var _image: TextureRect
 var _ground: ColorRect
@@ -126,6 +127,10 @@ func _build() -> void:
 
 func _process(delta: float) -> void:
 	_tap_lock = maxf(_tap_lock - delta, 0.0)
+	var was_typing := _typer.typing()
+	_typer.advance(delta)
+	if was_typing and not _typer.typing():
+		_hint.visible = true
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -135,6 +140,13 @@ func _gui_input(event: InputEvent) -> void:
 	var clicked := event is InputEventMouseButton and (event as InputEventMouseButton).pressed
 	if pressed or clicked:
 		accept_event()
+		if _typer.typing():
+			# First tap finishes the words, second turns the page: the same two
+			# taps the dialogue box has always asked for (G37).
+			_typer.finish()
+			_hint.visible = true
+			_tap_lock = TAP_LOCK
+			return
 		_advance()
 
 
@@ -165,6 +177,10 @@ func _apply(card: Dictionary) -> void:
 
 	for child in _lines.get_children():
 		child.queue_free()
+	# The labels this card is about to type, collected as they are made:
+	# get_children() still holds the ones just queue_freed, and typing into a
+	# dying label types into nothing.
+	var fresh: Array = []
 	for raw in card.get("lines", []):
 		var label := Label.new()
 		# Each line is a translation key.
@@ -178,6 +194,12 @@ func _apply(card: Dictionary) -> void:
 		label.add_theme_constant_override("shadow_offset_y", 4)
 		label.add_theme_constant_override("shadow_outline_size", 8)
 		_lines.add_child(label)
+		fresh.append(label)
+
+	# Letter by letter (G37), starting when the fade has brought the picture
+	# in. The hint waits for the last letter, the way the dialogue box's does.
+	_typer.play(fresh, FADE_TIME)
+	_hint.visible = not _typer.typing()
 
 	# A "poster" card frames the portrait instead of filling the screen with it:
 	# a face cropped to a full-bleed background reads as scenery, and this one
