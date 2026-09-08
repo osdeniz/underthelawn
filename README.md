@@ -4788,3 +4788,32 @@ game whose session is one yard long, that is the session.
   machine's place, the progress bar), the three things it refuses (another
   chapter, another grid size, a truncated bitmap), a restart clearing it, and
   the timer writing it on its own.
+
+## G43 — menus without a touch screen
+
+Driving has been on the keyboard and the pad since §7, but the menus were
+touch-only: nearly every button in the game is built with
+`focus_mode = FOCUS_NONE` or with its focus box overridden away, because a
+focus ring appearing under a thumb looks like a bug. So a keyboard could start
+the game and then not press a single button in it, and a pad could mow a lawn
+and never open the hub.
+
+- **A mode, not a state.** The first key or pad press turns keyboard mode on;
+  the first touch or click turns it off again. Only in the mode do buttons
+  become focusable, so a phone never shows a ring. Leaving the mode restores
+  every `FOCUS_NONE` it changed, so nothing is left behind.
+- **One ring, drawn over the top.** Instead of restyling forty buttons' focus
+  boxes — several deliberately empty — a single panel on its own layer follows
+  whatever holds focus. No button's look changes. When the screen changes
+  under the focus (a page turns, a card closes) the ring takes the first
+  button of whatever is there now rather than pointing at nothing.
+- The arrows and the accept button need no new mappings: `project.godot`
+  overrides none of the `ui_*` actions, so Godot's built-in ones — arrow keys,
+  Enter, Space, the pad's D-pad, stick and A button — are already in force,
+  and a focused `BaseButton` presses itself on `ui_accept`.
+- `KeyboardFocus.install(self)` from `Root._ready`, beside `PressFeel`.
+  `FocusCheck` (17 claims, headless): the mode opening on a key and closing on
+  a touch, unfocusable buttons becoming focusable only inside it and going
+  back exactly as they were, the ring appearing around the focus and
+  following it, the focused button pressing, and a screen change not leaving
+  the ring behind.

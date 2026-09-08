@@ -58,6 +58,8 @@ func _ready() -> void:
 	LocaleSupport.restore()
 	# One hook for every button the game will ever build (G41).
 	PressFeel.install(get_tree())
+	# And a way to reach those buttons without a touch screen (G43).
+	KeyboardFocus.install(self)
 	_layer = CanvasLayer.new()
 	_layer.layer = 100
 	add_child(_layer)
