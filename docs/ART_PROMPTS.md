@@ -8,6 +8,10 @@ Shared style reference: the existing portraits and the region map — painterly,
 warm, soft-edged, muted palette (olive, ochre, dusty blue), visible brush
 texture, no photoreal skin, no sharp digital lines.
 
+The prologue's six cards (`pro_1` … `pro_6`) have their own file, rewritten
+for Gemini with the measured palette and safe-crop numbers:
+[ART_PROMPTS_PROLOGUE.md](ART_PROMPTS_PROLOGUE.md).
+
 ## 1. The Marshal — `textures/portraits/marshal.jpg` (replaces the current one)
 
 **Görsel:** Elli yaşlarında bir adam, tam boy, dörtte üç açıdan, kırsal bir
