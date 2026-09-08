@@ -305,6 +305,9 @@ func _process(delta: float) -> void:
 	_update_look_target(delta)
 	_update_animals()
 	_update_surprises(delta)
+	# Every frame, not only on the machine's own cuts: the road's end is a
+	# position, and the walker or a test can put a cut there too.
+	_check_road_end()
 	_tick_lapse()
 	_tick_lantern(get_process_delta_time())
 	_tick_recover(get_process_delta_time())
@@ -386,7 +389,9 @@ func _tick_orientation(delta: float) -> void:
 	_orientation_due = 0.0
 	GameState.mark_orientation_done()
 	Analytics.track(AnalyticsEvents.ORIENTATION_SHOWN, {"chapter": variant_id})
-	_on_orientation_closed()
+	# The sheet itself (G36): it was written in G15 and never called, so the
+	# hints landed without the sentence that says why you are here.
+	hud.show_orientation(_on_orientation_closed)
 
 
 ## Closing the sheet marks BOTH buried finds, once. This is the only place in
@@ -1221,7 +1226,9 @@ func _tick_lantern(delta: float) -> void:
 
 
 func _on_cells_mown(_count: int) -> void:
-	hud.set_progress(model.completion_ratio())
+	hud.set_progress(_road_progress() if variant != null and variant.is_road()
+		else model.completion_ratio())
+	_check_road_end()
 	_check_scent(model.completion_ratio())
 	_check_mid_chat(model.completion_ratio())
 	# The listening post's radio tunes itself as the ground opens (G13).
@@ -1231,6 +1238,36 @@ func _on_cells_mown(_count: int) -> void:
 	# with no marker until it is actually picked up.
 	if _echo_cell.x >= 0 and model.is_cut(_echo_cell.x, _echo_cell.y):
 		_check_echo(_echo_cell.x, _echo_cell.y)
+
+
+## The road (G36): the walk ends when he REACHES the fence, not when every
+## blade behind him is down. The opening line says "cut a way through", and
+## 250 cells said "clear the whole road" — the player opened a lane to the
+## light and the level would not end. Any cut cell in the far two rows is
+## arrival; progress is how far up the road the cut has reached.
+func _check_road_end() -> void:
+	if variant == null or not variant.is_road() or _complete_shown or model == null:
+		return
+	# A scene being torn down can tick once against the NEXT yard's grid
+	# statics (measured: index 316 on a 306-cell road); the model knows its
+	# own size.
+	if model.states.size() != GameConfig.CELL_COUNT:
+		return
+	for col in GameConfig.GRID_COLS:
+		if model.is_cut(col, 0) or model.is_cut(col, 1):
+			_on_completed()
+			return
+
+
+func _road_progress() -> float:
+	if model == null or model.states.size() != GameConfig.CELL_COUNT:
+		return 0.0
+	var rows := GameConfig.GRID_ROWS
+	for row in rows:
+		for col in GameConfig.GRID_COLS:
+			if model.is_cut(col, row):
+				return clampf(1.0 - float(row - 1) / float(rows - 1), 0.0, 1.0)
+	return 0.0
 
 
 func _on_completed() -> void:
@@ -1371,7 +1408,10 @@ func _begin_search() -> void:
 		return
 	_search_started = true
 	# The one-time orientation, on a first run only (G15).
-	_first_run = GameState.is_first_run()
+	# Not on the prologue's road (G36): the flag used to burn there, four
+	# seconds into a level nine years before the case, and the first real yard
+	# then got none of its first-run help.
+	_first_run = GameState.is_first_run() and not (variant != null and variant.is_road())
 	if _first_run:
 		hud.pulse_poster(GameConfig.FIRST_RUN_POSTER_PULSE)
 		_orientation_due = GameConfig.FIRST_RUN_MODAL_AFTER

@@ -166,6 +166,12 @@ func repaint_all() -> void:
 
 
 func _process(delta: float) -> void:
+	# A yard on its way out can tick once after the NEXT yard has set the grid
+	# statics (measured: a 9×34 road's flashes indexed with 12 columns, G36).
+	# The model knows its own size; a mismatch means this view is history.
+	if model == null or model.states.size() != GameConfig.CELL_COUNT:
+		_flashes.clear()
+		return
 	if not _flashes.is_empty():
 		var still: Array = []
 		for f in _flashes:

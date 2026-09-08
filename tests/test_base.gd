@@ -110,6 +110,9 @@ func open(chapter: String, tips_off := true) -> Node:
 	if tips_off:
 		for key: String in ["money", "food"]:
 			GameState.set_setting("tips", key, true)
+		# The first-run sheet pauses the tree (G36); a suite that wants it
+		# asks for it with tips_off = false.
+		GameState.set_setting("meta", "orientation_done", true)
 	var game: Node = load("res://scenes/Main.tscn").instantiate()
 	game.variant_id = chapter
 	add_child(game)

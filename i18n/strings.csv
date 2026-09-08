@@ -20,7 +20,7 @@ INTRO_01_L1,The outbreak ended years ago.,Salgın yıllar önce bitti.
 INTRO_01_L2,The world didn't end with it.,Dünya onunla birlikte bitmedi.
 INTRO_02_L1,We rebuild.,Yeniden kuruyoruz.
 INTRO_02_L2,Small towns. Small hopes.,Küçük kasabalar. Küçük umutlar.
-INTRO_03_L1,"Then, on the morning of her ninth birthday —","Sonra, dokuzuncu doğum gününün sabahı —"
+INTRO_03_L1,"On the morning of her ninth birthday —","Dokuzuncu doğum gününün sabahı —"
 INTRO_03_L2,Ellie didn't come back.,Ellie geri dönmedi.
 BRIEF_01_SPEAKER,Marshal,Şerif
 BRIEF_01_BODY,The Aldridge house. She was seen near the fence line. Search everything.,Aldridge evi. Çit hattının yakınında görülmüş. Her yeri ara.
@@ -84,10 +84,10 @@ ROLE_ELLIE,missing,kayıp
 ROLE_STRANGER,new in town,kasabada yeni
 DLG_BRIEF_CH01_1,The Aldridge house. Nobody's lived there since the year we stopped counting.,Aldridge evi. Saymayı bıraktığımız yıldan beri kimse oturmuyor.
 DLG_BRIEF_CH01_2,Sarah says Ellie was seen near the fence line. The grass is waist high.,"Sarah, Ellie'nin çit hattının yakınında görüldüğünü söylüyor. Çim bel hizasında."
-DLG_BRIEF_CH01_A1,Why the grass?,Neden çim?
+DLG_BRIEF_CH01_A1,Why the mowing?,Neden biçiyoruz?
 DLG_BRIEF_CH01_A2,How long has it been?,Ne kadar zaman geçti?
 DLG_BRIEF_CH01_R1,It's waist high. You won't see a thing until you cut it down.,Bel hizasında. Kesmeden hiçbir şey göremezsin.
-DLG_BRIEF_CH01_R2,"Since this morning. That is still a good day, if we move.",Bu sabahtan beri. Acele edersek hâlâ iyi bir gün sayılır.
+DLG_BRIEF_CH01_R2,"A few hours. That is still a good day, if we move.",Birkaç saat. Acele edersek hâlâ iyi bir gün sayılır.
 DLG_BRIEF_CH01_3,Search everything. Bring me whatever you find.,Her yeri ara. Ne bulursan bana getir.
 DLG_DEBRIEF_CH01_FULL_1,The rabbit settles it. She came through here.,Tavşan kesinleştirdi. Buradan geçmiş.
 DLG_DEBRIEF_CH01_FULL_2,Heading east. Toward the neighbour's fence.,Doğuya doğru. Komşunun çitine doğru.
@@ -354,7 +354,7 @@ POSTER_MISSING,MISSING,KAYIP
 POSTER_NAME,Ellie Voss,Ellie Voss
 POSTER_SINCE,since this morning,bu sabahtan beri
 ALERT_TITLE,SHE DIDN'T COME HOME,EVE DÖNMEDİ
-ALERT_LINE,No word since this morning. The town hasn't lost anyone in three years — and nobody wants to say why that might have changed.,Bu sabahtan beri haber yok. Kasaba üç yıldır kimseyi kaybetmedi — ve bunun neden değişmiş olabileceğini kimse söylemek istemiyor.
+ALERT_LINE,No word since this morning. The town had not lost anyone in three years.,Bu sabahtan beri haber yok. Kasaba üç yıldır kimseyi kaybetmemişti.
 HUB_RECLAIMED,TOWN RECLAIMED {percent}%,KASABA GERİ ALINDI %{percent}
 COLE_RABBIT,"Torn seam, and the ears are worn smooth. She carried it by them — the way she always did. Dropped running, not walking.","Dikişi yırtılmış, kulakları aşınmış. Onu kulaklarından taşırdı — hep öyle yapardı. Yürürken değil, koşarken düşürmüş."
 COLE_RADIO,Battery corrosion says it died years ago. Someone changed it this month.,Pil aşınması yıllar önce öldüğünü söylüyor. Biri bu ay değiştirmiş.
@@ -401,7 +401,7 @@ MAP_START,SEARCH THIS PLACE,BURAYI ARA
 MAP_AGAIN,SEARCH AGAIN,TEKRAR ARA
 MAP_LOCKED_NOTE,Finish the places before it.,Önceki yerleri bitir.
 FIRST_TITLE,WHY YOU ARE HERE,NEDEN BURADASIN
-FIRST_L1,Ellie Voss has been missing since this morning.,Ellie Voss bu sabahtan beri kayıp.
+FIRST_L1,This is where Ellie Voss was last seen.,Ellie Voss en son burada görüldü.
 FIRST_L2,"Whatever she left behind is under this grass. Clear it, and the town can see again.","Geride ne bıraktıysa bu otların altında. Burayı temizle, kasaba yeniden görsün."
 FIRST_L3,Two things are buried here. I'll mark roughly where.,Burada iki şey gömülü. Kabaca nerede olduklarını işaretleyeceğim.
 FIRST_OK,START SEARCHING,ARAMAYA BAŞLA
@@ -981,13 +981,13 @@ PRO_04_L1,I took what was in a shed and I cut my way through.,Bir barakada ne va
 PRO_04_L2,Two miles a day. Some days less.,Günde üç kilometre. Bazı günler daha az.
 PRO_ROAD_TITLE,THE LONG WALK,UZUN YÜRÜYÜŞ
 PRO_ROAD_TASK,Cut a way through to the green field,Yeşil tarlaya kadar önünü biçerek ilerle
-PRO_05_L1,"There was a fence, and a light on somebody's porch.","Bir çit vardı, ve birinin verandasında yanan bir ışık."
+PRO_05_L1,"There was a fence, and a light on somebody's porch.",Bir çit vardı ve birinin verandasında yanan bir ışık.
 PRO_05_L2,I had been walking nineteen days.,On dokuz gündür yürüyordum.
 PRO_06_L1,I could not do it a second time. I knew that much about myself.,İkinci kez yapamazdım. Kendim hakkında en azından bunu biliyordum.
 PRO_06_L2,So I gave her to a whole town instead.,Bu yüzden onu bir kasabanın tamamına verdim.
 DLG_PRO_ROAD_1A,Easy. Easy now.,Sakin. Sakin ol.
 DLG_PRO_ROAD_1B,You've been guarding that basket a while.,Bir süredir o sepeti koruyorsun.
-DLG_PRO_ROAD_2A,There's no way you both got this far on your own.,İkinizin buraya kadar tek başınıza geldiğine imkân yok.
+DLG_PRO_ROAD_2A,There's no way you both got this far on your own. She's alive because of you.,İkinizin buraya kadar tek başınıza geldiğine imkân yok. O yaşıyorsa senin sayende.
 DLG_PRO_ROAD_2B,She's alive because of you. I know that much.,O yaşıyorsa senin sayende. En azından bunu biliyorum.
 DLG_PRO_ROAD_3A,I'm not going to give you a name. Somebody else can do that.,Sana bir isim vermeyeceğim. Onu başkası yapsın.
 DLG_PRO_ROAD_3B,Come on. Both of you.,Gel. İkiniz de.
@@ -1220,7 +1220,7 @@ CASE_03_COMPLETE,CASE 03 CLOSED,VAKA 03 KAPANDI
 CASE_03_UNLOCKED,CASE 03 UNLOCKED,VAKA 03 AÇILDI
 UI_RESTART_CONFIRM,TAP AGAIN TO RESTART,SIFIRLAMAK İÇİN TEKRAR DOKUN
 PRO_07_L1,"They made me Marshal, in time. I never told them why I stayed.",Zamanla beni Şerif yaptılar. Neden kaldığımı hiç söylemedim.
-PRO_07_L2,"Nine years later, when she went missing, I sent for you.","Dokuz yıl sonra, o kaybolduğunda, seni çağırdım."
+PRO_07_L2,"Nine years on, Ellie went missing. I sent for you: I hold the town, you look.",Dokuz yıl sonra Ellie kaybolduğunda seni çağırdım. Kasabayı ben tutarım. Bakmak senin işin.
 ECHO_CH19_NAME,Ration Ledger,Karne Defteri
 ECHO_CH19_LINE,"Names down the left, ticks across. The last column is headed with a date and nothing under it.","Solda isimler, yanlarında işaretler. Son sütunun başında bir tarih var, altında hiçbir şey."
 ECHO_CH20_NAME,Signal Tin,Sinyal Tenekesi

@@ -135,7 +135,10 @@ func _trial_mowers() -> void:
 		if Garage.is_unlocked(type_index):
 			open += 1
 	Garage.trial = false
-	ck("deneme dorde de aciyor", open == 4, "%d acik" % open)
+	# Three of four: the robot stays locked on the road (G36) — thirty seconds
+	# in, unexplained, it was one machine too many.
+	ck("deneme robot disinda hepsini aciyor", open == 3
+		and not Garage.is_unlocked(GameConfig.MOWER_ROBOT), "%d acik" % open)
 	ck("deneme kapaninca geri kilitleniyor", locked > 0,
 		"zaten hepsi acikti - test bir sey kanitlamiyor")
 

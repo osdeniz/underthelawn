@@ -4554,3 +4554,29 @@ Not yet walked on the phone: everything past the menu (touch sizes, the
 naming page's keyboard, the panel, the album, the hub scroll). The simulator
 panel needs the user's one-time access grant; `xcrun simctl` can screenshot
 but not tap.
+
+## G36.1 — the first five minutes, fixed
+
+From the audit in `docs/FIRST_FIVE_MINUTES.md`:
+
+- **The first-run flag no longer burns on the road.** `Game._begin_search`
+  gates `_first_run` on `not is_road()`; measured before: five seconds into
+  the prologue the flag was gone and the first real yard got no help. And
+  the orientation sheet (`Hud.show_orientation`, written in G15, never
+  called) now actually opens four seconds into ch01: three lines, ARAMAYA
+  BAŞLA, then the two buried finds get their faint tint.
+- **The road ends at the fence.** Any cut cell in the far two rows completes
+  the prologue (`_check_road_end`); the progress bar reads how far up the
+  road the cut has reached (`_road_progress`). 250 cells said "clear the
+  whole road" while the opening line said "cut a way through".
+- **The corridor after the road: 19 → 15 taps.** pro_road merges two lines;
+  the after-prologue cards fold into one (the hinge card now names Ellie
+  and gives the player their role: "I hold the town. You look."); the
+  briefing drops its two flavour lines. "Since this morning" is said by the
+  poster and once more, not four times.
+- Turkish: no comma before "ve"; "Neden biçiyoruz?"; the two 20-word card
+  lines cut to twelve. The trial on the road unlocks the tractor, not the
+  robot. `TestBase.open` marks orientation done so the sheet never pauses a
+  suite that did not ask for it.
+- `OpeningCheck` (20 claims, headless) measures all of it, including a
+  16-word ceiling on every opening card line in both languages.

@@ -20,10 +20,6 @@
           "text": "DLG_BRIEF_CH01_2"
         },
         {
-          "speaker": "marshal",
-          "text": "DLG_BRIEF_CH01_2B"
-        },
-        {
           "choice": {
             "options": [
               {
@@ -42,10 +38,6 @@
               }
             ]
           }
-        },
-        {
-          "speaker": "marshal",
-          "text": "DLG_BRIEF_CH01_3"
         }
       ],
       "accept": "BRIEF_01_ACCEPT"
@@ -1285,10 +1277,6 @@
         {
           "speaker": "marshal",
           "text": "DLG_PRO_ROAD_2A"
-        },
-        {
-          "speaker": "marshal",
-          "text": "DLG_PRO_ROAD_2B"
         },
         {
           "speaker": "marshal",

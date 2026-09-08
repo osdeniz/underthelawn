@@ -19,6 +19,13 @@ static var trial := false
 
 
 static func is_unlocked(type_index: int) -> bool:
+	if GameConfig.DEV_UNLOCK_ALL:
+		return true
+	if trial:
+		# The prologue's trial (G15.1) is for feeling the tractor; the robot
+		# thirty seconds into the game, unexplained, was one machine too many
+		# (G36).
+		return type_index != GameConfig.MOWER_ROBOT
 	if GameConfig.DEV_UNLOCK_ALL or trial:
 		return true
 	var id := mower_id(type_index)

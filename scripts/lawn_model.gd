@@ -520,6 +520,8 @@ static func stripe_bucket(forward: Vector3) -> int:
 ## Tint colour a cell should paint into the 16x24 tint texture (§4, §5).
 func tint_for(col: int, row: int) -> Color:
 	var i := index_of(col, row)
+	if i < 0 or i >= states.size():
+		return GameConfig.ground_tall_tint()
 	match states[i]:
 		CellState.OBSTACLE:
 			return GameConfig.TINT_POOL_FLOOR if _is_pool(col, row) else GameConfig.TINT_SOIL

@@ -71,7 +71,11 @@ başlığı (SON BİÇİM: 847 GÜN ÖNCE) ve sürüş ipucu; brifingde seçim; 
 posteri; koku satırlarının bölge adı vermesi; ilk toplama ipuçları (hurda,
 yiyecek) tek seferlik ve kısa.
 
-## Uygulama planı (istenirse)
+## Uygulama (aynı gün, G36.1)
+
+A–E uygulandı: bayrak yolda yanmıyor ve yönlendirme sayfası ch01'in 4. saniyesinde gerçekten çıkıyor (3 satır, ARAMAYA BAŞLA); yol son iki sıraya varınca bitiyor ve ilerleme çubuğu şeridin ne kadar ilerlediğini gösteriyor; yol sonrası koridor 19 → 15 dokunuş (pro_road 5 satır, after_prologue tek kart, brifing 2 satır + seçim + onay); menteşe kartı Ellie'yi adıyla söylüyor ve rolü veriyor; virgül, "Neden biçiyoruz?", kısaltılan iki uzun satır; robot yolda gizli. `OpeningCheck` (20 iddia, headless) hepsini ölçüyor.
+
+## Uygulama planı (özgün)
 
 A. `is_road()` iken ilk-koşu bayrağına dokunma; yönlendirme sayfasını ch01'de
    göster veya kaldır (karar: sayfa kalsın, 3 satır; ARAMAYA BAŞLA).
