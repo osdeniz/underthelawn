@@ -2014,6 +2014,11 @@ const INTRO_SKIP_HOLD := 1.2
 ## you about; rain still falls.
 static var reduced_motion := false
 
+## HOW OFTEN AN OPEN YARD WRITES ITSELF DOWN (G42). Every few seconds is
+## plenty: the snapshot is about a kilobyte and the worst a crash can now cost
+## is this much mowing.
+const YARD_SAVE_EVERY := 4.0
+
 ## Mowing patterns (G28): read from the stripe directions at the end of a cut.
 ## A yard smaller than PATTERN_MIN_CELLS says nothing; straight rows need this
 ## share of cells on one axis and this share of neighbouring lanes running the

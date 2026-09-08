@@ -44,6 +44,11 @@ var _search_started := false
 ## Standalone (every test instantiates Main.tscn directly) this is also true, so
 ## the scene is playable on its own.
 var autostart_search := true
+## A yard in progress, handed over by the flow before _ready (G42). Applied at
+## the end of _begin_search, after the clock has been started, so the restored
+## time is not overwritten by a fresh run.
+var resume_snapshot: Dictionary = {}
+var _save_due := GameConfig.YARD_SAVE_EVERY
 ## The resolved chapter data. Read by the HUD, the evidence flow and the scrap
 ## economy; never a scene.
 var variant: LevelVariant
@@ -309,6 +314,7 @@ func _process(delta: float) -> void:
 	_update_look_target(delta)
 	_update_animals()
 	_update_surprises(delta)
+	_tick_yard_save(delta)
 	# Every frame, not only on the machine's own cuts: the road's end is a
 	# position, and the walker or a test can put a cut there too.
 	_check_road_end()
@@ -332,6 +338,143 @@ func _process(delta: float) -> void:
 	mower.camera = cam
 	var turn := clampf(absf(mower.omega) / mower.max_turn(), 0.0, 1.0)
 	AudioDirector.set_engine_state(mower.speed_fraction(), turn)
+
+
+## An open yard writes itself down every few seconds (G42), so the worst a
+## crash, a phone call or a low battery can cost is that much mowing.
+func _tick_yard_save(delta: float) -> void:
+	if not _search_started or _complete_shown or variant == null:
+		return
+	# The prologue's road is a walk with nothing in it to lose, and it is over
+	# in a minute.
+	if variant.is_road():
+		return
+	# The suites open dozens of yards; a snapshot left behind by one of them
+	# would send the NEXT run into a resume it never asked for. Same variable
+	# the background pause uses (G19.10), cleared by the one suite whose claim
+	# this is.
+	if OS.get_environment("UTL_NO_BG_PAUSE") == "1":
+		return
+	_save_due -= delta
+	if _save_due > 0.0:
+		return
+	_save_due = GameConfig.YARD_SAVE_EVERY
+	YardSave.store(snapshot())
+
+
+## Everything a resume needs and nothing it does not: the cut bitmap, where
+## the finds are and which have been carried out, the clock, the machine.
+func snapshot() -> Dictionary:
+	if model == null or variant == null:
+		return {}
+	var secrets: Array = []
+	for cell_any: Variant in model.secret_cells:
+		var cell: Vector2i = cell_any
+		secrets.append(cell.x)
+		secrets.append(cell.y)
+	# Revealed and still standing in the grass: the ones the player has dug up
+	# but not walked over yet.
+	var props: Array = []
+	for prop_any: Variant in _evidence_props:
+		var prop := prop_any as Node3D
+		if prop == null or not is_instance_valid(prop):
+			continue
+		var at := LawnModel.cell_at(prop.position)
+		props.append(at.x)
+		props.append(at.y)
+	var at_x := 0.0
+	var at_z := 0.0
+	var yaw := 0.0
+	if mower != null and is_instance_valid(mower):
+		at_x = mower.position.x
+		at_z = mower.position.z
+		yaw = mower.yaw
+	return {
+		"variant": variant_id,
+		"cols": GameConfig.GRID_COLS,
+		"rows": GameConfig.GRID_ROWS,
+		"states": YardSave.pack(model.states),
+		"stripes": YardSave.pack(model.stripes),
+		"ever_cut": YardSave.pack(model.ever_cut),
+		"secrets": secrets,
+		"props": props,
+		"collected": _collected.duplicate(true),
+		"scrap": _scrap_banked,
+		"food": _food_banked,
+		"elapsed": GameState.elapsed,
+		"search": _search_seconds,
+		"mower": _active_index,
+		"at": [at_x, at_z],
+		"yaw": yaw,
+	}
+
+
+## Puts a saved yard back. Refuses anything that is not this yard at this size
+## rather than half-applying it — a mismatched bitmap would be a lawn with
+## holes in the wrong places.
+func restore_snapshot(snap: Dictionary) -> bool:
+	if model == null or variant == null:
+		return false
+	if str(snap.get("variant", "")) != variant_id:
+		return false
+	if int(snap.get("cols", 0)) != GameConfig.GRID_COLS \
+			or int(snap.get("rows", 0)) != GameConfig.GRID_ROWS:
+		return false
+	var size := model.states.size()
+	var states := YardSave.unpack(str(snap.get("states", "")), size)
+	var stripes := YardSave.unpack(str(snap.get("stripes", "")), size)
+	var ever := YardSave.unpack(str(snap.get("ever_cut", "")), size)
+	if states.is_empty() or stripes.is_empty() or ever.is_empty():
+		return false
+
+	# The finds first: the reveal path reads secret_cells to know WHAT is in a
+	# cell, so the list has to be back before any cell is put back.
+	model.secret_cells.clear()
+	var secrets: Array = snap.get("secrets", [])
+	for i in range(0, secrets.size() - 1, 2):
+		model.secret_cells.append(Vector2i(int(secrets[i]), int(secrets[i + 1])))
+	model.states = states
+	model.stripes = stripes
+	model.ever_cut = ever
+	model.rebuild_counts()
+
+	# The grass itself: the model is the truth and the tufts follow it.
+	lawn.repaint_all()
+	if lawn.tuft_field != null:
+		for row in GameConfig.GRID_ROWS:
+			for col in GameConfig.GRID_COLS:
+				if model.is_cut(col, row):
+					lawn.tuft_field.cut_cell(col, row, 0.0)
+
+	for prop_any: Variant in _evidence_props:
+		var old_prop := prop_any as Node3D
+		if old_prop != null and is_instance_valid(old_prop):
+			old_prop.queue_free()
+	_evidence_props.clear()
+	var props: Array = snap.get("props", [])
+	for i in range(0, props.size() - 1, 2):
+		_on_secret_uncovered(int(props[i]), int(props[i + 1]), true)
+
+	_collected = (snap.get("collected", []) as Array).duplicate(true)
+	_scrap_banked = int(snap.get("scrap", 0))
+	_food_banked = int(snap.get("food", 0))
+	_search_seconds = float(snap.get("search", 0.0))
+	GameState.resume_run(float(snap.get("elapsed", 0.0)))
+
+	var wanted := int(snap.get("mower", GameConfig.MOWER_PUSH))
+	if wanted != _active_index and Garage.is_unlocked(wanted):
+		select_mower(wanted)
+	var at: Array = snap.get("at", [])
+	if at.size() == 2 and mower != null and is_instance_valid(mower):
+		mower.position = Vector3(float(at[0]), mower.position.y, float(at[1]))
+		mower.yaw = float(snap.get("yaw", 0.0))
+		mower.speed = 0.0
+		cam.snap_to_target()
+
+	hud.set_secret_count(_collected.size(), _evidence_total())
+	hud.set_progress(model.completion_ratio())
+	_check_scent(model.completion_ratio())
+	return true
 
 
 ## Driving into a shed, a fence post or the lawn's own edge: a knock, a lurch
@@ -741,7 +884,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Ray/sphere test against every live shimmer (§16 uses camera.project_ray).
-func _on_secret_uncovered(col: int, row: int) -> void:
+func _on_secret_uncovered(col: int, row: int, quiet := false) -> void:
 	var kind := model.secret_cells.find(Vector2i(col, row))
 	if kind < 0:
 		kind = 0
@@ -756,6 +899,10 @@ func _on_secret_uncovered(col: int, row: int) -> void:
 	prop.set_meta("kind", kind)
 	prop.set_meta("evidence_id", evidence_id)
 	_evidence_props.append(prop)
+	if quiet:
+		# Put back by a restore (G42): the player uncovered this one in the
+		# last session and does not need to be told again.
+		return
 	AudioDirector.play_discovery()
 	Haptics.medium()
 
@@ -1090,6 +1237,11 @@ func _notification(what: int) -> void:
 				return
 			if _search_started and hud != null and is_instance_valid(hud):
 				hud.pause_for_background()
+			# The moment that used to lose the run: write it down now rather
+			# than at the next interval (G42).
+			if _search_started and not _complete_shown and variant != null \
+					and not variant.is_road():
+				YardSave.store(snapshot())
 
 
 ## Tab / Space: the next machine the player actually owns.
@@ -1293,6 +1445,8 @@ func _on_completed() -> void:
 	if _complete_shown:
 		return
 	_complete_shown = true
+	# Finished: there is nothing left to resume (G42).
+	YardSave.clear()
 	GameState.finish_run()
 	# The run is over, so the machine is too. stop_engine only ran in
 	# _exit_tree, when the scene is destroyed — but the reward shot and the
@@ -1376,6 +1530,7 @@ func _on_completed() -> void:
 ## Restart: model reset (secrets redistributed), tint map cleared, tufts back
 ## up, shimmers and items cleared, back to the push mower.
 func _restart() -> void:
+	YardSave.clear()
 	for prop in _evidence_props:
 		if prop != null and is_instance_valid(prop):
 			prop.queue_free()
@@ -1412,6 +1567,9 @@ func _return_to_main_menu() -> void:
 
 
 func _return_to_hub() -> void:
+	# Walking out is a decision, not a crash: the half-cut yard is not kept
+	# waiting for the player (G42).
+	YardSave.clear()
 	var root := get_parent()
 	if root != null and root.has_method("return_to_hub"):
 		root.return_to_hub()
@@ -1448,6 +1606,9 @@ func _begin_search() -> void:
 	# accepted); this is the case-chapter funnel's top of the mouth.
 	if not harvest:
 		Analytics.track(AnalyticsEvents.CHAPTER_STARTED, {"chapter": variant_id})
+	if not resume_snapshot.is_empty():
+		restore_snapshot(resume_snapshot)
+		resume_snapshot = {}
 
 
 # ---------------------------------------------------------------- G9 economy

@@ -148,6 +148,15 @@ func _begin_after_menu(skip_fade_in := false) -> void:
 		# cache (every launch after the first) this returns immediately and
 		# nothing is drawn.
 		await _warm_chapter_shaders(true)
+		# A yard was open when the app went away (G42): CONTINUE means that
+		# yard, not the hub. Anything the snapshot cannot be trusted for
+		# (a chapter that no longer exists) falls through to the hub.
+		if YardSave.has_snapshot():
+			var pending := YardSave.variant_id()
+			if not LevelVariant.of(pending).id.is_empty():
+				_resume_yard(pending)
+				return
+			YardSave.clear()
 		_open_hub()
 
 
@@ -427,6 +436,9 @@ func _on_chapter_chosen(variant_id: String) -> void:
 			else:
 				return_to_board())
 		return
+	if variant_id != YardSave.variant_id():
+		# Starting anything else abandons the yard that was waiting (G42).
+		YardSave.clear()
 	_pending_variant = variant_id
 	var chapter := ChapterProgress.entry(variant_id)
 	var brief_id := str(chapter.get("brief", ""))
@@ -452,7 +464,17 @@ func _play_dialogue(lines: Array, accept_key: String, then: Callable) -> void:
 	_dialogue.play(lines, accept_key)
 
 
-func _start_chapter() -> void:
+## Straight back into the half-cut yard, with no briefing: the player has
+## already had it, and being made to sit through it again after a dropped call
+## would be the app apologising for itself (G42).
+func _resume_yard(pending: String) -> void:
+	_pending_variant = pending
+	_open_hub()
+	_hub.get_parent().visible = false
+	_start_chapter(YardSave.load_snapshot())
+
+
+func _start_chapter(resume: Dictionary = {}) -> void:
 	_fade_out_then(func() -> void:
 		_clear_game()
 		if _hub != null and is_instance_valid(_hub):
@@ -462,6 +484,8 @@ func _start_chapter() -> void:
 		# Handed the id BEFORE _ready, so the scene can build from it in G9.
 		_game.set("variant_id", _pending_variant)
 		_game.set("autostart_search", true)
+		if not resume.is_empty():
+			_game.set("resume_snapshot", resume)
 		add_child(_game)
 		_game.connect("search_finished", _on_search_finished)
 		_fade_in())

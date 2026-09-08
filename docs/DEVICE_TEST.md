@@ -29,6 +29,7 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Hurda ortaya çıkışı (herhangi bahçe) | — | komşu hücre kesilince parça yerden çıkıyor mu; havada duran yok (G19.1) |
 | Yürüme modu | 60 | — |
 | Açılış: Godot logosu YOK, koyu zemin + ikon; menüde başlık tam okunuyor (G35, simülatörde doğrulandı) | — | gerçek cihazda bir kez bak |
+| Bahçe ortasında uygulamayı ÖLDÜR | — | telefonun uygulama değiştiricisinden kapat, yeniden aç, DEVAM ET: aynı bahçe, aynı kesim, aynı saat, bulunmuş kanıtlar duruyor mu; biten bahçeden sonra DEVAM ET hub açıyor mu (G42) |
 | Arka plana al / geri gel ×3 | ses ve durum korunuyor mu | duraklatma testi |
 | Bahçe sonu: KARTPOSTAL | — | düğme panelde görünüyor mu; kart açılıyor, dokununca kapanıyor mu; Günlük → Albüm sekmesinde listeleniyor mu; telefon paylaşım sayfası YOK (eklenti gerekir, bilinen eksik) (G27) |
 | Bahçeyi düz sıralarla biç | — | panelde "Düz sıralar" çipi ve kartpostal damgasında DÜZ SIRALAR çıkıyor mu; serbest kesimde çip yok (G28) |

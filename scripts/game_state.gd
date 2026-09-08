@@ -69,6 +69,12 @@ func start_run() -> void:
 	run_started.emit()
 
 
+## Picks the clock up where a saved yard left it (G42).
+func resume_run(seconds: float) -> void:
+	elapsed = maxf(seconds, 0.0)
+	is_running = true
+
+
 func finish_run() -> void:
 	if not is_running:
 		return

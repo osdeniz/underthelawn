@@ -441,6 +441,24 @@ func _build_obstacles() -> void:
 		collision_rects.append(grid_rect_to_world(grid))
 
 
+## Recomputes every counter from the arrays (G42). The counts are kept as the
+## cells are mown, so a snapshot that writes the arrays straight in has to make
+## them agree again.
+func rebuild_counts() -> void:
+	mowed_count = 0
+	ever_cut_count = 0
+	mowable_cells = 0
+	for i in states.size():
+		var state := states[i]
+		if state != CellState.OBSTACLE:
+			mowable_cells += 1
+		if state == CellState.MOWED or state == CellState.SECRET_REVEALED:
+			mowed_count += 1
+		if i < ever_cut.size() and ever_cut[i] != 0:
+			ever_cut_count += 1
+	_completed = is_complete()
+
+
 func _recount_mowable() -> void:
 	mowable_cells = 0
 	for i in GameConfig.CELL_COUNT:

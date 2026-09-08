@@ -4746,3 +4746,45 @@ a control can say it felt something.
   press, the card drift, the camera kick and the counter pop; a locked row
   holds its position and answers in colour instead, and moves again with
   motion on; and both settings rows drive their flags and save.
+
+## G42 — the yard you were in the middle of
+
+A run existed only in memory. A phone call, a low battery or the OS reclaiming
+the app threw away every cut, every find and the clock with them — and on a
+game whose session is one yard long, that is the session.
+
+- **`YardSave`** keeps one snapshot in the save file: the cut bitmap
+  (`states`, `stripes`, `ever_cut` as base64, because PackedByteArray does
+  not survive a JSON round trip), where the evidence is, which pieces have
+  been carried out, which are dug up and still standing in the grass, the
+  banked salvage and food, the clock, the machine and where it stands. About
+  a kilobyte. Cosmetics are deliberately not kept — which small surprises had
+  fired, where the rain was in its loop, the animals' positions — a resume
+  that rebuilt those exactly would be a bigger save for no gain a player can
+  name.
+- **When it is written:** every `YARD_SAVE_EVERY` (4 s) while a yard is open,
+  and once more the instant the app goes to the background, which is the case
+  this exists for. **When it is dropped:** the yard is finished, the player
+  walks out through the pause sheet, they restart the yard, they start a
+  different one, or they begin a new game.
+- **How it comes back:** CONTINUE from the main menu means that yard, not the
+  hub, with no briefing — the player has already had it, and being made to
+  sit through it again after a dropped call would be the app apologising for
+  itself. `Game.restore_snapshot` refuses anything that is not this chapter
+  at this grid size, and refuses a truncated bitmap, rather than
+  half-applying it: a mismatched map is a lawn with holes in the wrong
+  places. `LawnModel.rebuild_counts()` makes the counters agree with the
+  arrays again, the tufts are cut to match the model, and the dug-up finds
+  are put back **silently** (`_on_secret_uncovered(col, row, quiet)`) — the
+  player uncovered those last session and does not need telling twice.
+- The suites keep the timer off through the same `UTL_NO_BG_PAUSE` the
+  background pause uses: dozens of yards get opened in a test run, and a
+  snapshot left behind by one of them would send the next launch into a
+  resume nobody asked for. `ResumeCheck` turns it on for the one claim that
+  is about the timer.
+- `ResumeCheck` (24 claims, headless): what the snapshot carries, a round
+  trip through the save file, a fresh scene of the same chapter taking it
+  back (cuts, counters, the same evidence cells, salvage, the clock, the
+  machine's place, the progress bar), the three things it refuses (another
+  chapter, another grid size, a truncated bitmap), a restart clearing it, and
+  the timer writing it on its own.
