@@ -644,7 +644,11 @@ const PLANT_PROFILES := {
 		"clipping_scale": 1.2, "clipping": Color(0.94, 0.93, 0.88),
 	},
 	"WILD_WHEAT": {
-		"form": "blade", "per_cell": 8, "blades": 7,
+		# 8x7 blades a cell on a grid half again the size of a large yard came
+		# to 333k triangles, more than twice a whole ordinary chapter (G55).
+		# Wheat is thin and overlapping, so six plants of six blades still
+		# reads as a field you cannot see the ground through.
+		"form": "blade", "per_cell": 6, "blades": 6,
 		"height_min": 0.80, "height_max": 1.15, "tall_chance": 0.40,
 		"base_min": 0.34, "base_max": 0.46,
 		"width_scale": 0.50, "lean_scale": 0.70, "spread": 0.42,
@@ -1902,7 +1906,12 @@ const DIORAMA_TUFT_SPACING := 0.78
 const DIORAMA_TUFT_DETAIL := 0.4
 ## The neighbour crop past the solid band by the fence (G20.6): same dial as
 ## the diorama's, for the same reason — a clump at sixty metres is a shape.
-const CROP_FAR_DETAIL := 0.45
+## The far band of the neighbouring crop. Measured on the harvest field: the
+## whole level renders 623k triangles a frame, 271k of them this ring and 333k
+## the field itself (G55). Out here a clump is 5 to 62 metres away and scaled
+## up to 3.7x, so it reads as a silhouette either way — this is the cheapest
+## triangle in the game to give up.
+const CROP_FAR_DETAIL := 0.25
 const DIORAMA_TUFT_JITTER := 0.34
 ## Radius around a ruined building that grows thick weeds, and how many extra
 ## clumps go in it.
@@ -2905,7 +2914,9 @@ const HARVEST_CHAT_KEY := "chat_harvest"
 ## The world had rain, night, a man on foot, animals and a lamp on a gate, and
 ## none of it made a sound. Every gain here is LOW on purpose: these sit under
 ## the engine and the cut, which are the sounds the game is about.
-const RAIN_GAIN := 0.34
+## Measured against the beds (BED_GAIN 0.20) and the cut: at 0.34 the rain was
+## the loudest thing in a wet yard and sat on top of everything else (G55).
+const RAIN_GAIN := 0.22
 const CRICKETS_GAIN := 0.26
 const LAMP_GAIN := 0.16
 ## The two yard beds. The hub theme stays the hub's; under mowing it was the

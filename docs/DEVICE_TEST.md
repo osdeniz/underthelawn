@@ -52,6 +52,8 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Kartları basılı tutarak atla | — | çubuk dolarken görünüyor mu; parmağı kaldırınca sıfırlanıyor mu; kartlara sadece dokunup beklerken KENDİ KENDİNE atlamıyor mu (G40) |
 | Klavye/kontrolcü ile menüler (masaüstü) | — | bir tuşa basınca odak halkası çıkıyor mu; oklarla satırlar arasında geziliyor, Enter basıyor mu; fareye/dokunmaya geçince halka kayboluyor mu (G43) |
 | Köpeğin burnu | — | 3., 8. ve 15. buluşta bir kez "artık daha uzaktan buluyor" satırı geliyor mu; sonrasında köpek gerçekten daha uzaktan duruyor mu (G46) |
+| Hasat tarlasi telefonda | 60 | ucgen ~394k (once 623k): akici mi, kasiyor mu; perf gostergesini acip fps/cizim/ucgen yaz (G55) |
+| Yagmur sesi | — | yagmurlu bir bolumde yagmur digerlerini bastirmiyor mu (G55) |
 | Yağmurun gelişi | — | yağmurlu bir bölümde (ör. Komşunun Bahçesi) ilk yarım dakika kuru mu; uzaktan bir gümbürtü ve rüzgâr duyuluyor mu; ışık düzleştikten SONRA damlalar başlıyor mu; uygulamayı öldürüp DEVAM ET ile dönünce yağmur zaten yağıyor mu (G49) |
 | Küçük cevaplar | — | diyalogda yeni satırda portre hafifçe yükseliyor mu; bahçenin başındaki biçme sesi sonundakinden daha kalın mı; makineyi 6 sn park edince köpeğin başı düşüyor, hareket edince kalkıyor mu (G44) |
 | Düğmelere bas | — | her düğme (hub kutuları, ayar satırları, panel kapıları, albüm kapakları) parmağın altında hafifçe küçülüyor mu; Ayarlar → "Azaltılmış hareket" açıkken küçülme, kart kayması ve çarpma itmesi duruyor ama kilitli satır yine renkle cevap veriyor mu (G41) |

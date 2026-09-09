@@ -5272,3 +5272,30 @@ itself, because a hub built by hand has never been told it is on screen.
 **Measured, not changed:** the main menu's five rows come to 512 px in a
 640 px band, with or without large text, so there is nothing there to scroll.
 If a row is still unreachable on the phone, it is not overflow.
+
+## G55 — the rain quieter, and a third of the harvest field's triangles gone
+
+- **The rain.** `RAIN_GAIN` 0.34 → 0.22. Measured against what it plays over:
+  the beds are at 0.20 and the cut at 0.6, so at 0.34 the rain was the loudest
+  thing in a wet yard and sat on top of everything else.
+- **The harvest field.** Measured with the renderer's own counters, not
+  guessed: 623k triangles a frame against an ordinary chapter's 121k, at 409
+  draw calls. Hiding one branch at a time put 333k of it in the field's own
+  crop and 271k in the ring of neighbouring crop around it. Two cuts:
+  `CROP_FAR_DETAIL` 0.45 → 0.25 (out there a clump is 5–62 m away and scaled
+  up to 3.7×, so it reads as a silhouette either way) and `WILD_WHEAT` from
+  8 plants of 7 blades to 6 of 6 (thin, overlapping stalks — the field still
+  reads as one you cannot see the ground through, checked in a render). Now
+  **394k**, a 37% cut, with draw calls unchanged. `YardTriProbe`: the field
+  went 988k → 403k across this and the earlier passes.
+- **Two things measured and NOT changed**, because measuring said so.
+  `CROP_REACH` 62 → 50 gave back 9k triangles out of 394k — the falloff has
+  already emptied the outer rows, so the reach is not where the cost is; it
+  was reverted rather than kept as a saving that isn't one. And the yard
+  autosave was the prime suspect for a *stutter* (a JSON write every four
+  seconds on the biggest grid): the snapshot costs 0.0 ms and the write
+  0.9 ms, so it is not that.
+- **What I could not reproduce:** the stutter itself. Both the field and an
+  ordinary yard hold 16.5 ms a frame on this machine — vsync, i.e. 60 fps
+  with headroom — so the phone is where this has to be judged. The triangle
+  cut is the part that was measurable here.

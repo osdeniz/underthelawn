@@ -843,6 +843,9 @@ func _build_open_country() -> void:
 ## two are the dial: REACH is how much world there is, STEP is how much of it
 ## is paid for. Halving STEP roughly quadruples the clump count, so if a device
 ## says no, raise STEP before shortening REACH — the horizon is the point.
+## 62 was tried at 50 and gave back 9k triangles out of 394k: the falloff has
+## already emptied the outer rows, so the reach is not where the cost is
+## (measured, reverted — G55).
 const CROP_REACH := 62.0
 const CROP_STEP := 1.35
 ## How deep the solid band past the fence is, in metres.
