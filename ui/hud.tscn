@@ -187,7 +187,7 @@ visible = false
 unique_name_in_owner = true
 offset_left = 330.0
 offset_top = 76.0
-offset_right = 530.0
+offset_right = 331.0
 offset_bottom = 146.0
 visible = false
 theme_override_styles/panel = SubResource("Sb_wallet")
@@ -214,6 +214,14 @@ theme_override_colors/font_color = Color(0.62, 0.95, 0.6, 1)
 theme_override_font_sizes/font_size = 40
 mouse_filter = 2
 
+[node name="ScrapName" type="Label" parent="TopBar/WalletChip/WalletRow"]
+unique_name_in_owner = true
+text = "salvage"
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.62, 0.95, 0.6, 0.72)
+theme_override_font_sizes/font_size = 32
+mouse_filter = 2
+
 [node name="FoodIcon" type="TextureRect" parent="TopBar/WalletChip/WalletRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(38, 38)
@@ -228,6 +236,14 @@ text = "0"
 vertical_alignment = 1
 theme_override_colors/font_color = Color(0.92, 0.78, 0.42, 1)
 theme_override_font_sizes/font_size = 40
+mouse_filter = 2
+
+[node name="FoodName" type="Label" parent="TopBar/WalletChip/WalletRow"]
+unique_name_in_owner = true
+text = "food"
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.92, 0.78, 0.42, 0.72)
+theme_override_font_sizes/font_size = 32
 mouse_filter = 2
 
 [node name="Progress" type="ProgressBar" parent="TopBar"]

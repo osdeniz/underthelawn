@@ -10,6 +10,8 @@ extends RefCounted
 ## machines. No font, no art file.
 
 const SIZE := 64
+## The ring of badge around a 64px icon (G56).
+const BADGE_PAD := 12
 
 static var _cache := {}
 
@@ -18,6 +20,48 @@ static var _cache := {}
 ## A gear: the salvage counter (G19.1; it was a banknote).
 static func salvage() -> Texture2D:
 	return _make("salvage")
+
+
+## The same icon on a dark badge, for wearing in the world (G56).
+##
+## A 64px line drawing on a transparent square is legible on a dark HUD chip
+## and invisible over sunlit grass. This puts it on an ink disc with a pale
+## rim — the shape reads at any distance, the icon inside it says which of the
+## two you uncovered, and it is the SAME drawing as the counter it flies to.
+static func badge(kind: String) -> Texture2D:
+	var id := "badge_" + kind
+	if _cache.has(id):
+		return _cache[id]
+	var size := SIZE + BADGE_PAD * 2
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var mid := size / 2
+	# Ink rim, PAPER middle. The first pass put the icons on a near-black disc
+	# and both drawings lost their outlines into it: the gear read as a plain
+	# ring and the sack's neck disappeared. Every one of these icons carries
+	# its shape in its dark strokes, so the ground under them has to be light —
+	# and a pale disc on a green lawn is the stronger silhouette anyway.
+	_disc(img, mid, mid, mid - 1, Color(0.12, 0.13, 0.12, 0.95))
+	_disc(img, mid, mid, mid - 5, GameConfig.MAP_PARCHMENT.lightened(0.25))
+	var face := _make(kind).get_image()
+	# An ink outline under the drawing. The sack is pale cloth on pale paper and
+	# read as a shapeless blob without one; the gear, being dark already, loses
+	# nothing. Built once per kind and cached, so the cost is a level's first
+	# pickup, not a frame's.
+	var ink := Color(0.12, 0.13, 0.12, 0.9)
+	for y in SIZE:
+		for x in SIZE:
+			if face.get_pixel(x, y).a <= 0.4:
+				continue
+			for oy in range(-2, 3):
+				for ox in range(-2, 3):
+					img.set_pixel(BADGE_PAD + x + ox, BADGE_PAD + y + oy, ink)
+	# blend_rect, not blit_rect: the icon's own transparent corners have to let
+	# the outline and the badge through instead of punching holes in them.
+	img.blend_rect(face, Rect2i(0, 0, SIZE, SIZE), Vector2i(BADGE_PAD, BADGE_PAD))
+	var tex := ImageTexture.create_from_image(img)
+	_cache[id] = tex
+	return tex
 
 
 ## A clipboard: the evidence counter.
@@ -133,9 +177,11 @@ static func _draw_pattern(img: Image, kind: String) -> void:
 				_rect(img, 10 + i * 17, 6, 8, 52, light)
 
 
+## Clipped to the IMAGE, not to SIZE. The badge (G56) draws on an 88px square
+## and the first render came back with every disc chopped square at x=64.
 static func _rect(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:
-	for py in range(maxi(y, 0), mini(y + h, SIZE)):
-		for px in range(maxi(x, 0), mini(x + w, SIZE)):
+	for py in range(maxi(y, 0), mini(y + h, img.get_height())):
+		for px in range(maxi(x, 0), mini(x + w, img.get_width())):
 			img.set_pixel(px, py, c)
 
 
@@ -148,8 +194,8 @@ static func _frame(img: Image, x: int, y: int, w: int, h: int, t: int,
 
 
 static func _disc(img: Image, cx: int, cy: int, r: int, c: Color) -> void:
-	for py in range(maxi(cy - r, 0), mini(cy + r + 1, SIZE)):
-		for px in range(maxi(cx - r, 0), mini(cx + r + 1, SIZE)):
+	for py in range(maxi(cy - r, 0), mini(cy + r + 1, img.get_height())):
+		for px in range(maxi(cx - r, 0), mini(cx + r + 1, img.get_width())):
 			if Vector2(px - cx, py - cy).length() <= float(r):
 				img.set_pixel(px, py, c)
 

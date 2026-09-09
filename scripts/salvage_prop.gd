@@ -36,6 +36,7 @@ func _build() -> void:
 		0: _build_coil(rng)
 		1: _build_tins(rng)
 		_: _build_gear(rng)
+	_add_mark(UiIcons.badge("salvage"), GameConfig.PICKUP_MARK_LIFT)
 
 
 ## A coil of copper wire lying flat, with a loose second loop.
@@ -134,6 +135,28 @@ func _mesh(mesh: Mesh, mat: Material, pos: Vector3) -> MeshInstance3D:
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
 	return mi
+
+
+## The mark the counter wears, floating over the thing itself (G56).
+##
+## The props are a coil of wire, a stack of tins, a gear — read from above, at
+## the size the play camera draws them, they are three grey lumps, and the
+## player was told to collect them by a chip with a small grey gear on it.
+## Putting the SAME symbol over the object ties the two together without a
+## word: what is on the ground is what the number counts.
+func _add_mark(icon: Texture2D, height: float) -> void:
+	if icon == null:
+		return
+	var mark := Sprite3D.new()
+	mark.name = "Mark"
+	mark.texture = icon
+	mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	mark.shaded = false
+	mark.no_depth_test = false
+	mark.pixel_size = GameConfig.PICKUP_MARK_WIDTH / float(icon.get_width())
+	mark.modulate = GameConfig.PICKUP_MARK_TINT
+	mark.position = Vector3(0.0, height, 0.0)
+	add_child(mark)
 
 
 ## The grass beside it has been cut: it rises the last few centimetres.

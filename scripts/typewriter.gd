@@ -67,8 +67,11 @@ func advance(delta: float) -> void:
 		delta = -_delay
 		_delay = 0.0
 	var entry: Dictionary = _queue[_at]
-	var label := entry["label"] as Label
-	if label == null or not is_instance_valid(label):
+	# is_instance_valid on the raw value, BEFORE the cast: `as Label` on an
+	# object that has already been freed is itself the error (G56 — a coach
+	# note whose page is closed mid-sentence takes its label with it).
+	var label := _label_of(entry)
+	if label == null:
 		_at += 1
 		_shown = 0.0
 		return
@@ -84,13 +87,30 @@ func advance(delta: float) -> void:
 		_shown = 0.0
 
 
+## Forget the queue: the host is taking its labels away rather than reading
+## them out. finish() would write to nodes on their way out of the tree.
+func stop() -> void:
+	_queue.clear()
+	_at = 0
+	_shown = 0.0
+	_delay = 0.0
+
+
 ## Every line at once: the first tap on a card, or a player who reads faster
 ## than any machine types.
 func finish() -> void:
 	for entry: Dictionary in _queue:
-		var label := entry["label"] as Label
-		if label != null and is_instance_valid(label):
+		var label := _label_of(entry)
+		if label != null:
 			label.visible_characters = -1
 	_at = _queue.size()
 	_shown = 0.0
 	_delay = 0.0
+
+
+## The entry's label, or null if it has since been freed.
+func _label_of(entry: Dictionary) -> Label:
+	var any: Variant = entry.get("label")
+	if any == null or not is_instance_valid(any):
+		return null
+	return any as Label

@@ -5299,3 +5299,64 @@ If a row is still unreachable on the phone, it is not overflow.
   ordinary yard hold 16.5 ms a frame on this machine — vsync, i.e. 60 fps
   with headroom — so the phone is where this has to be judged. The triangle
   cut is the part that was measurable here.
+
+## G56 — what you picked up, and where to take it
+
+The two halves of one complaint: *"we pick things up off the ground but the
+shapes are so vague that neither in the top bar nor on the ground is it clear
+what was picked up or what it is for"*, and *"the most important thing missing
+is guiding the player."*
+
+- **The value says what it is.** `+3` flying to a chip with a small grey gear
+  on it names nothing. It is `+3 salvage` / `+3 food` now (`PICKUP_SCRAP`,
+  `PICKUP_FOOD`).
+- **The chip says what its numbers are.** The wallet strip was `[gear] 128
+  [sack] 9` and nothing else, so a player who had never opened the shop had no
+  way to learn either one. Both are named beside their number
+  (`WALLET_SALVAGE` / `WALLET_FOOD`), at `UI_LABEL` through `fs()` so the
+  large-text setting reaches the smallest words on the HUD. The chip is
+  content-width now (`offset_right` one pixel past its left edge), so it grew
+  by the two words rather than being sized by hand — measured on screen at
+  2052–2428 of 4501, clear of the buttons.
+- **The ground wears the counter's mark.** `UiIcons.badge(kind)`: the counter's
+  own drawing on an ink-rimmed paper disc, carried by the prop itself as a
+  billboarded `Sprite3D` 0.42 m wide. Same symbol on the object, in the flying
+  value and on the chip — one idea instead of three. It is a child of the prop,
+  so it stays hidden until the grass beside it is cut; the rule the game is
+  built on is not broken to make the pickup legible.
+- **Three things the render caught,** none of which a screenshot-free change
+  would have found. `UiIcons._rect`/`_disc` clipped to the 64px icon `SIZE`
+  rather than to the image, so every badge came back with its right and bottom
+  thirds cut off square. On a near-black disc both drawings lost their
+  outlines — the gear read as a plain ring, the sack's neck vanished — so the
+  ground is paper and the ink is the icon's own strokes. And the pale sack on
+  pale paper still had no edge, so the badge dilates the icon two pixels in ink
+  underneath it. `GuidanceCheck` now asserts all three (edges reached, corner
+  clear, ground light).
+- **The walkthrough is the game's own screens.** `Guide`: three steps, offered
+  in order, one per trip home, each once. After a yard is finished — if the
+  salvage will actually buy something — the Restore page opens itself and says
+  what repairs are for; when a locked machine first becomes affordable, the
+  Workshop; when two finds that are known to say something together are both in
+  hand and no deduction has ever been made, a note whose button opens the
+  Journal. Nothing fires during the prologue and nothing fires for a screen
+  that cannot pay yet: a coach mark sending a broke player to the shop teaches
+  the wrong thing.
+- **Both routes home**, not one button. `return_to_board()` (the results
+  panel's board) and `return_to_hub()` (walking out) both go through
+  `_hub_arrival()`, which offers the step and falls back to what each did
+  before.
+- **The note.** Bottom of the screen, over the page it is about, in the
+  Marshal's typed voice (G37), with one button that records the step and closes
+  it. It grows upward from the bottom margin (`_fit_guide_note`) — fixed
+  offsets put the button 22 px off the bottom of the screen in the first
+  render, because a control cannot be shorter than its contents. Any page the
+  player opens themselves closes it.
+- **Two bugs found by building it.** `Typewriter` cast `entry["label"] as
+  Label` before `is_instance_valid` — and `as` on an already-freed object is
+  itself the error, so a card whose labels were freed mid-sentence threw; it
+  checks the raw value first and has a `stop()` for a host taking its labels
+  away. And the hub's `_process` was switched off wholesale whenever the town
+  was parked (`_set_diorama_live`), which is every page but the town — so the
+  note's first render was a heading, a blank middle and a button. The parking
+  flag is `_diorama_live` now; `_process` still runs.

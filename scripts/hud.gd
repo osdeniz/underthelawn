@@ -75,6 +75,8 @@ var _postcard_path := ""
 @onready var _scrap_label: Label = %ScrapLabel
 @onready var _food_label: Label = %FoodLabel
 @onready var _food_icon: TextureRect = %FoodIcon
+@onready var _scrap_name: Label = %ScrapName
+@onready var _food_name: Label = %FoodName
 @onready var _wallet_icon: TextureRect = %WalletIcon
 @onready var _evidence_icon: TextureRect = %EvidenceIcon
 @onready var _evidence_chip: HBoxContainer = %EvidenceChip
@@ -144,6 +146,16 @@ func _ready() -> void:
 	_build_top_scrim()
 	_wallet_icon.texture = UiIcons.salvage()
 	_food_icon.texture = UiIcons.food()
+	# The chip said "[gear] 12  [sack] 4" and nothing else, so a player who
+	# had never opened the shop had no way to learn what either number was
+	# (G56). It is named now, in the language of the flying label.
+	_scrap_name.text = tr("WALLET_SALVAGE")
+	_food_name.text = tr("WALLET_FOOD")
+	# Set here rather than in the scene so the large-text setting reaches the
+	# smallest words on the HUD (G56 — the whole point is that they be read).
+	for named: Label in [_scrap_name, _food_name]:
+		named.add_theme_font_size_override("font_size",
+			GameConfig.fs(GameConfig.UI_LABEL))
 	set_food(TownStats.food())
 	_evidence_icon.texture = UiIcons.evidence()
 	_complete_panel.visible = false
@@ -924,7 +936,7 @@ func fly_food(amount: int, from_screen: Vector2) -> void:
 	if _food_label == null or not is_instance_valid(_food_label):
 		return
 	var label := Label.new()
-	label.text = "+%d" % amount
+	label.text = tr("PICKUP_FOOD").format({"n": amount})
 	label.add_theme_font_size_override("font_size", 46)
 	label.add_theme_color_override("font_color", Color(0.94, 0.80, 0.44))
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
@@ -946,7 +958,10 @@ func fly_food(amount: int, from_screen: Vector2) -> void:
 
 func fly_scrap(amount: int, from_screen: Vector2) -> void:
 	var label := Label.new()
-	label.text = "+%d" % amount
+	# The number AND what it is (G56): a bare "+3" flying to a chip with a
+	# little grey gear on it tells the player nothing about what they picked
+	# up or what it is for.
+	label.text = tr("PICKUP_SCRAP").format({"n": amount})
 	label.add_theme_font_size_override("font_size", 46)
 	label.add_theme_color_override("font_color", Color(0.98, 0.90, 0.62))
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))

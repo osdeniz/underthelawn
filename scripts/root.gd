@@ -714,7 +714,21 @@ func start_next_chapter(current_id: String) -> void:
 
 ## Called by the game scene's RETURN TO TOWN button.
 func return_to_hub() -> void:
-	_fade_out_then(_open_hub)
+	_fade_out_then(func() -> void:
+		_open_hub()
+		_hub_arrival())
+
+
+## Every route home offers the walkthrough its one step first (G56). Both ways
+## back go through here, because "the game never took me to the screen the
+## salvage is for" is not a complaint about one button.
+func _hub_arrival(fallback := Callable()) -> void:
+	var step := Guide.next()
+	if step.is_empty():
+		if fallback.is_valid():
+			fallback.call()
+		return
+	_hub.run_guide_step(step)
 
 
 ## VIEW CASE BOARD from the case-notes panel: hub, opened straight onto the
@@ -727,8 +741,12 @@ func return_to_board() -> void:
 		# stretched across the whole screen. It read as heavy shimmering, and it
 		# only happened on this one route home (G13).
 		_open_hub()
-		_hub.open_evidence_board()
-		AudioDirector.play_pin())
+		# The walkthrough gets the first word (G56): if a screen has just
+		# become worth opening, the game opens it and says why, once.
+		# Otherwise the corkboard, the way it always was.
+		_hub_arrival(func() -> void:
+			_hub.open_evidence_board()
+			AudioDirector.play_pin()))
 
 
 func _clear_game() -> void:

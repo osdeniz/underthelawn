@@ -159,6 +159,11 @@ var _objective_list: VBoxContainer
 var _restore_list: VBoxContainer
 var _echo_list: VBoxContainer
 var _restore_note: Label
+var _guide_note: PanelContainer
+## Whether the town behind the menus is being redrawn. It used to be the hub's
+## own set_process flag; see _set_diorama_live.
+var _diorama_live := false
+var _guide_typer := Typewriter.new()
 var _tier2_announced := false
 var _progress_label: Label
 ## "TOWN RECLAIMED %N" — chapters finished, not projects bought (G13.4).
@@ -456,6 +461,9 @@ func _new_page() -> Control:
 
 
 func _show_page(page: Control) -> void:
+	# A coach note belongs to the page it was opened over (G56); the moment the
+	# player navigates anywhere themselves it has had its say.
+	_clear_guide_note()
 	# Every page this screen owns, not a list someone has to remember to add to:
 	# the objectives page was added in G14.2 and the hardcoded list did not
 	# include it, so once opened it never closed again and drew on top of
@@ -1548,6 +1556,7 @@ func _build_diorama_background() -> void:
 	frame.add_child(_diorama_view)
 
 	set_process(true)
+	_diorama_live = true
 	_diorama = load("res://scenes/TownDiorama.tscn").instantiate()
 	_diorama.building_pressed.connect(_on_diorama_building)
 	_diorama_view.add_child(_diorama)
@@ -1587,8 +1596,11 @@ func _build_diorama_background() -> void:
 ## The hub is menus over a still model, so the 3D half runs at half rate: the
 ## SubViewport is told to draw one frame, then left alone until the next tick.
 ## UPDATE_ALWAYS would redraw the whole town every frame of a 60 fps menu.
-func _process(_delta: float) -> void:
-	if _diorama_view == null:
+func _process(delta: float) -> void:
+	_guide_typer.advance(delta)
+	if _guide_note != null and is_instance_valid(_guide_note):
+		_fit_guide_note()
+	if _diorama_view == null or not _diorama_live:
 		return
 	_diorama_tick += 1
 	# Every third frame, not every second. The town is a still model with slow
@@ -1657,7 +1669,11 @@ func _capture_still() -> void:
 
 
 func _set_diorama_live(active: bool) -> void:
-	set_process(active and _diorama_view != null)
+	# _diorama_live, not set_process(false): _process also drives the guide
+	# note's typing (G56), and parking the town on the way to the Restore page
+	# stopped the sentence dead at nought characters — a black card with a
+	# heading, a blank middle and a button.
+	_diorama_live = active and _diorama_view != null
 	# The case map is the hub's other animated surface — a hand-drawn Control
 	# that repaints the whole town every frame for the breathing pin and the
 	# cloud shadow. root only HIDES the hub layer, so without this it kept
@@ -2226,6 +2242,111 @@ func open_map() -> void:
 	_show_page(_ensure_board_page())
 	_refresh_board()
 	_show_board_tab(BOARD_MAP)
+
+
+# ---------------------------------------------------------------- the guide
+
+## Run one walkthrough step: open the screen it is about and say the one
+## sentence (G56). Called on the way home from a yard; see Guide for why.
+func run_guide_step(step: Dictionary) -> void:
+	var page := str(step.get("page", "tiles"))
+	match page:
+		"restore":
+			_refresh_restore()
+			_show_page(_restore_page)
+		"workshop":
+			_workshop_page.refresh()
+			_show_page(_workshop_page)
+		_:
+			_show_page(_tiles_page)
+	_show_guide_note(step)
+
+
+## The note itself: bottom of the screen, over whichever page was opened, with
+## the one button that either closes it or does the thing it is describing.
+##
+## Anchored to the bottom rather than the middle on purpose — the page behind
+## it is the point, and a coach mark that covers the list it is talking about
+## teaches nothing.
+func _show_guide_note(step: Dictionary) -> void:
+	_clear_guide_note()
+	_guide_note = PanelContainer.new()
+	_guide_note.name = "GuideNote"
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = Color(0.05, 0.05, 0.045, 0.96)
+	skin.set_corner_radius_all(24)
+	skin.set_content_margin_all(GameConfig.UI_GAP_WIDE)
+	skin.border_color = Color(GameConfig.CASE_ACCENT, 0.7)
+	skin.set_border_width_all(3)
+	skin.shadow_color = Color(0, 0, 0, 0.55)
+	skin.shadow_size = 18
+	_guide_note.add_theme_stylebox_override("panel", skin)
+	_guide_note.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_guide_note.offset_left = GameConfig.UI_GAP_WIDE
+	_guide_note.offset_right = -GameConfig.UI_GAP_WIDE
+	# A starting height only; _fit_guide_note grows it UPWARD from the bottom
+	# margin once the wrapped sentence has a real height. Fixed offsets put the
+	# button 22px off the bottom of the screen in the first render, because a
+	# control cannot be shorter than its contents and so grew downward.
+	_guide_note.offset_bottom = -GameConfig.UI_GAP_WIDE
+	_guide_note.offset_top = _guide_note.offset_bottom - 430.0
+	add_child(_guide_note)
+	GameConfig.fit_wide(_guide_note)
+
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", GameConfig.UI_GAP_WIDE)
+	_guide_note.add_child(rows)
+
+	var eyebrow := Label.new()
+	eyebrow.name = "GuideEyebrow"
+	eyebrow.text = tr("GUIDE_LABEL")
+	eyebrow.add_theme_font_size_override("font_size", GameConfig.fs(GameConfig.UI_LABEL))
+	eyebrow.add_theme_color_override("font_color", Color(GameConfig.CASE_ACCENT, 0.9))
+	rows.add_child(eyebrow)
+
+	var line := Label.new()
+	line.name = "GuideLine"
+	line.text = DogName.fill(tr(str(step.get("line", ""))))
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	line.add_theme_font_size_override("font_size", GameConfig.fs(GameConfig.UI_HEAD))
+	line.add_theme_color_override("font_color", GameConfig.UI_INK)
+	rows.add_child(line)
+
+	var go := Button.new()
+	go.name = "GuideGo"
+	go.text = tr(str(step.get("button", "GUIDE_OK")))
+	go.custom_minimum_size = Vector2(0, GameConfig.UI_TAP_MIN)
+	go.add_theme_font_size_override("font_size", GameConfig.fs(GameConfig.UI_HEAD))
+	style_primary(go)
+	var action := str(step.get("action", ""))
+	go.pressed.connect(func() -> void:
+		Haptics.medium()
+		# Marked on the way out, not on the way in: a step the player never
+		# saw through (an interrupted return) is worth showing again.
+		Guide.mark(str(step.get("id", "")))
+		_clear_guide_note()
+		if action == "journal":
+			open_journal())
+	rows.add_child(go)
+	# The Marshal's voice everywhere else in the game types itself (G37), and
+	# this is him talking.
+	_guide_typer.play([line], PANEL_FADE)
+
+
+## The note is as tall as its sentence, measured after wrapping, and it always
+## ends one margin above the bottom of the screen.
+func _fit_guide_note() -> void:
+	var wanted := _guide_note.offset_bottom \
+		- maxf(_guide_note.get_combined_minimum_size().y, 240.0)
+	if absf(_guide_note.offset_top - wanted) > 1.0:
+		_guide_note.offset_top = wanted
+
+
+func _clear_guide_note() -> void:
+	_guide_typer.stop()
+	if _guide_note != null and is_instance_valid(_guide_note):
+		_guide_note.queue_free()
+	_guide_note = null
 
 
 func open_evidence_board() -> void:

@@ -58,6 +58,24 @@ func _build() -> void:
 			size.y * rng.randf_range(0.10, 0.46),
 			rng.randf_range(-0.26, 0.26) * size.z)
 		add_child(produce)
+	# The same badge the salvage wears, with the sack on it (G56): the crate
+	# and the number in the top bar are one idea, not two.
+	_add_mark(UiIcons.badge("food"), GameConfig.PICKUP_MARK_LIFT - size.y * 0.5)
+
+
+## The counter's own mark, floating over the crate (SalvageProp explains why).
+func _add_mark(icon: Texture2D, height: float) -> void:
+	if icon == null:
+		return
+	var mark := Sprite3D.new()
+	mark.name = "Mark"
+	mark.texture = icon
+	mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	mark.shaded = false
+	mark.pixel_size = GameConfig.PICKUP_MARK_WIDTH / float(icon.get_width())
+	mark.modulate = GameConfig.PICKUP_MARK_TINT
+	mark.position = Vector3(0.0, height, 0.0)
+	add_child(mark)
 
 
 ## Softly emissive like the salvage, for the same reason: in full sun a shaded

@@ -1105,6 +1105,14 @@ const SALVAGE_GLOW := 0.14
 const PROP_GROUND_Y := 0.06
 const PROP_SINK := 0.22
 const PROP_REVEAL_TIME := 0.35
+## G56: the mark a revealed pickup wears — the counter's own icon on a dark
+## badge, floating over the object. Three grey lumps in grass and a chip with a
+## small grey gear on it were never going to add up to one idea on their own.
+## Size is the badge's world width in metres; the lift is measured from the
+## prop's own origin, high enough to clear uncut blades beside it.
+const PICKUP_MARK_WIDTH := 0.42
+const PICKUP_MARK_LIFT := 0.62
+const PICKUP_MARK_TINT := Color(1.0, 1.0, 1.0, 0.94)
 ## G10.1 carry stack: where the haul rides. On foot it sits between the
 ## driver's shoulders; on the tractor and the blade there is no walking back, so
 ## it rides the machine's rear deck.
