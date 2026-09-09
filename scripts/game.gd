@@ -1206,6 +1206,9 @@ func _collect_evidence(prop: Node3D) -> void:
 	# rather than an emoji (G12.10).
 	_collected.append({ "emoji": info["emoji"], "name": info["name"],
 		"where": info.get("where", ""), "id": str(info.get("id", "")) })
+	# The dog's nose widens with every find, and says so the once (G46).
+	if DogNose.record() and _animals != null and is_instance_valid(_animals):
+		hud.show_scent("DOG_NOSE_BETTER")
 	Analytics.track(AnalyticsEvents.EVIDENCE_FOUND, {"chapter": variant_id,
 		"id": str(info.get("id", "")), "count": _collected.size(),
 		"total": _evidence_total()})

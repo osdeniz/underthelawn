@@ -11,6 +11,7 @@ func run() -> void:
 	await _ordinary_yard()
 	await _harvest_and_cellar()
 	await _dog_follows()
+	_dog_nose()
 
 
 
@@ -290,6 +291,39 @@ func _harvest_and_cellar() -> void:
 ## Once the long walk is done the dog is HIS, and it comes to where he is
 ## instead of pacing a fence (G15.1). Driven by MOVING THE MOWER, and measured
 ## as a distance that closes — the dog's own state is not the claim.
+## The nose widens with the finds (G46).
+func _dog_nose() -> void:
+	var keep := DogNose.finds()
+	DogNose.reset()
+	ck("basta menzil sabit", is_equal_approx(DogNose.scent_range(),
+		GameConfig.DOG_SCENT_RANGE), "%.2f" % DogNose.scent_range())
+	var improved := 0
+	for i in 20:
+		if DogNose.record():
+			improved += 1
+	ck("her adimda bir kez iyilesir", improved == DogNose.STEPS.size(),
+		"%d / %d" % [improved, DogNose.STEPS.size()])
+	ck("menzil adim sayisi kadar buyudu",
+		is_equal_approx(DogNose.scent_range(), GameConfig.DOG_SCENT_RANGE
+			+ float(DogNose.STEPS.size()) * DogNose.STEP_RANGE),
+		"%.2f" % DogNose.scent_range())
+	ck("son adimdan sonra buyumez", DogNose.finds() == 20
+		and not DogNose.record(), "%d" % DogNose.finds())
+	DogNose.reset()
+	for i in DogNose.STEPS[0] - 1:
+		DogNose.record()
+	ck("adimdan once menzil ayni", is_equal_approx(DogNose.scent_range(),
+		GameConfig.DOG_SCENT_RANGE), "%.2f" % DogNose.scent_range())
+	ck("adimi gecince menzil artar", DogNose.record()
+		and DogNose.scent_range() > GameConfig.DOG_SCENT_RANGE,
+		"%.2f" % DogNose.scent_range())
+	ck("iyilesme satiri cevrili",
+		tr("DOG_NOSE_BETTER") != "DOG_NOSE_BETTER"
+		and DogName.fill(tr("DOG_NOSE_BETTER")).find("{") < 0,
+		DogName.fill(tr("DOG_NOSE_BETTER")))
+	GameState.set_setting(DogNose.SECTION, DogNose.KEY, keep)
+
+
 func _dog_follows() -> void:
 	GameState.set_setting("story", "prologue_done", true)
 	var game: Node = await open("ch01_aldridge")

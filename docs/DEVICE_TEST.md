@@ -40,6 +40,7 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Kulübeye/çite çarp | — | tok bir ses, kısa titreşim ve küçük bir kamera itmesi var mı; çite yaslanıp sürtünürken ses tekrar tekrar çalmıyor mu (G38) |
 | Kartları basılı tutarak atla | — | çubuk dolarken görünüyor mu; parmağı kaldırınca sıfırlanıyor mu; kartlara sadece dokunup beklerken KENDİ KENDİNE atlamıyor mu (G40) |
 | Klavye/kontrolcü ile menüler (masaüstü) | — | bir tuşa basınca odak halkası çıkıyor mu; oklarla satırlar arasında geziliyor, Enter basıyor mu; fareye/dokunmaya geçince halka kayboluyor mu (G43) |
+| Köpeğin burnu | — | 3., 8. ve 15. buluşta bir kez "artık daha uzaktan buluyor" satırı geliyor mu; sonrasında köpek gerçekten daha uzaktan duruyor mu (G46) |
 | Küçük cevaplar | — | diyalogda yeni satırda portre hafifçe yükseliyor mu; bahçenin başındaki biçme sesi sonundakinden daha kalın mı; makineyi 6 sn park edince köpeğin başı düşüyor, hareket edince kalkıyor mu (G44) |
 | Düğmelere bas | — | her düğme (hub kutuları, ayar satırları, panel kapıları, albüm kapakları) parmağın altında hafifçe küçülüyor mu; Ayarlar → "Azaltılmış hareket" açıkken küçülme, kart kayması ve çarpma itmesi duruyor ama kilitli satır yine renkle cevap veriyor mu (G41) |
 | Hikâye kartları ve diyaloglar | — | yazı harf harf akıyor mu; ilk dokunuş satırı tamamlıyor, ikincisi sayfayı çeviriyor mu; iki satırlık kartta metin zıplamıyor mu; Ayarlar → "Harf harf yazı" kapatınca hepsi bir anda geliyor mu (G37) |

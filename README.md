@@ -4900,3 +4900,19 @@ a white edge and the word "önce" inside it.
   compared two different compositions, which is what the first version of
   the claim did. `PostcardShot` now renders a before/after card. Note that
   this suite needs a window: it reads rendered pixels.
+
+## G46 — the dog gets better at its job
+
+It has pointed at buried things since G14.25, always from exactly the same
+distance. Now every find widens its nose: `DogNose.scent_range()` adds
+`STEP_RANGE` (0.8) at 3, 8 and 15 finds, so 5.0 units becomes 7.4 over a
+case and a half.
+
+The point is not the number, it is that the player can see it. The step is
+announced once, in the dog's own name, on the radio toast the Marshal uses:
+"Duman bu işte ustalaşıyor — artık daha uzaktan buluyor." Nobody levelled up;
+the dog did, and you watched it happen from the fence line.
+
+`AnimalCheck` gains 7 claims: the range flat at zero finds, one improvement
+per step and no more, the total after every step, nothing past the last step,
+the step boundary itself, and the line reading with the dog's name filled in.

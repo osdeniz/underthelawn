@@ -462,7 +462,9 @@ func _scent_cell(root: Node3D) -> Vector2i:
 	if not GameConfig.DOG_SCENT_ENABLED or model == null:
 		return Vector2i(-1, -1)
 	var best := Vector2i(-1, -1)
-	var best_d := GameConfig.DOG_SCENT_RANGE
+	# Not the constant any more: the range widens as the dog finds things
+	# (G46).
+	var best_d := DogNose.scent_range()
 	for cell: Vector2i in model.secret_cells:
 		if model.states[LawnModel.index_of(cell.x, cell.y)] != LawnModel.CellState.SECRET:
 			continue
