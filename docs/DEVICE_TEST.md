@@ -38,6 +38,9 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Bahçeyi düz sıralarla biç | — | panelde "Düz sıralar" çipi ve kartpostal damgasında DÜZ SIRALAR çıkıyor mu; serbest kesimde çip yok (G28) |
 | Bahçede küçük sürprizler | — | bir bahçede en fazla iki: uçurtma / kelebek / top / makineye konan kuş / bulut gölgesi / akşam yanan pencere; hiçbiri oyunu kesmiyor, FPS düşmüyor (G29) |
 | Hub selamı ve Günlük yüzdesi | — | saat dilimine göre selam, kalan bahçe sayısı doğru; Günlük başlığında yüzde (G31–G32) |
+| Brifing arka plani | — | "Araziyi ara" kartinin arkasinda biçilecek YENİ bahçe görünüyor mu (eski biçilmiş bahçe değil) (G54) |
+| Bulunan kanıt kartı | — | eşyanın adı ve satırı harf harf yazılıyor mu; bölüm açılış başlığı da (G54) |
+| Açılış müziği | — | prolog, ilk brifing ve ilk bahçe boyunca aynı tema mı çalıyor; ikinci bölümden itibaren saate göre müzik mi (G54) |
 | Sayfaları parmakla kaydır | — | Ayarlar, Günlük ve hub kart sütunu ekranın herhangi bir yerinden sürüklenerek kayıyor mu; Ayarlar'da Dil satırına ulaşılıyor mu; "İlerlemeyi Sil" satırların üstüne binmiyor mu (G53) |
 | Küçük yazı | — | "Yeni Oyun" onay kutusundaki İptal / Sil ve baştan başla yazıları okunur büyüklükte mi (G53) |
 | Kasabada bir şey onar | — | kutlama sahnesi kasabanın üstünde mi oynuyor, siyah ekran üstünde mi (G53) |

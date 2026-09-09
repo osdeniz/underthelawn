@@ -447,6 +447,83 @@ def theme():
     return out
 
 
+# ---- an alternative town theme (G54): fingerpicked, with an actual tune.
+#
+# The theme in use is 66 BPM of detuned sine pad with a RANDOM pentatonic
+# pluck every two beats — pleasant, and impossible to remember, because there
+# is no phrase in it to remember. This one is slower, played on a plucked
+# voice instead of a sine, and has a written eight-bar melody with a question
+# and an answer. Same key (A minor) so it sits with the day and evening beds.
+#
+# Not wired in: whether it is BETTER is a decision by ear, and it is written
+# to its own file so it can be compared before anything is replaced.
+def _pluck(out, freq, at, dur, gain):
+    """One plucked note: harmonics that decay faster the higher they are, and
+    a five-millisecond attack so it starts rather than clicks."""
+    n = len(out)
+    ln = seconds(dur)
+    parts = [(1.0, 1.00, 2.6), (2.0, 0.42, 4.0), (3.0, 0.24, 5.6),
+             (4.0, 0.13, 7.4), (5.0, 0.07, 9.0), (6.0, 0.04, 11.0)]
+    attack = seconds(0.005)
+    for i in range(ln):
+        t = i / SR
+        v = 0.0
+        for mult, amp, decay in parts:
+            v += math.sin(TAU * freq * mult * t) * amp * math.exp(-decay * t)
+        if i < attack:
+            v *= i / attack
+        j = at + i
+        if j < n:
+            out[j] += v * gain
+
+
+def theme_alt():
+    bpm = 60.0
+    beat = 60.0 / bpm
+    bar = beat * 4.0
+    bars = 8
+    n = seconds(bar * bars)
+    out = [0.0] * n
+    a = 220.0                      # A3, the room this is played in
+    def note(semis, octave=0):
+        return a * (2.0 ** (semis / 12.0)) * (2.0 ** octave)
+    # | Am | F | C | G | Am | F | Dm | Em | — eight bars, so the loop does not
+    # announce itself every four.
+    roots = [0, -4, 3, -2, 0, -4, 5, 7]
+    thirds = [3, 4, 4, 4, 3, 4, 3, 3]
+    for b in range(bars):
+        root = note(roots[b], -1)
+        fifth = note(roots[b] + 7, -1)
+        third = note(roots[b] + thirds[b])
+        octv = note(roots[b])
+        start = seconds(b * bar)
+        # A held root under the bar, quiet enough to be felt and not heard.
+        ln = seconds(bar)
+        for i in range(ln):
+            t = i / SR
+            e = min(1.0, t / 0.25) * math.exp(-0.5 * t)
+            j = start + i
+            if j < n:
+                out[j] += (math.sin(TAU * root * t) * 0.6
+                           + math.sin(TAU * root * 2 * t) * 0.15) * e * 0.05
+        # The picking pattern: root, fifth, octave, third, fifth, octave.
+        pattern = [(0.0, root), (0.5, fifth), (1.0, octv), (1.5, third),
+                   (2.0, fifth), (2.5, octv), (3.0, third), (3.5, fifth)]
+        for offset, freq in pattern:
+            _pluck(out, freq, start + seconds(offset * beat), 1.4, 0.055)
+    # The tune: a question in bars 3-4 and its answer in bars 7-8. Degrees of
+    # A natural minor, written down rather than drawn from a hat.
+    melody = [
+        (2 * bar + 0.0, 15, 2.0), (2 * bar + 2.0, 14, 1.0),
+        (2 * bar + 3.0, 12, 1.0), (3 * bar + 0.0, 7, 2.5),
+        (6 * bar + 0.0, 19, 2.0), (6 * bar + 2.0, 17, 1.0),
+        (6 * bar + 3.0, 15, 1.0), (7 * bar + 0.0, 12, 3.0),
+    ]
+    for beats, semis, dur in melody:
+        _pluck(out, note(semis), seconds(beats * beat), dur, 0.085)
+    return _loop_fade(out, 0.04)
+
+
 TAU = math.tau
 # ---- corkboard pin: a short woody thunk.
 def pin():
@@ -765,6 +842,7 @@ write("ambient_birds_loop", ambient(), 0.55)
 write("car_pass", car(), 0.75)
 write("blade_spin", spin(), 0.6)
 write("theme_town", theme(), 0.9)
+write("theme_town_alt", theme_alt(), 0.78)
 write("pin", pin(), 0.8)
 write("cut_reed", cut_reed(), 0.72)
 write("cut_corn", cut_corn(), 0.86)

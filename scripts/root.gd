@@ -450,7 +450,17 @@ func _on_chapter_chosen(variant_id: String) -> void:
 		# stranding the player on the board.
 		_start_chapter()
 		return
-	_play_dialogue(lines, Dialogue.accept_key(brief_id), _start_chapter)
+	# The briefing belongs OVER the yard it is about (G54). It used to play
+	# before the chapter was built, so behind the Marshal was whatever was
+	# last on screen — most often the yard the player had just finished
+	# mowing, which is the one place the briefing is not about. The chapter is
+	# built first and held at the gate (`autostart_search` false), the
+	# briefing plays over it, and the search starts when he has finished
+	# talking.
+	_start_chapter({}, false, func() -> void:
+		_play_dialogue(lines, Dialogue.accept_key(brief_id), func() -> void:
+			if _game != null and is_instance_valid(_game):
+				_game.call("_begin_search")))
 
 
 func _play_dialogue(lines: Array, accept_key: String, then: Callable) -> void:
@@ -476,7 +486,10 @@ func _resume_yard(pending: String) -> void:
 	_start_chapter(YardSave.load_snapshot())
 
 
-func _start_chapter(resume: Dictionary = {}) -> void:
+## `autostart` false builds the yard and leaves it at the gate, for a caller
+## that wants something on top of it first; `then` runs once the scene is up.
+func _start_chapter(resume: Dictionary = {}, autostart := true,
+		then := Callable()) -> void:
 	_fade_out_then(func() -> void:
 		_clear_game()
 		if _hub != null and is_instance_valid(_hub):
@@ -485,12 +498,14 @@ func _start_chapter(resume: Dictionary = {}) -> void:
 		_game = load(GAME_SCENE).instantiate()
 		# Handed the id BEFORE _ready, so the scene can build from it in G9.
 		_game.set("variant_id", _pending_variant)
-		_game.set("autostart_search", true)
+		_game.set("autostart_search", autostart)
 		if not resume.is_empty():
 			_game.set("resume_snapshot", resume)
 		add_child(_game)
 		_game.connect("search_finished", _on_search_finished)
-		_fade_in())
+		_fade_in()
+		if then.is_valid():
+			then.call())
 
 
 ## The game scene reports the result; the hub records it and the player returns.

@@ -5227,3 +5227,48 @@ PAGES, then puts both back. `RestoreSceneCheck` (12 claims, headless) checks
 the viewport is drawing and unshrunk mid-scene, the still is not faded, the
 pages are, and everything returns afterwards — and it has to mark the hub live
 itself, because a hub built by hand has never been told it is on screen.
+
+## G54 — the briefing over its own yard, the last texts typed, and one piece of music for the opening
+
+- **The briefing plays over the yard it is about.** It used to run before the
+  chapter was built, so behind the Marshal was whatever was last on screen —
+  most often the yard the player had just finished mowing, which is the one
+  place the briefing is not about. `_start_chapter` takes an `autostart` flag
+  and a `then`: the chapter is built and held at the gate, the briefing plays
+  over the tall grass, and the search starts when he stops talking.
+  `BriefingCheck` (8 claims, headless) checks the yard exists *before* the
+  dialogue, that it is the right one, that the clock and the search are held,
+  and that ending the dialogue starts them.
+- **The last two places showing story text all at once now type it**: the card
+  that names what you just dug up (and the echo card, which shares its body)
+  and the chapter's own opening title. Both go through the G37 machine, with
+  the delay set to their own arrival. Written down because it cost a bug:
+  `play()` captures what the labels hold, so called before the new text is
+  set — as the echo card first did — it types out the PREVIOUS card's words.
+- **One piece of music for the whole opening.** `play_bed` returns the theme
+  while `ChapterProgress.done_count()` is zero, so the prologue, the first
+  briefing and the first yard all carry the same music, and the hourly beds
+  take over from the second chapter on. A player learning what the game is
+  should not get a change of soundtrack at the moment they first touch the
+  machine. It also stops a stray bed rather than playing the theme over it.
+  `MusicCheck` (10 claims, headless) covers both sides, and `AudioCheck`'s
+  bed claims now set up the finished chapter they depend on rather than
+  trusting the save.
+- **An alternative theme, offered rather than installed.** The theme in use is
+  66 BPM of detuned sine pad with a RANDOM pentatonic pluck every two beats —
+  pleasant, and impossible to remember, because there is no phrase in it to
+  remember. `theme_alt()` is slower (60 BPM), played on a plucked voice
+  (harmonics that decay faster the higher they are, with a 5 ms attack so it
+  starts rather than clicks), picks a root-fifth-octave-third pattern under an
+  **eight**-bar chord cycle so the loop does not announce itself every four,
+  and has a written melody — a question in bars 3–4 and its answer in 7–8 —
+  instead of notes drawn from a hat. It is generated to
+  `audio/theme_town_alt.wav` and **not wired in**: whether it is better is a
+  decision by ear, and I cannot make that one. Both measure -17.6 dB RMS and
+  neither clips, so the comparison is fair. To try it:
+  `cp audio/theme_town_alt.wav audio/theme_town.wav` (keep a copy of the
+  original first — or just re-run `tools/gen_audio.py` to restore it).
+
+**Measured, not changed:** the main menu's five rows come to 512 px in a
+640 px band, with or without large text, so there is nothing there to scroll.
+If a row is still unreachable on the phone, it is not overflow.

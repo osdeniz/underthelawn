@@ -581,6 +581,18 @@ static func bed_for(hour: String) -> String:
 ## every chapter (G9.4) — the same forty bars for two hours. Cross-fades when
 ## the bed changes and does nothing when it does not.
 func play_bed(hour: String) -> void:
+	# The theme carries the whole opening (G54): the prologue, the first
+	# briefing and the first yard, right up to the moment that yard is
+	# finished. A player who has just met the town should hear ONE piece of
+	# music while they learn what the game is, not a change of bed at the
+	# moment they first touch the machine. From the second chapter on, the
+	# hourly beds take over as they always did.
+	if ChapterProgress.done_count() == 0:
+		# And if a bed somehow got started first — a save wiped mid-session —
+		# it steps aside rather than playing under the theme.
+		stop_bed()
+		play_theme()
+		return
 	var key := bed_for(hour)
 	if key == _bed_key and _bed.playing:
 		return

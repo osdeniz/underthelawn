@@ -11,6 +11,7 @@ func run() -> void:
 	await _reunion()
 	await _dialogue()
 	await _radio()
+	await _cards_in_the_yard()
 	_switch()
 	GameConfig.text_instant = false
 	finish()
@@ -204,6 +205,37 @@ func _radio() -> void:
 	ck("panel cumlesi yaziyor", game.hud._notes_progress.visible_characters != -1,
 		str(game.hud._notes_progress.visible_characters))
 	ck("panel cumlesinin metni tam", game.hud._notes_progress.text.length() > 0, "")
+	close(game)
+
+
+## The two that were left showing story text all at once (G54): the card that
+## names what you just dug up, and the chapter's own opening title.
+func _cards_in_the_yard() -> void:
+	var game := await open("ch01_aldridge")
+	var info := LevelVariant.of("ch01_aldridge").evidence_info(0)
+	game.hud.show_secret_card(str(info.get("emoji", "")), str(info.get("name", "")),
+		str(info.get("line", "")), func() -> void: pass, str(info.get("id", "")))
+	await frames(2)
+	ck("bulus karti yaziyor", game.hud._card_typer.typing(), "")
+	ck("bulus kartinin metni yerinde",
+		game.hud._card_title.text == str(info.get("name", "")), game.hud._card_title.text)
+	ck("bulus kartinda harf gorunmez", game.hud._card_title.visible_characters != -1,
+		str(game.hud._card_title.visible_characters))
+	game.hud._card_typer.finish()
+	ck("tamamlanir", game.hud._card_title.visible_characters == -1, "")
+
+	game.hud.show_echo_card("", "Yanki", "Bir satir", "")
+	await frames(2)
+	ck("yanki karti da yaziyor", game.hud._card_typer.typing()
+		and game.hud._card_title.text == "Yanki", game.hud._card_title.text)
+	game.hud._card_typer.finish()
+
+	game.hud.show_opening_title("OPENING_01_HEADLINE", "OPENING_01_SUBLINE")
+	await frames(2)
+	ck("acilis basligi yaziyor", game.hud._title_typer.typing(), "")
+	ck("acilis basliginin metni yerinde",
+		game.hud._opening_headline.text == tr("OPENING_01_HEADLINE"),
+		game.hud._opening_headline.text)
 	close(game)
 
 

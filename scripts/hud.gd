@@ -94,6 +94,10 @@ var _scent_toast: PanelContainer
 ## finished, and one would clobber the other.
 var _scent_typer := Typewriter.new()
 var _panel_typer := Typewriter.new()
+## The find card and the opening title also carry story text, and were the
+## last two places in the game that showed it all at once (G54).
+var _card_typer := Typewriter.new()
+var _title_typer := Typewriter.new()
 var _scent_mark: Label
 var _target_percent := 0.0
 var _card_home := Vector2.ZERO
@@ -216,6 +220,8 @@ func set_progress(ratio: float) -> void:
 func _process(delta: float) -> void:
 	_scent_typer.advance(delta)
 	_panel_typer.advance(delta)
+	_card_typer.advance(delta)
+	_title_typer.advance(delta)
 	if _scent_mark != null and is_instance_valid(_scent_mark):
 		# A cursor, not decoration: while the line is still coming in, the
 		# marker pulses; once it has landed it sits steady.
@@ -264,6 +270,9 @@ func show_secret_card(emoji: String, item_name: String, line: String,
 	_show_card_art(emoji, evidence_id)
 	_card_title.text = item_name
 	_card_line.text = line
+	# What it is, then what it means, written out (G54). The card holds while
+	# it types; the delay is the card's own arrival.
+	_card_typer.play([_card_title, _card_line], 0.35)
 
 	if _card_tween and _card_tween.is_valid():
 		_card_tween.kill()
@@ -777,6 +786,8 @@ func show_opening_title(headline_key := "", subline_key := "") -> void:
 		_opening_headline.text = tr(headline_key)
 	if subline_key != "":
 		_opening_subline.text = tr(subline_key)
+	# The chapter's own two lines, typed as the yard fades in (G54).
+	_title_typer.play([_opening_headline, _opening_subline], 0.7)
 	_opening.modulate.a = 0.0
 	if _opening_tween and _opening_tween.is_valid():
 		_opening_tween.kill()
@@ -1507,6 +1518,9 @@ func show_echo_card(emoji: String, item_name: String, line: String,
 	_show_card_art(emoji, evidence_id)
 	_card_title.text = item_name
 	_card_line.text = line
+	# AFTER the text is set: play() captures what the labels hold, so called
+	# first it would have typed out the previous card's words.
+	_card_typer.play([_card_title, _card_line], 0.35)
 
 	if _card_tween and _card_tween.is_valid():
 		_card_tween.kill()

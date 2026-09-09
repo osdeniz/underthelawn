@@ -27,6 +27,15 @@ func _ready() -> void:
 		not AudioDirector._rain.playing and not AudioDirector._night.playing
 		and not AudioDirector._lamp.playing, "")
 
+	# The theme carries the whole opening now (G54), so the beds only exist
+	# once a yard has been finished. This section's claim is about the beds,
+	# so it puts that state there rather than depending on whatever the save
+	# happens to hold.
+	var kept_done := ChapterProgress.done_count()
+	if kept_done == 0:
+		ChapterProgress.record(
+			str((Story.list("chapters")[0] as Dictionary).get("variant_id", "")), 2, 2)
+
 	# The bed follows the hour, and only changes when the class changes.
 	ck("gunduz yatagi", AudioDirector.bed_for("morning") == "bed_day", AudioDirector.bed_for("morning"))
 	ck("aksam yatagi", AudioDirector.bed_for("dusk") == "bed_evening", AudioDirector.bed_for("dusk"))
@@ -37,6 +46,14 @@ func _ready() -> void:
 	ck("ayni sinifta yatak degismiyor", AudioDirector._bed_key == first, AudioDirector._bed_key)
 	AudioDirector.play_bed("night")
 	ck("gece yatak degisiyor", AudioDirector._bed_key == "bed_evening", AudioDirector._bed_key)
+	# And with nothing finished, the same call plays the theme instead.
+	ChapterProgress.reset()
+	AudioDirector.play_bed("morning")
+	await get_tree().create_timer(GameConfig.BED_FADE + 0.4).timeout
+	ck("ilk bolumde tema calar",
+		AudioDirector._music != null and AudioDirector._music.playing, "")
+	ck("ilk bolumde yatak susar",
+		AudioDirector._bed == null or not AudioDirector._bed.playing, "")
 	AudioDirector.stop_bed()
 
 	# One-shots never throw, with or without files.
