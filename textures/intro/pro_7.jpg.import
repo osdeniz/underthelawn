@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://daks6lg8xrm03"
-path.bptc="res://.godot/imported/pro_4.jpg-8a2c0c9222f0b4b8bc99e817da701f63.bptc.ctex"
-path.astc="res://.godot/imported/pro_4.jpg-8a2c0c9222f0b4b8bc99e817da701f63.astc.ctex"
+uid="uid://bj3ie6eft03pj"
+path.bptc="res://.godot/imported/pro_7.jpg-9bcd9f4b28b1b1e9d7029fad38d3843b.bptc.ctex"
+path.astc="res://.godot/imported/pro_7.jpg-9bcd9f4b28b1b1e9d7029fad38d3843b.astc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -12,8 +12,8 @@ metadata={
 
 [deps]
 
-source_file="res://textures/intro/pro_4.jpg"
-dest_files=["res://.godot/imported/pro_4.jpg-8a2c0c9222f0b4b8bc99e817da701f63.bptc.ctex", "res://.godot/imported/pro_4.jpg-8a2c0c9222f0b4b8bc99e817da701f63.astc.ctex"]
+source_file="res://textures/intro/pro_7.jpg"
+dest_files=["res://.godot/imported/pro_7.jpg-9bcd9f4b28b1b1e9d7029fad38d3843b.bptc.ctex", "res://.godot/imported/pro_7.jpg-9bcd9f4b28b1b1e9d7029fad38d3843b.astc.ctex"]
 
 [params]
 

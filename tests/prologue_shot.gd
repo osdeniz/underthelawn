@@ -13,7 +13,10 @@ func run() -> void:
 	get_window().content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 	await frames(2)
 	GameConfig.text_instant = false
-	var cards: Array = Story.list("prologue.cards") + Story.list("prologue.after")
+	# The intro deck too (G57.1): its four cards were repainted to match the
+	# prologue's six, and the hub's replay-the-intro path is where they show.
+	var cards: Array = Story.list("prologue.cards") + Story.list("prologue.after") \
+		+ Story.list("intro.cards")
 	var intro := IntroSequence.new()
 	intro.cards_key = "prologue.cards"
 	add_child(intro)
@@ -34,7 +37,7 @@ func run() -> void:
 		shot.save_png("res://out/prologue_%d_%s.png" % [drawn + 1, name])
 		drawn += 1
 	print("[cekim] out/prologue_1..%d yazildi" % drawn)
-	ck("yedi kart cizildi", drawn == cards.size(), "%d / %d" % [drawn, cards.size()])
+	ck("her kart cizildi", drawn == cards.size(), "%d / %d" % [drawn, cards.size()])
 	# The pictures are all there: this is the claim the render is evidence for.
 	var missing: Array[String] = []
 	for any: Variant in cards:

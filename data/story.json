@@ -56,8 +56,8 @@
         ]
       },
       {
-        "image": "intro/pro_6",
-        "fallback_image": "intro/intro_2b",
+        "image": "intro/pro_7",
+        "fallback_image": "intro/pro_6",
         "lines": [
           "PRO_07_L1",
           "PRO_07_L2"

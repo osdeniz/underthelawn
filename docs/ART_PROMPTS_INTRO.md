@@ -177,11 +177,36 @@ kulesi, yamaçtan inen biçilmiş iz, ön planda çit direğine asılmış geni�
 kenarlı şapka. Yıldız/rozet, üniforma, silah, bayrak yok; yazı yok; insan
 yok. Kartın hissi "hesap verilen bir yer".
 
-## Geldiğinde
+## Geldi — ölçüm (2026-09-10)
 
-Dosyaları `textures/intro/` içine at, adları önemli değil — söyle, ben
-`intro_1.jpg`, `intro_2.jpg`, `intro_2b.jpg`, `intro_3.jpg` (ve varsa
-`pro_7.jpg`) olarak dönüştürüp içe alır, `PrologueShot` ile telefon
-kadrajında render alıp yazının okunurluğunu ve alt üçte birin
-parlaklığını ölçerim. `pro_7` gelirse `data/story.json` içindeki
-`prologue.after` son kartını ona çeviririm.
+Beşi de geldi ve setin içine oturdu. Ölçüm (üçte bir ortalama parlaklık,
+doygunluk, doygun piksellerin medyan tonu, ve kart yazısının oturduğu bandın
+— yüksekliğin %58'inden aşağısının — parlaklığı):
+
+| dosya | üst | orta | alt | alt/üst | doygunluk | ton | yazı bandı |
+|---|---|---|---|---|---|---|---|
+| intro_1 | 119 | 65 | 41 | 0.34 | 0.46 | 33° | 44 |
+| intro_2 | 116 | 62 | 43 | 0.37 | 0.48 | 32° | 46 |
+| intro_2b | 81 | 41 | 29 | 0.36 | 0.28 | 36° | 32 |
+| intro_3 | 102 | 54 | 33 | 0.32 | 0.44 | 32° | 37 |
+| pro_7 | 87 | 49 | 35 | 0.40 | 0.48 | 33° | 38 |
+
+Hedef üst 100–130 / alt 30–45 / oran ~0.30 idi: beşi de içinde (intro_2b ve
+pro_7 üstten biraz daha koyu, ki alacakaranlık kartları için istenen şey).
+Ton 32–36°, yani prolog altısının 32–45° aralığının tam ortasında. Yazı bandı
+32–46 — eski dört kartın 63–86'sına karşı, ve `pro_6`'nın sorunlu 71'inin
+yarısı. Set artık tek elden çıkmış görünüyor ve on bir kartın hepsinde beyaz
+yazı okunuyor (`out/prologue_1..12`).
+
+Yapılanlar: PNG → JPEG q90, kendi çözünürlüklerinde (13,1 MB → 2,0 MB); eski
+dört `intro_*.jpg` üzerine yazıldı, böylece `.import` dosyaları ve uid'leri
+korundu; `pro_7` yeni içe alındı; `data/story.json` içindeki `prologue.after`
+son kartı artık `intro/pro_7` (yedek olarak `pro_6`).
+
+**Mipmap'ler kapatıldı** (on bir kartın hepsinde). Kartlar
+`KEEP_ASPECT_COVERED` ile çiziliyor: 853–941 piksel genişlikteki bir resim
+1170 genişlikte ekrana 1,37× **büyütülerek** basılıyor, üstüne Ken Burns
+1,06× daha ekliyor. Küçültme hiç olmadığı için mip seviye 0 dışına hiç
+çıkılmıyor; mipmap zinciri %33 fazla VRAM demekti, karşılığında hiçbir şey
+vermiyordu. Şimdi on bir kart toplam **16,6 MB** (ASTC, ölçülen dosya
+boyutlarından) — mipmap'liyken ~22,1 MB olurdu.

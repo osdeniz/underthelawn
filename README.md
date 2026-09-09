@@ -5395,3 +5395,34 @@ G19.1, named `pro1..pro6.png` and 15 MB of PNG between them.
   to the poster), but the hub's "replay the intro" still shows the old four.
   And the prologue's last card reuses `pro_6` with the pan reversed, because
   there are six pictures for seven cards.
+
+## G57.1 — the intro deck repainted, and the last prologue card gets its own picture
+
+The four older `intro_*.jpg` cards were storybook illustration beside the
+prologue's six painted ones, and the hub's replay-the-intro path still shows
+them. Four new ones arrived, plus the seventh prologue card that was missing.
+
+- **Aimed with numbers off the delivered art, not the old cards.** Hue held
+  across all ten already (32–45°, ochre to olive); what split the set in two
+  was value — the new six run 97–128 in the top third and 28–36 in the
+  bottom, the old four 136–180 and 63–86. `docs/ART_PROMPTS_INTRO.md` asked
+  for a top of 100–130, a bottom of 30–45, and the bottom third darkest,
+  since the card's own text starts at 58% of the height. What came back:
+  top **81–119**, bottom **29–43**, ratio 0.32–0.40, hue 32–36°, and the text
+  band at **32–46** against the old cards' 63–86. Eleven cards now read as one
+  hand, and the white type is legible on every one (`out/prologue_1..12`).
+- **Overwritten, not replaced.** The new art was written over
+  `intro_1/2/2b/3.jpg`, so their `.import` files and uids survive; nothing
+  referenced them by uid, but a new uid for the same picture is a needless
+  diff. PNG → JPEG q90 at native size: **13.1 MB → 2.0 MB**.
+- **`pro_7`** is imported and `prologue.after`'s last card points at it
+  (`fallback_image` now `pro_6`), so the prologue's seven cards stop showing
+  six pictures — the last one used to be `pro_6` again with the pan reversed.
+- **Mipmaps off on all eleven, measured.** The cards draw with
+  `KEEP_ASPECT_COVERED`: an 853–941 px picture on a 1170-wide screen is
+  **magnified** 1.37×, and Ken Burns adds up to 1.06× on top. There is no
+  minification anywhere in their life, so nothing ever samples below mip 0 —
+  the chain was 33% more VRAM for nothing. Eleven cards now total **16.6 MB**
+  of ASTC, read off the imported files, against ~22.1 MB with the chains.
+- `PrologueShot` walks the intro deck too, and still renders at the phone's
+  letterboxed frame.
