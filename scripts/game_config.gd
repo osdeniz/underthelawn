@@ -2019,6 +2019,9 @@ static var reduced_motion := false
 ## is this much mowing.
 const YARD_SAVE_EVERY := 4.0
 
+## How much of a yard may already be cut and still count as "before" (G45).
+const POSTCARD_BEFORE_MAX := 0.03
+
 ## SMALL ANSWERS (G44). The portrait rises when its owner speaks — further for
 ## a face that has just arrived than for one carrying on. The cut sound drops
 ## towards CUT_THICK_PITCH while the whole lawn is still standing and comes

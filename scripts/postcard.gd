@@ -12,6 +12,13 @@ const DIR := "user://postcards"
 const PHOTO := Vector2i(1200, 800)
 const CARD := Vector2i(1296, 1040)
 const MOUNT := 48
+## The "before" print, tucked into the finished photograph's bottom-left with
+## a white edge of its own (G45): a card that shows only the after says the
+## yard was tidy, and a card that shows both says the player did it. Kept
+## small and in a corner so the album's thumbnails still read as one picture.
+const INSET := Vector2i(376, 251)
+const INSET_MARGIN := 26
+const INSET_EDGE := 8
 ## From above the road edge, looking up the yard. The distance scales with the
 ## grid: a fixed camera framed ch06's 24×32 well and left ch01's 16×24 as a
 ## postage stamp in the middle of the print (measured — see `PostcardShot`).
@@ -21,6 +28,37 @@ const CAM_DISTANCE_ROWS := 2.1
 const CAM_DISTANCE_COLS := 2.4
 const CAM_RISE := 0.78
 const CAM_FOV := 52.0
+
+
+## Reads a viewport once it has actually drawn something, and gives up rather
+## than waiting for ever (G45).
+##
+## The obvious `await RenderingServer.frame_post_draw` has two problems. It is
+## never emitted when nothing is being drawn — a headless suite, or an app the
+## OS has stopped drawing — and awaiting it there hangs the coroutine and
+## leaks the viewport with it, which is not a test-only worry: a yard can open
+## while the phone is putting the app to sleep. And connecting to it from a
+## static function to bound the wait does not work at all: the lambda never
+## fires (measured — seen=false after twenty frames in a window that was
+## plainly drawing). So this polls the texture instead, and an undrawn
+## viewport is a black one, which is the same test the card already had to
+## make.
+static func drawn_image(tree: SceneTree, vp: SubViewport, frames := 24) -> Image:
+	for _i in frames:
+		await tree.process_frame
+		if not is_instance_valid(vp) or not vp.is_inside_tree():
+			return null
+		var tex := vp.get_texture()
+		if tex == null:
+			continue
+		var img := tex.get_image()
+		if img == null or img.get_width() < 8:
+			continue
+		var probe := img.get_pixel(img.get_width() / 2, img.get_height() / 2)
+		if probe.get_luminance() < 0.01 and img.get_pixel(8, 8).get_luminance() < 0.01:
+			continue
+		return img
+	return null
 
 
 static func path_for(variant_id: String) -> String:
@@ -68,11 +106,12 @@ static func title_for(variant_id: String) -> String:
 
 ## Photograph, mount, save. Runs inside the scene (it needs its World3D and a
 ## few frames), returns the saved path or "" when the render produced nothing.
-static func make(game: Node3D, variant_id: String, subtitle := "", stamp := "") -> String:
+static func make(game: Node3D, variant_id: String, subtitle := "", stamp := "",
+		before: Image = null) -> String:
 	var photo := await capture_yard(game)
 	if photo == null or not is_instance_valid(game):
 		return ""
-	var card := await compose(game, photo, title_for(variant_id), subtitle, stamp)
+	var card := await compose(game, photo, title_for(variant_id), subtitle, stamp, before)
 	if card == null:
 		return ""
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
@@ -82,6 +121,17 @@ static func make(game: Node3D, variant_id: String, subtitle := "", stamp := "") 
 		push_warning("Postcard: could not save %s (error %d)" % [path, err])
 		return ""
 	return path
+
+
+## The same photograph, shrunk to the inset's size and kept for the end of the
+## yard (G45). Full size it would be four megabytes held for a whole session
+## for the sake of a print the size of a stamp.
+static func capture_before(game: Node3D) -> Image:
+	var photo := await capture_yard(game)
+	if photo == null:
+		return null
+	photo.resize(INSET.x, INSET.y, Image.INTERPOLATE_LANCZOS)
+	return photo
 
 
 ## The yard from above, in the scene's own world: same light, same sky, same
@@ -105,26 +155,17 @@ static func capture_yard(game: Node3D) -> Image:
 	# may be torn down under us (a flow test closing the yard mid-await), so
 	# the tree is asked of the engine and the viewport is checked after.
 	var tree := Engine.get_main_loop() as SceneTree
-	for _i in 3:
-		await tree.process_frame
-	await RenderingServer.frame_post_draw
-	if not is_instance_valid(vp) or not vp.is_inside_tree():
-		return null
-	var img := vp.get_texture().get_image()
-	vp.queue_free()
-	if img == null or img.get_width() < 8:
-		return null
-	# A black frame means the render did not happen (a headless run): no card.
-	var probe := img.get_pixel(img.get_width() / 2, img.get_height() / 2)
-	if probe.get_luminance() < 0.01 and img.get_pixel(8, 8).get_luminance() < 0.01:
-		return null
+	var img: Image = await drawn_image(tree, vp)
+	if is_instance_valid(vp):
+		vp.queue_free()
 	return img
 
 
 ## The mount: parchment, a white photo border, the name, the town, the date
 ## and a stamp in the corner. Built as controls in a 2D viewport so the text
 ## is the game's own type, then read back as one image.
-static func compose(host: Node, photo: Image, title: String, subtitle: String, stamp := "") -> Image:
+static func compose(host: Node, photo: Image, title: String, subtitle: String,
+		stamp := "", before: Image = null) -> Image:
 	var vp := SubViewport.new()
 	vp.size = CARD
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -153,6 +194,34 @@ static func compose(host: Node, photo: Image, title: String, subtitle: String, s
 	shot.position = Vector2(MOUNT, MOUNT)
 	shot.size = Vector2(PHOTO)
 	root.add_child(shot)
+
+	# The "before" print, if the yard was photographed on the way in.
+	if before != null and before.get_width() > 8:
+		var inset_edge := ColorRect.new()
+		inset_edge.color = Color(0.97, 0.96, 0.92)
+		inset_edge.position = Vector2(MOUNT + INSET_MARGIN - INSET_EDGE,
+			MOUNT + PHOTO.y - INSET_MARGIN - INSET.y - INSET_EDGE)
+		inset_edge.size = Vector2(INSET) + Vector2.ONE * INSET_EDGE * 2.0
+		root.add_child(inset_edge)
+		var inset := TextureRect.new()
+		inset.texture = ImageTexture.create_from_image(before)
+		inset.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		inset.position = inset_edge.position + Vector2.ONE * INSET_EDGE
+		inset.size = Vector2(INSET)
+		root.add_child(inset)
+		# Inside the little print, not under it: under it the word landed half
+		# on the photograph's own white border and half off the card (seen in
+		# out/postcard_ch01_aldridge.png).
+		var mark := Label.new()
+		mark.text = TranslationServer.translate("POSTCARD_BEFORE")
+		mark.position = inset.position + Vector2(10.0, 4.0)
+		mark.size = Vector2(INSET.x - 20, 40)
+		mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		mark.add_theme_font_size_override("font_size", 28)
+		mark.add_theme_color_override("font_color", Color(0.97, 0.96, 0.92))
+		mark.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.75))
+		mark.add_theme_constant_override("shadow_offset_y", 2)
+		root.add_child(mark)
 
 	var ink := Color(0.22, 0.16, 0.10)
 	var name_label := Label.new()
@@ -200,13 +269,7 @@ static func compose(host: Node, photo: Image, title: String, subtitle: String, s
 	stamp_box.add_child(stamp_text)
 
 	var tree := Engine.get_main_loop() as SceneTree
-	for _i in 3:
-		await tree.process_frame
-	await RenderingServer.frame_post_draw
-	if not is_instance_valid(vp) or not vp.is_inside_tree():
-		return null
-	var img := vp.get_texture().get_image()
-	vp.queue_free()
-	if img == null or img.get_width() < 8:
-		return null
+	var img: Image = await drawn_image(tree, vp)
+	if is_instance_valid(vp):
+		vp.queue_free()
 	return img

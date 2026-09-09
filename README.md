@@ -4861,3 +4861,42 @@ code I had changed:**
   is, so with eight samples the test was measuring its own noise and it
   reported the comparison backwards. It now draws the SAME variants both
   times from a fixed seed and checks the factor itself, which is exact.
+
+## G45 — the postcard says what you did
+
+A card that shows only the finished yard says the yard was tidy. A card that
+shows both says the player did it. So the yard is photographed on the way in
+too, and that print goes in the finished photograph's bottom-left corner with
+a white edge and the word "önce" inside it.
+
+- `Postcard.capture_before(game)` takes the same shot and shrinks it to the
+  inset's 376×251 straight away — full size it would be four megabytes held
+  for a whole session for the sake of a print the size of a stamp.
+  `compose(..., before)` draws it; without one the card is exactly as it was.
+- **Two real bugs the suite caught, both mine:**
+  - The shot was gated on `mowed_count == 0`. By the time a deferred call
+    runs, the machine has already cut the cell it is standing on — measured
+    as 2 cells — so the photograph would **never** have been taken, in the
+    game as much as in the suite. The gate is now `completion_ratio() >
+    POSTCARD_BEFORE_MAX` (3%), which is what "as it was found" actually
+    means and still refuses a resume, where a "before" would be a lie.
+  - Putting the capture inline in `_begin_search` turned that function into
+    a coroutine, and the postcard suite deadlocked: every caller — the flow,
+    the suites — expects `_begin_search` to have FINISHED when it returns.
+    It is a deferred call of its own now.
+- **And one that was waiting to happen in the app.** Both captures ended with
+  `await RenderingServer.frame_post_draw`, which is never emitted when
+  nothing is being drawn: a headless suite, or a phone that has stopped
+  drawing the app. The await hangs the coroutine and leaks its viewport with
+  it — and a yard can open while the OS is putting the app to sleep.
+  `Postcard.drawn_image(tree, vp)` now polls the viewport's texture for up to
+  24 frames and gives up cleanly; an undrawn viewport is a black one, which
+  is the same test the card already had to make. (Connecting to the signal
+  with a one-shot lambda to bound the wait does not work at all — measured:
+  never fired, in a window that was plainly drawing.)
+- `PostcardCheck` gains 5 claims. It compares two cards composed from the
+  same inputs, one with the inset and one without, so the only difference
+  between them is the inset — comparing against the saved card would have
+  compared two different compositions, which is what the first version of
+  the claim did. `PostcardShot` now renders a before/after card. Note that
+  this suite needs a window: it reads rendered pixels.

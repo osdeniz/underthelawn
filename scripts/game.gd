@@ -49,6 +49,8 @@ var autostart_search := true
 ## time is not overwritten by a fresh run.
 var resume_snapshot: Dictionary = {}
 var _save_due := GameConfig.YARD_SAVE_EVERY
+## The yard before a blade touched it, shrunk to the postcard's inset (G45).
+var _before_photo: Image = null
 ## The resolved chapter data. Read by the HUD, the evidence flow and the scrap
 ## economy; never a scene.
 var variant: LevelVariant
@@ -360,6 +362,17 @@ func _tick_yard_save(delta: float) -> void:
 		return
 	_save_due = GameConfig.YARD_SAVE_EVERY
 	YardSave.store(snapshot())
+
+
+## "As it was found" tolerates the cell under the machine: by the time a
+## deferred call runs, the mower has already cut the one it is standing on —
+## measured as 2 cells, and an exact `mowed_count == 0` meant this photograph
+## was never taken at all, in the game as well as in the suite. What it must
+## refuse is a RESUME, where the yard is half cut and a "before" would lie.
+func _take_before_photo() -> void:
+	if model == null or model.completion_ratio() > GameConfig.POSTCARD_BEFORE_MAX:
+		return
+	_before_photo = await Postcard.capture_before(self)
 
 
 ## Everything a resume needs and nothing it does not: the cut bitmap, where
@@ -1507,7 +1520,7 @@ func _on_completed() -> void:
 		# The postcard (G27): the yard as it stands, before the panel covers
 		# it. A few frames; the panel waits for them.
 		var card_path: String = await Postcard.make(self, variant_id, _postcard_subtitle(),
-			tr(MowPattern.stamp_key(pattern)))
+			tr(MowPattern.stamp_key(pattern)), _before_photo)
 		if not is_inside_tree():
 			return
 		hud.set_postcard(card_path)
@@ -1606,6 +1619,15 @@ func _begin_search() -> void:
 	# accepted); this is the case-chapter funnel's top of the mouth.
 	if not harvest:
 		Analytics.track(AnalyticsEvents.CHAPTER_STARTED, {"chapter": variant_id})
+	# The yard as it was found (G45), for the finished card's corner. Deferred
+	# onto its own call: _begin_search has to stay a plain function, because
+	# every caller — the flow, the suites — expects it to have FINISHED when
+	# it returns, and one await in here turns it into a coroutine that has
+	# not (it deadlocked the postcard suite before this line moved out).
+	# A resume is not a fresh start either: the "before" of a half-cut yard
+	# would be a lie, so it is taken only when nothing has been mown.
+	if variant != null and not variant.is_road():
+		_take_before_photo.call_deferred()
 	if not resume_snapshot.is_empty():
 		restore_snapshot(resume_snapshot)
 		resume_snapshot = {}

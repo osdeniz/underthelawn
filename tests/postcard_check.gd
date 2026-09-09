@@ -12,6 +12,12 @@ func run() -> void:
 
 	var game := await open("ch01_aldridge")
 	await settle(1.0)
+	# Read here, not later: the shot is only taken while the yard is untouched
+	# and this suite mows all of it two lines from now (G45).
+	var before_photo: Image = game._before_photo
+	ck("giriste onceki kare alinmis", before_photo != null
+		and before_photo.get_width() == Postcard.INSET.x,
+		"" if before_photo == null else str(before_photo.get_size()))
 	# Cut the whole yard so the card shows stripes, not tall grass.
 	for row in GameConfig.GRID_ROWS:
 		for col in GameConfig.GRID_COLS:
@@ -35,6 +41,24 @@ func run() -> void:
 		Postcard.title_for("ch01_aldridge"))
 	ck("hasat adi kartta", Postcard.title_for("harvest_woodlot") == tr("HARVEST_FIELD_WOODLOT"),
 		Postcard.title_for("harvest_woodlot"))
+	# The before/after inset (G45). The same card composed twice with the same
+	# inputs, so the ONLY difference between them is the inset — comparing
+	# against the saved card would compare two different compositions.
+	var plain: Image = await Postcard.compose(game, img, "Test", "", "", null)
+	var with_inset: Image = await Postcard.compose(game, img, "Test", "", "",
+		before_photo)
+	ck("onceki kare karta basilir", with_inset != null and plain != null, "")
+	if with_inset != null and plain != null and before_photo != null:
+		var spot := Vector2i(Postcard.MOUNT + Postcard.INSET_MARGIN + Postcard.INSET.x / 2,
+			Postcard.MOUNT + Postcard.PHOTO.y - Postcard.INSET_MARGIN - Postcard.INSET.y / 2)
+		ck("kose degisti", with_inset.get_pixelv(spot) != plain.get_pixelv(spot),
+			"%s vs %s" % [with_inset.get_pixelv(spot), plain.get_pixelv(spot)])
+		var away := Vector2i(Postcard.MOUNT + Postcard.PHOTO.x - 60, Postcard.MOUNT + 60)
+		ck("fotografin geri kalani ayni",
+			with_inset.get_pixelv(away).is_equal_approx(plain.get_pixelv(away)),
+			"%s vs %s" % [with_inset.get_pixelv(away), plain.get_pixelv(away)])
+	ck("once yazisi cevrili", tr("POSTCARD_BEFORE") != "POSTCARD_BEFORE", "")
+
 	ck("saat alt yazisi cevrili", game._postcard_subtitle() != "" and not game._postcard_subtitle().begins_with("POSTCARD_"),
 		game._postcard_subtitle())
 

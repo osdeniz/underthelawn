@@ -8,6 +8,8 @@ func run() -> void:
 	for vid in ["ch01_aldridge", "ch06_watertower"]:
 		var game := await open(vid)
 		await settle(1.2)
+		# The yard as found, for the finished card's corner (G45).
+		var before: Image = game._before_photo
 		for row in GameConfig.GRID_ROWS:
 			for col in GameConfig.GRID_COLS:
 				if game.model.is_mowable(col, row) and not game.model.is_cut(col, row):
@@ -15,7 +17,8 @@ func run() -> void:
 					if game.lawn.tuft_field != null:
 						game.lawn.tuft_field.cut_cell(col, row, 0.0)
 		await frames(3)
-		var saved: String = await Postcard.make(game, vid, game._postcard_subtitle())
+		var saved: String = await Postcard.make(game, vid, game._postcard_subtitle(),
+			"", before)
 		ck("kart var: %s" % vid, saved != "", saved)
 		if saved != "":
 			var img := Image.load_from_file(ProjectSettings.globalize_path(saved))
