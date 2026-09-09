@@ -5189,3 +5189,41 @@ the ending cards and before the board, for all three cases.
   line, and each case using its own closing sentence. `MarshalPageShot`
   renders it. `Case2Flow` learned to tap through the page on the way to the
   board — run windowed, because in headless it skips its own tap tests.
+
+## G53 — four things the player found, all measured before touching
+
+**Pages that could not be scrolled.** The settings screen had no
+ScrollContainer at all: `_rows` was a bare VBox pinned to the top, so the list
+ran off the bottom of the screen — the language row could not be reached — and
+the footer, pinned to the bottom, was drawn straight over whatever ran under
+it. The rows live in a scroll now, ending above the footer, so the two cannot
+touch. `DragScroll` adds drag-anywhere scrolling on top: Godot's
+ScrollContainer scrolls a touch drag it actually receives, and a mouse drag
+never, so on a page whose rows are all buttons the player has nothing to pull.
+It listens on `_unhandled_input`, where a drag lands after every button has
+declined it, and it is attached to the settings, the Journal and the hub's
+tile column.
+
+**Text far too small on some buttons.** `project.godot` set no
+`gui/theme/default_font_size`, so every control that never got an explicit
+size drew at Godot's 16 px fallback — which is what made the erase-progress
+confirmation's two buttons unreadable. The floor is 34 px now, and
+`HubScreen.style_primary` / `style_secondary`, which dress buttons all over
+the game, carry a size of their own.
+
+**The green progress bar drawn over the buttons.** Measured from the scene:
+`Progress` ended at `width - 284` and `PercentLabel` at `width - 308`, while
+the sky button starts at `width - 404` — 120 px of overlap in the same band.
+Both now end at `width - 428`, clear of it.
+
+**A pitch-black celebration.** Buying a restoration plays a scene over the
+town — but the diorama is parked on every page that is not the town's (the
+viewport is set to UPDATE_DISABLED and its container shrunk to free the 70 MB
+framebuffer), and what stands in for it is a still image. The old scene faded
+out every visible Control that was not a SubViewportContainer, and a
+TextureRect is a Control: it faded the still too. So the sound played over
+nothing. The scene now wakes the town for its own duration and fades only the
+PAGES, then puts both back. `RestoreSceneCheck` (12 claims, headless) checks
+the viewport is drawing and unshrunk mid-scene, the still is not faded, the
+pages are, and everything returns afterwards — and it has to mark the hub live
+itself, because a hub built by hand has never been told it is on screen.

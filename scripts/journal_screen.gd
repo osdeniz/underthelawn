@@ -160,6 +160,8 @@ func _build() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
 	GameConfig.fit_wide(scroll)
+	DragScroll.attach(self, scroll)
+
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", GameConfig.UI_GAP_WIDE)

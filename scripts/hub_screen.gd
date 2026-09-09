@@ -26,6 +26,10 @@ const PANEL_FADE := 0.22
 ## Shared button styles for every hub-family page (workshop, board): filled
 ## accent for the one action that spends or progresses, dark card for the rest.
 static func style_primary(button: Button) -> void:
+	# Size as well as colour: these two helpers dress buttons all over the
+	# game and neither set one, so anything that did not add its own drew at
+	# the theme's fallback (G53).
+	button.add_theme_font_size_override("font_size", GameConfig.fs(GameConfig.UI_BODY))
 	var base := StyleBoxFlat.new()
 	base.bg_color = Color(0.72, 0.58, 0.24)
 	base.set_corner_radius_all(20)
@@ -58,6 +62,7 @@ static func _style_tab(tab: Button, active: bool) -> void:
 
 
 static func style_secondary(button: Button) -> void:
+	button.add_theme_font_size_override("font_size", GameConfig.fs(GameConfig.UI_BODY))
 	var base := StyleBoxFlat.new()
 	base.bg_color = Color(0.10, 0.10, 0.09, 0.94)
 	base.set_corner_radius_all(20)
@@ -794,6 +799,7 @@ func _build_tiles() -> Control:
 	scroll.offset_bottom = -110
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	page.add_child(scroll)
+	DragScroll.attach(page, scroll)
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -1763,17 +1769,21 @@ func _play_restore_scene(project_id: String) -> void:
 	skipper.pressed.connect(_diorama.skip)
 	add_child(skipper)
 
+	# The town has to be DRAWING for this, and on the restore page it is not:
+	# the diorama is parked for every page that is not the town's, and what
+	# stands in for it is a still image — which the old version of this loop
+	# faded out along with the pages, because a TextureRect is a Control too.
+	# So the celebration played to a black screen with a sound on it (G53).
+	var wanted_town := _page_wants_town
+	_page_wants_town = true
+	_apply_diorama()
+
+	# Only the PAGES fade. The ground gradient, the cover art, the scrim and
+	# the town still are not pages: they are what is behind them.
 	var pages: Array = []
-	for child in get_children():
-		var page := child as Control
-		if page == null or page == skipper or not page.visible:
-			continue
-		if page is SubViewportContainer:
-			continue
-		# The Restore_* badges are rebuilt on every purchase, so they will be
-		# gone before this animation ends. Fading them is pointless and holding
-		# a reference to them is what used to break the hub.
-		if page.name.begins_with("Restore_"):
+	for candidate: Variant in _pages():
+		var page := candidate as Control
+		if page == null or not page.visible:
 			continue
 		pages.append(page)
 		page.modulate.a = 0.0
@@ -1791,6 +1801,9 @@ func _play_restore_scene(project_id: String) -> void:
 		if not is_instance_valid(page_any):
 			continue
 		(page_any as Control).modulate.a = 1.0
+	# And the town goes back to whatever the page it was on asked for.
+	_page_wants_town = wanted_town
+	_apply_diorama()
 
 # ---------------------------------------------------------------- echoes (G12.6)
 

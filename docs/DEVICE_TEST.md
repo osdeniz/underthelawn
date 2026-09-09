@@ -38,6 +38,9 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Bahçeyi düz sıralarla biç | — | panelde "Düz sıralar" çipi ve kartpostal damgasında DÜZ SIRALAR çıkıyor mu; serbest kesimde çip yok (G28) |
 | Bahçede küçük sürprizler | — | bir bahçede en fazla iki: uçurtma / kelebek / top / makineye konan kuş / bulut gölgesi / akşam yanan pencere; hiçbiri oyunu kesmiyor, FPS düşmüyor (G29) |
 | Hub selamı ve Günlük yüzdesi | — | saat dilimine göre selam, kalan bahçe sayısı doğru; Günlük başlığında yüzde (G31–G32) |
+| Sayfaları parmakla kaydır | — | Ayarlar, Günlük ve hub kart sütunu ekranın herhangi bir yerinden sürüklenerek kayıyor mu; Ayarlar'da Dil satırına ulaşılıyor mu; "İlerlemeyi Sil" satırların üstüne binmiyor mu (G53) |
+| Küçük yazı | — | "Yeni Oyun" onay kutusundaki İptal / Sil ve baştan başla yazıları okunur büyüklükte mi (G53) |
+| Kasabada bir şey onar | — | kutlama sahnesi kasabanın üstünde mi oynuyor, siyah ekran üstünde mi (G53) |
 | Vaka kapanışında Şerif'in sayfası | — | kavuşma/konvoy/kapı kartından sonra parşömen sayfa geliyor mu; kendi kurduğun çıkarımlar sayfada mı; köpeğin adı geçiyor mu; ilk dokunuş yazıyı bitirip ikincisi kapatıyor mu (G52) |
 | Açılışta ses | — | menüde ve kartlarda kuş sesi bunaltıcı değil mi; prolog kartlarında kuş YOK; açılışta koyu ekran değil oyunun ikonu görünüyor mu (G51) |
 | Günlük → Bulgular: iki bulguyu bağla | — | bir bulguya dokununca kenar çizgisi kalınlaşıyor mu; ikinciye dokununca altta Şerif'in cevabı çıkıyor mu; yanlış çift bir şey kaybettirmiyor mu; kurulan çıkarım Vaka Notları'nın sonunda ÇIKARIMLAR altında duruyor mu (G48) |

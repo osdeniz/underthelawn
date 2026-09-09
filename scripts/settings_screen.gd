@@ -66,14 +66,26 @@ func _ready() -> void:
 	add_child(close)
 	GameConfig.fit_wide(close)
 
+	# The rows live in a SCROLL now (G53). They were a bare VBox pinned to the
+	# top, so the list simply ran off the bottom of the screen: the language
+	# row could not be reached at all, and the footer — pinned to the bottom —
+	# was drawn straight over whatever ran under it.
+	var scroll := ScrollContainer.new()
+	scroll.name = "SettingsScroll"
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_top = 236.0
+	scroll.offset_left = 70.0
+	scroll.offset_right = -70.0
+	scroll.offset_bottom = -float(GameConfig.UI_TAP_MIN) - 190.0
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
+	GameConfig.fit_wide(scroll)
+	DragScroll.attach(self, scroll)
+
 	_rows = VBoxContainer.new()
-	_rows.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	_rows.offset_top = 236.0
-	_rows.offset_left = 70.0
-	_rows.offset_right = -70.0
+	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_rows.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
-	add_child(_rows)
-	GameConfig.fit_wide(_rows)
+	scroll.add_child(_rows)
 
 	# Three rows in one undifferentiated column left most of the screen empty
 	# and told the player nothing about how the rows related. Grouping them

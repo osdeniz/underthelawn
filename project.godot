@@ -46,6 +46,13 @@ window/stretch/mode="viewport"
 window/stretch/aspect="keep_height"
 window/handheld/orientation=1
 
+[gui]
+
+# Godot's fallback is 16px, which is what every control that never got an
+# explicit size was drawing at: the erase-progress confirmation's two buttons
+# were unreadable on a phone (G53). This is the floor for anything unstyled.
+theme/default_font_size=34
+
 [input]
 
 move_forward={
