@@ -546,7 +546,8 @@ func _check_ending_cards_dismiss(method: String) -> void:
 				_push_tap()
 		await settle(0.15)
 		waited += 0.15
-	ck("%s dokununca kapandi" % method, _find_card(root) == null, "")
+	ck("%s dokununca kapandi" % method, _find_card(root) == null,
+		"" if _find_card(root) == null else _find_card(root).get_class())
 
 	var hub := root.get_node_or_null("HubLayer") as CanvasLayer
 	waited = 0.0
@@ -578,7 +579,9 @@ func _find_card(root: Node) -> Node:
 		if not (layer is CanvasLayer):
 			continue
 		for child in layer.get_children():
-			if child is ConvoyCard or child is ReunionCard:
+			# The Marshal's page now stands between an ending and the board
+			# (G52), and it is dismissed the same way: tap when it is ready.
+			if child is ConvoyCard or child is ReunionCard or child is MarshalPage:
 				return child
 	return null
 

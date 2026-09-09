@@ -1311,7 +1311,12 @@ const ENGINE_MIX_LERP := 4.0
 const CUT_GAIN := 0.6
 const CUT_PITCH_VARIANTS: Array[float] = [1.0, 1.15, 0.88]
 const CUT_VOICES := 3
-const AMBIENT_GAIN := 0.18
+## The birdsong bed under the story cards. Measured against the theme, which
+## plays at the same time: at 0.18 the two beds fought and the player heard
+## "a lot of sound" from the moment the app opened. It also fades IN now
+## rather than arriving at full (G51).
+const AMBIENT_GAIN := 0.10
+const AMBIENT_FADE_IN := 2.5
 
 # ---------------------------------------------------------------- haptics (§15)
 const HAPTIC_ENABLED := true
@@ -1382,8 +1387,11 @@ const HIGH_CLOUD_Y := 40.0
 # ---------------------------------------------------------------- G6 micro-motion
 const CANOPY_SWAY_AMP := 0.02
 const CANOPY_SWAY_PERIOD := 3.5
-const BIRD_INTERVAL_MIN := 20.0
-const BIRD_INTERVAL_MAX := 40.0
+## One bird at a time, and rarely: at 20-40 seconds there was a chirp on top
+## of the loop often enough to read as a soundtrack of birds rather than as a
+## place with birds in it (G51).
+const BIRD_INTERVAL_MIN := 45.0
+const BIRD_INTERVAL_MAX := 85.0
 const FLAG_INTERVAL_MIN := 60.0
 const FLAG_INTERVAL_MAX := 90.0
 

@@ -130,9 +130,9 @@ func _begin_after_menu(skip_fade_in := false) -> void:
 		_fade.color.a = 1.0
 	if GameConfig.STORY_ALWAYS_REPLAY_INTRO or not _prologue_done():
 		# THE LONG WALK (G15.1) comes first: cards, then the road, then the
-		# nine-year jump into Case 01. Birdsong belongs to the opening cards
-		# ONLY (G9.4) — under gameplay it read as untraceable background noise.
-		AudioDirector.start_ambient()
+		# nine-year jump into Case 01. NO birdsong over these four: they are a
+		# man remembering a plague that took his daughter, and a dawn chorus
+		# under that is the wrong room (G51). The theme carries them.
 		AudioDirector.play_theme()
 		_play_prologue()
 	elif not _intro_seen():
@@ -611,7 +611,20 @@ func _show_gate() -> void:
 		GameState.set_setting("story", "case03_closed", true)
 		Analytics.track("gate_chosen", {"open": open})
 		_play_cards("endings.open" if open else "endings.closed", func() -> void:
-			return_to_board()))
+			_show_marshal_page("case_03")))
+
+
+## The Marshal's own page, on its own layer above whatever closed the case,
+## and the board after it (G52).
+func _show_marshal_page(case_key: String) -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "MarshalLayer"
+	layer.layer = 72
+	add_child(layer)
+	var page := MarshalPage.open(layer, case_key)
+	page.finished.connect(func() -> void:
+		layer.queue_free()
+		return_to_board())
 
 
 func _in_case_two(variant_id: String) -> bool:
@@ -637,7 +650,7 @@ func _show_convoy() -> void:
 	card.finished.connect(func() -> void:
 		layer.queue_free()
 		GameState.set_setting("story", "case02_closed", true)
-		return_to_board())
+		_show_marshal_page("case_02"))
 
 
 ## The warm close: Ellie home, the board complete, and the door to Case 02.
@@ -656,8 +669,10 @@ func _show_reunion() -> void:
 	card.finished.connect(func() -> void:
 		layer.queue_free()
 		GameState.set_setting("story", "case01_closed", true)
-		# Straight onto the finished board: the pins ARE the ending.
-		return_to_board())
+		# His own page, then the finished board (G52): the picture is the
+		# feeling, the page is the file — and the file holds whatever the
+		# player worked out for themselves.
+		_show_marshal_page("case_01"))
 
 
 ## Called by the case-notes NEXT button: brief and start the chapter after

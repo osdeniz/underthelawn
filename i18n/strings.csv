@@ -1404,3 +1404,11 @@ LINK_LANTERN_BOAT,"A lantern lit on the top step, and a boat that leaked the who
 LINK_LETTER_PHOTO,"A typed letter thanking us, and a nine-year-old print of a basket. They knew where she was the whole time, and they never once asked us for anything.","Daktiloyla yazılmış bir teşekkür mektubu, ve bir sepetin dokuz yıllık baskısı. Bütün bu süre boyunca onun nerede olduğunu biliyorlardı, ve bizden bir kez bile bir şey istemediler."
 LINK_WIRE_SIGN,"The wire re-strung tight on both sides, and the sign planed down to white. We have built a gate and not decided what it says. Somebody is going to have to say it.","İki yandan yeniden gerilmiş tel, ve rendelenip beyaza boyanmış tabela. Bir kapı yaptık ve ne dediğine karar vermedik. Birinin bunu söylemesi gerekecek."
 WATCHERS_LINE,"Somebody's at the fence. Word got round about how you cut the last one.","Çitin başında birileri var. Geçen bahçeyi nasıl biçtiğin konuşulmuş."
+PAGE_DATED,Closed {date}. Written up the same evening.,{date} kapandı. Aynı akşam deftere geçirildi.
+PAGE_FOUND,{yards} yards searched. {found} of {total} pieces carried out of them.,{yards} bahçe arandı. İçlerinden {total} parçanın {found} tanesi çıkarıldı.
+PAGE_LINKS,What we worked out:,Çıkardıklarımız:
+PAGE_NO_LINKS,The pieces are all in the drawer and not one of them has been put next to another. Somebody will have to do that.,Parçaların hepsi çekmecede ve hiçbiri bir başkasının yanına konmamış. Bunu birinin yapması gerekecek.
+PAGE_SIGNED,"— the Marshal, Hollow Creek","— Şerif, Hollow Creek"
+CASE_01_PAGE_CLOSE,She is home and she is eating. {Dog} has not left the gate. I am putting this away and I am not certain it is finished.,Kız evinde ve yemek yiyor. {Dog} kapıdan ayrılmadı. Bunu kaldırıyorum ve bittiğinden emin değilim.
+CASE_02_PAGE_CLOSE,"The road east is a road again and the town is on it. What she saw has a name now, and the name is not a comfort.","Doğu yolu yeniden bir yol ve kasaba onun üstünde. Ellie'nin gördüğü şeyin artık bir adı var, ve o ad rahatlatıcı değil."
+CASE_03_PAGE_CLOSE,"They wrote first and we never answered. Whatever the gate says now, that part is ours.","Onlar önce yazdı, biz hiç cevap vermedik. Kapı bundan sonra ne diyorsa desin, o kısım bize ait."

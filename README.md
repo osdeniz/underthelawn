@@ -5136,3 +5136,56 @@ in front — which is the same trap G45 fixed inside the game. It uses
 `TestBase.drawn_frame()` now, which waits 250 ms and gives up. The other shot
 suites still take the bare await; they pass while the window is frontmost, and
 that is worth knowing before one of them stalls a run.
+
+## G51 — quieter at the door, and something to look at while it opens
+
+Two things the player reported, both measured before touching:
+
+- **Too much sound from the moment the app opens.** The theme and the birdsong
+  bed played together over the story cards, the bed arriving at full volume on
+  the first frame. `AMBIENT_GAIN` 0.18 → 0.10, faded in over
+  `AMBIENT_FADE_IN` (2.5 s) instead of switched on, and a single chirp every
+  45–85 s instead of every 20–40. And **no birdsong at all over the
+  prologue's four cards**: they are a man remembering the plague that took his
+  daughter, and a dawn chorus under that is the wrong room. The theme carries
+  them.
+- **A black screen on first launch — and it was mine.** G35 removed the Godot
+  logo from the boot splash and put nothing in its place, so the wait before
+  the first drawn frame was a plain dark rectangle. It shows the game's own
+  icon on its own ground now (`boot_splash/image`, `show_image=true`).
+
+**And what the black screen was NOT**, since the map was the suspect: the map
+opens in about 30 ms. Measured — `map/town_map` and `map/world_map` load in
+1.5 ms each (Godot's importer has already done the work; the 3.5 MB on disk is
+not what gets loaded), `TownMap` builds in 28 ms, and the procedural parchment
+it falls back to when art is missing costs 25 ms at 256 and 99 ms at 512, once
+per process. If a black frame is still there on the phone after this, it is
+not the map and not the art.
+
+## G52 — the page the Marshal writes
+
+Every case ended on a picture — Ellie home, the convoy, the gate — and then
+the player was back at the board with nothing in their hand saying what the
+case had amounted to. `MarshalPage` is that: a leaf out of his own book on the
+same parchment the postcards are mounted on, typed in his hand, shown after
+the ending cards and before the board, for all three cases.
+
+- **The middle of it is the player's own work.** The head, the count and the
+  closing line are written per case; between them go the deductions *they*
+  worked out (G48), in the sentences they earned. Two players who closed the
+  same case do not read the same page. With none worked out it says so
+  plainly — "the pieces are all in the drawer and not one of them has been
+  put next to another" — rather than listing nothing.
+- It counts the yards searched and the pieces carried out of them, names the
+  dog if it has a name, and is signed. A link belongs to a case because its
+  chapters do (G48.1 keeps links from ever crossing cases), so the page can
+  never print another case's deduction — which is a claim.
+- Two taps, the game's own rule: the first finishes the handwriting, the
+  second closes the book.
+- `MarshalPageCheck` (24 claims, headless): the parchment, the typing and its
+  hint, the case named, the count, every one of the player's own deductions
+  present and another case's absent, the dog's name, the signature, no
+  placeholder left unfilled, the tap closing it, the bare version's plain
+  line, and each case using its own closing sentence. `MarshalPageShot`
+  renders it. `Case2Flow` learned to tap through the page on the way to the
+  board — run windowed, because in headless it skips its own tap tests.

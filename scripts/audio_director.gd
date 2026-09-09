@@ -238,8 +238,15 @@ func stop_ambient() -> void:
 
 func start_ambient() -> void:
 	if _ambient_player.stream != null and not _ambient_player.playing:
-		_ambient_player.volume_db = GameConfig.linear_to_db_safe(GameConfig.AMBIENT_GAIN)
+		# Faded in, not switched on (G51): a bird bed that arrives at full
+		# volume on the first frame of a story card is the loudest thing in
+		# the game at the moment the player has heard nothing yet.
+		_ambient_player.volume_db = GameConfig.linear_to_db_safe(0.0001)
 		_ambient_player.play()
+		var tw := create_tween()
+		tw.tween_property(_ambient_player, "volume_db",
+			GameConfig.linear_to_db_safe(GameConfig.AMBIENT_GAIN),
+			GameConfig.AMBIENT_FADE_IN)
 
 
 ## Swaps the engine mix when the player changes mower: push and tractor share
