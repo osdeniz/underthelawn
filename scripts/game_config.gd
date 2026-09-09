@@ -2867,6 +2867,23 @@ static func dark_speed_scale(t: float) -> float:
 ## man the Marshal is "an hour behind" is on the ridge as the yard opens —
 ## back turned, walking away — and gone once the machine comes within this
 ## range. One line about it, and he is never seen again in Case 02.
+## THE TOWN NOTICES HOW YOU CUT (G50). G28 learned to read the pattern in a
+## finished yard and then did nothing with it but print a word. From the
+## SECOND patterned yard on, neighbours are at the side fence when you arrive:
+## one more of them per pattern cut, up to WATCHERS_MAX. They lean on the rail
+## and watch, and that is all they do — a badge would have been cheaper and
+## would have meant less.
+const WATCHERS_FROM := 2
+const WATCHERS_MAX := 3
+## Just outside our fence and just SHORT of the neighbour's wall. Measured:
+## the dry strip beyond the fence starts at +0.2 and the side house's body
+## reaches back to +0.6, so at the first value tried (0.75) the watchers stood
+## inside a wall and rendered as nothing at all (out/watchers.png). A figure is
+## 0.28 deep, so 0.35 puts it in the strip with its arms over our rail.
+const WATCHER_OUTSET := 0.35
+const WATCHER_SPREAD := 2.6
+## How far a watcher keeps from a shed: half the shed's depth plus a shoulder.
+const WATCHER_SHED_CLEAR := 1.9
 const OBSERVER_VANISH_RANGE := 7.0
 
 ## Harvests were work with nobody at them. Once a settler has been taken in,

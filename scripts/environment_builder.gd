@@ -53,6 +53,7 @@ func _ready() -> void:
 		_build_road()
 		_build_cars()
 		_build_neighbors()
+	_build_watchers()
 	_build_smalls()
 	_build_clouds()
 	# G13.1: distant hills and rooftops in EVERY yard, not just the hub's
@@ -1200,6 +1201,10 @@ func _build_neighbors() -> void:
 ## The neighbour's plot: dry grass, a low fence line, and the odd shed. Seen
 ## from overhead this ground-level dressing does more for the sense of a street
 ## than the buildings behind it.
+## Shed positions per side, filled by _side_yard and read by _build_watchers.
+var _shed_z := {}
+
+
 func _side_yard(side: float, span: float) -> void:
 	var dry := _flat("side_dry", Color(0.38, 0.36, 0.24), 1.0)
 	var post := _tex_mat("wood", "wood_albedo", Color(0.55, 0.42, 0.27), 0.85)
@@ -1214,8 +1219,14 @@ func _side_yard(side: float, span: float) -> void:
 			Vector3(side * (GameConfig.fence_side_x() + 2.5), 0.45, z),
 			Vector3(0.0, 0.0, _rng.randf_range(-0.09, 0.09)))
 	# One or two sheds per side, low enough to read as objects from above.
+	# Their z is remembered: the watchers share this strip and a shed roof sits
+	# at 1.55, which is exactly head height (measured — it cut a figure in half
+	# in out/watchers.png).
 	for _s in _rng.randi_range(1, 2):
 		var sz := _rng.randf_range(-span * 0.4, span * 0.4)
+		if not _shed_z.has(side):
+			_shed_z[side] = []
+		(_shed_z[side] as Array).append(sz)
 		_box(self, Vector3(2.0, 1.5, 1.6), shed, Vector3(x, 0.75, sz))
 		_box(self, Vector3(2.3, 0.16, 1.9), post, Vector3(x, 1.55, sz))
 		_ao_blob(self, Vector2(2.8, 2.4), Vector3(x, 0.02, sz), 0.5)
@@ -1766,6 +1777,75 @@ func _landmark_square_tables(root: Node3D) -> void:
 			for lz: float in [-0.18, 0.18]:
 				_box(root, Vector3(0.04, 0.44, 0.04), wood, Vector3(cx + lx2, 0.22, lz))
 	_ao_blob(root, Vector2(7.0, 4.6), Vector3(0.0, 0.02, 0.0), 0.5)
+
+
+## Neighbours at the side fence, because of how you cut the last one (G50).
+##
+## They stand OUTSIDE the fence, leaning on the rail, facing in. Built from the
+## same primitives as the observer and at the same scale, but with the arms on
+## the rail rather than a pack on the back: a man leaving carries one, a man
+## watching does not.
+##
+## Not on a road and not on a farm — there is no side fence with a lane behind
+## it out there — and never in the cellar.
+func _build_watchers() -> void:
+	if _variant != null and (_variant.is_road() or _variant.is_harvest()
+			or _variant.vignette):
+		return
+	var count := MowPattern.watchers()
+	if count <= 0:
+		return
+	var root := Node3D.new()
+	root.name = "Watchers"
+	add_child(root)
+	var coat := _flat("watch_coat", Color(0.36, 0.33, 0.30), 0.95)
+	var coat_b := _flat("watch_coat_b", Color(0.30, 0.34, 0.32), 0.95)
+	var skin := _flat("figure_skin", Color(0.78, 0.62, 0.50), 1.0)
+	var dark := _flat("watch_dark", Color(0.22, 0.21, 0.22), 0.95)
+	# One side or the other, chosen by the yard's own seed so a chapter always
+	# has them on the same fence.
+	var side := 1.0 if _rng.randf() < 0.5 else -1.0
+	var x := side * (GameConfig.fence_side_x() + GameConfig.WATCHER_OUTSET)
+	for i in count:
+		var figure := Node3D.new()
+		figure.name = "Watcher%d" % i
+		var z := (float(i) - float(count - 1) * 0.5) * GameConfig.WATCHER_SPREAD
+		z += _rng.randf_range(-0.2, 0.2)
+		figure.position = Vector3(x, 0.0, _clear_of_sheds(side, z))
+		# Facing the yard: the same maths every model in the project uses,
+		# rather than a hand-written constant per side.
+		figure.rotation.y = Animals.face(Vector2(-side, 0.0))
+		root.add_child(figure)
+		var body: StandardMaterial3D = coat if i % 2 == 0 else coat_b
+		_box(figure, Vector3(0.46, 0.70, 0.28), body, Vector3(0.0, 1.04, 0.0))
+		_ball(figure, 0.155, skin, Vector3(0.0, 1.54, 0.0))
+		if i % 2 == 0:
+			_cyl(figure, 0.21, 0.21, 0.05, dark, Vector3(0.0, 1.70, 0.0))
+		for leg: float in [-1.0, 1.0]:
+			_box(figure, Vector3(0.15, 0.68, 0.15), dark, Vector3(leg * 0.12, 0.34, 0.0))
+		# Both forearms out on the rail, which is what puts them AT the fence
+		# rather than standing near it.
+		for arm: float in [-1.0, 1.0]:
+			_box(figure, Vector3(0.11, 0.11, 0.42), body,
+				Vector3(arm * 0.26, 0.94, -0.20))
+
+
+## The nearest z on this fence that is not under a shed roof: the slot itself
+## if it is clear, else a step along the fence in whichever direction gets out
+## from under it.
+func _clear_of_sheds(side: float, z: float) -> float:
+	var sheds: Array = _shed_z.get(side, [])
+	if sheds.is_empty():
+		return z
+	for step: float in [0.0, 2.6, -2.6, 5.2, -5.2]:
+		var want := z + step
+		var clear := true
+		for any: Variant in sheds:
+			if absf(float(any) - want) < GameConfig.WATCHER_SHED_CLEAR:
+				clear = false
+		if clear:
+			return want
+	return z
 
 
 ## The man they were an hour behind (G15.6): a figure on the far ridge beyond

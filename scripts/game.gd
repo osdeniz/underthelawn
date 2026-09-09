@@ -157,6 +157,7 @@ func _ready() -> void:
 	_build_reeds()
 	_observer = find_child("Observer", true, false) as Node3D
 	_build_harvest_settler()
+	_note_watchers()
 	hud.restart_pressed.connect(_restart)
 	hud.selector.mower_chosen.connect(select_mower)
 
@@ -333,6 +334,7 @@ func _process(delta: float) -> void:
 	_check_walk_only()
 	_check_observer()
 	_sway_settler(delta)
+	_sway_watchers(delta)
 	_tick_orientation(delta)
 	_check_pickups()
 	if mower != null and hud != null:
@@ -989,6 +991,18 @@ func _check_observer() -> void:
 		_play_mid_chat(lines)
 
 
+## The first time the neighbours turn up, the game says so once and never
+## again (G50): two figures at a fence are easy to walk past, and the point of
+## them is that the player knows WHY they are there.
+func _note_watchers() -> void:
+	if find_child("Watchers", true, false) == null:
+		return
+	if bool(GameState.get_setting("tips", "watchers", false)):
+		return
+	GameState.set_setting("tips", "watchers", true)
+	hud.show_scent("WATCHERS_LINE")
+
+
 ## The newest settler, by the barn, while the field is cut (G15.6). Only once
 ## somebody has actually been taken in: a harvest before that is still work
 ## with nobody at it, which is the truth of it.
@@ -1062,6 +1076,22 @@ func _sway_settler(delta: float) -> void:
 		return
 	_harvest_settler.rotation.z = sin(_search_seconds * 0.9) * 0.02
 	_harvest_settler.position.y = absf(sin(_search_seconds * 1.7)) * 0.01
+
+
+## The watchers lean and shift, out of phase with each other: three figures
+## swaying as one is a row of props (G50).
+func _sway_watchers(_delta: float) -> void:
+	var root := find_child("Watchers", true, false)
+	if root == null:
+		return
+	var i := 0.0
+	for any: Variant in root.get_children():
+		var figure := any as Node3D
+		if figure == null:
+			continue
+		figure.rotation.z = sin(_search_seconds * 0.8 + i * 2.1) * 0.018
+		figure.position.y = absf(sin(_search_seconds * 1.4 + i * 1.7)) * 0.012
+		i += 1.0
 
 
 ## The lines of a mid-chat with the newest settler's NAME written in (G15.6).

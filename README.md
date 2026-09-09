@@ -5091,3 +5091,48 @@ takes `RAIN_ARRIVE` (16 s) to come over it.
   dry chapter getting none of it, and a resumed yard already wet.
   `WeatherShot` renders the three states. `Legibility` still passes on every
   hour, wet and dry.
+
+## G50 — the town notices how you cut
+
+G28 learned to read the pattern in a finished yard and then did nothing with
+it but print a word on the panel. From the **second** patterned yard on, there
+are neighbours at the side fence when you arrive — one more of them per
+pattern cut, up to `WATCHERS_MAX` (3). They lean on the rail and watch, and
+that is all they do. A badge would have been cheaper and would have meant
+less.
+
+- `MowPattern.patterned_yards()` and `watchers()`: none for the first
+  patterned yard, because the town has to see it happen before it turns up.
+- Built by `EnvironmentBuilder._build_watchers()` from the same primitives and
+  at the same scale as the observer (G15.6), but with both forearms out on the
+  rail instead of a pack on the back: a man leaving carries one, a man
+  watching does not. Which fence they are on comes from the yard's own seed,
+  so a chapter always has them on the same side. They lean and shift out of
+  phase with each other, the way the harvest settler does — three figures
+  swaying as one is a row of props.
+- Not on a road or a farm (there is no side fence with a lane behind it out
+  there) and never in the cellar.
+- **Two measurements, both from renders.** The strip beyond our fence starts
+  at +0.2 and the neighbour's house body reaches back to +0.6, so the first
+  outset tried (0.75) put the watchers *inside a wall* and they rendered as
+  nothing at all. And that strip already has sheds in it, whose roofs sit at
+  1.55 — exactly head height — so `_side_yard` now records where each shed
+  went and `_clear_of_sheds` steps a watcher along the fence until it is out
+  from under one.
+- The first time they turn up the game says so once, on the radio toast, and
+  never again: two figures at a fence are easy to walk past, and the point of
+  them is that the player knows why they are there.
+- `PatternCheck` gains 9 claims: nobody for the first patterned yard, one from
+  the second, the cap, the figures standing outside the fence and facing in
+  (read off the node's own `-basis.z`, because writing the trigonometry out
+  again invited a sign error — and did), that they move, that the line is said
+  once, and that a road gets none of them. `WatcherShot` renders them from the
+  play camera.
+
+**A testing lesson from the same afternoon:** `WatcherShot` ended with a bare
+`await RenderingServer.frame_post_draw` and hung for thirteen minutes. That
+signal never comes when the window is not drawing — occluded, or another app
+in front — which is the same trap G45 fixed inside the game. It uses
+`TestBase.drawn_frame()` now, which waits 250 ms and gives up. The other shot
+suites still take the bare await; they pass while the window is frontmost, and
+that is worth knowing before one of them stalls a run.

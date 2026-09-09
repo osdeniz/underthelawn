@@ -118,5 +118,18 @@ static func record(id: String) -> void:
 	GameState.set_setting(SECTION, id, count(id) + 1)
 
 
+## Yards finished in any recognised pattern.
+static func patterned_yards() -> int:
+	return count(ROWS) + count(RINGS) + count(CROSS)
+
+
+## How many neighbours are at the fence for it (G50). None for the first
+## patterned yard — the town has to see it happen before it turns up — then
+## one more each time, capped.
+static func watchers() -> int:
+	var earned := patterned_yards() - (GameConfig.WATCHERS_FROM - 1)
+	return clampi(earned, 0, GameConfig.WATCHERS_MAX)
+
+
 static func count(id: String) -> int:
 	return int(GameState.get_setting(SECTION, id, 0))

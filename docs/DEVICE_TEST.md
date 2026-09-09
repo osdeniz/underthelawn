@@ -34,6 +34,7 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Fotoğraf modu | — | Duraklat → FOTOĞRAF: arayüz çekiliyor, orta bant aydınlık kalıyor mu; sürükleyince bahçenin çevresinde dönüyor mu; deklanşörden sonra "Albüme kondu" ve Günlük → Albüm'de kart var mı; kapatınca oyun kamerası ve arayüz geri dönüyor mu (G47) |
 | Kartpostalda önce/sonra | — | bitmiş bahçenin fotoğrafının sol altında biçilmemiş halin küçük baskısı ve "önce" yazısı var mı; yarısı kesilmiş bir bahçeye DEVAM ET ile dönüp bitirince "önce" baskısı YOK (yalan olurdu) (G45) |
 | Bahçe sonu: KARTPOSTAL | — | düğme panelde görünüyor mu; kart açılıyor, dokununca kapanıyor mu; Günlük → Albüm sekmesinde listeleniyor mu; telefon paylaşım sayfası YOK (eklenti gerekir, bilinen eksik) (G27) |
+| Kasaba deseni fark ediyor | — | iki bahçeyi desenli bitirdikten sonra yeni bahçede yan çitte komşular var mı; kulübenin altında ya da duvarın içinde kalmıyorlar mı; ilk gelişlerinde tek satır çıkıp bir daha çıkmıyor mu (G50) |
 | Bahçeyi düz sıralarla biç | — | panelde "Düz sıralar" çipi ve kartpostal damgasında DÜZ SIRALAR çıkıyor mu; serbest kesimde çip yok (G28) |
 | Bahçede küçük sürprizler | — | bir bahçede en fazla iki: uçurtma / kelebek / top / makineye konan kuş / bulut gölgesi / akşam yanan pencere; hiçbiri oyunu kesmiyor, FPS düşmüyor (G29) |
 | Hub selamı ve Günlük yüzdesi | — | saat dilimine göre selam, kalan bahçe sayısı doğru; Günlük başlığında yüzde (G31–G32) |

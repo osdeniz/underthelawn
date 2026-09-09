@@ -65,7 +65,71 @@ func run() -> void:
 	await frames(2)
 	ck("desenli panelde desen yazisi var", _panel_has(game, tr("PATTERN_ROWS")), "")
 	close(game)
+	await _watchers()
 	finish()
+
+
+## The town notices how you cut (G50): from the second patterned yard on,
+## neighbours are at the side fence when you arrive.
+func _watchers() -> void:
+	var kept := {}
+	for id in [MowPattern.ROWS, MowPattern.RINGS, MowPattern.CROSS]:
+		kept[id] = MowPattern.count(id)
+		GameState.set_setting(MowPattern.SECTION, id, 0)
+	var kept_tip: Variant = GameState.get_setting("tips", "watchers", false)
+
+	ck("desensiz kimse gelmez", MowPattern.watchers() == 0, str(MowPattern.watchers()))
+	MowPattern.record(MowPattern.ROWS)
+	ck("ilk desenli bahceden sonra hala kimse yok", MowPattern.watchers() == 0,
+		str(MowPattern.watchers()))
+	MowPattern.record(MowPattern.RINGS)
+	ck("ikincisinden sonra bir izleyici", MowPattern.watchers() == 1,
+		str(MowPattern.watchers()))
+	for i in 8:
+		MowPattern.record(MowPattern.CROSS)
+	ck("sayi ustte durur", MowPattern.watchers() == GameConfig.WATCHERS_MAX,
+		str(MowPattern.watchers()))
+
+	# Two patterned yards' worth, and a yard to see them in.
+	for id in [MowPattern.ROWS, MowPattern.RINGS, MowPattern.CROSS]:
+		GameState.set_setting(MowPattern.SECTION, id, 0)
+	MowPattern.record(MowPattern.ROWS)
+	MowPattern.record(MowPattern.RINGS)
+	GameState.set_setting("tips", "watchers", false)
+	var yard := await open("ch01_aldridge", false)
+	await settle(0.5)
+	var root: Node3D = yard.find_child("Watchers", true, false)
+	ck("bahcede izleyiciler var", root != null and root.get_child_count() == 1,
+		"" if root == null else str(root.get_child_count()))
+	if root != null:
+		var who := root.get_child(0) as Node3D
+		ck("citin disinda duruyorlar",
+			absf(who.position.x) > GameConfig.fence_side_x(),
+			"%.2f > %.2f" % [absf(who.position.x), GameConfig.fence_side_x()])
+		# Facing in. Read off the node's own forward axis rather than
+		# re-deriving it: every model in this project faces -Z, so -basis.z IS
+		# forward, and writing the trigonometry out again just invites a sign
+		# error (it did — the first version of this claim had one).
+		var facing := -who.global_transform.basis.z
+		ck("bahceye bakiyorlar", signf(facing.x) == -signf(who.position.x),
+			"%.2f / %.2f" % [facing.x, who.position.x])
+		var lean := who.rotation.z
+		await settle(0.6)
+		ck("kipirdiyorlar", not is_equal_approx(who.rotation.z, lean),
+			"%.4f -> %.4f" % [lean, who.rotation.z])
+	ck("ilk gelislerinde bir kez soylenir",
+		bool(GameState.get_setting("tips", "watchers", false)), "")
+	close(yard)
+
+	# A road has no side fence with a lane behind it.
+	var road := await open("ch00_the_long_walk", false)
+	await settle(0.3)
+	ck("yolda izleyici yok", road.find_child("Watchers", true, false) == null, "")
+	close(road)
+
+	for id in [MowPattern.ROWS, MowPattern.RINGS, MowPattern.CROSS]:
+		GameState.set_setting(MowPattern.SECTION, id, kept[id])
+	GameState.set_setting("tips", "watchers", kept_tip)
 
 
 func _cut(model: LawnModel, dir_of: Callable) -> void:
