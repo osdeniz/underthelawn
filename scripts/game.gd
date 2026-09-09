@@ -51,6 +51,11 @@ var resume_snapshot: Dictionary = {}
 var _save_due := GameConfig.YARD_SAVE_EVERY
 ## The yard before a blade touched it, shrunk to the postcard's inset (G45).
 var _before_photo: Image = null
+## The front coming over (G49): the wetness the sky was last written for, and
+## which of the two thunder rolls have been heard.
+var _sky_wetness := -1.0
+var _thunder_done: Dictionary = {}
+var _rain: Rain
 ## The resolved chapter data. Read by the HUD, the evidence flow and the scrap
 ## economy; never a scene.
 var variant: LevelVariant
@@ -318,6 +323,7 @@ func _process(delta: float) -> void:
 	_update_animals()
 	_update_surprises(delta)
 	_tick_yard_save(delta)
+	_tick_weather()
 	# Every frame, not only on the machine's own cuts: the road's end is a
 	# position, and the walker or a test can put a cut there too.
 	_check_road_end()
@@ -341,6 +347,37 @@ func _process(delta: float) -> void:
 	mower.camera = cam
 	var turn := clampf(absf(mower.omega) / mower.max_turn(), 0.0, 1.0)
 	AudioDirector.set_engine_state(mower.speed_fraction(), turn)
+
+
+## The front, over RAIN_ARRIVE seconds after RAIN_WAIT of dry mowing (G49).
+##
+## The sky is only rewritten when the wetness has moved a step, because
+## re-applying the hour walks the scene for the fireflies and the horizon —
+## twenty writes across the arrival read as continuous and cost nothing.
+func _tick_weather() -> void:
+	if not Rain.is_wet() or Rain.hold or _complete_shown:
+		return
+	var arrived := clampf(
+		(_search_seconds - GameConfig.RAIN_WAIT) / GameConfig.RAIN_ARRIVE, 0.0, 1.0)
+	if arrived <= 0.0:
+		return
+	for i in GameConfig.THUNDER_AT.size():
+		if _thunder_done.has(i) or arrived < float(GameConfig.THUNDER_AT[i]):
+			continue
+		_thunder_done[i] = true
+		# The first roll is at the edge of the county; the second is close
+		# enough to be about you.
+		AudioDirector.play_thunder(float(i) / maxf(GameConfig.THUNDER_AT.size() - 1, 1))
+		if i == 0:
+			AudioDirector.gust()
+	if absf(arrived - _sky_wetness) < GameConfig.RAIN_SKY_STEP and arrived < 1.0:
+		return
+	_sky_wetness = arrived
+	Rain.set_wetness(arrived)
+	if _rain != null and is_instance_valid(_rain):
+		_rain.refresh()
+	# The hour, re-applied with the new weight on it.
+	hud.refresh_sky()
 
 
 ## An open yard writes itself down every few seconds (G42), so the worst a
@@ -1640,6 +1677,15 @@ func _begin_search() -> void:
 	# not (it deadlocked the postcard suite before this line moved out).
 	# A resume is not a fresh start either: the "before" of a half-cut yard
 	# would be a lie, so it is taken only when nothing has been mown.
+	# A wet chapter starts DRY and the weather comes over it (G49). Driven off
+	# the search clock rather than a timer of its own, so a resumed yard is as
+	# wet as it should be the moment it opens.
+	_rain = find_child("Rain", true, false) as Rain
+	if Rain.is_wet() and not Rain.hold:
+		Rain.set_wetness(0.0)
+		if _rain != null:
+			_rain.refresh()
+		hud.refresh_sky()
 	if variant != null and not variant.is_road():
 		_take_before_photo.call_deferred()
 	if not resume_snapshot.is_empty():

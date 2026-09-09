@@ -12,6 +12,26 @@ extends GPUParticles3D
 ## before it was kept.
 
 
+## How much of the front has arrived, 0 to 1 (G49). 1 by default: a scene
+## built without a level driving it — the diorama, a shot, a bare run — should
+## look like the weather it says it has, and only a yard being played makes
+## the rain arrive.
+static var wetness := 1.0
+## Skips the arrival and holds the weather full on. The suites set it, because
+## a dozen of them render or measure a wet yard and would otherwise be looking
+## at a dry one and passing for the wrong reason.
+static var hold := false
+
+
+## Decided ONCE, when the script loads, and not on every scene build: the
+## first version re-read the marker in build(), which put the hold back on
+## top of the one suite that had just turned it off (measured — nine claims
+## failed reporting a yard that was already soaking).
+static func _static_init() -> void:
+	# Same marker the background pause and the yard autosave use (G19.10).
+	hold = OS.get_environment("UTL_NO_BG_PAUSE") == "1"
+
+
 static func build(parent: Node3D) -> Rain:
 	var node := Rain.new()
 	node.name = "Rain"
@@ -19,6 +39,21 @@ static func build(parent: Node3D) -> Rain:
 	node._setup()
 	node.refresh()
 	return node
+
+
+## Sets the front's progress and repaints the drops for it. The SKY is not
+## touched here: whoever moves the weather also re-applies the hour, because
+## the light belongs to SkyTime and rain is only a weight on it.
+static func set_wetness(value: float) -> void:
+	wetness = 1.0 if hold else clampf(value, 0.0, 1.0)
+
+
+## How hard it is actually falling: nothing until the light has changed, then
+## up to full. The light goes first because that is the order it happens in.
+static func fall_ratio() -> float:
+	if wetness <= GameConfig.RAIN_FALL_AT:
+		return 0.0
+	return (wetness - GameConfig.RAIN_FALL_AT) / (1.0 - GameConfig.RAIN_FALL_AT)
 
 
 var _pm: ParticleProcessMaterial
@@ -104,9 +139,16 @@ func _setup() -> void:
 func refresh() -> void:
 	_apply_look()
 	var wet := is_wet()
-	emitting = wet
-	visible = wet
+	var falling := fall_ratio()
+	# `amount` is left alone: changing it restarts the whole system, and a
+	# front that comes over should not make the rain blink. The drops fade in
+	# on their own alpha instead.
+	emitting = wet and falling > 0.0
+	visible = emitting
 	amount = GameConfig.RAIN_COUNT
+	if _mat != null:
+		var full: Color = GameConfig.SNOW_COLOUR if is_snow() else GameConfig.RAIN_COLOUR
+		_mat.albedo_color = Color(full.r, full.g, full.b, full.a * falling)
 
 
 ## Whether the level being played is a wet one AND the hour allows it. The

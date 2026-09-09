@@ -5042,3 +5042,52 @@ what it says:
 none is a case where the mechanic silently does not exist), and each has at
 least three. The case a piece belongs to is read from the story's own chapter
 lists, not guessed from the spelling of a chapter id.
+
+## G49 — weather you can hear coming
+
+A wet chapter used to start wet: the rain was installed before the first
+frame, so the sky was a property of the level rather than something that
+happened to you. Now the yard is dry for `RAIN_WAIT` (26 s) and the front
+takes `RAIN_ARRIVE` (16 s) to come over it.
+
+- **The light goes first, then the drops.** `Rain.wetness` (0–1) replaced the
+  boolean everywhere it mattered: `SkyTime._write_spec` scales every rain
+  number by it — the numbers themselves are still the ones measured against
+  the legibility floor in G14.7, they are just weighted now — and the drops
+  do not start until `RAIN_FALL_AT` (0.42) of the way in, fading in on their
+  own alpha rather than by changing `amount`, which would restart the whole
+  particle system and make the rain blink.
+- **Two rolls of thunder and a gust**, at 3% and 58% of the arrival: the first
+  at the edge of the county, the second close enough to be about you.
+  `thunder_far.wav` from `tools/gen_audio.py` is a 2.6 s swell with no crack
+  in it — heavily lowpassed noise and a 41 Hz roll — pitched and levelled by
+  nearness.
+- **Driven by the search clock**, not a timer of its own, so a yard resumed
+  from a G42 snapshot is exactly as wet as its clock says it is. The sky is
+  rewritten only when the wetness has moved `RAIN_SKY_STEP` (5%), because
+  re-applying the hour walks the scene for the fireflies and the horizon;
+  twenty writes across the arrival read as continuous and cost nothing.
+- **What it actually looks like**, measured on ch02 at morning
+  (`out/weather_1_dry.png`, `_2_coming.png`, `_3_rain.png`): mean brightness
+  barely moves — 94.4, 98.9, 93.9 — because an overcast morning *lifts* the
+  ambient while it drops the sun (that trade is deliberate and predates this).
+  The change is in the highlights: the 5th–95th percentile range falls 132 →
+  120 → 104, and it is the top that goes (179 → 169 → 153) while the shadows
+  hold (47 → 49 → 49). The sky flattens; it does not dim. Average brightness
+  was simply the wrong instrument, and it is worth writing down that it
+  reported "no change" for an effect that is plainly there.
+- **The suites hold the weather full on.** `Rain.hold` comes from the same
+  `UTL_NO_BG_PAUSE` marker the background pause and the yard autosave use,
+  decided ONCE in `_static_init()` — the first version re-read it in
+  `build()`, which put the hold back on top of the one suite that had just
+  turned it off (nine claims failed, all reporting a yard that was already
+  soaking). Without the hold, a dozen suites and shots that render or measure
+  a wet yard would have been looking at a dry one and passing for the wrong
+  reason.
+- `WeatherCheck` (24 claims, headless): the weight and its fall threshold, the
+  hold, a wet yard opening dry with its dry sky, the light changing before any
+  drop appears, the first roll of thunder before them and the second with
+  them, full rain at the measured sun value by the end, exactly two rolls, a
+  dry chapter getting none of it, and a resumed yard already wet.
+  `WeatherShot` renders the three states. `Legibility` still passes on every
+  hour, wet and dry.

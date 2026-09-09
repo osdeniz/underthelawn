@@ -2565,6 +2565,19 @@ const RAIN_FOG_MIX := 0.62
 ## directional contrast left, and the cut line disappears. With the daytime
 ## values the three dark hours measured 0.002, 0.004 and 0.022 against a 0.030
 ## floor: unplayable (G14.7).
+## WEATHER YOU CAN HEAR COMING (G49). A wet chapter no longer starts wet: the
+## yard is dry for RAIN_WAIT seconds, then the front takes RAIN_ARRIVE seconds
+## to come over. The light goes first and the drops only start at RAIN_FALL_AT
+## of the way in, because that is the order it happens in — the sky flattens
+## and THEN it rains. Thunder rolls at these two points of the arrival, the
+## first one far off. The sky is only rewritten every RAIN_SKY_STEP of
+## wetness, so the change is continuous to the eye and cheap to the frame.
+const RAIN_WAIT := 26.0
+const RAIN_ARRIVE := 16.0
+const RAIN_FALL_AT := 0.42
+const RAIN_SKY_STEP := 0.05
+const THUNDER_AT := [0.03, 0.58]
+const THUNDER_GAIN := Vector2(0.30, 0.85)
 const RAIN_DARK_HOURS: Array[String] = ["sunset"]
 
 ## The hours it does not rain in, and the reason is measured rather than

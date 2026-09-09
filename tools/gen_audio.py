@@ -573,6 +573,23 @@ def bump():
     return out
 
 
+# ---- weather coming: a rumble with no crack in it, all low end and distance.
+def thunder():
+    n = seconds(2.6)
+    raw = _noise(n, 21)
+    low = _lowpass(_lowpass(raw, 0.06), 0.06)
+    out = []
+    for i in range(n):
+        t = i / SR
+        # A slow swell rather than a strike: what you hear from a long way off
+        # is the tail, not the hit.
+        swell = min(1.0, t / 0.5) * math.exp(-0.9 * t)
+        body = low[i] * swell
+        roll = math.sin(TAU * 41 * t + math.sin(TAU * 1.7 * t) * 2.0) * 0.35 * swell
+        out.append(body * 1.6 + roll)
+    return out
+
+
 # ---- the lamp on the gate: a faint mains hum with a flicker in it.
 def lamp_hum():
     n = seconds(3.0)
@@ -772,4 +789,5 @@ write("food_pickup", food_pickup(), 0.8)
 write("bed_day", bed_day(), 0.8)
 write("bed_evening", bed_evening(), 0.8)
 write("bump", bump(), 0.7)
+write("thunder_far", thunder(), 0.8)
 print("[gen_audio] bitti")

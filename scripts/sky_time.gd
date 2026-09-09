@@ -113,18 +113,23 @@ static func _write_spec(env_host: WorldEnvironment, sun: DirectionalLight3D,
 
 	# Rain takes the edge off the light rather than replacing it: the hour is
 	# still readable underneath, and the cut line survives (measured, G14.7).
-	if Rain.is_wet():
+	# A weight, not a switch (G49): the front comes over, so every one of these
+	# is scaled by how much of it has arrived. At wetness 1 the numbers are
+	# exactly the ones measured against the legibility floor in G14.7.
+	if Rain.is_wet() and Rain.wetness > 0.0:
+		var weight := Rain.wetness
 		var dark: bool = GameConfig.RAIN_DARK_HOURS.has(id)
 		if sun != null:
-			sun.light_energy *= GameConfig.RAIN_DARK_SUN_ENERGY if dark \
-				else GameConfig.RAIN_SUN_ENERGY
+			sun.light_energy *= lerpf(1.0, GameConfig.RAIN_DARK_SUN_ENERGY if dark \
+				else GameConfig.RAIN_SUN_ENERGY, weight)
 		# Note the direction: after dark the ambient goes DOWN, not up. An
 		# overcast sky lifts the fill light, which is right at noon and fatal
 		# at dusk — it flattens away the last of the directional contrast.
-		env.ambient_light_energy *= GameConfig.RAIN_DARK_AMBIENT_ENERGY \
-			if dark else GameConfig.RAIN_AMBIENT_ENERGY
+		env.ambient_light_energy *= lerpf(1.0,
+			GameConfig.RAIN_DARK_AMBIENT_ENERGY if dark
+			else GameConfig.RAIN_AMBIENT_ENERGY, weight)
 		env.fog_light_color = (spec["fog"] as Color).lerp(GameConfig.RAIN_FOG,
-			GameConfig.RAIN_DARK_FOG_MIX if dark else GameConfig.RAIN_FOG_MIX)
+			(GameConfig.RAIN_DARK_FOG_MIX if dark else GameConfig.RAIN_FOG_MIX) * weight)
 	# The lantern chapter (G19.5): the moon and the sky's fill go down to a
 	# fraction, and the light the player has is the one riding with them.
 	if LevelVariant.current != null and LevelVariant.current.lantern:

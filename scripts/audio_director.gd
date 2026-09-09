@@ -38,6 +38,7 @@ const PATHS := {
 	"oar": "res://audio/oar_loop",
 	"cut_snow": "res://audio/cut_snow",
 	"bump": "res://audio/bump",
+	"thunder": "res://audio/thunder_far",
 	"rabbit": "res://audio/rabbit_rustle",
 	"bird_takeoff": "res://audio/bird_takeoff",
 	"settler": "res://audio/settler_card",
@@ -61,6 +62,7 @@ var _engine_off := false
 var _ambient_player: AudioStreamPlayer
 var _one_shot: AudioStreamPlayer
 var _bump_player: AudioStreamPlayer
+var _thunder_player: AudioStreamPlayer
 var _voice: AudioStreamPlayer
 var _cut_players: Array[AudioStreamPlayer] = []
 var _cut_index := 0
@@ -144,6 +146,7 @@ func _build_players() -> void:
 	# Its own player: a bump happens often and must not cut off the chime of
 	# the thing you just found (G38).
 	_bump_player = _make_player("Bump", "bump", false)
+	_thunder_player = _make_player("Thunder", "thunder", false)
 	_signal_static = _make_player("SignalStatic", "signal_static", true)
 	_signal_clear = _make_player("SignalClear", "signal_clear", true)
 	for i in CUT_VOICES:
@@ -337,6 +340,20 @@ func play_cut(thickness := 0.0) -> void:
 		* lerpf(1.0, GameConfig.CUT_THICK_PITCH, clampf(thickness, 0.0, 1.0))
 	p.volume_db = GameConfig.linear_to_db_safe(GameConfig.CUT_GAIN)
 	p.play()
+
+
+## Weather on its way (G49). `nearness` 0 is a rumble at the edge of the
+## county and 1 is the front overhead: nearer is louder and lower, which is
+## most of what distance does to thunder.
+func play_thunder(nearness: float) -> void:
+	if _thunder_player == null or not _streams.has("thunder"):
+		return
+	var near := clampf(nearness, 0.0, 1.0)
+	_thunder_player.stream = _streams["thunder"]
+	_thunder_player.pitch_scale = lerpf(1.12, 0.86, near)
+	_thunder_player.volume_db = GameConfig.linear_to_db_safe(
+		lerpf(GameConfig.THUNDER_GAIN.x, GameConfig.THUNDER_GAIN.y, near))
+	_thunder_player.play()
 
 
 ## Driving into something (G38). Louder and lower the harder it was, so the
