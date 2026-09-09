@@ -23,6 +23,12 @@ var _section: Section = Section.NOTES
 var _tabs: HBoxContainer
 var _list: VBoxContainer
 var _counter: Label
+## Linking two discoveries (G48): the piece waiting for a partner, and the
+## line the Marshal answers with.
+var _picked := ""
+var _picked_row: Control
+var _answer: Label
+var _answer_card: PanelContainer
 
 
 func _ready() -> void:
@@ -80,6 +86,40 @@ func _build() -> void:
 		closed.emit())
 	add_child(close)
 
+	# The Marshal's answer, on its own ground at the foot of the page. It needs
+	# both the background and the z_index: the list of slips is a full-rect
+	# scroll added after this, so a bare label was drawn UNDER the entries
+	# (seen in out/deduction_made.png).
+	_answer_card = PanelContainer.new()
+	_answer_card.name = "LinkAnswerCard"
+	var card := StyleBoxFlat.new()
+	card.bg_color = Color(0.07, 0.07, 0.06, 0.97)
+	card.border_color = GameConfig.UI_BRASS
+	card.set_border_width_all(2)
+	card.set_corner_radius_all(14)
+	card.set_content_margin_all(GameConfig.UI_GAP)
+	_answer_card.add_theme_stylebox_override("panel", card)
+	_answer_card.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_answer_card.offset_left = 60
+	_answer_card.offset_right = -60
+	_answer_card.offset_top = -210
+	_answer_card.offset_bottom = -40
+	_answer_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_answer_card.z_index = 20
+	_answer_card.visible = false
+	add_child(_answer_card)
+	GameConfig.fit_wide(_answer_card)
+
+	_answer = Label.new()
+	_answer.name = "LinkAnswer"
+	_answer.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_answer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_answer.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_answer.add_theme_font_size_override("font_size", GameConfig.UI_BODY)
+	_answer.add_theme_color_override("font_color", GameConfig.UI_BRASS)
+	_answer.add_theme_constant_override("line_spacing", 8)
+	_answer_card.add_child(_answer)
+
 	_tabs = HBoxContainer.new()
 	_tabs.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_tabs.offset_top = 268.0
@@ -104,6 +144,10 @@ func _build() -> void:
 		tab.pressed.connect(func() -> void:
 			Haptics.light()
 			_section = which
+			# The Marshal's answer belongs to the tap that asked for it, not to
+			# the screen: changing tab puts it away. Cleared HERE rather than
+			# in _refresh, which runs right after an answer is given (G48).
+			_say("")
 			_refresh())
 		_tabs.add_child(tab)
 
@@ -159,6 +203,7 @@ func _refresh() -> void:
 		var button := tab as Button
 		if button != null:
 			HubScreen._style_tab(button, int(button.get_meta("section", -1)) == int(_section))
+	_clear_pick()
 	for child in _list.get_children():
 		_list.remove_child(child)
 		child.queue_free()
@@ -189,6 +234,18 @@ func _fill_notes() -> void:
 		_list.add_child(_entry(
 			tr(str(ChapterProgress.entry(vid).get("name", ""))),
 			tr(note_key), written))
+	var deductions: Array = DeductionLog.made_links()
+	if not deductions.is_empty():
+		_list.add_child(_group(tr("LINK_HEADER")))
+		var n := 0
+		for any: Variant in deductions:
+			var link: Dictionary = any
+			n += 1
+			written += 1
+			_list.add_child(_entry("%s + %s" % [
+				DeductionLog.name_of(str(link.get("a", ""))),
+				DeductionLog.name_of(str(link.get("b", "")))],
+				tr(str(link.get("note", ""))), n))
 	_counter.text = tr("JOURNAL_NOTES_COUNT").format({"count": written})
 	if written == 0:
 		_list.add_child(_empty_note(tr("JOURNAL_NOTES_EMPTY")))
@@ -199,6 +256,8 @@ func _fill_notes() -> void:
 func _fill_discoveries() -> void:
 	var found := 0
 	var total := 0
+	# The whole tutorial for the mechanic, in one line at the top (G48).
+	_list.add_child(_empty_note(tr("LINK_HINT")))
 	for chapter: Dictionary in ChapterProgress.chapters():
 		var vid := str(chapter.get("variant_id", ""))
 		var variant := LevelVariant.of(vid)
@@ -217,10 +276,14 @@ func _fill_discoveries() -> void:
 			found += 1
 			in_chapter += 1
 			var info := variant.evidence_info(slot)
-			_list.add_child(_entry(str(info.get("name", "")),
-				str(info.get("line", "")), in_chapter))
-	_counter.text = tr("JOURNAL_DISCOVERIES_COUNT").format(
-		{"found": found, "total": total})
+			var row := _entry(str(info.get("name", "")),
+				str(info.get("line", "")), in_chapter)
+			_make_pickable(row, DeductionLog.piece(vid, str(info.get("id", ""))))
+			_list.add_child(row)
+	_counter.text = "%s · %s" % [
+		tr("JOURNAL_DISCOVERIES_COUNT").format({"found": found, "total": total}),
+		tr("LINK_COUNT").format({"done": DeductionLog.made_count(),
+			"total": DeductionLog.total()})]
 	if found == 0:
 		_list.add_child(_empty_note(tr("JOURNAL_DISCOVERIES_EMPTY")))
 
@@ -312,6 +375,86 @@ func _fill_album() -> void:
 		caption.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 		box.add_child(caption)
 		grid.add_child(box)
+
+
+## A discovery answers a tap. The button covers its whole slip rather than
+## replacing it, so the entry keeps the look every other list has.
+func _make_pickable(row: Control, id: String) -> void:
+	var hit := Button.new()
+	hit.name = DeductionLog.node_name(id)
+	hit.flat = true
+	hit.focus_mode = Control.FOCUS_NONE
+	hit.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hit.pressed.connect(func() -> void: _pick(id, row))
+	row.add_child(hit)
+
+
+## First tap holds a piece, second tap asks the question. Tapping the same
+## piece again puts it down — a player who changes their mind should not have
+## to make a wrong pair to get out of it.
+func _pick(id: String, row: Control) -> void:
+	Haptics.light()
+	if _picked == id:
+		_clear_pick()
+		return
+	if _picked == "":
+		_picked = id
+		_picked_row = row
+		_mark_pick(row, true)
+		_say("")
+		return
+	var first := _picked
+	_clear_pick()
+	_ask(first, id)
+
+
+## The Marshal's answer to a pair. A confirmed link is written down once; a
+## wrong one costs nothing but a flat sentence, and the sentence rotates so it
+## does not read as one canned buzzer.
+func _ask(a: String, b: String) -> void:
+	var link := DeductionLog.find_link(a, b)
+	if link.is_empty():
+		_say(tr("LINK_NO_%d" % (randi() % 3 + 1)))
+		return
+	if DeductionLog.is_made(a, b):
+		_say(tr("LINK_ALREADY"))
+		return
+	DeductionLog.make(a, b)
+	Haptics.success()
+	Analytics.track(AnalyticsEvents.DEDUCTION_MADE, {"link": str(link.get("note", ""))})
+	_say(tr(str(link.get("note", ""))))
+	# The counter in the header moves, and the deduction is now in the notes.
+	_refresh()
+
+
+func _mark_pick(row: Control, on: bool) -> void:
+	if row == null or not is_instance_valid(row):
+		return
+	var panel := row as PanelContainer
+	if panel == null:
+		return
+	var style := panel.get_theme_stylebox("panel") as StyleBoxFlat
+	if style == null:
+		return
+	var copy := style.duplicate() as StyleBoxFlat
+	copy.border_width_left = 18 if on else 6
+	copy.bg_color = GameConfig.UI_SURFACE_RAISED if on else GameConfig.UI_SURFACE
+	panel.add_theme_stylebox_override("panel", copy)
+
+
+func _clear_pick() -> void:
+	if _picked_row != null:
+		_mark_pick(_picked_row, false)
+	_picked = ""
+	_picked_row = null
+
+
+func _say(line: String) -> void:
+	if _answer == null or not is_instance_valid(_answer):
+		return
+	_answer.text = line
+	if _answer_card != null and is_instance_valid(_answer_card):
+		_answer_card.visible = line != ""
 
 
 func _group(title: String) -> Control:

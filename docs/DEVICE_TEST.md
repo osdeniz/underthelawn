@@ -37,6 +37,7 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Bahçeyi düz sıralarla biç | — | panelde "Düz sıralar" çipi ve kartpostal damgasında DÜZ SIRALAR çıkıyor mu; serbest kesimde çip yok (G28) |
 | Bahçede küçük sürprizler | — | bir bahçede en fazla iki: uçurtma / kelebek / top / makineye konan kuş / bulut gölgesi / akşam yanan pencere; hiçbiri oyunu kesmiyor, FPS düşmüyor (G29) |
 | Hub selamı ve Günlük yüzdesi | — | saat dilimine göre selam, kalan bahçe sayısı doğru; Günlük başlığında yüzde (G31–G32) |
+| Günlük → Bulgular: iki bulguyu bağla | — | bir bulguya dokununca kenar çizgisi kalınlaşıyor mu; ikinciye dokununca altta Şerif'in cevabı çıkıyor mu; yanlış çift bir şey kaybettirmiyor mu; kurulan çıkarım Vaka Notları'nın sonunda ÇIKARIMLAR altında duruyor mu (G48) |
 | Günlük → Kayıtlar | — | kazanılanlar tarihli, kalanlar soluk; bahçe sonunda "Günlüğe yazıldı" satırı tek seferlik (G33) |
 | Kulübeye/çite çarp | — | tok bir ses, kısa titreşim ve küçük bir kamera itmesi var mı; çite yaslanıp sürtünürken ses tekrar tekrar çalmıyor mu (G38) |
 | Kartları basılı tutarak atla | — | çubuk dolarken görünüyor mu; parmağı kaldırınca sıfırlanıyor mu; kartlara sadece dokunup beklerken KENDİ KENDİNE atlamıyor mu (G40) |

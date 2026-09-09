@@ -1373,3 +1373,24 @@ UI_PHOTO,PHOTOGRAPH,FOTOĞRAF
 PHOTO_HINT,drag to swing round · + and − to zoom,çevirmek için sürükle · + ve − ile yakınlaştır
 PHOTO_SAVED,Kept in the album.,Albüme kondu.
 POSTCARD_PHOTO,Photograph,Fotoğraf
+LINK_BOOT_GAP,A boot that size at a gap that size. She went under the fence herself — nobody carried her through it.,"O boyda bir çizme, o boyda bir aralık. Çitin altından kendi geçti — kimse taşımadı."
+LINK_PRINTS_CAN,"Two sets of prints and a tin opened that morning. Somebody fed her. Whatever this is, it was not a snatch.","İki takım iz ve o sabah açılmış bir konserve. Biri onu doyurmuş. Bu iş her neyse, kapıp kaçırma değil."
+LINK_ARROW_RIBBON,An arrow scratched east and a ribbon tied where you would look. She was leaving a trail for somebody who could read it.,"Doğuya kazınmış bir ok, bakacağın yere bağlanmış bir kurdele. Okumayı bilen birine iz bırakıyordu."
+LINK_THREAD_SEEDLINGS,Cardigan thread in a glasshouse somebody still waters. Whoever keeps those beds saw her go past.,Birinin hâlâ suladığı bir serada hırka ipliği. O tarhlara bakan kişi onun geçtiğini görmüş.
+LINK_RADIO_FLASHLIGHT,"Our radio in one yard, our torch up the tower. Somebody from Hollow Creek was out here before we were.","Bir bahçede bizim radyomuz, kulede bizim fenerimiz. Hollow Creek'ten biri bizden önce buradaydı."
+LINK_HATCH_STONES,A ring of stones beside a cellar hatch is not weather. Somebody marked that door on purpose.,Mahzen kapağının yanındaki taş halkası havadan olmaz. Biri o kapağı bilerek işaretlemiş.
+LINK_RABBIT_DRAWING,The yard in her drawing is the yard the rabbit came out of. She drew the way back before she went.,"Resmindeki bahçe, tavşanın çıktığı bahçe. Gitmeden önce dönüş yolunu çizmiş."
+LINK_RECEIVER_LOG,"A set receiver and a book of numbers in the same room. They were not sending. They were listening, and writing it down.","Aynı odada ayarlı bir alıcı ve bir sayı defteri. Yayın yapmıyorlardı. Dinliyorlardı, ve yazıyorlardı."
+LINK_BATTERY_PRINTS,"Fresh cells in a hide with one boot print on it. Somebody restocks that hill, and not long ago.","Üstünde tek bir bot izi olan bir zulada taze piller. O tepeyi biri besliyor, hem de kısa süre önce."
+LINK_PATCH_BED,"A child's sock at the crossing and a child's bed in the camp. She came this way with them, and she slept.","Geçitte bir çocuk çorabı, kampta çocuk boyu bir yatak. Buradan onlarla geçti, ve uyudu."
+LINK_HEADSET_MAP,The headset was still warm and the map is marked. They left minutes ahead of us and they know where they are going.,Kulaklık hâlâ ılıktı ve harita işaretli. Bizden dakikalar önce çıktılar ve nereye gittiklerini biliyorlar.
+LINK_HINT,"Tap two discoveries. If they say something together, the Marshal says so.",İki bulguya dokun. Birlikte bir şey söylüyorlarsa Şerif söyler.
+LINK_HEADER,DEDUCTIONS,ÇIKARIMLAR
+LINK_MADE,Written down.,Deftere geçti.
+LINK_ALREADY,That one is already in the book.,O çıkarım defterde zaten var.
+LINK_NO_1,Those two have nothing to do with each other.,Bu ikisinin birbiriyle ilgisi yok.
+LINK_NO_2,Don't force it. Those are two different things.,Zorlama. İkisi ayrı şeyler.
+LINK_NO_3,Maybe. But we have nothing that says so.,Belki. Ama bunu söyleyecek bir şeyimiz yok.
+LINK_COUNT,{done} of {total} deductions,{total} çıkarımdan {done} tanesi
+ACH_DEDUCTION,A deduction,Bir çıkarım
+ACH_DEDUCTION_LINE,Two finds that meant one thing.,Tek bir şeye çıkan iki bulgu.

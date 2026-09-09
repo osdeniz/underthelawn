@@ -645,5 +645,63 @@
         }
       ]
     }
-  }
+  },
+  "links": [
+    {
+      "_comment": "Two discoveries that say something together (G48). Keyed by chapter AND id: ids repeat across chapters (prints, stones, boot, ribbon), so an id alone is not a piece of evidence. Order does not matter.",
+      "a": "ch02_neighbor/boot",
+      "b": "ch02_neighbor/gap",
+      "note": "LINK_BOOT_GAP"
+    },
+    {
+      "a": "ch04_flooded/prints",
+      "b": "ch04_flooded/can",
+      "note": "LINK_PRINTS_CAN"
+    },
+    {
+      "a": "ch03_playground/arrow",
+      "b": "ch03_playground/ribbon",
+      "note": "LINK_ARROW_RIBBON"
+    },
+    {
+      "a": "ch05_greenhouse/thread",
+      "b": "ch05_greenhouse/seedlings",
+      "note": "LINK_THREAD_SEEDLINGS"
+    },
+    {
+      "a": "ch01_aldridge/radio",
+      "b": "ch06_watertower/flashlight",
+      "note": "LINK_RADIO_FLASHLIGHT"
+    },
+    {
+      "a": "ch07_mill/hatch",
+      "b": "ch07_mill/stones",
+      "note": "LINK_HATCH_STONES"
+    },
+    {
+      "a": "ch01_aldridge/rabbit",
+      "b": "ch08_cellar/drawing",
+      "note": "LINK_RABBIT_DRAWING"
+    },
+    {
+      "a": "ch09_radio_room/receiver",
+      "b": "ch09_radio_room/number_log",
+      "note": "LINK_RECEIVER_LOG"
+    },
+    {
+      "a": "ch10_relay_hill/battery",
+      "b": "ch10_relay_hill/prints",
+      "note": "LINK_BATTERY_PRINTS"
+    },
+    {
+      "a": "ch12_river_crossing/patch",
+      "b": "ch13_roadside_camp/bed",
+      "note": "LINK_PATCH_BED"
+    },
+    {
+      "a": "ch14_listening_post/headset",
+      "b": "ch14_listening_post/map",
+      "note": "LINK_HEADSET_MAP"
+    }
+  ]
 }

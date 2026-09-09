@@ -4954,3 +4954,53 @@ made to hold still and the camera is handed over.
   without leaving the sphere, both pitch limits, both zoom limits, the pause
   row asking for the mode, and the album's name for a photograph.
   `PhotoShot` renders the mode and the card its shutter makes.
+
+## G48 — two finds that mean one thing
+
+The game asked the player to collect evidence for three cases and never once
+asked them to think about it: the Journal was a list of things owned. Now two
+discoveries can be put together — and if they say something, the Marshal says
+what, in his own words, and the sentence is kept.
+
+- **The interaction is two taps**, in the tab that already lists the
+  discoveries. The first holds a slip (its margin rule thickens), the second
+  asks the question; tapping the same slip again puts it down, because a
+  player who changes their mind should not have to make a wrong pair to get
+  out of it. The whole tutorial is one line at the top of the tab.
+- **A wrong pair costs nothing** but a flat answer, and there are three of
+  them so it does not read as one canned buzzer. Nothing here gates anything:
+  a case can be closed without a single deduction. What they buy is the story
+  of what you worked out.
+- **A piece of evidence is a chapter AND an id**, never an id alone —
+  `prints`, `stones`, `boot`, `ribbon`, `receiver` and `patch` each appear in
+  more than one chapter, and a sock at the river crossing is not a sock in the
+  orchard. `DeductionLog.piece(variant, id)` is `"chapter/id"`, and
+  `node_name()` turns that into something a node can actually be called,
+  because "/" is a path separator (the first version could not find its own
+  buttons again).
+- **Eleven links are written**, seven across Case 01 and four in Case 02:
+  the boot and the gap (she went under the fence herself), the two sets of
+  prints and the opened tin (somebody fed her — this was not a snatch), the
+  scratched arrow and the tied ribbon (she was leaving a trail), the cardigan
+  thread in a glasshouse somebody still waters, our own radio and our own
+  torch (somebody from Hollow Creek was out here first), the ring of stones
+  by the cellar hatch, and her rabbit beside her drawing. Then the set
+  receiver with the book of numbers (they were listening, not sending), fresh
+  cells under a boot print, a child's sock at the crossing with a child's bed
+  in the camp, and the warm headset with the marked map.
+- **Where they end up.** Under the notes, after the Marshal's chapter pins,
+  headed ÇIKARIMLAR — they are notes, so they live with the notes, and the
+  count goes into the tab's own header. `Achievements` gains a fifteenth
+  record for the first one.
+- The answer sits in a bordered card at the foot of the page with a
+  `z_index`: the list of slips is a full-rect scroll added after it, so a bare
+  label was drawn *under* the entries (seen in `out/deduction_made.png`). It
+  is put away by the tap that changes tab, not by `_refresh`, which runs
+  immediately after an answer is given.
+- `DeductionCheck` (30 claims, headless) validates the table itself — both
+  sides of every link name a real piece of evidence in a real chapter, every
+  note is translated, no pair is listed twice, order does not matter — and
+  then drives the Journal: the hint, a slip held and put down, a correct pair
+  written once, the same pair answered rather than counted twice, a wrong
+  pair costing nothing, the deduction appearing in the notes, and the answer
+  clearing on a tab change. `DeductionShot` renders the three states.

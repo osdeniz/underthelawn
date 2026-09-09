@@ -26,6 +26,7 @@ const LIST: Array[Array] = [
 	["echoes_all", "ACH_ECHOES_ALL", "ACH_ECHOES_ALL_LINE"],
 	["town_rebuilt", "ACH_TOWN_REBUILT", "ACH_TOWN_REBUILT_LINE"],
 	["surprises_all", "ACH_SURPRISES_ALL", "ACH_SURPRISES_ALL_LINE"],
+	["deduction", "ACH_DEDUCTION", "ACH_DEDUCTION_LINE"],
 	["lake", "ACH_LAKE", "ACH_LAKE_LINE"],
 	["night", "ACH_NIGHT", "ACH_NIGHT_LINE"],
 ]
@@ -119,6 +120,8 @@ static func _holds(id: String) -> bool:
 				if not Surprises.seen(sid):
 					return false
 			return true
+		"deduction":
+			return DeductionLog.made_count() >= 1
 		"lake":
 			return ChapterProgress.is_done("ch04_flooded")
 		"night":
