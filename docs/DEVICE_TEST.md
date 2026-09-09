@@ -31,6 +31,7 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Açılış: Godot logosu YOK, koyu zemin + ikon; menüde başlık tam okunuyor (G35, simülatörde doğrulandı) | — | gerçek cihazda bir kez bak |
 | Bahçe ortasında uygulamayı ÖLDÜR | — | telefonun uygulama değiştiricisinden kapat, yeniden aç, DEVAM ET: aynı bahçe, aynı kesim, aynı saat, bulunmuş kanıtlar duruyor mu; biten bahçeden sonra DEVAM ET hub açıyor mu (G42) |
 | Arka plana al / geri gel ×3 | ses ve durum korunuyor mu | duraklatma testi |
+| Fotoğraf modu | — | Duraklat → FOTOĞRAF: arayüz çekiliyor, orta bant aydınlık kalıyor mu; sürükleyince bahçenin çevresinde dönüyor mu; deklanşörden sonra "Albüme kondu" ve Günlük → Albüm'de kart var mı; kapatınca oyun kamerası ve arayüz geri dönüyor mu (G47) |
 | Kartpostalda önce/sonra | — | bitmiş bahçenin fotoğrafının sol altında biçilmemiş halin küçük baskısı ve "önce" yazısı var mı; yarısı kesilmiş bir bahçeye DEVAM ET ile dönüp bitirince "önce" baskısı YOK (yalan olurdu) (G45) |
 | Bahçe sonu: KARTPOSTAL | — | düğme panelde görünüyor mu; kart açılıyor, dokununca kapanıyor mu; Günlük → Albüm sekmesinde listeleniyor mu; telefon paylaşım sayfası YOK (eklenti gerekir, bilinen eksik) (G27) |
 | Bahçeyi düz sıralarla biç | — | panelde "Düz sıralar" çipi ve kartpostal damgasında DÜZ SIRALAR çıkıyor mu; serbest kesimde çip yok (G28) |

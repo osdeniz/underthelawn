@@ -23,6 +23,8 @@ const CHAPTER_STARTED := "chapter_started"
 ## Held to skip the story cards (G40). Worth knowing: an opening people skip
 ## is an opening to shorten.
 const INTRO_SKIPPED := "intro_skipped"
+## A picture the player framed and kept (G47).
+const PHOTO_TAKEN := "photo_taken"
 const CHAPTER_COMPLETED := "chapter_completed"
 const CASE_COMPLETED := "case_completed"
 const EVIDENCE_FOUND := "evidence_found"

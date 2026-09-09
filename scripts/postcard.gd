@@ -93,8 +93,11 @@ static func load_texture(path: String) -> Texture2D:
 	return ImageTexture.create_from_image(img)
 
 
-## The yard's name as the card prints it: the chapter's name, or the field's.
+## The yard's name as the card prints it: the chapter's name, or the field's —
+## or, for one the player framed themselves, that it is a photograph (G47).
 static func title_for(variant_id: String) -> String:
+	if variant_id.begins_with("photo_"):
+		return TranslationServer.translate("POSTCARD_PHOTO")
 	var entry := ChapterProgress.entry(variant_id)
 	if not entry.is_empty():
 		return TranslationServer.translate(str(entry.get("name", variant_id)))
@@ -137,6 +140,21 @@ static func capture_before(game: Node3D) -> Image:
 ## The yard from above, in the scene's own world: same light, same sky, same
 ## grass — a second camera in a viewport of its own, rendered once.
 static func capture_yard(game: Node3D) -> Image:
+	var d := maxf(GameConfig.HALF_Z * CAM_DISTANCE_ROWS, GameConfig.HALF_X * CAM_DISTANCE_COLS)
+	var at := Vector3(0.0, d * CAM_RISE, GameConfig.HALF_Z * 0.25 + d * 0.55)
+	return await capture_from(game, at, Vector3(0.0, 0.0, -GameConfig.HALF_Z * 0.1), CAM_FOV)
+
+
+## The same photograph from anywhere: the fixed overhead shot above, and the
+## one the player frames themselves in photo mode (G47).
+## `keep_width` matters when the player is framing the shot themselves (G47):
+## a camera keeping its HEIGHT shows more at the sides the wider its frame is,
+## so a 3:2 card captured from a portrait screen contains things the player
+## could not see. Keeping the WIDTH instead makes the captured picture a
+## horizontal BAND of what is on screen, which photo mode can draw a guide
+## around. The automatic overhead card keeps its own framing, tuned in G27.
+static func capture_from(game: Node3D, from: Vector3, look: Vector3,
+		fov: float, keep_width := false) -> Image:
 	var vp := SubViewport.new()
 	vp.size = PHOTO
 	vp.own_world_3d = false
@@ -145,12 +163,14 @@ static func capture_yard(game: Node3D) -> Image:
 	vp.msaa_3d = Viewport.MSAA_2X
 	game.add_child(vp)
 	var cam := Camera3D.new()
-	cam.fov = CAM_FOV
+	cam.fov = fov
+	if keep_width:
+		cam.keep_aspect = Camera3D.KEEP_WIDTH
 	cam.current = true
 	vp.add_child(cam)
-	var d := maxf(GameConfig.HALF_Z * CAM_DISTANCE_ROWS, GameConfig.HALF_X * CAM_DISTANCE_COLS)
-	cam.position = Vector3(0.0, d * CAM_RISE, GameConfig.HALF_Z * 0.25 + d * 0.55)
-	cam.look_at(Vector3(0.0, 0.0, -GameConfig.HALF_Z * 0.1), Vector3.UP)
+	cam.position = from
+	if from.distance_to(look) > 0.01:
+		cam.look_at(look, Vector3.UP)
 	# Two frames: the viewport needs one to exist and one to draw. The scene
 	# may be torn down under us (a flow test closing the yard mid-await), so
 	# the tree is asked of the engine and the viewport is checked after.

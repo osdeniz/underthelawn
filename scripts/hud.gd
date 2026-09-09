@@ -28,6 +28,8 @@ signal board_requested()
 signal main_menu_requested()
 ## Step off the machine, or climb back on (G14.16).
 signal walk_toggled()
+## The pause sheet's camera row (G47); the level opens photo mode.
+signal photo_requested()
 
 ## Render sizes for the evidence thumbnails on the completion screen (G12.10).
 const SLOT_VIEW := Vector2i(190, 190)
@@ -1266,6 +1268,20 @@ func _build_pause() -> void:
 		refresh_sky()
 		Analytics.track("sky_mode", {"mode": SkyTime.mode()}))
 	rows.add_child(sky)
+
+	# The player's own camera (G47). On the pause sheet because it is a thing
+	# you do while standing in a yard you have half cut, and because the yard
+	# has to hold still for it anyway.
+	var photo := Button.new()
+	photo.name = "PhotoRow"
+	photo.text = tr("UI_PHOTO")
+	photo.add_theme_font_size_override("font_size", 36)
+	_style_button(photo)
+	photo.pressed.connect(func() -> void:
+		Haptics.light()
+		_close_pause()
+		photo_requested.emit())
+	rows.add_child(photo)
 
 	var menu := Button.new()
 	menu.text = tr("UI_MAIN_MENU")

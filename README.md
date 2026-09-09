@@ -4916,3 +4916,41 @@ the dog did, and you watched it happen from the fence line.
 `AnimalCheck` gains 7 claims: the range flat at zero finds, one improvement
 per step and no more, the total after every step, nothing past the last step,
 the step boundary itself, and the line reading with the dog's name filled in.
+
+## G47 — the player's own camera
+
+The postcard has taken the same overhead shot of every yard since G27, and
+the machinery for it — a camera in a viewport of its own, a parchment mount,
+an album to keep it in — is exactly what a photo mode needs. So the yard is
+made to hold still and the camera is handed over.
+
+- **Where.** A FOTOĞRAF row on the pause sheet (`Hud.photo_requested` →
+  `Game._open_photo_mode`): it is a thing you do standing in a yard you have
+  half cut, and the yard has to stop for it anyway.
+- **How it works.** `PhotoMode` hides the interface, pauses the tree, and puts
+  its own `Camera3D` on the world — a mower rolling through the frame would
+  spoil the shot and the town should not eat while somebody composes a
+  picture. Drag swings the camera round the middle of the yard, up and down
+  raises the eye (clamped short of the ground and short of straight down,
+  both of which are pictures of nothing), + and − zoom between 0.45 and 1.6
+  of the yard's reach. The shutter writes a card into the same album the
+  automatic ones go to, under `photo_<unix>`; `Postcard.title_for` names
+  those "Fotoğraf" while the card itself still prints the yard's name.
+  Closing hands the view back to the camera that had it, by name rather than
+  by trusting that freeing one restores the last.
+- **What you frame is what you get.** The live view is portrait and the card
+  is 3:2, so at first the card contained things at the sides the player could
+  not see. Both cameras now `KEEP_WIDTH`, which makes the captured picture a
+  horizontal BAND of the screen, and photo mode dims everything outside that
+  band. Rendered both ways: `out/photo_mode.png` and `out/photo_card.png`
+  hold the same picture. The automatic overhead card keeps its own framing
+  from G27 — `capture_from(..., keep_width)` is opt-in for exactly that
+  reason.
+- `Postcard.capture_from(game, from, look, fov, keep_width)` is the one
+  capture now; `capture_yard` is it with the overhead transform.
+- `PhotoCheck` (24 claims, headless): the interface withdrawing and coming
+  back, the pause asked for, its own camera taking and handing back the view,
+  the guide's band matching the card's ratio and centred, the drag swinging
+  without leaving the sphere, both pitch limits, both zoom limits, the pause
+  row asking for the mode, and the album's name for a photograph.
+  `PhotoShot` renders the mode and the card its shutter makes.

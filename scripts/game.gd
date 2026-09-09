@@ -169,6 +169,7 @@ func _ready() -> void:
 	hud.return_requested.connect(_return_to_hub)
 	hud.main_menu_requested.connect(_return_to_main_menu)
 	hud.walk_toggled.connect(toggle_walk)
+	hud.photo_requested.connect(_open_photo_mode)
 	hud.exit_confirmed.connect(_confirm_exit)
 	hud.next_chapter_requested.connect(_next_chapter)
 	hud.board_requested.connect(func() -> void:
@@ -488,6 +489,16 @@ func restore_snapshot(snap: Dictionary) -> bool:
 	hud.set_progress(model.completion_ratio())
 	_check_scent(model.completion_ratio())
 	return true
+
+
+## The player's own camera (G47), over a yard that holds still for it.
+func _open_photo_mode() -> void:
+	if _photo != null and is_instance_valid(_photo):
+		return
+	_photo = PhotoMode.open(self, hud)
+
+
+var _photo: PhotoMode
 
 
 ## Driving into a shed, a fence post or the lawn's own edge: a knock, a lurch
