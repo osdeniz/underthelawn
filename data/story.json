@@ -702,6 +702,51 @@
       "a": "ch14_listening_post/headset",
       "b": "ch14_listening_post/map",
       "note": "LINK_HEADSET_MAP"
+    },
+    {
+      "a": "ch19_town_square/stone_mark",
+      "b": "ch21_school_field/chalk_map",
+      "note": "LINK_MARK_MAP"
+    },
+    {
+      "a": "ch19_town_square/roster",
+      "b": "ch23_the_grave_row/marker",
+      "note": "LINK_ROSTER_MARKER"
+    },
+    {
+      "a": "ch20_watchtower_road/mirror",
+      "b": "ch25_night_watch/radio_log",
+      "note": "LINK_MIRROR_LOG"
+    },
+    {
+      "a": "ch20_watchtower_road/oil_can",
+      "b": "ch21_school_field/bell",
+      "note": "LINK_OIL_BELL"
+    },
+    {
+      "a": "ch22_the_orchard_again/pruning_saw",
+      "b": "ch22_the_orchard_again/ladder",
+      "note": "LINK_SAW_LADDER"
+    },
+    {
+      "a": "ch23_the_grave_row/ribbon_grey",
+      "b": "ch27_the_reed_shore/oilskin",
+      "note": "LINK_RIBBON_OILSKIN"
+    },
+    {
+      "a": "ch25_night_watch/lantern",
+      "b": "ch27_the_reed_shore/rowboat",
+      "note": "LINK_LANTERN_BOAT"
+    },
+    {
+      "a": "ch26_the_visit/letter",
+      "b": "ch26_the_visit/photograph",
+      "note": "LINK_LETTER_PHOTO"
+    },
+    {
+      "a": "ch24_the_gate_line/wire",
+      "b": "ch24_the_gate_line/sign_blank",
+      "note": "LINK_WIRE_SIGN"
     }
   ]
 }

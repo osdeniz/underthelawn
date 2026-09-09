@@ -5004,3 +5004,41 @@ what, in his own words, and the sentence is kept.
   written once, the same pair answered rather than counted twice, a wrong
   pair costing nothing, the deduction appearing in the notes, and the answer
   clearing on a tab change. `DeductionShot` renders the three states.
+
+## G48.1 — Case 03's deductions
+
+Case 03 was left out of G48 because its story does not end in an answer, it
+ends in a choice, and its links had to argue towards that choice rather than
+solve anything. Nine of them, so the board now holds twenty: seven for Case
+01, four for Case 02, nine for Case 03.
+
+What they add up to is the case's own argument — that they were always there,
+that they wrote first, and that the town has built a gate without deciding
+what it says:
+
+- Their sign scratched small in one place and the town drawn in another with
+  one house circled: a nine-year-old has been telling us where they are.
+- A line rubbed out of Sarah's roster, and a board at the end of the grave row
+  with no name on it. She erased the same person twice.
+- The mirror turned east and three nights of lights in Gus's own hand: he was
+  not watching them, he was answering.
+- Oil on every rung and the bell back on its post: not getting ready to hide,
+  getting ready to be seen.
+- A clean saw on a branch and three new rungs: somebody we would not let in
+  kept that orchard alive, and a child held the ladder for him.
+- A colour nobody here wears tied to our fence, and letters addressed to this
+  town by a name it stopped using. They came in because they had written
+  first.
+- A lantern on the top step and a boat that leaked the whole way and came
+  anyway — the same porch light that stopped a man on a road nine years ago.
+- The typed thank-you and the nine-year-old print of a basket: they knew where
+  she was the whole time and never asked us for anything.
+- The wire re-strung and the sign planed to white: we built a gate and did not
+  decide what it says. Somebody is going to have to say it.
+
+`DeductionCheck` gains three kinds of claim that guard the table as it grows:
+**no link may bridge two cases** (a deduction joining a Case 01 find to a Case
+03 one would be a story error), **all three cases have links** (a case with
+none is a case where the mechanic silently does not exist), and each has at
+least three. The case a piece belongs to is read from the story's own chapter
+lists, not guessed from the spelling of a chapter id.

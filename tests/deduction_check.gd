@@ -33,6 +33,27 @@ func run() -> void:
 	ck("ayni cift iki kez yazilmamis", seen.size() == links.size(),
 		"%d / %d" % [seen.size(), links.size()])
 
+	# No link may bridge two cases, and every case needs some: a deduction
+	# joining a Case 01 find to a Case 03 one would be a story error, and a
+	# case with none is a case where the mechanic silently does not exist.
+	var per_case := {}
+	var crossing := 0
+	for any: Variant in links:
+		var link: Dictionary = any
+		var case_a := _case_of(str(link.get("a", "")))
+		var case_b := _case_of(str(link.get("b", "")))
+		if case_a == "" or case_b == "":
+			continue
+		per_case[case_a] = int(per_case.get(case_a, 0)) + 1
+		if case_a != case_b:
+			crossing += 1
+			print("  [olcum] vakalar arasi bag: %s + %s" % [link.get("a"), link.get("b")])
+	ck("hicbir bag vakalari birbirine baglamiyor", crossing == 0, str(crossing))
+	ck("uc vakanin da bagi var", per_case.size() == 3, str(per_case))
+	for case_key: Variant in per_case:
+		ck("vaka %s icin yeterli bag" % case_key, int(per_case[case_key]) >= 3,
+			"%d" % int(per_case[case_key]))
+
 	# --- order does not matter, and a wrong pair is simply not a link
 	var first: Dictionary = links[0]
 	var a1 := str(first.get("a", ""))
@@ -128,6 +149,18 @@ func run() -> void:
 	DeductionLog.reset()
 	ChapterProgress.reset()
 	finish()
+
+
+## Which case a piece of evidence belongs to, read from the story's own
+## chapter lists rather than from the chapter id's spelling.
+func _case_of(side: String) -> String:
+	var vid := DeductionLog.chapter_of(side)
+	for spec: Array in [["1", "chapters"], ["2", "case_02.chapters"],
+			["3", "case_03.chapters"]]:
+		for any: Variant in Story.list(str(spec[1])):
+			if str((any as Dictionary).get("variant_id", "")) == vid:
+				return str(spec[0])
+	return ""
 
 
 func _has_text(journal: Node, wanted: String) -> bool:
