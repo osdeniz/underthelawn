@@ -52,6 +52,7 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 | Kartları basılı tutarak atla | — | çubuk dolarken görünüyor mu; parmağı kaldırınca sıfırlanıyor mu; kartlara sadece dokunup beklerken KENDİ KENDİNE atlamıyor mu (G40) |
 | Klavye/kontrolcü ile menüler (masaüstü) | — | bir tuşa basınca odak halkası çıkıyor mu; oklarla satırlar arasında geziliyor, Enter basıyor mu; fareye/dokunmaya geçince halka kayboluyor mu (G43) |
 | Köpeğin burnu | — | 3., 8. ve 15. buluşta bir kez "artık daha uzaktan buluyor" satırı geliyor mu; sonrasında köpek gerçekten daha uzaktan duruyor mu (G46) |
+| Prolog kartlari | — | yedi kartin hepsinde resim var mi (hicbiri siyah degil); gokyuzu gecislerinde bantlanma goruluyor mu; beyaz yazi her kartta okunuyor mu; resim telefonda dikey olarak tam kadrajda mi (G57) |
 | Yerden toplananlar | — | biçerken açığa çıkan her şeyin üstünde ne olduğunu söyleyen bir rozet var mı (dişli = hurda, çuval = gıda); kesilmemiş otun altındaki eşya rozetiyle birlikte GİZLİ mi; üst şeritte "128 hurda · 9 gıda" okunuyor mu, düğmelere binmiyor mu (G56) |
 | Yönlendirme | — | ilk bahçe bitince kasabaya dönüşte doğrudan Onarım sayfası açılıp tek cümlelik not çıkıyor mu; "Anlaşıldı"ya basınca kapanıyor ve BİR DAHA çıkmıyor mu; parası yetmeyen oyuncuya çıkmıyor mu; makine alınabilir olduğunda Atölye, iki bağlanabilir bulgu eldeyken Defter notu geliyor mu; not yazılırken cümle harf harf akıyor mu (G56) |
 | Hasat tarlasi telefonda | 60 | ucgen ~394k (once 623k): akici mi, kasiyor mu; perf gostergesini acip fps/cizim/ucgen yaz (G55) |

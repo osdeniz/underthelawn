@@ -46,6 +46,26 @@ func _cards() -> void:
 			for raw: Variant in card.get("lines", []):
 				ck("%s satiri cevrili: %s" % [key, raw],
 					TranslationServer.translate(str(raw)) != str(raw), "")
+	# Every card's PICTURE, not just its words. The prologue asked for six
+	# pieces of art from the day it was written and this suite only ever
+	# checked the text, so four of its six cards played over black for eleven
+	# sprints and nothing failed (G57).
+	var artless: Array[String] = []
+	for key: String in ["prologue.cards", "prologue.after", "intro.cards",
+			"intro.after_prologue"]:
+		for card: Dictionary in Story.list(key):
+			var image := str(card.get("image", ""))
+			if image == "":
+				continue
+			if TextureLibrary.find(image) != null:
+				continue
+			# A card may name a stand-in until its own picture is drawn.
+			var spare := str(card.get("fallback_image", ""))
+			if spare != "" and TextureLibrary.find(spare) != null:
+				continue
+			artless.append("%s: %s" % [key, image])
+	ck("her kartin resmi var", artless.is_empty(), ", ".join(artless))
+
 	var lines := Dialogue.conversation("pro_road")
 	ck("yol diyalogu var", lines.size() >= 4, "%d satir" % lines.size())
 

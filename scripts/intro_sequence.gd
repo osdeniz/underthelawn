@@ -249,6 +249,14 @@ func _apply(card: Dictionary) -> void:
 	# Image paths are not language-dependent.
 	var image_name := str(card.get("image", ""))
 	var tex := TextureLibrary.find(image_name) if image_name != "" else null
+	# The story file has carried a `fallback_image` on the prologue cards since
+	# G19.1 and nothing ever read it, so a card whose art had not been drawn
+	# yet played over black. Every one of the six exists now (G57) — this is so
+	# that the NEXT card written before its picture borrows one.
+	if tex == null:
+		var spare := str(card.get("fallback_image", ""))
+		if spare != "":
+			tex = TextureLibrary.find(spare)
 	_image.texture = tex
 	_image.visible = tex != null
 	if tex == null and image_name != "":

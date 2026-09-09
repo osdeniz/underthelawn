@@ -5360,3 +5360,38 @@ is guiding the player."*
   was parked (`_set_diorama_live`), which is every page but the town — so the
   note's first render was a heading, a blank middle and a button. The parking
   flag is `_diorama_live` now; `_process` still runs.
+
+## G57 — the prologue has its pictures
+
+Six images arrived for the cards the story file has been asking for since
+G19.1, named `pro1..pro6.png` and 15 MB of PNG between them.
+
+- **Named what the story file asks for.** `intro/pro_1` … `intro/pro_6`
+  (underscore), because that is what `prologue.cards` and `prologue.after`
+  have always looked up. Converted PNG → JPEG q90 at their native size:
+  **15.2 MB → 2.2 MB**, no resize (853×1844 and 941×1672 are both under
+  `AssetCheck`'s 2100 ceiling, and there are no more pixels to be had).
+- **VRAM compressed like the four cards beside them**, `compress/mode=2` with
+  mipmaps — and measured before keeping, because these pictures are mostly
+  smooth sunset gradient, which is where block compression shows first. The
+  imported texture decompressed against its own source JPEG, sampled across
+  the top fifth of each: mean error **0.004–0.007** of full range (one to two
+  levels of 255), worst case 0.06 on a hard edge — a pole against sky, not
+  banding. It buys ~29 MB of VRAM over lossless across the six.
+- **`fallback_image` now does something.** The prologue cards have carried one
+  each since G19.1 and no code ever read it, which is exactly why four cards
+  played over black for eleven sprints: nothing failed, and nothing fell back.
+  `IntroSequence._apply` tries it, and `PrologueCheck` asserts that every card
+  in all four decks resolves to a picture.
+- **Rendered at the phone's frame, not the desktop's.** The first render was
+  landscape and told me nothing: the cards fill the screen with
+  `KEEP_ASPECT_COVERED`, so a portrait picture in a wide window is cropped to
+  a horizontal band. `PrologueShot` letterboxes with `CONTENT_SCALE_ASPECT_KEEP`
+  and captures the visible rect — all seven cards, the type checked against
+  the sky it actually lands on.
+- **Known gap, deliberately not touched:** the four older `intro_*.jpg` cards
+  are storybook illustration and the new six are painted realism. They no
+  longer play back to back in the first-run flow (G19.8 cut `after_prologue`
+  to the poster), but the hub's "replay the intro" still shows the old four.
+  And the prologue's last card reuses `pro_6` with the pan reversed, because
+  there are six pictures for seven cards.
