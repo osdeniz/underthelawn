@@ -1100,6 +1100,15 @@ const SALVAGE_COPPER := Color(0.60, 0.36, 0.20)
 const SALVAGE_TIN := Color(0.60, 0.62, 0.60)
 const SALVAGE_IRON := Color(0.28, 0.29, 0.32)
 const SALVAGE_GLOW := 0.14
+## Whether the menu cover art carries the game's name inside the picture (G64).
+##
+## True while the shipped cover has "UNDER THE LAWN" painted into it: the menu
+## stops drawing a second title over it. It is also why the title is currently
+## CROPPED on a phone — a 4:5 cover covering a 0.46 screen loses 42% of its
+## width, measured, and the lettering runs into that. Set this false when a
+## cover without lettering is delivered and the menu draws the name itself, in
+## the player's own language.
+const MENU_COVER_HAS_TITLE := true
 ## The veil over the reunion card's photograph (G61).
 ##
 ## Measured, not chosen: the old storybook reunion art averaged 113 in

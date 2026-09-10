@@ -5656,3 +5656,29 @@ the export presets read to find out what the shipped app actually contains.
   no unused scripts — every `class_name` in `scripts/` is referenced by
   something the game loads.
 - AudioCheck, MusicCheck, AssetCheck and DioramaCheck pass after all of it.
+
+## G64 — the menu can print its own name, and one image nobody sees
+
+Three pictures were queued for prompts. Measuring first turned one of them
+into a deletion instead.
+
+- **`hub/town_square.jpg` is never on screen.** The hub paints it as its
+  background and then adds an **opaque** `SubViewportContainer` — the live 3D
+  town — over the whole screen; `transparent_bg` is set nowhere, and when the
+  town is parked a `_diorama_still` covers it instead. So those 643 KB are a
+  one-or-two-frame guard against a black flash before the 3D scene first
+  draws, which the warm gradient behind it already does. No prompt written:
+  there is nothing to commission art for.
+- **The menu can draw its own title now.** `MENU_COVER_HAS_TITLE` (true while
+  the shipped cover has "UNDER THE LAWN" painted into it) replaces the blanket
+  `not _has_cover` gate. Set it false with a lettering-free cover and the name
+  comes from `MENU_TITLE` — which is the only way it can be Turkish as well as
+  English, and the only way it cannot be cropped off the side. `MenuTitleCheck`
+  covers both states and asserts the name exists in both languages.
+- **Prompts for the two that are actually seen**, both aimed with numbers:
+  `story/convoy` (its 252° blue-violet hue is the only cold member of a
+  25–46° set, and the card's own 0.45 veil leaves it at **19** on screen, so
+  the prompt asks for 75–95 at 0.25–0.40 saturation and carries the cold with
+  desaturation instead of blue), and the menu cover (9:16 this time, nothing
+  important outside the central **70%** because it is the most-cropped picture
+  in the game, top third left open for the drawn title).

@@ -18,9 +18,9 @@ aralığında, yani okra→zeytin. Bundan sapanlar ve kural ihlalleri:
 | `portraits/marshal.jpg` | **KARAR: değişmiyor** | Silahlı hâli **bilinçli tercih** (2026-09-10). Bu dosya için "silah yok" kuralının kalıcı istisnası; bir daha önerilmeyecek. Diğer kurallar (yazı, ateş, kan) geçerli. |
 | `hub/case2_teaser.jpg` | **kural ihlali** | Resmin içine uydurma harfler çizilmiş ("YMMOM"). Yazı yasak. |
 | ~~`story/birthday.jpg`~~ | **GELDİ (G62)** | Yeniden boyandı: yazı yok, tam dokuz mum (ölçülerek sayıldı), yüzler çözünmemiş. Konu bölgesi eskinin %40 üstünde parlaklıkta. |
-| `hub/town_square.jpg` | üslup | Çizgi film üslubu; hub'ın kasaba sayfasında tam ekran. |
-| `story/convoy.jpg` | palet | Medyan ton **252°** (mavi-mor). Setteki tek soğuk resim; diğer on üçü 25–46°. |
-| `menu/cover_portrait.jpg` | **kırpılıyor** + üslup | 1122×1402 (4:5) bir resim 1170×2532 ekranı kaplarken genişliğinin %42'sini kaybediyor. Telefon kadrajında render aldım: **başlığın "U"su ve "N"i kesiliyor** (`out/menu_phone.png`). Üstelik korku üslubunda — burkulmuş kökler, kadrajda kemikler — ki oyunun geri kalanıyla hiç ilgisi yok. G35 "kapak başlığını koruyor" diye iddia etmişti; o çekim masaüstü penceresini kaydediyordu, yani iddia hiç sınanmamıştı. Artık `MenuShot` telefon kadrajına letterbox yapıyor. |
+| `hub/town_square.jpg` | **GÖRÜNMÜYOR** | Ölçtüm: hub'ın arka planı `_build_ground_gradient` içinde çiziliyor, ama hemen ardından **opak** bir `SubViewportContainer` (canlı 3B kasaba) tam ekran üstüne biniyor; `transparent_bg` hiçbir yerde açılmıyor ve park hâlinde de `_diorama_still` kaplıyor. Yani bu 643 KB, 3B sahne ilk kez çizilene kadarki bir-iki karelik "siyah flaş" kalkanı. **Buna resim sipariş etmeye değmez** — ya silinir (arkasındaki sıcak degrade zaten aynı işi yapar) ya olduğu gibi kalır. |
+| `story/convoy.jpg` | palet + karanlık | Medyan ton **252°** (mavi-mor), setteki tek soğuk üye; ve kartın 0.45 perdesi altında ekranda **19**'da kalıyor. Promptu yazıldı: [ART_PROMPTS.md](ART_PROMPTS.md) §4. |
+| `menu/cover_portrait.jpg` | **kırpılıyor** + üslup | 4:5 resim 1170×2532'yi kaplarken genişliğin %42'sini kaybediyor; telefon kadrajında başlığın "U"su ve "N"i kesiliyor (`out/menu_phone.png`). Korku üslubu (kökler, kemikler) setin geri kalanıyla ilgisiz. Promptu yazıldı: [ART_PROMPTS.md](ART_PROMPTS.md) §5, ve `GameConfig.MENU_COVER_HAS_TITLE` ile başlığı oyunun kendisi çizebiliyor artık (G64). |
 
 Sorun görülmeyenler: `hub/corkboard.jpg` (arka doku), `story/homecoming.jpg`
 (sete en yakın olan), altı portre (`cole`, `ellie`, `gus`, `sarah`,
@@ -213,6 +213,7 @@ oyunun kimliğini değiştirir:
    kendisine çizdirmek en iyisi: o zaman Türkçe/İngilizce de doğru görünür.
    Kod bunu zaten destekliyor (`MainMenu._cover_art` / `_has_cover`), tek
    satırlık bir bayrak gerekiyor.
-5. **`story/convoy.jpg`** — mavi-mor. Yeniden üretmek yerine ton düzeltmesi
-   de olur; söyle, sıcak tarafa çekerim (kayıpsız bir renk düzeltmesi,
-   yeniden üretim gerekmez).
+5. **`story/convoy.jpg`** — promptu yazıldı (§4). Yeniden üretmek istemezsen
+   ton düzeltmesi de bir seçenek: doygunluğu ve tonu sıcak tarafa çekmek
+   yeniden üretim gerektirmez, ama 0.45 perde altındaki 19'luk parlaklığı
+   düzeltmez — onun için yeni resim gerekiyor.

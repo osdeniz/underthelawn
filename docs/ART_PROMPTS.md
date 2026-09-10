@@ -218,6 +218,94 @@ kalabalık öne kaçmış yüzler yok. Kaynak parlaklık 60–80, doygunluk 0.40
 
 ---
 
+## 4. Vaka 02'in kapanış kartı — `story/convoy.jpg` (mevcudun üzerine)
+
+İkinci referans: `textures/story/ending_closed.jpg` (yeni final kartı — aynı
+yol, aynı sis, ama orada kamyonlar **gidiyor**; burada **geliyor**).
+
+### Ölçülen kısıtlar
+
+`ConvoyCard` iki sayfa: birincisi sıcak olan (`story/homecoming` — su kulesi,
+veranda ışığı), ikincisi soğuk olan ve **vakanın son sözü**. `convoy` ikinci
+sayfada. Kartın perdesi `Color(0.02, 0.02, 0.03, **0.45**)`, metin
+`offset_top = -560` ile alttan 560 px yukarıdan başlıyor (1170×2532'de
+**%78**'den aşağısı).
+
+| | parlaklık | doygunluk | ton | perde altında |
+|---|---|---|---|---|
+| convoy (eski) | 34 | 0.20 | **252°** | **19** |
+| ending_closed | 66 | 0.44 | 31° | — |
+| yeni hedef | **75–95** | 0.25–0.40 | **28–36°** | 41–52 |
+
+İki sorun: **ton 252°** (mavi-mor) — on dört resimlik setin tek soğuk üyesi,
+diğerleri 25–46° arasında; ve 0.45 perde altında ekranda **19**'da kalıyor,
+yani neredeyse siyah. Soğukluk maviyle değil **doygunluğu düşürerek**
+verilecek, ve kaynak 75–95 olacak.
+
+Kartın metni: **"İKİ HAFTA DOLDU / Doğu yolunda ışıklar. Bu tarafa
+geliyorlar."** Koddaki not şunu söylüyor: *"bir konvoy konvoy gibi okunur
+çünkü BİRDEN FAZLA ışık vardır"* — resim yoksa kart ışıkları kendisi çiziyor.
+Yani birden fazla far şart.
+
+```
+Oil painting on canvas, painterly with visible brush texture and soft edges, muted, no digital linework. Vertical 9:16 composition. A wide valley seen at night from a low ridge above it: a dirt road comes up the valley toward the viewer through low mist, and on it four sets of vehicle headlights are strung out in a line, still far away, each one a soft warm halo on the mist with the shape of a plain flatbed truck barely suggested behind it. Below and to the left, the near edge of a small town: a handful of roofs, a water tower on plain steel legs, and two or three windows lit warm, small and quiet against the dark. Fences and hedgerows lead the eye from the town up to the road. Night with a high thin cloud and the last grey of the sky along the horizon, the cold of it carried by very low saturation rather than by blue; the warm halos of the headlights and the lit windows are the only saturated colour in the painting, and they are what the eye lands on. Palette held in warm ochre and olive browns pushed almost to grey: deep umber #38301e, olive #60533d, bone #b3a794, with neutral grey #5a5b5b through the mist. The road and its lights sit between 30% and 50% of the frame height, centred; the town sits lower left around 55%; the lower quarter of the picture is quiet dark ridge with nothing in it. Bright enough overall to survive a dark veil laid over it in the game — roughly twice as bright as a night photograph would be. Everything of importance sits inside the central 77% of the width. Not an attack and not a rescue: four sets of lights, coming, and nothing yet decided.
+```
+
+Türkçe kontrol: tepeden görülen vadi, sise gömülü toprak yol, **dört** far
+takımı (sade kasa kamyon siluetleri, uzakta), sol altta kasabanın kenarı —
+su kulesi ve iki-üç yanan pencere. Soğukluk **doygunluk düşüklüğüyle**;
+mavi-mor gökyüzü yok. Askerî görünüm, tente, silah, projektör, kırmızı ışık,
+ateş yok. Yol ve ışıklar %30–50'de, alt çeyrek boş. Kaynak parlaklık 75–95.
+
+---
+
+## 5. Menü kapağı — `menu/cover_portrait.jpg` + `cover_wide.jpg`
+
+İkinci referans: `textures/intro/pro_1.jpg` (terk edilmiş sokak) ve
+`textures/intro/intro_1.jpg` (aynı sokak, yaşanıyor).
+
+### Ölçülen iki sorun
+
+1. **Başlık kırpılıyor.** Mevcut kapak 1122×1402 (4:5). 1170×2532 ekranı
+   `KEEP_ASPECT_COVERED` ile kaplarken **genişliğinin %42'sini** kaybediyor
+   (%21 her yandan). Telefon kadrajında render aldım: "UNDER"ın U'su ve
+   "LAWN"ın N'i kesiliyor (`out/menu_phone.png`). G35 "kapak başlığını
+   koruyor" diye iddia etmişti; o çekim masaüstü penceresini kaydediyordu,
+   yani iddia hiç sınanmamıştı — `MenuShot` artık telefon kadrajına letterbox
+   yapıyor.
+2. **Üslup.** Kapak korku dilinde: burkulmuş kökler, çatlak beton ve
+   **kadrajda kemikler**. Oyunun kalan on dört resmi sıcak okra-zeytin
+   (ton 25–46°); kapak ton 90° (portre) ve 35° (geniş), parlaklık 31 ve 35.
+   Mağazada oyunu ilk gören resim bu ve oyunun kendisine benzemiyor.
+
+### Kod tarafı hazır (G64)
+
+`GameConfig.MENU_COVER_HAS_TITLE` eklendi. Bugün `true`: kapak adı içinde
+taşıdığı için menü kendi başlığını çizmiyor. **Yazısız bir kapak
+getirdiğinde `false` yap** — menü adı kendisi çizer, yani hem Türkçe hem
+İngilizce doğru görünür, hem de kırpılamaz. `MenuTitleCheck` iki durumu da
+sınıyor.
+
+Yani promptta **yazı yok**: sadece resim.
+
+```
+Oil painting on canvas, painterly with visible brush texture and soft edges, muted, no digital linework. Vertical 9:16 composition, and the picture is a poster: one idea, read in a second, with air at the top. A push lawn mower stands alone in the middle of a small town's main street, its handle worn smooth, parked mid-row: behind it a single mown stripe runs back down the cracked asphalt toward the viewer, short and green, and on either side of that stripe the grass stands waist high across the whole street and up over the kerbs and the front gardens. Two-storey clapboard houses line both sides with their curtains drawn, one roof patched with pale new boards; the street narrows away to a low hill and an empty sky. Late afternoon, the sun low and warm at the far end of the street, long soft shadows reaching toward the viewer, dust in the light. Palette held in warm ochre and olive browns: deep umber #433a28, olive #60533d, raw sienna #7e6540, ochre #a68c67, bone #b3a794, pale cream #e2bf93. The mower stands between 45% and 62% of the frame height, centred; the top third is open sky and rooftops with nothing important in it, kept clear and simple; the bottom third is the mown stripe and its shadow, the darkest part of the painting. Everything of importance sits inside the central 70% of the width. Quiet, patient and a little strange: a machine doing an ordinary job in a place that stopped being ordinary.
+```
+
+Türkçe kontrol: sokağın ortasında tek başına duran itmeli çim biçme makinesi,
+arkasında kameraya doğru gelen **tek biçilmiş şerit**, iki yanda bel hizası
+ot, perdeleri kapalı evler, uzakta alçak tepe ve **boş gökyüzü**. Üst üçte bir
+**boş** (menü başlığı oraya gelecek), alt üçte bir en koyu. Kemik, kök, çatlak
+beton, korku imgesi yok; **yazı yok**; insan yok. Önemli her şey ortadaki
+**%70**'te (kapak en çok kırpılan resim, o yüzden %77 değil %70).
+
+**İkinci dosya:** aynı sahneyi bir de **16:9 yatay** üret (`cover_wide.jpg`) —
+masaüstü/Steam için. Aynı prompt, tek fark: `Vertical 9:16 composition` yerine
+`Horizontal 16:9 composition`, ve makine kadrajın sol üçte birinde dursun,
+sağ taraf sokağın derinliği olsun.
+
+---
+
 ## Eski taslaklar (kayıt olarak)
 
 Aşağıdaki üç madde G19'da Türkçe taslak olarak yazılmıştı; Şerif'in yeni
