@@ -235,11 +235,17 @@ func _build_ground_gradient() -> void:
 	_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var art := Story.raw("hub.background", "hub/town_square")
-	var tex := TextureLibrary.find(art)
+	# Empty by default (G64.1). This TextureRect sits UNDER the live 3D town,
+	# which is an opaque SubViewport over the whole screen — so a painting here
+	# was only ever visible for the frame or two before the diorama first drew,
+	# and the warm gradient behind it already covers that. The seam is kept:
+	# story.json can name a picture and it will be used, without warning when
+	# it names none.
+	var art := Story.raw("hub.background", "")
+	var tex: Texture2D = TextureLibrary.find(art) if art != "" else null
 	_background.texture = tex
 	_background.visible = tex != null
-	if tex == null:
+	if tex == null and art != "":
 		TextureLibrary.warn_missing(art, "hub arkaplani = sicak degrade")
 	add_child(_background)
 

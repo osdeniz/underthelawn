@@ -62,6 +62,17 @@ func _ready() -> void:
 		stems[key] = true
 	ck("ayni isimde iki format yok", twins.is_empty(), ", ".join(twins))
 
+	# A .import whose SOURCE is gone still claims the name. TextureLibrary tries
+	# .png before .jpg, so a leftover cover_portrait.png.import can shadow the
+	# cover_portrait.jpg that replaced it — and the screen goes blank with no
+	# error anywhere (G65: converting art with the editor run BEFORE the PNG is
+	# deleted leaves exactly this).
+	var stranded: Array[String] = []
+	for path: String in files:
+		if not FileAccess.file_exists(path.trim_suffix(".import")):
+			stranded.append(path.get_file())
+	ck("kaynagi olmayan .import yok", stranded.is_empty(), ", ".join(stranded))
+
 	# Orphans are REPORTED, not failed: some files are legitimately loaded by a
 	# name the code builds at runtime ("portraits/face_" + id), and a few are
 	# kept on purpose. A list is what is wanted here, not a veto (G13.8).

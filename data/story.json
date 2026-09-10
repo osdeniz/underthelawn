@@ -187,7 +187,7 @@
       }
     ],
     "locked_note": "HUB_LOCKED",
-    "background": "hub/town_square",
+    "background": "",
     "_comment": "G19.8: seven rows became four. Objectives live in the top bar's badge button, Restore and Workshop are two rows at the top of the Town page — the town is where you spend on the town."
   },
   "case_board": {

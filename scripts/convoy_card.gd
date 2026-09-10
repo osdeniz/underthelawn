@@ -53,11 +53,12 @@ func _build() -> void:
 	_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	GameConfig.fit_card(_art)
 	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_art)
 
 	_scrim = ColorRect.new()
-	_scrim.color = Color(0.02, 0.02, 0.03, 0.45)
+	_scrim.color = Color(0.02, 0.02, 0.03, GameConfig.CONVOY_SCRIM)
 	_scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_scrim)

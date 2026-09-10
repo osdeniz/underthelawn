@@ -1102,13 +1102,25 @@ const SALVAGE_IRON := Color(0.28, 0.29, 0.32)
 const SALVAGE_GLOW := 0.14
 ## Whether the menu cover art carries the game's name inside the picture (G64).
 ##
-## True while the shipped cover has "UNDER THE LAWN" painted into it: the menu
-## stops drawing a second title over it. It is also why the title is currently
-## CROPPED on a phone — a 4:5 cover covering a 0.46 screen loses 42% of its
-## width, measured, and the lettering runs into that. Set this false when a
-## cover without lettering is delivered and the menu draws the name itself, in
-## the player's own language.
-const MENU_COVER_HAS_TITLE := true
+## False since G65: the covers carry no lettering, so the menu draws the name
+## itself — which is the only way it can be Turkish as well as English, and the
+## only way it cannot be cropped off the side. The cover it replaced had "UNDER
+## THE LAWN" painted in, and on a phone the U and the N were cut off: a 4:5
+## picture covering a 0.46 screen loses 42% of its width, measured.
+const MENU_COVER_HAS_TITLE := false
+## Above this viewport aspect a 9:16 card is letterboxed rather than cropped
+## (see fit_card). 0.75 is comfortably wider than the phone's 0.46 and
+## comfortably narrower than the desktop's 1.78, so nothing changes on a phone.
+const CARD_COVER_ASPECT := 0.75
+## The veil over Case 02's closing card (G65).
+##
+## Measured like the reunion's: the repainted convoy averages 42 and its
+## SUBJECT — the road and the four sets of headlights — reads 62 against the
+## old card's 37. The old 0.45 veil put that subject at 34; 0.22 puts it at 48,
+## inside the 41-52 the card needs. The picture puts its own dark ridge under
+## the text band (23 in the source, 18 through this veil), so the veil is not
+## what makes the type legible here — the composition is.
+const CONVOY_SCRIM := 0.22
 ## The veil over the reunion card's photograph (G61).
 ##
 ## Measured, not chosen: the old storybook reunion art averaged 113 in
@@ -3017,6 +3029,33 @@ static func wide_margin(viewport_width: float) -> float:
 ## Pulls a full-rect Control in to a centred column of UI_MAX_WIDTH, keeping
 ## whatever side insets it already had, and keeps doing so when the window is
 ## resized. Idempotent: the original insets are remembered on the node.
+## A full-screen story picture, fitted to whatever shape the screen is (G65).
+##
+## Cards are painted 9:16 and drawn KEEP_ASPECT_COVERED, which is right on a
+## phone (82% of the width shows) and wrong everywhere else: measured, the
+## desktop's 1.78 viewport shows **32%** of a card's height and a rotated
+## phone would show 26% — a horizontal band with the subject cut out of it.
+## On a screen wider than the art, the picture is letterboxed instead: the
+## whole painting, with the hub's warm gradient at the sides. Better than a
+## separately cropped landscape variant, and it needs no second picture.
+static func fit_card(art: TextureRect) -> void:
+	if art == null or not is_instance_valid(art):
+		return
+	if not art.has_meta("card_fit"):
+		art.set_meta("card_fit", true)
+		var viewport := art.get_viewport()
+		if viewport != null:
+			viewport.size_changed.connect(func() -> void: fit_card(art))
+	var view := art.get_viewport_rect().size
+	var tall := view.x <= view.y * CARD_COVER_ASPECT
+	# CENTERED, not plain KEEP_ASPECT: the plain one pins the picture to the
+	# top left and leaves the rest of a 4501-wide screen black, which the first
+	# render showed plainly. The text column is centred too (fit_wide), so the
+	# words land on the painting rather than beside it.
+	art.stretch_mode = (TextureRect.STRETCH_KEEP_ASPECT_COVERED if tall
+		else TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+
+
 static func fit_wide(control: Control) -> void:
 	if control == null or not is_instance_valid(control):
 		return

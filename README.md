@@ -5668,7 +5668,10 @@ into a deletion instead.
   town is parked a `_diorama_still` covers it instead. So those 643 KB are a
   one-or-two-frame guard against a black flash before the 3D scene first
   draws, which the warm gradient behind it already does. No prompt written:
-  there is nothing to commission art for.
+  there is nothing to commission art for. **Deleted (G64.1)** — 643 KB — with
+  the seam left intact: `story.json`'s `hub.background` is `""` now and the
+  code takes a name if one is given, warning only when a named picture is
+  missing. `tools/shrink_art.gd` lost its job entry for it too.
 - **The menu can draw its own title now.** `MENU_COVER_HAS_TITLE` (true while
   the shipped cover has "UNDER THE LAWN" painted into it) replaces the blanket
   `not _has_cover` gate. Set it false with a lettering-free cover and the name
@@ -5682,3 +5685,73 @@ into a deletion instead.
   desaturation instead of blue), and the menu cover (9:16 this time, nothing
   important outside the central **70%** because it is the most-cropped picture
   in the game, top third left open for the drawn title).
+
+## G65 — the covers, the convoy, and the answer to "should we paint everything twice?"
+
+- **The menu cover, replaced and now titled by the game.** The new pair is
+  lettering-free (portrait 941x1672 and wide 1672x941), so
+  `MENU_COVER_HAS_TITLE` is false and the name comes from `MENU_TITLE`:
+  Turkish on a Turkish device, and impossible to crop off the side. Measured
+  against the horror cover it replaces — 83/0.53/**32°** and 80/0.58/33°
+  against 31/0.26/**90°** — it is 2.7x brighter and inside the set's 25-46°
+  hue family for the first time. Its top third is 129 and empty, which is
+  where the drawn title sits.
+- **`story/convoy`, and its veil.** Hue fixed (252° blue-violet to **31°**),
+  saturation 0.38. Average brightness came back at 42 where the prompt asked
+  75-95 — and again the average was the wrong number: the SUBJECT, the road
+  and its four sets of headlights, reads **62** against the old card's 37. The
+  card's own veil was 0.45, which put that subject at 34; `CONVOY_SCRIM` is
+  0.22 now, which puts it at 48, inside the 41-52 the card needs. The painting
+  puts its own dark ridge under the text band (23 in the source, 18 through
+  the veil), so the composition — not the veil — is what makes the type
+  legible here.
+- **A stale `.import` nearly shadowed a live picture.** Running the editor
+  import *before* deleting a converted PNG leaves `cover_portrait.png.import`
+  behind, and `TextureLibrary` tries `.png` before `.jpg` — so the menu could
+  have resolved to a source that no longer exists, with no error anywhere.
+  Three of them were removed and `AssetCheck` now fails on any `.import` whose
+  source is gone.
+- **Landscape: measured, and the answer is not twenty more pictures.**
+  `window/handheld/orientation=1` is portrait, so nothing rotates today; and
+  with `stretch/aspect="keep_height"` a rotated phone would squeeze 2532
+  logical rows into 1170 physical ones, which turns 34px body text into
+  **16 physical pixels**. That, not the art, is what stands between the game
+  and a landscape mode. What the art needed was one line: a 9:16 card drawn
+  `KEEP_ASPECT_COVERED` shows **32%** of its height on the desktop's 1.78
+  viewport and would show 26% on a rotated phone — a horizontal band with the
+  subject cut out of it, which is what the Steam build has been doing all
+  along. `GameConfig.fit_card()` letterboxes instead above `CARD_COVER_ASPECT`
+  (0.75, comfortably clear of the phone's 0.46), centred — the first render
+  had it pinned to the top left with a black screen beside it — so the whole
+  painting shows with the warm ground at the sides, and the centred text
+  column lands on the picture. Wired into `IntroSequence`, `ReunionCard` and
+  `ConvoyCard`; `out/wide_covered.png` and `out/wide_fitted.png` are the
+  before and after.
+
+## G66 — landscape on the phone, tried and REVERTED
+
+Asked for, built, played, and taken back out the same day: it made the game
+worse on a phone. What was reverted, in full — `orientation` is 1 (portrait)
+again, `ScreenFit` and its suites are gone, the dialogue box's left/right split
+is gone and `_fit_wide_controls` centres both rects the way G18 wrote it, and
+the hub's tile column is low and full width again with the tiles page back in
+the `fit_wide` loop. G18's own `LandscapeCheck` passes again, which is the
+proof the previous behaviour is back.
+
+**Kept, because it has nothing to do with the phone:** `GameConfig.fit_card()`
+from G65 letterboxes a 9:16 story card on a frame wider than 0.75. The phone is
+0.46 and portrait-locked, so it can never fire there; what it fixes is the
+desktop/Steam build, where a card was being cropped to a horizontal band with
+the subject cut out of it.
+
+**The measurement is worth keeping even though the feature is not.** Anyone who
+tries this again will hit the same wall first: with `stretch/aspect=keep_height`
+a rotated phone keeps 2532 logical rows and squeezes them into 1170 physical
+ones, so every font, margin and tap target draws at **0.46** of its designed
+size — 34 px of body text at **16 px**. The fix for that part was to give the
+screen's short side to `content_scale_size` (base 2532x1170 when the window is
+wider than tall), which does restore a 1.0 scale. The layouts are the expensive
+half: a 940 px portrait lifted 700 px off the bottom starts above the ceiling
+of a 1170-tall frame, and the hub's tile column needs about 800 px of a frame
+that has 1170. Both were made to work; the result still was not worth it.
+

@@ -75,6 +75,7 @@ func _build() -> void:
 	_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	GameConfig.fit_card(_image)
 	_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_image)
 

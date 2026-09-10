@@ -10,6 +10,7 @@ func run() -> void:
 	suite = "ZEMIN"
 	_rules()
 	await _box()
+	await _card_fit()
 	finish()
 
 
@@ -119,4 +120,28 @@ func _box() -> void:
 	var none: TextureRect = bare.find_child("Backdrop", true, false)
 	ck("zemin istenmezse gizli", none != null and not none.visible, "")
 	bare.queue_free()
+	await frames(2)
+
+
+## A card fitted to the screen it is on (G65). The menu keeps a landscape cover
+## of its own because it is the one screen a store shows; every other picture
+## is 9:16 and letterboxes rather than being cropped to a band.
+func _card_fit() -> void:
+	var art := TextureRect.new()
+	art.texture = TextureLibrary.find("intro/pro_1")
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(art)
+	var view := get_viewport().get_visible_rect().size
+	GameConfig.fit_card(art)
+	var tall := view.x <= view.y * GameConfig.CARD_COVER_ASPECT
+	ck("kart ekranin sekline gore doldurulur",
+		art.stretch_mode == (TextureRect.STRETCH_KEEP_ASPECT_COVERED if tall
+			else TextureRect.STRETCH_KEEP_ASPECT_CENTERED),
+		"gorunum %.0fx%.0f dikey=%s mod=%d" % [view.x, view.y, tall, art.stretch_mode])
+	ck("esik telefonun oraninin ustunde",
+		GameConfig.CARD_COVER_ASPECT > 1170.0 / 2532.0,
+		"%.2f > %.2f" % [GameConfig.CARD_COVER_ASPECT, 1170.0 / 2532.0])
+	ck("esik masaustunun oraninin altinda", GameConfig.CARD_COVER_ASPECT < 1.6,
+		"%.2f" % GameConfig.CARD_COVER_ASPECT)
+	art.queue_free()
 	await frames(2)

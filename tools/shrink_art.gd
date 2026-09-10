@@ -70,9 +70,6 @@ func _jobs() -> Array:
 	for i in [1, 2, 3]:
 		jobs.append({ "path": "res://textures/intro/intro_%d.jpg" % i,
 			"height": intro_h })
-	# The hub never zooms.
-	jobs.append({ "path": "res://textures/hub/town_square.jpg",
-		"height": int(VIEWPORT_H) })
 	var portrait_h := int(ceil(GameConfig.DIALOGUE_PORTRAIT_SIZE.y
 		* PORTRAIT_SCALE))
 	for id in ["marshal", "sarah", "gus", "cole", "ellie", "stranger"]:

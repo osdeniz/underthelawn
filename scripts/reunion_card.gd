@@ -52,6 +52,7 @@ func _build() -> void:
 	_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	GameConfig.fit_card(_art)
 	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_art)
 
