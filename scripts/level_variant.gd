@@ -52,9 +52,6 @@ var evidence_defs: Array = []
 ## Per-chapter opening title keys; "" falls back to story.json's default.
 var opening_headline := ""
 var opening_subline := ""
-## One optional world-history find per chapter, separate from the case evidence
-## (G12.6). It never advances the case; it only says what the dead years left.
-var echo_def: Dictionary = {}
 ## The one-line "town reclaimed" note this chapter adds to the case notes when
 ## it is finished (G13.4).
 var reclaim_line := ""
@@ -68,8 +65,8 @@ var weather := "clear"
 ## normally hides"; a harvest field sets it, because what a field GIVES is the
 ## whole reason to choose that field over the one beside it (G14.14).
 var food_budget := -1
-## "search" (the default) or "harvest" (G13.6). A harvest carries no evidence
-## and no echo, pays more scrap, and stands in a field of crop.
+## "search" (the default) or "harvest" (G13.6). A harvest carries no evidence,
+## pays more scrap, and stands in a field of crop.
 var level_type := "search"
 ## G15.5 — three chapters change what the thumb is doing without adding a
 ## system. `walk_only_evidence`: one piece is ringed with reeds the machine
@@ -150,9 +147,6 @@ static func of(variant_id: String) -> LevelVariant:
 	var lapse: Variant = spec.get("time_lapse", {})
 	if lapse is Dictionary:
 		variant.time_lapse = lapse
-	var echo: Variant = spec.get("echo_def", {})
-	if echo is Dictionary:
-		variant.echo_def = echo
 	var opening: Variant = spec.get("opening", {})
 	if opening is Dictionary:
 		variant.opening_headline = str((opening as Dictionary).get("headline", ""))
@@ -289,18 +283,6 @@ func _cole_note_for(entry: Dictionary) -> String:
 			"%s/%s" % [id, str(entry.get("id", ""))], false)):
 		return torn
 	return str(entry.get("cole_note", ""))
-
-
-## The chapter's echo in the same shape, or {} if it has none.
-func echo_info() -> Dictionary:
-	if echo_def.is_empty():
-		return {}
-	return {
-		"emoji": str(echo_def.get("icon", "?")),
-		"name": TranslationServer.translate(str(echo_def.get("name", ""))),
-		"line": TranslationServer.translate(str(echo_def.get("flavor_text", ""))),
-		"id": str(echo_def.get("id", "")),
-	}
 
 
 static func _warn(message: String) -> void:

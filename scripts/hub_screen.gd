@@ -149,7 +149,6 @@ var _board_people: ScrollContainer
 var _board_people_column: VBoxContainer
 var _scrap_label: Label
 var _restore_page: Control
-var _echoes_page: Control
 var _objectives_page: Control
 var _objectives_button: Button
 var _food_label: Label
@@ -157,9 +156,11 @@ var _food_rate_label: Label
 var _people_label: Label
 var _objective_list: VBoxContainer
 var _restore_list: VBoxContainer
-var _echo_list: VBoxContainer
 var _restore_note: Label
 var _guide_note: PanelContainer
+## The tour's ring and what it is drawn around (G68).
+var _ring: Panel
+var _ring_on: Control
 ## Whether the town behind the menus is being redrawn. It used to be the hub's
 ## own set_process flag; see _set_diorama_live.
 var _diorama_live := false
@@ -186,13 +187,11 @@ func _ready() -> void:
 	_town_page = _build_town()
 	_workshop_page = _build_workshop()
 	_restore_page = _build_restore()
-	_echoes_page = _build_echoes()
 	_objectives_page = _build_objectives()
 	add_child(_tiles_page)
 	add_child(_town_page)
 	add_child(_workshop_page)
 	add_child(_restore_page)
-	add_child(_echoes_page)
 	add_child(_objectives_page)
 	_show_page(_tiles_page)
 	# Landscape (G18): every page keeps to the centred column the HUD uses; the
@@ -350,6 +349,9 @@ func _build_top_bar() -> void:
 
 	# PanelContainer holds one child, so the icon and the amount share a row.
 	var wallet_row := HBoxContainer.new()
+	# Named because the tour points at it (G68): three numbers nobody had ever
+	# been told the meaning of.
+	wallet_row.name = "WalletRow"
 	wallet_row.add_theme_constant_override("separation", 8)
 	wallet_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wallet.add_child(wallet_row)
@@ -737,7 +739,7 @@ func _case_area_dot(variant_id: String, next_id: String) -> Control:
 func _pages() -> Array:
 	var list: Array = []
 	for candidate in [_tiles_page, _case_summary_page, _board_page, _town_page,
-			_workshop_page, _restore_page, _echoes_page, _objectives_page]:
+			_workshop_page, _restore_page, _objectives_page]:
 		if candidate != null and is_instance_valid(candidate):
 			list.append(candidate)
 	return list
@@ -1117,6 +1119,7 @@ func _style_card(button: Button, dim := false) -> void:
 func _make_tile(tile: Dictionary) -> Button:
 	var locked := bool(tile.get("locked", false))
 	var button := Button.new()
+	button.name = "Tile_" + str(tile.get("id", ""))
 	# A row, not a 190px card. These are places you can go; the lead card above
 	# them is the thing you DO, and it can only read as primary if the rest
 	# stop competing with it.
@@ -1205,7 +1208,7 @@ func _on_tile(id: String, locked: bool, button: Button = null) -> void:
 		"restore":
 			_refresh_restore()
 			_show_page(_restore_page)
-		"echoes":
+		"journal":
 			open_journal()
 		_:
 			_shake(button)
@@ -1644,6 +1647,10 @@ func _process(delta: float) -> void:
 	_guide_typer.advance(delta)
 	if _guide_note != null and is_instance_valid(_guide_note):
 		_fit_guide_note()
+		# The ring follows its control: the tiles column relayouts as the
+		# diorama settles, and a ring left at the first frame's rectangle would
+		# sit beside the thing it is pointing at.
+		_fit_ring()
 	if _diorama_view == null or not _diorama_live:
 		return
 	_diorama_tick += 1
@@ -1865,27 +1872,6 @@ func _play_restore_scene(project_id: String) -> void:
 	_page_wants_town = wanted_town
 	_apply_diorama()
 
-# ---------------------------------------------------------------- echoes (G12.6)
-
-func _build_echoes() -> Control:
-	var page := _new_page()
-	page.add_child(_list_backdrop(280.0))
-	var scroll := ScrollContainer.new()
-	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	scroll.offset_left = 50
-	scroll.offset_right = -50
-	scroll.offset_top = 300
-	scroll.offset_bottom = -190
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	page.add_child(scroll)
-	_echo_list = VBoxContainer.new()
-	_echo_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_echo_list.add_theme_constant_override("separation", 18)
-	scroll.add_child(_echo_list)
-	page.add_child(_back_button())
-	return page
-
-
 # ---------------------------------------------------------------- objectives
 
 ## The mission compass (G14.2). One screen that answers "what does this town
@@ -2038,54 +2024,6 @@ func _objective_card(spec: Dictionary, dim: bool) -> Control:
 			open_map_at(GameConfig.HARVEST_VARIANT))
 		rows.add_child(go)
 	return card
-
-
-## Found echoes are readable; the rest are blank slots, so the collection shows
-## its own size without spoiling what is in it.
-func _refresh_echoes() -> void:
-	for child in _echo_list.get_children():
-		child.queue_free()
-	var heading := Label.new()
-	heading.text = "%s   %d/%d" % [Story.text("echoes.title"),
-		EchoLog.found_count(), EchoLog.total()]
-	heading.add_theme_font_size_override("font_size", 40)
-	heading.add_theme_color_override("font_color", GameConfig.CASE_ACCENT)
-	_echo_list.add_child(heading)
-	var sub := Label.new()
-	sub.text = Story.text("echoes.header")
-	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	sub.add_theme_font_size_override("font_size", 30)
-	sub.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
-	_echo_list.add_child(sub)
-
-	if EchoLog.found_count() == 0:
-		var empty := Label.new()
-		empty.text = Story.text("echoes.empty")
-		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		empty.add_theme_font_size_override("font_size", 34)
-		empty.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
-		_echo_list.add_child(empty)
-
-	for chapter: Dictionary in ChapterProgress.chapters():
-		var vid := str(chapter.get("variant_id", ""))
-		var info := LevelVariant.of(vid).echo_info()
-		if info.is_empty():
-			continue
-		var found := EchoLog.is_found(vid)
-		var row := Label.new()
-		row.custom_minimum_size = Vector2(0, 110)
-		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		row.add_theme_font_size_override("font_size", 34)
-		if found:
-			# GlyphGuard, not the raw icon: an emoji here pulled in the OS
-			# colour-emoji font, 184 MB, for a blank box on iOS (G16).
-			row.text = GlyphGuard.safe("%s  %s\n%s" % [info["emoji"],
-				info["name"], info["line"]])
-			row.add_theme_color_override("font_color", GameConfig.UI_INK)
-		else:
-			row.text = "·  ———"
-			row.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
-		_echo_list.add_child(row)
 
 
 # ---------------------------------------------------------------- workshop
@@ -2253,9 +2191,10 @@ func _show_board_tab(which: int) -> void:
 		_style_tab(_board_tab_people, which == BOARD_PEOPLE)
 
 
-## Opens the Journal. Replaces the old flat "echoes" page, whose name told the
-## player nothing about what was behind it and which held one undifferentiated
-## list; the Journal names its three kinds of thing (UI/UX redesign).
+## Opens the Journal, which the hub's fourth tile now leads to under its own
+## name. That tile said YANKILAR — Echoes — and opened this instead, which is
+## the exact naming problem the redesign set out to fix, left standing because
+## the page behind the name was retired and the door was not (G68).
 ##
 ## An overlay rather than a hub page, so the main menu can open the same screen
 ## without a hub existing at all.
@@ -2273,11 +2212,6 @@ func open_journal() -> void:
 		_journal.queue_free()
 		_journal = null
 		set_diorama_active(true))
-
-
-## Kept for the main menu, which asks for the Journal by an older name.
-func open_echoes() -> void:
-	open_journal()
 
 
 ## Opens the case board page directly on the corkboard (the case-notes button).
@@ -2370,17 +2304,25 @@ func _show_guide_note(step: Dictionary) -> void:
 	go.add_theme_font_size_override("font_size", GameConfig.fs(GameConfig.UI_HEAD))
 	style_primary(go)
 	var action := str(step.get("action", ""))
+	var tour_at := int(step.get("tour_at", -1))
 	go.pressed.connect(func() -> void:
 		Haptics.medium()
 		# Marked on the way out, not on the way in: a step the player never
 		# saw through (an interrupted return) is worth showing again.
 		Guide.mark(str(step.get("id", "")))
 		_clear_guide_note()
-		if action == "journal":
+		if tour_at >= 0:
+			_run_tour(tour_at + 1)
+		elif action == "journal":
 			open_journal()
 		elif action == "map":
 			open_map())
 	rows.add_child(go)
+	# What the sentence is about, ringed on the page behind the note (G68).
+	# A ring and not a dim: the doc above is right that a coach mark covering
+	# the thing it describes teaches nothing, and that goes double for a tour
+	# whose whole subject is the furniture.
+	_ring_target(str(step.get("point", "")))
 	# The Marshal's voice everywhere else in the game types itself (G37), and
 	# this is him talking.
 	_guide_typer.play([line], PANEL_FADE)
@@ -2395,9 +2337,85 @@ func _fit_guide_note() -> void:
 		_guide_note.offset_top = wanted
 
 
+## The first visit home walks the hub's own furniture, one control at a time
+## (G68). Runs from Root when the hub opens, so a HubScreen built by a test is
+## never interrupted by it.
+func run_tour_if_new() -> void:
+	if Guide.tour_done() or _guide_note != null:
+		return
+	_run_tour(0)
+
+
+func _run_tour(at: int) -> void:
+	var steps := Guide.tour()
+	if at >= steps.size():
+		Guide.mark_tour()
+		return
+	var step: Dictionary = (steps[at] as Dictionary).duplicate()
+	step["tour_at"] = at
+	step["button"] = "TOUR_LAST" if at == steps.size() - 1 else "TOUR_NEXT"
+	# The tiles page, because that is where everything the tour names lives.
+	_show_page(_tiles_page)
+	_show_guide_note(step)
+
+
+## A brass outline around the control a tour step is talking about, following it
+## if the page relayouts, and pulsing so the eye finds it without an arrow.
+func _ring_target(node_name: String) -> void:
+	_clear_ring()
+	if node_name == "":
+		return
+	var target := find_child(node_name, true, false) as Control
+	if target == null:
+		# Never on a shipped build; a tour step naming a control that no longer
+		# exists must lose its ring, not its sentence.
+		push_warning("HubScreen: tur adimi '%s' kontrolunu bulamadi" % node_name)
+		return
+	_ring = Panel.new()
+	_ring.name = "TourRing"
+	var skin := StyleBoxFlat.new()
+	skin.bg_color = Color(0, 0, 0, 0)
+	skin.border_color = GameConfig.CASE_ACCENT
+	skin.set_border_width_all(4)
+	skin.set_corner_radius_all(18)
+	_ring.add_theme_stylebox_override("panel", skin)
+	_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_ring)
+	_ring_on = target
+	_fit_ring()
+	var beat := create_tween()
+	beat.set_loops()
+	beat.tween_property(_ring, "modulate:a", 0.45, 0.6).set_trans(Tween.TRANS_SINE)
+	beat.tween_property(_ring, "modulate:a", 1.0, 0.6).set_trans(Tween.TRANS_SINE)
+
+
+func _fit_ring() -> void:
+	if _ring == null or not is_instance_valid(_ring) \
+			or _ring_on == null or not is_instance_valid(_ring_on):
+		return
+	var box := _ring_on.get_global_rect().grow(10.0)
+	_ring.global_position = box.position
+	_ring.size = box.size
+
+
+func _clear_ring() -> void:
+	if _ring != null and is_instance_valid(_ring):
+		remove_child(_ring)
+		_ring.queue_free()
+	_ring = null
+	_ring_on = null
+
+
+## remove_child BEFORE queue_free, which is deferred: until G68 nothing ever
+## built a second note in the same frame as the first, and the tour does it
+## three times in a row. The corpse keeps the name "GuideNote" until the frame
+## ends, so find_child returns the dead one and the live note looks missing —
+## which is exactly how the tour's middle step read as never drawn.
 func _clear_guide_note() -> void:
 	_guide_typer.stop()
+	_clear_ring()
 	if _guide_note != null and is_instance_valid(_guide_note):
+		remove_child(_guide_note)
 		_guide_note.queue_free()
 	_guide_note = null
 

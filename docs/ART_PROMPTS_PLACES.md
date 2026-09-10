@@ -1,8 +1,12 @@
 # Eksik ve yanlış resimler — denetim ve promptlar (G58)
 
-On bir kart resmi bitti. Bu doküman geri kalanı, **oyunun kendi dosyalarını
-ölçerek** sıraya koyar: hangisi gerçekten eksik, hangisi kuralı çiğniyor,
-hangisi sadece üslup dışı. Sıra öneri sırasıdır.
+Bu doküman, oyunun resimlerini **kendi dosyalarını ölçerek** denetler:
+hangisi gerçekten eksik, hangisi kuralı çiğniyor, hangisi sadece üslup dışı.
+
+**Durum (G68.1): denetim listesinde açık iş kalmadı.** Tablodaki her satır ya
+çözüldü ya bilinçli bir karar. Hâlâ üretilmemiş olan tek şey aşağıdaki **yer
+resimleri** (`places/office_dusk`, `places/road_east`) ve isteğe bağlı iki tane
+daha; bunlar bir ihlal değil, kodun boş bekleyen kancaları.
 
 ## Denetim — ölçülen
 
@@ -16,11 +20,10 @@ aralığında, yani okra→zeytin. Bundan sapanlar ve kural ihlalleri:
 | ~~`story/ending_closed`~~ | **GELDİ (G61)** | Üretildi, bağlandı, temiz. |
 | ~~`story/reunion.jpg`~~ | **GELDİ (G61)** | Yeniden boyandı, temiz; perdesi 0.55'ten 0.30'a indirildi (ölçüm aşağıda). |
 | `portraits/marshal.jpg` | **KARAR: değişmiyor** | Silahlı hâli **bilinçli tercih** (2026-09-10). Bu dosya için "silah yok" kuralının kalıcı istisnası; bir daha önerilmeyecek. Diğer kurallar (yazı, ateş, kan) geçerli. |
-| `hub/case2_teaser.jpg` | **kural ihlali** | Resmin içine uydurma harfler çizilmiş ("YMMOM"). Yazı yasak. |
+| ~~`hub/case2_teaser.jpg`~~ | **ÇÖZÜLDÜ (G68.1)** | İçindeki "YMMOM" boyanarak kaldırıldı; kâğıdın o bandı üstündeki ve altındaki kâğıttan yeniden kuruldu. Ölçüm: kalın pastel pigment 1041 → 8. `AssetCheck` geri gelmesini yakalıyor. |
 | ~~`story/birthday.jpg`~~ | **GELDİ (G62)** | Yeniden boyandı: yazı yok, tam dokuz mum (ölçülerek sayıldı), yüzler çözünmemiş. Konu bölgesi eskinin %40 üstünde parlaklıkta. |
-| `hub/town_square.jpg` | **GÖRÜNMÜYOR** | Ölçtüm: hub'ın arka planı `_build_ground_gradient` içinde çiziliyor, ama hemen ardından **opak** bir `SubViewportContainer` (canlı 3B kasaba) tam ekran üstüne biniyor; `transparent_bg` hiçbir yerde açılmıyor ve park hâlinde de `_diorama_still` kaplıyor. Yani bu 643 KB, 3B sahne ilk kez çizilene kadarki bir-iki karelik "siyah flaş" kalkanı. **Buna resim sipariş etmeye değmez** — ya silinir (arkasındaki sıcak degrade zaten aynı işi yapar) ya olduğu gibi kalır. |
-| `story/convoy.jpg` | palet + karanlık | Medyan ton **252°** (mavi-mor), setteki tek soğuk üye; ve kartın 0.45 perdesi altında ekranda **19**'da kalıyor. Promptu yazıldı: [ART_PROMPTS.md](ART_PROMPTS.md) §4. |
-| `menu/cover_portrait.jpg` | **kırpılıyor** + üslup | 4:5 resim 1170×2532'yi kaplarken genişliğin %42'sini kaybediyor; telefon kadrajında başlığın "U"su ve "N"i kesiliyor (`out/menu_phone.png`). Korku üslubu (kökler, kemikler) setin geri kalanıyla ilgisiz. Promptu yazıldı: [ART_PROMPTS.md](ART_PROMPTS.md) §5, ve `GameConfig.MENU_COVER_HAS_TITLE` ile başlığı oyunun kendisi çizebiliyor artık (G64). |
+| ~~`story/convoy.jpg`~~ | **GELDİ (G65)** | Yeniden üretildi. Ölçüm: 941×1672 (9:16), medyan ton **32°** sıcak amber — eski 252° mavi-mor değil; kartın perdesi de 0.45'ten `CONVOY_SCRIM = 0.22`'ye indirildi, konu ekranda 34 yerine 48 okuyor. |
+| ~~`menu/cover_portrait.jpg`~~ | **GELDİ (G65)** | Dik ve yatık iki kapak üretildi (`cover_portrait` + `cover_wide`), ikisi de 941×1672 / 9:16 — yani telefon kadrajında artık hiçbir şey kırpılmıyor, ve başlığı oyunun kendisi çiziyor (`GameConfig.MENU_COVER_HAS_TITLE = false`, G64). |
 
 Sorun görülmeyenler: `hub/corkboard.jpg` (arka doku), `story/homecoming.jpg`
 (sete en yakın olan), altı portre (`cole`, `ellie`, `gus`, `sarah`,
@@ -185,9 +188,7 @@ eller boş ve fenerler yukarıda. Konu sağ yarıda; sol alt çeyrek boş.
 
 ### İsteğe bağlı iki yer daha
 
-* `places/square_tree` — meydandaki büyük ağaç. Bunu üretirsen **iki işi
-  birden** çözer: hub'ın çizgi film üslubundaki `hub/town_square.jpg`'sinin
-  yerine de geçebilir.
+* `places/square_tree` — meydandaki büyük ağaç.
 * `places/workshop` — Gus'un atölyesi (tezgâh, asılı el aletleri, sökülmüş
   bir çim makinesi). Atölye sayfasının arkası şu an düz panel.
 

@@ -551,7 +551,14 @@ func pulse_poster(seconds: float) -> void:
 ## A short line from the Marshal over the radio (G13.4). One at a time: a
 ## second one replaces the first rather than stacking.
 func show_scent(key: String) -> void:
+	# remove_child BEFORE queue_free, which is deferred: the replaced toast keeps
+	# the name "ScentToast" until the frame ends, so the live one is shadowed by
+	# a corpse for anything that looks the node up — TypeCheck's radio claim has
+	# been failing on exactly this, on a first run where the Marshal had already
+	# spoken once before the test asked him to (found and fixed in G68, where
+	# the tour's coach mark hit the same trap).
 	if _scent_toast != null and is_instance_valid(_scent_toast):
+		remove_child(_scent_toast)
 		_scent_toast.queue_free()
 	var toast := PanelContainer.new()
 	toast.name = "ScentToast"
@@ -1520,45 +1527,6 @@ func nudge_remount() -> void:
 func _close_pause() -> void:
 	_pause_layer.visible = false
 	get_tree().paused = false
-
-
-# ---------------------------------------------------------------- echoes (G12.6)
-
-## The echo card reuses the evidence card's body but says ECHO and drops the
-## fly-to-counter flourish: a world-history find is a quiet aside, not a beat in
-## the case, and dressing it like one would lie about its importance.
-func show_echo_card(emoji: String, item_name: String, line: String,
-		evidence_id := "") -> void:
-	_card_header.text = tr("ECHO_HEADER")
-	_card_header.add_theme_color_override("font_color", Color(0.70, 0.78, 0.88))
-	_show_card_art(emoji, evidence_id)
-	_card_title.text = item_name
-	_card_line.text = line
-	# AFTER the text is set: play() captures what the labels hold, so called
-	# first it would have typed out the previous card's words.
-	_card_typer.play([_card_title, _card_line], 0.35)
-
-	if _card_tween and _card_tween.is_valid():
-		_card_tween.kill()
-	if _card_home == Vector2.ZERO:
-		_card_home = _secret_card.position
-	_secret_card.position = _card_home
-	_secret_card.pivot_offset = _secret_card.size * 0.5
-	_secret_card.scale = Vector2(0.9, 0.9)
-	_secret_card.modulate.a = 0.0
-	_secret_card.visible = true
-
-	_card_tween = create_tween()
-	_card_tween.tween_property(_secret_card, "modulate:a", 1.0, 0.25)
-	_card_tween.parallel().tween_property(_secret_card, "scale", Vector2.ONE, 0.4) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_card_tween.tween_interval(GameConfig.CARD_SHOW_TIME)
-	_card_tween.tween_property(_secret_card, "modulate:a", 0.0, 0.35)
-	_card_tween.tween_callback(func() -> void:
-		_secret_card.visible = false
-		# Put the header back the way the evidence card expects to find it.
-		_card_header.add_theme_color_override("font_color",
-			GameConfig.CASE_ACCENT))
 
 
 ## The card's object view. The emoji label stays as the fallback for anything

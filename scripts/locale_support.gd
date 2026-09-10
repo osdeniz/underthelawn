@@ -51,6 +51,49 @@ static func current() -> String:
 	return "en"
 
 
+## Proper names that keep their own spelling when a heading is shouted, even in
+## Turkish (G67). The i -> İ pass is right for Turkish words and wrong for a
+## foreign name: Ellie is ELLIE, not ELLİE. Author's call, and the reason this
+## is a list rather than one hard-coded name is that the next name will want the
+## same treatment. Matched case-insensitively; written back in plain uppercase.
+const KEEP_CASE: Array[String] = ["Ellie"]
+
+
+## Uppercase, in the language actually being read (G67).
+##
+## Turkish does not share everyone else's case map: dotted i pairs with dotted
+## İ, and dotless ı pairs with I. String.to_upper() knows neither pair, so every
+## heading this game shouts came out wrong in Turkish — "TELSIZ ODASI" for
+## Telsiz Odası, "HENÜZ DEĞIL" for Henüz değil, "ÇIZIMLERI" for çizimleri, which
+## is the one that finally got noticed. Headings go through here instead.
+static func upper(text: String) -> String:
+	if current() != "tr":
+		return text.to_upper()
+	# The names come out of the Turkish pass untouched, so the pass cannot reach
+	# inside them. Walked left to right rather than replaced in place, because a
+	# placeholder would have to survive to_upper() to be put back.
+	var out := ""
+	var rest := text
+	while rest != "":
+		var at := -1
+		var name := ""
+		for candidate in KEEP_CASE:
+			var where := rest.findn(candidate)
+			if where >= 0 and (at < 0 or where < at):
+				at = where
+				name = candidate
+		if at < 0:
+			out += _upper_tr(rest)
+			break
+		out += _upper_tr(rest.substr(0, at)) + name.to_upper()
+		rest = rest.substr(at + name.length())
+	return out
+
+
+static func _upper_tr(text: String) -> String:
+	return text.replace("i", "İ").replace("ı", "I").to_upper()
+
+
 ## The self-name of `code`, for display.
 static func name_of(code: String) -> String:
 	for entry in SHIPPED:

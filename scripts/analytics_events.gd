@@ -30,7 +30,6 @@ const DEDUCTION_MADE := "deduction_made"
 const CHAPTER_COMPLETED := "chapter_completed"
 const CASE_COMPLETED := "case_completed"
 const EVIDENCE_FOUND := "evidence_found"
-const ECHO_FOUND := "echo_found"
 const EVIDENCE_LOCATION_PANNED := "evidence_location_panned"
 const SCENT_SHOWN := "scent_shown"
 

@@ -4518,16 +4518,13 @@ after dark.
   record once and only once, a broken streak keeps the record, the panel
   line, the tab's earned and open sections.
 
-## G34 — Ellie's drawings (sprint 3, item 2): waiting on art
+## G34 — Ellie's drawings (sprint 3, item 2): LANDED IN G67
 
-Four crayon drawings, one after each of Case 02's first four chapters, shown
-in the Journal and once on the unlocking panel. The prompts are written
-(`docs/ART_PROMPTS.md` §3, within the image rules: no text, no weapons, no
-fire, no blood); the code waits for the four JPGs rather than shipping
-placeholder rectangles — a drawing that is a grey box is worse than no
-drawing. When the art lands: `textures/story/drawing_0N.jpg`, a DRAWINGS
-strip under the Journal's Discoveries tab, unlock keyed to
-`ChapterProgress.is_done` of Case 02's chapters.
+Four crayon drawings, one after each of Case 02's first four chapters. Planned
+here, prompted in `docs/ART_PROMPTS.md` §6, and built in G67 when the art
+arrived — see that section for what shipped. Nothing was written until then:
+this entry described a plan, not disabled code, and for a while it claimed the
+code "waits for the four JPGs", which was never true of any code that existed.
 
 ## G35 — the first phone run (iPhone 16 Pro simulator)
 
@@ -5755,3 +5752,229 @@ half: a 940 px portrait lifted 700 px off the bottom starts above the ceiling
 of a 1170-tall frame, and the hub's tile column needs about 800 px of a frame
 that has 1170. Both were made to work; the result still was not worth it.
 
+
+## G67 — Ellie's four drawings, and a Turkish heading that had been wrong all along
+
+The art arrived: `textures/story/drawing_01..04.jpg`, 1448x1086, which is 4:3
+to within 0.001 — the only landscape pictures in a game whose every other
+image is 9:16, because these are photographs of a sheet of paper on the album's
+table rather than painted cards. 1.50 MB each in VRAM (bptc/astc, mipmaps off),
+408-479 KB on disk at quality 78, which is where `reunion.jpg` (452) and
+`ending_open.jpg` (416) already sit. Crayon is high-frequency noise and costs
+about three times what a painted card of the same pixel count does, so the
+quality came down until the size matched the set.
+
+**Read before importing.** All four were checked at full resolution for the
+thing child-drawing prompts always produce anyway: baked-in lettering. The
+birthday card had come back with "ELLIE" and "HAPPY BIRTHDAY ELLIE" on it in
+G62, so the §6 prompts each carried a positive clause ("the paper carries drawn
+shapes and colour only, its surface otherwise bare") and the margins were
+enlarged and read one by one. Clean — no letters, no signature. The town
+drawing puts five candles on a cake, which the image rules could have caught as
+fire: zoomed to 900 px, they are unlit pointed wax with nothing above them.
+
+**No veil, and that is measured.** drawing_04 is a night scene averaging 79 in
+brightness where the daylight three average 130-136. One scrim tuned to carry
+white type over the bright ones would have buried it — the mistake G61 measured
+on the reunion card and G65 on the convoy. So `DrawingCard` puts the words
+UNDER the paper on its own dark ground and veils nothing: rendered at the
+phone's letterboxed frame the night drawing reads 80 on screen against 79 in
+the file. The sheet gets 93% of the frame's width and 32% of its height, and
+the block sits dead centre (27%-73%).
+
+**Where they appear.** Once, when the chapter that earns one is finished, after
+the Marshal's debrief has had its say — `root.gd`'s `after_debrief`, layer 68,
+between the quiet scene (65) and the demo card (70). And afterwards for good, as
+a two-column strip at the top of the Journal's Discoveries tab. Only earned
+drawings are listed, with the count in the heading, which is the same argument
+the notes tab settled: an empty journal that grows is a better promise than a
+full one that is greyed.
+
+Shown-once is the one new fact in the save (`drawings/<id>_seen`), because it is
+the one thing not derivable from progress — everything else asks
+`ChapterProgress.is_done` of the drawing's chapter. The journal's completion
+percentage deliberately does NOT count them: they are given for finishing a
+chapter, which the notes already count, and counting both would pay twice for
+the same act.
+
+**And the heading was wrong in Turkish.** The new strip's heading came out
+"ELLIE'NIN ÇIZIMLERI". Turkish does not share the case map `String.to_upper()`
+implements — dotted i pairs with İ, dotless ı with I — so every shouted heading
+in the game had been wrong: "TELSIZ ODASI" for Telsiz Odası, "HENÜZ DEĞIL" for
+Henüz değil, and four more. `LocaleSupport.upper()` now does the Turkish pairs
+first and the journal's and settings screen's headings go through it. This was
+not part of the sprint; it was visible in the render and had been shipping.
+
+One exception, decided by the author: a foreign proper name keeps its own
+spelling, so it is ELLIE'NİN ÇİZİMLERİ and not ELLİE'NİN. `KEEP_CASE` holds the
+names that sit out the Turkish pass — a list rather than one hard-coded name,
+because the next name will want the same treatment — and the text around them
+is still transformed, which is what the two claims on it check.
+
+`DrawingCheck` (23 claims, headless) covers the four files and that they are
+four DIFFERENT files, 4:3, both strings translated, the gate before and after
+the chapter, the card's paper/title/note/button, shown-once, the strip's
+contents and its absence when nothing is earned, root's own wiring, and the
+Turkish uppercase. Proved by breaking things: the gate fails 7 claims, dropping
+`mark_seen` fails 2, and stubbing `_show_drawing` fails 2. `DrawingShot` (7
+claims) renders `out/drawing_card.png` and measures the paper, the centring, the
+note's position, the button being on screen, and the night drawing's brightness.
+
+
+## G68 — the game introduces itself, the echoes are gone, and the haul comes down off the driver's head
+
+Three asks in one sprint, done in this order because the first two touch the
+same list: what the walkthrough has to name depends on what screens exist.
+
+**The echoes are removed.** Twenty-seven `echo_def` blocks out of
+`data/levels.json`, the buried collectible out of `game.gd`, its card out of
+`hud.gd`, `EchoLog` deleted, the ECHOES tab out of the Journal (four tabs now,
+not five), the `echoes_all` record out of `achievements.gd`, and 64 string keys
+out of `strings.csv`. Two findings on the way through:
+
+  * The hub's Yankılar PAGE was already dead code — `_build_echoes()` ran on
+    every hub load and `_show_page(_echoes_page)` was never called from
+    anywhere. It had been retired by the UI/UX redesign and left standing.
+  * The hub's Yankılar TILE, however, was live, and it opened the **Journal**.
+    A door named after a concept that no longer existed, in front of a screen
+    with its own name — which is the exact naming problem the redesign was
+    written to fix. The tile is now JOURNAL / GÜNLÜK with the paper-and-lines
+    icon it was already drawing (`_draw_echoes` → `_draw_journal`).
+
+The journal's completion percentage no longer counts echoes. It still does not
+count Ellie's drawings, for the reason G67 gives.
+
+**The game now introduces itself.** The player reported that the town's
+population counter did not exist. It does: `TownStats.people()` has been live
+in the hub's wallet row since G14.12. So had the objectives door, the restore
+board, the workshop and the journal. None of it was ever named — and the
+first-run sheet in the yard says why you are here (*"Ellie Voss en son burada
+görüldü"*), never what you are looking at.
+
+So `Guide` gained a tour: three steps on the FIRST visit home, run from
+`Root._open_hub()` so that a HubScreen built by a test is never interrupted by
+it. The lead card, because it is the one thing the hub is for; the three
+numbers, with what each of them means and that the town eats daily; and the
+objectives door. No page navigation and nothing that depends on having money —
+a tour that walks somebody to the Restore page with an empty pocket teaches the
+same nothing G56 was written to stop, and the four earned steps (`restore`,
+`workshop`, `link`, `case_open`) still fire when they pay.
+
+The coach mark is the existing one, with a brass ring around the control the
+sentence is about — a ring and not a dim, because the tour's whole subject is
+the furniture and a scrim over it would teach nothing. Measured at the phone's
+frame: the rings land on the lead card (y 54-68%), the wallet row (y 5-9%,
+x 49-80%) and the objectives button (y 5-9%, x 82-96%), and the tallest note —
+the wallet's three sentences — is 519 px and sits inside the frame at 78-99%.
+
+**And the haul comes down.** `CARRY_BACK_OFFSET` was `(0, 0.62, 0.16)`. The
+character's origin is its torso pivot, so the nape is at 0.455 and the top of
+the head at about 0.79: the stack was pinned ABOVE the head and grew fourteen
+0.075 slabs from there. Measured on the old numbers, a full haul's crown sat at
+1.170 in the character's own space — 0.72 m clear of the shoulders — and each
+slab was 0.46 wide against shoulders of 0.35.
+
+It is now pinned on the upper back and may not pass the nape, crown included:
+nine bundles of 0.25 x 0.020 x 0.15 at a 0.026 step, with 0.09 kept clear at the
+top for the evidence, which is clustered sideways at 0.28 scale instead of
+stacked. Rendered from behind and from the side (`out/carry.png`), the load's
+top measures 1.197 in world height against a nape of 1.245 and a head top of
+1.580. The count is derived (`GameConfig.carry_slab_max()`), not chosen, so the
+ceiling cannot drift away from the character's own proportions.
+
+Two things the renders corrected rather than confirmed. The first base (0.02)
+put the pile at the waist and it read as a satchel on the hip, so the claim on
+it has a floor as well as a ceiling. And the crown looked to me like it broke
+the shoulder line — measured on the meshes' own AABBs it reaches 0.127 against
+a shoulder at 0.176, so nothing needed changing and the claim measures the mesh
+rather than the node position, which is what it says it does.
+
+**A deferred-free bug, twice.** The tour's middle step read as never drawn:
+`_clear_guide_note()` only called `queue_free()`, which is deferred, so the
+replaced note kept the name "GuideNote" until the end of the frame and
+`find_child` returned the corpse. Nothing had ever built two notes back to back
+before. The same trap was live in `Hud.show_scent()` — and it is why
+`TypeCheck`'s radio claim had been failing: on a first run the Marshal has
+already spoken once before the test asks him to, so the test found the dead
+toast. Proved pre-existing by running that suite in a worktree at HEAD before
+touching it. Both now `remove_child` first, and TypeCheck passes again.
+
+`CarryCheck` (11 claims) and `TourCheck` (14) are new; `CarryShot` and
+`TourShot` render `out/carry.png` and `out/tour_0..2.png` and measure them.
+Proved by breaking things: restoring the old carry numbers fails 7 claims.
+`AchievementCheck` also had to be fixed — it asserted the OLD, wrong Turkish
+uppercase of a journal heading ("HENÜZ DEĞIL"), which G67 corrected on screen
+without that suite being run.
+
+
+## G68.1 — the last words in a picture, painted out
+
+`hub/case2_teaser.jpg` — the child's drawing pinned to the cork wall, with the
+Marshal's hand reaching for it — carried **"YMMOM"** in red crayon across the
+sheet. The last surviving breach of the project's own no-text-in-art rule, and
+it survived the G63 audit because that audit read file lists rather than
+pictures.
+
+Painted out rather than regenerated: everything else in the frame — the cork,
+the lamp, the hand, the sheet's edges, the pin and its shadow — is right, and
+only one band of the paper was wrong.
+
+Three attempts, and the first two are the interesting part:
+
+  1. **Pasted a clean band from higher up the same sheet.** Left a visible
+     rectangle: that paper carries its own light streak, and the lamp's
+     fall-off 150 px away does not match. The brightness match needed a gain of
+     1.195, which is itself the tell.
+  2. **Rebuilt each column from the paper above and below, averaged.** No seam,
+     but the faint scribbles sitting just above the letters were in the average
+     and got dragged down every column as vertical smears.
+  3. **The same, anchored on the brightest few pixels of each anchor band.**
+     Crayon is darker than the paper, so the anchor skips it and takes the
+     sheet's own colour. Smooth, seamless, and the lamp's warm gradient across
+     the page is preserved because it was never left.
+
+Measured inside the sheet: bold crayon pigment went from **1041 sampled pixels
+to 8**. The picture still reads as a child's drawing — the faint scribbles top
+and bottom are untouched.
+
+The measurement itself was wrong twice before it was right, in the way this
+project keeps finding: the first detector reached to x 630 and counted the brown
+cork wall beside the sheet as crayon, reporting 2050 marks in a band that holds
+a few scribbles; and the first bold-pigment scan found the red **pushpin** and
+called it the lettering. `AssetCheck` now carries the finished claim, and
+dropping the old file back in fails it at 1194 pixels.
+
+**And one bug found while verifying it.** Rendering the card printed
+`Condition "!is_inside_tree()" is true` from `GameConfig.fit_card` — the helper
+G65 wrote asks the VIEWPORT which stretch mode a card needs, and every card in
+the game is built before it is added to a tree. A zero-sized frame happens to
+select the phone's own branch, which is why nothing looked wrong on a phone and
+the error scrolled past for three sprints; on a desktop the first layout took
+the wrong branch until the window next changed size. It now waits for
+`tree_entered` and then decides — the third time this project has found that
+particular trap (G59's postcard, G68's coach mark, this).
+
+
+## G68.2 — the audit table stops lying
+
+`docs/ART_PROMPTS_PLACES.md` holds the image audit, and two of its rows had
+outlived their facts:
+
+  * `story/convoy.jpg` was still listed as "palette + too dark". Re-measured:
+    941x1672, median hue **32°** — warm amber, inside the card set's 32-46°
+    band, not the 252° blue-purple the row describes — and the card's veil came
+    down to `CONVOY_SCRIM = 0.22` in G65, which put the subject at 48 instead
+    of 34. Marked GELDİ.
+  * `menu/cover_portrait.jpg` was still listed as "cropped + wrong style". Both
+    covers landed in G65 at 941x1672, so nothing is cropped on a phone, and the
+    menu draws its own title (`MENU_COVER_HAS_TITLE = false`, G64).
+
+The audit list now has no open work on it: every row is either resolved or a
+recorded decision (the Marshal's rifle). What is still unpainted is the two
+PLACE pictures the code has empty hooks for — `places/office_dusk` for the
+`finale_` rule and `places/road_east` for `quiet_` — and those were never
+violations, just unfilled slots. The intro says so instead of promising a queue.
+
+Worth stating plainly: this was a doc-only sprint, and the reason it was needed
+is that an audit nobody re-measures becomes a list of things that used to be
+true. Both of these rows had been wrong since G65.

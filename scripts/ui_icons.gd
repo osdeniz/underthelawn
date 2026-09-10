@@ -79,7 +79,7 @@ static func for_tile(tile_id: String) -> Texture2D:
 		"town": return _make("town")
 		"restore": return _make("restore")
 		"workshop": return _make("workshop")
-		"echoes": return _make("echoes")
+		"journal": return _make("journal")
 	return null
 
 
@@ -137,7 +137,7 @@ static func _make(id: String) -> Texture2D:
 		"town": _draw_town(img)
 		"restore": _draw_restore(img)
 		"workshop": _draw_workshop(img)
-		"echoes": _draw_echoes(img)
+		"journal": _draw_journal(img)
 		"station": _draw_station(img)
 		"sound_on": _draw_sound(img, true)
 		"sound_off": _draw_sound(img, false)
@@ -326,7 +326,7 @@ static func _draw_workshop(img: Image) -> void:
 
 
 ## A scroll: the town's old voices.
-static func _draw_echoes(img: Image) -> void:
+static func _draw_journal(img: Image) -> void:
 	var paper := Color(0.86, 0.82, 0.70)
 	var edge := Color(0.44, 0.38, 0.28)
 	var line := Color(0.40, 0.34, 0.26)

@@ -5,11 +5,14 @@ extends Node3D
 ## until the search ends. Seeing the haul grow is the reward loop; a number in
 ## the corner is only the receipt.
 ##
-## Two stacks share one node: salvage slabs pile up, evidence rides on top so
+## Two stacks share one node: salvage bundles pile up, evidence rides on top so
 ## the story objects are always the visible crown of the pile.
+##
+## G68 reshaped it. The ceiling is the driver's NAPE, not the sky: sizes, step
+## and count all come out of GameConfig.carry_slab_max(), which derives them
+## from the character's own shoulder height, and the crown's room is inside that
+## budget. Before this a full haul stood a metre above the driver's head.
 
-const BILL_STEP := 0.075
-const BILL_MAX := 14
 const SWAY_HZ := 1.4
 
 var _bills: Array[Node3D] = []
@@ -17,18 +20,18 @@ var _items: Array[Node3D] = []
 var _time := 0.0
 
 
-## Adds one slab of salvage — flattened tin and copper, the way scrap gets
-## carried (G19.1; it was a cash bundle). Beyond BILL_MAX the stack stops
-## growing (a tower taller than the driver reads as a bug, not a reward) but
-## the counter keeps climbing.
+## Adds one bundle of salvage — flattened tin and copper, the way scrap gets
+## carried (G19.1; it was a cash bundle). Once the pile reaches the nape it
+## stops growing and the counter keeps climbing: the haul is the reward, but a
+## load taller than the person under it reads as a bug.
 func add_salvage() -> void:
-	if _bills.size() >= BILL_MAX:
+	if _bills.size() >= GameConfig.carry_slab_max():
 		_pop()
 		return
 	var bundle := Node3D.new()
 	add_child(bundle)
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.46, BILL_STEP * 0.85, 0.26)
+	mesh.size = GameConfig.CARRY_SLAB_SIZE
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = GameConfig.SALVAGE_TIN if _bills.size() % 3 != 1 \
 		else GameConfig.SALVAGE_COPPER
@@ -44,27 +47,33 @@ func add_salvage() -> void:
 	bundle.add_child(mi)
 	# Each bundle lands slightly askew, which is what makes a stack read as a
 	# stack rather than an extruded box.
-	bundle.position = Vector3(randf_range(-0.03, 0.03),
-		float(_bills.size()) * BILL_STEP, randf_range(-0.03, 0.03))
+	bundle.position = Vector3(randf_range(-0.02, 0.02),
+		float(_bills.size()) * GameConfig.CARRY_SLAB_STEP, randf_range(-0.02, 0.02))
 	bundle.rotation.y = randf_range(-0.22, 0.22)
 	_bills.append(bundle)
 	_pop()
 
 
-## Adds an evidence object, riding on top of the salvage.
+## Adds an evidence object, riding on top of the salvage. Small, and clustered
+## sideways rather than stacked: three finds on top of a full pile used to be
+## three more storeys, and the ceiling has to hold for the crown as well. The
+## spread is deliberately tighter than the driver's shoulders — a boot standing
+## out past the shoulder line is the same silliness as a tower, sideways.
 func add_evidence(evidence_id: String) -> void:
 	var item := SecretItem.new()
 	add_child(item)
 	item.setup_by_id(evidence_id, Vector3.ZERO)
-	item.scale = Vector3.ONE * 0.75
-	item.position.y = _top_y() + 0.12
-	item.position.x = float(_items.size()) * 0.28 - 0.14
+	item.scale = Vector3.ONE * GameConfig.CARRY_EVIDENCE_SCALE
+	item.position.y = minf(_top_y() + 0.04,
+		GameConfig.carry_stack_height() - 0.04)
+	item.position.x = float(_items.size() % 3) * 0.065 - 0.065
+	item.position.z = -0.02 if _items.size() >= 3 else 0.02
 	_items.append(item)
 	_pop()
 
 
 func _top_y() -> float:
-	return float(_bills.size()) * BILL_STEP
+	return float(_bills.size()) * GameConfig.CARRY_SLAB_STEP
 
 
 ## A small squash on every pickup, so each addition is felt.
@@ -76,10 +85,12 @@ func _pop() -> void:
 
 
 func _process(delta: float) -> void:
-	# The pile leans with the walk cycle; a rigid stack looks glued on.
+	# The pile leans with the walk cycle; a rigid stack looks glued on. The sway
+	# rides on a standing lean INTO the back (G68), so the load reads as resting
+	# against the driver rather than balanced on them.
 	_time += delta
 	rotation.z = sin(_time * TAU * SWAY_HZ) * 0.035
-	rotation.x = cos(_time * TAU * SWAY_HZ * 0.5) * 0.02
+	rotation.x = -GameConfig.CARRY_LEAN + cos(_time * TAU * SWAY_HZ * 0.5) * 0.02
 
 
 func clear_all() -> void:

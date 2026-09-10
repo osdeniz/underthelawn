@@ -87,12 +87,6 @@ func _check_chapter(vid: String, chapter: Dictionary) -> void:
 		ck("kanit modeli var: %s" % tag,
 			SecretItem.has_mesh_for(str(info.get("id", ""))), str(info.get("id", "")))
 
-	var echo := variant.echo_info()
-	ck("yanki tanimli: %s" % vid, not echo.is_empty(), "")
-	if not echo.is_empty():
-		_key("yanki adi: %s" % vid, str(variant.echo_def.get("name", "")))
-		_key("yanki satiri: %s" % vid, str(variant.echo_def.get("flavor_text", "")))
-
 	# A chapter may carry mid-chapter conversations; if it names one it has to
 	# exist, or the beat silently never fires (G13).
 	for i in variant.mid_chat_marks().size():

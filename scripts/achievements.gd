@@ -23,7 +23,6 @@ const LIST: Array[Array] = [
 	["cross_1", "ACH_CROSS_1", "ACH_CROSS_1_LINE"],
 	["postcards_5", "ACH_POSTCARDS_5", "ACH_POSTCARDS_5_LINE"],
 	["every_field", "ACH_EVERY_FIELD", "ACH_EVERY_FIELD_LINE"],
-	["echoes_all", "ACH_ECHOES_ALL", "ACH_ECHOES_ALL_LINE"],
 	["town_rebuilt", "ACH_TOWN_REBUILT", "ACH_TOWN_REBUILT_LINE"],
 	["surprises_all", "ACH_SURPRISES_ALL", "ACH_SURPRISES_ALL_LINE"],
 	["deduction", "ACH_DEDUCTION", "ACH_DEDUCTION_LINE"],
@@ -110,8 +109,6 @@ static func _holds(id: String) -> bool:
 				if not HarvestLog.field_cut(vid):
 					return false
 			return true
-		"echoes_all":
-			return EchoLog.total() > 0 and EchoLog.found_count() >= EchoLog.total()
 		"town_rebuilt":
 			var p := RestoreBoard.town_ready_progress()
 			return p.y > 0 and p.x >= p.y

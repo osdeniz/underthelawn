@@ -180,9 +180,9 @@
         "locked": false
       },
       {
-        "id": "echoes",
-        "label": "HUB_ECHOES",
-        "hint": "HUB_ECHOES_HINT",
+        "id": "journal",
+        "label": "HUB_JOURNAL",
+        "hint": "HUB_JOURNAL_HINT",
         "locked": false
       }
     ],
@@ -461,11 +461,6 @@
     ],
     "_comment": "Case 02, THREE ACTS. Act 1 (ch09-ch11) is the break from town and plays on the town map's own pins; Act 2 (ch12-ch15) is the road east and plays on the world map; Act 3 (ch16-ch18) is the confrontation. The list grows one act per commit.",
     "hud_line": "CASE_02_HUD_LINE"
-  },
-  "echoes": {
-    "title": "ECHOES_TITLE",
-    "empty": "ECHOES_EMPTY",
-    "header": "ECHOES_HEADER"
   },
   "restore": {
     "title": "RESTORE_TITLE",

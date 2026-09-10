@@ -146,17 +146,12 @@ func _ready() -> void:
 			if key != "":
 				ck("acilis anahtari csv'de: %s" % key, known.has(key), key)
 
-	# G12.6: every chapter's echo, and every restoration project, must resolve.
+	# Every restoration project and every piece of evidence must resolve. The
+	# echoes were checked here too until G68 removed them.
 	for vid: String in LevelVariant.ids():
 		var v := LevelVariant.of(vid)
-		# A harvest has no history to find in it (G13.6); the road has no town
-		# yet to have left one (G15.1).
 		if v.is_harvest() or v.is_road():
 			continue
-		ck("%s echo tanimli" % vid, not v.echo_def.is_empty(), "")
-		for field in ["name", "flavor_text"]:
-			var key := str(v.echo_def.get(field, ""))
-			ck("echo anahtari csv'de: %s" % key, known.has(key), key)
 		for slot in v.evidence_count():
 			var tag := str((v.evidence_defs[slot] as Dictionary).get("location_tag", ""))
 			ck("%s kanit %d konum etiketi" % [vid, slot], tag != "", "")

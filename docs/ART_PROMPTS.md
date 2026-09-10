@@ -306,6 +306,117 @@ sağ taraf sokağın derinliği olsun.
 
 ---
 
+## 6. Ellie'nin dört çizimi — `story/drawing_01.jpg` … `drawing_04.jpg`
+
+Dokuz yaşındaki bir çocuğun balmumu pastel çizimleri; Vaka 02'nin ilk dört
+bölümünün her birinden sonra biri açılıyor (`ch09_radio_room`,
+`ch10_relay_hill`, `ch11_orchard`, `ch12_river_crossing`).
+
+> **GELDİ (G67).** Dördü de `textures/story/drawing_01..04.jpg` olarak içeride,
+> 1448x1086 (tam 4:3), diskte 408-479 KB, VRAM'de 1.50 MB. Kod da yazıldı:
+> Günlük'ün Bulgular sekmesinin başında iki sütunlu şerit, bölüm bitince
+> **bir kez** tam ekran kart (`DrawingCard`), açılma `ChapterProgress.is_done`'a
+> bağlı. Ölçümler: kâğıt telefon çerçevesinin genişliğinin %93'ünü, yüksekliğin
+> %32'sini alıyor; blok dikeyde tam ortada (%27-%73).
+>
+> **Perde yok — ve bu ölçülmüş bir karar.** `drawing_04` gece sahnesi, ortalama
+> parlaklığı 79; diğer üçü 130-136. Aydınlık üçüne göre ayarlanmış tek bir perde
+> geceyi öldürürdü (G61 reunion'da, G65 konvoyda aynı tuzağı ölçmüştü). Bu
+> yüzden kart yazıyı resmin **altına**, kendi koyu zeminine koyuyor: gece çizimi
+> ekranda 80 okuyor, dosyada 79.
+>
+> **Harf kontrolü temiz.** Dördü de tam çözünürlükte, kenar payları ayrı ayrı
+> okundu: harf yok, imza yok. Kasaba çiziminde pastadaki beş mum **yanmıyor** —
+> 900 px'e büyütülüp bakıldı, üstlerinde alev yok, kural ihlali değil.
+
+### Bu dördü setin geri kalanı gibi DEĞİL — ve olmamalı
+
+On altı hikâye kartı boyanmış resim; bunlar **bir nesnenin fotoğrafı**: masaya
+konmuş bir kâğıt. Duygusal gücü tam oradan geliyor, o yüzden:
+
+* **4:3 yatay**, 1600×1200 veya üstü (uzun kenar 2100'ün altında kalsın —
+  `AssetCheck`). Diğer her şey 9:16; bu dördü kâğıt oranında.
+* **Kâğıt kadrajı doldurur**, çevresinde koyu masa yüzeyi görünür — parşömen
+  albümüyle aynı masa.
+* **Palet dar ve yıpranmış.** Bu kasabada 64 renklik pastel kutusu yok: yeşil,
+  kahverengi, gök mavisi, sarı ve bir parça kırmızı. Kırmızı yalnızca elbise
+  ve kurdele için — asla kan, asla ışık. Hem oyunun paletiyle uyuşuyor hem de
+  dünyanın kendisi.
+* **Dördü aynı elden.** İlk beğendiğini kabul et, **kalan üçünü onu referans
+  ekleyerek** üret. Yoksa dört ayrı çocuğun elinden çıkmış gibi olur.
+
+### En büyük risk: yazı
+
+Çocuk çizimleri modellerden neredeyse her zaman üstünde harfle geliyor — isim,
+"MOM", tarih. Doğum günü kartı bunu kanıtladı: içinde "ELLIE" ve "HAPPY
+BIRTHDAY ELLIE" yazıyordu. O yüzden dört promptun her birinde kâğıdın yüzeyi
+**olumlu cümleyle** tanımlanıyor: *"the paper carries drawn shapes and colour
+only, its surface otherwise bare"*. Gelen resimde harf görürsem söylerim —
+kadrajda kalıyor ve oyun iki dilli.
+
+**Yasaklar:** yazı, silah, ateş, kan, askerî simge, kafatası/zombi, kırmızı
+alarm ışığı.
+
+---
+
+### `drawing_01` — "Bahçe" (ch09'dan sonra)
+
+```
+A photograph of a child's wax crayon drawing lying on a dark wooden table, shot straight down from above in soft daylight, the sheet filling most of the frame with the table showing around its edges. Horizontal 4:3. The drawing is by a nine-year-old: thick uneven crayon strokes with the cream paper texture showing through them, colour going past the lines, no perspective, a single stroke for the horizon, big round heads and stick arms. It shows a house with a triangle roof and four square windows, and in front of it a lawn where one stripe has been cut — two greens side by side, dark and light, drawn as bands. A small brown dog sits in the corner of the lawn. An orange kite flies on a long wobbly string. A yellow sun in the top right corner with straight rays. The paper is cream, its corners slightly curled, with two strips of tape at the top edge; it carries drawn shapes and colour only, its surface otherwise bare. The crayon box was a worn one: greens, browns, sky blue, yellow, and a little red used only for a flower. Warm, proud and a bit lopsided — a drawing someone kept.
+```
+
+Kontrol: üçgen çatılı ev, biçilmiş tek şerit (koyu-açık yeşil bantlar), köşede
+kahverengi köpek, turuncu uçurtma, sağ üstte ışınlı sarı güneş, bantlı krem
+kâğıt. **Harf yok.**
+
+---
+
+### `drawing_02` — "Göl" (ch10'dan sonra)
+
+İkinci referans: kabul edilen `drawing_01.jpg`.
+
+```
+A photograph of a child's wax crayon drawing lying on the same dark wooden table, shot straight down from above in soft daylight, the sheet filling most of the frame. Horizontal 4:3. The same nine-year-old's hand: thick uneven strokes, paper texture through the colour, no perspective, water drawn as rows of blue wavy lines stacked one above another. It shows a small boat among tall reeds with one figure in it, a round head under a wide hat, rowing with two straight oars. Two grey birds with very long legs stand on the shore. Green reeds in bunches of straight lines. A pale blue sky with three round clouds. The paper is cream, its corners slightly curled, with two strips of tape at the top edge; it carries drawn shapes and colour only, its surface otherwise bare. The same worn crayon box: greens, browns, sky blue, yellow, a little red. Calm and careful, the water drawn more patiently than anything else in it.
+```
+
+Kontrol: sazlar arasında kayık, şapkalı tek figür, iki uzun bacaklı gri kuş,
+üst üste mavi dalga çizgileriyle su, üç yuvarlak bulut. **Harf yok.**
+
+---
+
+### `drawing_03` — "Kasaba" (ch11'den sonra)
+
+İkinci referans: kabul edilen `drawing_01.jpg`.
+
+```
+A photograph of a child's wax crayon drawing lying on the same dark wooden table, shot straight down from above in soft daylight, the sheet filling most of the frame. Horizontal 4:3. The same nine-year-old's hand: thick uneven strokes, paper showing through, no perspective, everything standing in a row along one drawn ground line. It shows four houses side by side, each a square with a triangle roof; one house has a yellow window and the others are drawn dark. On one roof are fresh pale-yellow boards, drawn as short bright bars over the brown. In front of the houses stand a long table and a row of seven small figures holding hands, round heads, stick arms, one of them in a red dress. The paper is cream, its corners slightly curled, with two strips of tape at the top edge; it carries drawn shapes and colour only, its surface otherwise bare. The same worn crayon box: greens, browns, sky blue, yellow, and the one red kept for the dress. Crowded and cheerful, drawn by someone counting everybody in.
+```
+
+Kontrol: yan yana dört ev, biri sarı pencereli, bir çatıda açık sarı yeni
+tahtalar, uzun masa, el ele yedi küçük figür, biri kırmızı elbiseli. **Harf
+yok** — bu en riskli olan, figürlerin altına isim yazdırma eğilimi burada en
+yüksek.
+
+---
+
+### `drawing_04` — "Ne gördüm" (ch12'den sonra)
+
+İkinci referans: kabul edilen `drawing_01.jpg`.
+
+Bu resim Vaka 02'nin **sorusunu** çiziyor, cevabını değil. Korku değil merak:
+gökte dolunay var, çocuk figürü kaçmıyor, bakıyor.
+
+```
+A photograph of a child's wax crayon drawing lying on the same dark wooden table, shot straight down from above in soft daylight, the sheet filling most of the frame. Horizontal 4:3. The same nine-year-old's hand: thick uneven strokes, paper showing through, no perspective. It shows the edge of a wood at night — a row of tall dark green trees drawn as triangles on brown trunks — and between two of the trees, two big round yellow dots side by side, like eyes but left as plain dots, with nothing else drawn around them. In the foreground, small and seen from behind, a girl figure with a round head and a red ribbon in her hair, standing still and facing the trees. Above, a full round moon and a scatter of five-line stars in a dark blue sky. The paper is cream, its corners slightly curled, with two strips of tape at the top edge; it carries drawn shapes and colour only, its surface otherwise bare. The same worn crayon box: greens, browns, dark blue, yellow, and the one red kept for the ribbon. Curious rather than frightened: the child who drew this stood and looked.
+```
+
+Kontrol: gece orman kenarı, üçgen ağaçlar, aralarında **iki büyük sarı nokta**
+(göz olarak çizilmemiş, nokta bırakılmış), önde arkası dönük kırmızı
+kurdeleli kız figürü, dolunay ve yıldızlar. Diş, pençe, ağız, kan, kırmızı
+ışık **yok**.
+
+---
+
 ## Eski taslaklar (kayıt olarak)
 
 Aşağıdaki üç madde G19'da Türkçe taslak olarak yazılmıştı; Şerif'in yeni

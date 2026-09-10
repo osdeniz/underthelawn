@@ -17,7 +17,6 @@ func _ready() -> void:
 	ck("hasat tipi", harvest.is_harvest(), harvest.level_type)
 	ck("kanit yok", harvest.evidence_count() == 0,
 		"%d kanit" % harvest.evidence_count())
-	ck("echo yok", harvest.echo_def.is_empty(), "")
 	ck("bugday paleti", harvest.palette_id == "WHEAT", harvest.palette_id)
 	# A harvest is BIGGER than an ordinary yard. Naming the size id pinned the
 	# test to one constant and broke the moment the fields grew their own;

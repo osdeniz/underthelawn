@@ -252,30 +252,8 @@ DLG_TOWN_ELLIE_2B,He was never scary. He kept saying I shouldn't have followed h
 DLG_TOWN_STRANGER_2A,So the girl's home. Funny how these things sort themselves out.,Demek kız evde. Bu işlerin kendiliğinden çözülmesi tuhaf.
 INTRO_2B_L1,"They say bigger settlements survived, somewhere east.",Doğuda bir yerlerde daha büyük yerleşimlerin kurtulduğunu söylüyorlar.
 INTRO_2B_L2,We stopped waiting for them years ago.,Onları beklemeyi yıllar önce bıraktık.
-ECHO_HEADER,ECHO,YANKI
-ECHOES_TITLE,ECHOES,YANKILAR
-ECHOES_HEADER,What the dead years left behind,Ölü yılların geride bıraktıkları
-ECHOES_EMPTY,Nothing found yet. Keep cutting.,Henüz bir şey yok. Biçmeye devam.
-HUB_ECHOES,ECHOES,YANKILAR
-HUB_ECHOES_HINT,Scraps of the years before.,Önceki yıllardan kalıntılar.
 HUB_RESTORE,RESTORE,ONARIM
 HUB_RESTORE_HINT,Put the salvage back into the town.,Hurdayı kasabaya geri koy.
-ECHO_CH01_NAME,Yellowed Headline,Sararmış Manşet
-ECHO_CH01_LINE,"""THE CITIES CLOSE THEIR GATES""","""ŞEHİRLER KAPILARINI KAPATIYOR"""
-ECHO_CH02_NAME,Evacuation Leaflet,Tahliye Broşürü
-ECHO_CH02_LINE,"""ZONE 4 — DO NOT RETURN""","""BÖLGE 4 — GERİ DÖNMEYİN"""
-ECHO_CH03_NAME,Child's Notebook,Çocuk Defteri
-ECHO_CH03_LINE,"""Day 40. Dad says the quiet is good now.""","""40. gün. Babam artık sessizliğin iyi olduğunu söylüyor."""
-ECHO_CH04_NAME,Guard Patch,Muhafız Arması
-ECHO_CH04_LINE,An emblem nobody in this town recognises.,Bu kasabada kimsenin tanımadığı bir amblem.
-ECHO_CH05_NAME,Seed Packet Letter,Tohum Paketi Mektubu
-ECHO_CH05_LINE,"""Plant these when it's over. —M""","""Bittiğinde bunları ek. —M"""
-ECHO_CH06_NAME,Broadcast Log,Yayın Kaydı
-ECHO_CH06_LINE,"""Last contact: east relay, 3 years ago""","""Son bağlantı: doğu rölesi, 3 yıl önce"""
-ECHO_CH07_NAME,Memorial Candle Tin,Anma Mumu Kutusu
-ECHO_CH07_LINE,Burned down to the base. Someone kept it lit a long time.,Dibine kadar yanmış. Biri onu uzun süre yakık tutmuş.
-ECHO_CH08_NAME,Hand-Drawn Map Fragment,Elle Çizilmiş Harita Parçası
-ECHO_CH08_LINE,A road marked east. The rest of the page is missing.,Doğuya işaretlenmiş bir yol. Sayfanın kalanı yok.
 LOC_FENCE,near the fence line,çit hattının yakınında
 LOC_PORCH,by the porch steps,veranda basamaklarının yanında
 LOC_POOL,beside the empty pool,boş havuzun kenarında
@@ -491,8 +469,6 @@ COLE_RECEIVER,"The dial is worn smooth in one spot. The same frequency, hundreds
 COLE_NUMBER_LOG,The hand shakes on the early pages and steadies later. Whoever wrote this did not get more afraid. They got used to it.,"İlk sayfalarda el titriyor, sonra sabitleniyor. Bunu yazan korkmamış — alışmış."
 MN_CH09_A,"Batteries, weekly, in the dark, uphill. That is not scavenging. That is a shift.","Pil, haftalık, karanlıkta, yokuş yukarı. Bu yağma değil. Bu vardiya."
 MN_CH09_B,Nine. I keep writing it down and I keep not liking it.,Dokuz. Yazıp duruyorum ve hoşuma gitmiyor.
-ECHO_CH09_NAME,Candle Stub in a Jar,Kavanozdaki Mum Dibi
-ECHO_CH09_LINE,"Burned down to the glass, in a room with a window. Whoever sat here did not want the light seen from outside.","Cama kadar yanmış, üstelik pencereli bir odada. Burada oturan, ışığının dışarıdan görülmesini istememiş."
 RECLAIM_CH09,"The ground under the mast is clear again. Whatever is out there, we can hear it too now.","Direğin dibi yeniden açık. Dışarıda ne varsa, artık biz de duyabiliriz."
 EV_CH10_A_NAME,Fresh Battery Cache,Taze Pil Zulası
 EV_CH10_A_LINE,"Nine cells in a tin, wrapped in oilcloth. Counted out, not dumped.","Tenekede dokuz pil, muşambaya sarılı. Dökülmemiş — sayılarak konmuş."
@@ -504,8 +480,6 @@ COLE_BATTERY,Nine again. I would like to stop noticing that number.,Yine dokuz. 
 COLE_BOOT_PRINT,Ash keeps a print the way snow does. The depth says a heavy pack. The stride says he was not tired. That is a bad combination.,Kül izi kar gibi tutar. Derinlik ağır bir sırt çantası diyor. Adım aralığı yorgun değil diyor. Kötü bir birleşim.
 MN_CH10_A,"Counted, wrapped, hidden. Somebody is being supplied.","Sayılmış, sarılmış, saklanmış. Birine ikmal yapılıyor."
 MN_CH10_B,He read the sole pattern from memory. Who memorises boot soles?,Taban desenini ezbere okudu. Kim bot tabanı ezberler?
-ECHO_CH10_NAME,Evacuation Leaflet,Tahliye Bildirisi
-ECHO_CH10_LINE,"Assembly points, times, a telephone number. Somebody folded it into a paper boat.","Toplanma noktaları, saatler, bir telefon numarası. Biri katlayıp kâğıt gemi yapmış."
 RECLAIM_CH10,The hill track is walkable again. From up here you can watch the town breathe.,Tepe patikası yeniden yürünür. Buradan kasabanın nefes alışı görünüyor.
 EV_CH11_A_NAME,Picked Rows,Toplanmış Sıralar
 EV_CH11_A_LINE,Picked row by row. A hungry man breaks branches - these have not bruised one.,Sıra sıra toplanmış. Aç insan dal kırar; bunlar dal bile incitmemiş.
@@ -517,8 +491,6 @@ COLE_PICKED_ROWS,Whoever picks like this expects to come back next season.,Böyl
 COLE_CRATE_LID,Machine-cut pine. Nobody has machines.,Makineyle kesilmiş çam. Kimsenin makinesi yok.
 MN_CH11_A,Discipline is the opposite of hunger. Whoever eats here is not desperate.,"Disiplin, açlığın zıddıdır. Burada yiyen çaresiz değil."
 MN_CH11_B,The stamp is on the INSIDE of the lid. Not to be seen. To be counted.,Damga kapağın İÇİNE basılmış. Görülmek için değil. Sayılmak için.
-ECHO_CH11_NAME,Orchard Ledger,Bahçe Defteri
-ECHO_CH11_LINE,"Yields year by year in the same hand, until a year with no number beside it.","Yıl yıl verim, hep aynı elden; ta ki yanında sayı olmayan bir yıla kadar."
 RECLAIM_CH11,"The rows are clear. If anyone comes back to pick, they will find it kept.","Sıralar açıldı. Toplamaya dönen olursa, bakılmış bulacak."
 DLG_BRIEF_CH09_1,I heard a voice counting at night.,Gece sayı sayan bir ses duydum.
 DLG_BRIEF_CH09_2,Nobody counts anymore. We do not even have a calendar.,Kimse saymaz artık. Takvim bile yok.
@@ -598,8 +570,6 @@ COLE_ANCHOR,"Hemp, not nylon. Somebody is making rope, not finding it.","Kenevir
 COLE_SOCK,"Darned at the heel, twice, by two different hands.","Topuğu iki kez örülmüş, iki ayrı elden."
 MN_CH12_A,Tied high for the wet. That is a man planning a winter here.,"Islanmasın diye yukarı. Bu, burada kış planlayan bir adam."
 MN_CH12_B,I have been looking for one child. I should have been counting.,Tek bir çocuk arıyordum. Saymam gerekiyormuş.
-ECHO_CH12_NAME,"Ration Tin, Opened Neatly",Düzgün Açılmış Erzak Tenekesi
-ECHO_CH12_LINE,"Opened all the way round and folded back, so the lid could be a lid again.",Çepeçevre açılıp geri katlanmış — kapak yine kapak olabilsin diye.
 RECLAIM_CH12,The reed path stays open. Anyone crossing after us will not have to swim.,Sazlıktaki yol açık kaldı. Ardımızdan geçen yüzmek zorunda kalmayacak.
 EV_CH13_A_NAME,Child-Size Bed,Çocuk Boyu Yatak
 EV_CH13_A_LINE,"Built from crates, child length. Five stone toys in a line at the head. The people we called looters... one of them was somebody's mother.","Sandıklardan yapılmış, çocuk boyu. Başucunda sıra sıra beş taş oyuncak. Yağmacı dediklerimiz... biri birinin annesiydi."
@@ -611,8 +581,6 @@ COLE_BED,The crates are stacked with the labels facing out. Even the bed was mad
 COLE_LAYERS,"Two winters between the layers, judging by the grass through the lower stakes.",Alttaki kazıkların arasındaki ota bakılırsa iki kış var arada.
 MN_CH13_A,I have used the word looters for six years. I would like it back.,Altı yıldır yağmacı diyorum. Kelimeyi geri almak istiyorum.
 MN_CH13_B,Whoever came second was running from whoever came first. Or from what found them.,"İkinci gelen, birinciden kaçıyordu. Ya da onları bulan şeyden."
-ECHO_CH13_NAME,Burnt Pot,Yanık Tencere
-ECHO_CH13_LINE,"Burnt through at the base, with corn still in it. The last meal was left half made.","Dibi yanmış, içinde hâlâ mısır taneleri. Son yemek yarım kalmış."
 RECLAIM_CH13,The corn is down and the camp is visible from the road again. Somebody looking for shelter will find it now.,"Mısır yatırıldı, kamp yoldan yeniden görünüyor. Barınak arayan biri artık bulur."
 EV_CH14_A_NAME,"Headset, Still Warm",Hâlâ Ilık Kulaklık
 EV_CH14_A_LINE,Sweat in the foam. Nobody has been gone from this seat an hour.,Köpüğünde ter izi. Bu koltuktan kalkalı bir saat olmamış.
@@ -624,8 +592,6 @@ COLE_HEADSET,One ear pad is worn flat. He listens with the same ear every time.,
 COLE_MARKED_MAP,Four towns circled. Ours is the only one with a date.,Dört kasaba çemberlenmiş. Tarihi olan tek bizimki.
 MN_CH14_A,An hour. We were an hour behind a man who knew we were coming.,Bir saat. Geleceğimizi bilen bir adamın bir saat gerisindeydik.
 MN_CH14_B,"Two weeks. He said two weeks at the mast, before any of this.","İki hafta. Direğin orada iki hafta demişti, bunların hiçbiri olmadan önce."
-ECHO_CH14_NAME,Unsent Letter,Gönderilmemiş Mektup
-ECHO_CH14_LINE,"Addressed, sealed, never posted. The stamp is from a country that stopped issuing them.","Adresi yazılmış, kapatılmış, hiç postalanmamış. Pulu, pul basmayı bırakmış bir ülkeden."
 RECLAIM_CH14,"The mound is cut back. If they use this post again, they will know we saw it.","Höyüğün etrafı açıldı. Bu noktayı yine kullanırlarsa, gördüğümüzü bilecekler."
 EV_CH15_A_NAME,Cold-Box,Soğuk Kutu
 EV_CH15_A_LINE,"Empty, stamped with seven stars, and still cool inside. Used this week.","Boş, üstünde yedi yıldız damgası, ve içi hâlâ serin. Bu hafta kullanılmış."
@@ -637,8 +603,6 @@ COLE_COLDBOX,That box held something that had to stay under eight degrees. Out h
 COLE_LEDGER,"Three names, and I delivered none of them. I would have remembered.","Üç isim, ve hiçbirini ben doğurtmadım. Hatırlardım."
 MN_CH15_A,Somebody is running a cold chain across country nobody drives.,"Biri, kimsenin araba sürmediği topraklarda soğuk zincir işletiyor."
 MN_CH15_B,The circle is newer than the page. Somebody came back to draw it.,Yuvarlak sayfadan yeni. Biri onu çizmek için geri gelmiş.
-ECHO_CH15_NAME,"Child's Drawing, Pinned",İğnelenmiş Çocuk Resmi
-ECHO_CH15_LINE,"A house, a sun, and far too many people in the doorway. Pinned at adult height.","Bir ev, bir güneş, ve kapıda fazlasıyla kalabalık insanlar. Yetişkin hizasına iğnelenmiş."
 RECLAIM_CH15,"The clinic path is clear. If anyone still needs it, they can reach the door.",Kliniğin yolu açık. Hâlâ ihtiyacı olan varsa kapıya varabilir.
 DLG_BRIEF_CH12_1,The river is the last thing that still has a name out here.,"Nehir, burada hâlâ adı olan son şey."
 DLG_BRIEF_CH12_2,And the reeds are over my head.,Ve sazlık boyumu aşıyor.
@@ -738,8 +702,6 @@ COLE_CHALK,"Drawn at the height of a man standing, not kneeling. Not a child's."
 COLE_BUTTON,"The thread is snapped, not cut. It came off in a hurry or in a hand.","İplik kesilmemiş, kopmuş. Aceleyle ya da bir elde kopmuş."
 MN_CH16_A,Two days. He has been walking beside me for two weeks.,İki gün. İki haftadır yanımda yürüyor.
 MN_CH16_B,I am not going to ask him. I want to see what he says when he sees it.,Ona sormayacağım. Görünce ne diyeceğini görmek istiyorum.
-ECHO_CH16_NAME,Traveller's Notebook,Yolcu Defteri
-ECHO_CH16_LINE,"Distances between towns, in hours, on foot. The last entry has no destination.","Kasabalar arası mesafeler, saat cinsinden, yürüyerek. Son satırın varış yeri yok."
 RECLAIM_CH16,The crossroads is open. Whoever meets here next will be seen doing it.,Kavşak açıldı. Burada bir dahaki buluşan görülecek.
 EV_CH17_A_NAME,The Beacon,Fener
 EV_CH17_A_LINE,"Still transmitting. One word, over and over: FOUND.","Hâlâ yayında. Tek kelime, tekrar tekrar: BULUNDU."
@@ -750,8 +712,6 @@ COLE_BEACON,One word repeated is not a message. It is a receipt.,Tekrarlanan tek
 COLE_GARDEN_BEDS,"Tomatoes, and they are staked. Somebody expects to be here in August.","Domates, üstelik herekli. Biri ağustosta burada olmayı umuyor."
 MN_CH17_A,FOUND. Not FIND. It is answering something that was already asked.,BULUNDU. BUL değil. Zaten sorulmuş bir şeye cevap veriyor.
 MN_CH17_B,He waters a garden he does not intend to leave. That is the first honest thing here.,Terk etmeye niyeti olmadığı bir bahçeyi suluyor. Buradaki ilk dürüst şey bu.
-ECHO_CH17_NAME,Duty Log,Nöbet Defteri
-ECHO_CH17_LINE,"Weekly entries in the same hand, then eighteen months of blank ruled lines.","Aynı elden haftalık kayıtlar, sonra on sekiz aylık boş çizgili satır."
 RECLAIM_CH17,"The glasshouse has light again. Whatever the beacon says, it says it in the open now.","Serada yeniden ışık var. Fener ne diyorsa, artık açıkta diyor."
 EV_CH18_A_NAME,Our Own Tracks,Kendi İzlerimiz
 EV_CH18_A_LINE,"Two weeks old, going the other way. We were a different pair of men then.","İki haftalık, ters yöne gidiyor. O zaman başka iki adamdık."
@@ -763,8 +723,6 @@ COLE_OUR_TRACKS,Your stride is longer coming back. That is what news does.,Döne
 COLE_ROAD_RIBBON,"Cotton, and it has been out one season, not six.","Pamuk, ve bir mevsimdir dışarıda, altı değil."
 MN_CH18_A,I have walked past my own footprints and not known them.,Kendi ayak izlerimin yanından geçmişim ve tanımamışım.
 MN_CH18_B,Somebody is marking the way home for a child who is not ours.,"Biri, bizim olmayan bir çocuk için eve giden yolu işaretliyor."
-ECHO_CH18_NAME,Last Newspaper,Son Gazete
-ECHO_CH18_LINE,The front page is about a bus timetable. Nothing on it knows what is coming.,Manşet bir otobüs tarifesi hakkında. Üstündeki hiçbir şey ne geldiğini bilmiyor.
 RECLAIM_CH18,The verge is cut the whole way. The road home is a road again.,Yol kenarı baştan sona biçildi. Eve giden yol yeniden bir yol.
 DLG_BRIEF_CH16_1,There's a boundary stone at the crossroads with something drawn on it.,Kavşakta üstüne bir şey çizilmiş bir sınır taşı var.
 DLG_BRIEF_CH16_2,Then we should look at it before the light turns.,Işık dönmeden bakmalıyız.
@@ -904,12 +862,10 @@ CASE_LEAD_EMPTY,No lead yet.,Henüz ipucu yok.
 JOURNAL_TITLE,Journal,Günlük
 JOURNAL_TAB_NOTES,Case Notes,Vaka Notları
 JOURNAL_TAB_DISCOVERIES,Discoveries,Bulgular
-JOURNAL_TAB_ECHOES,Echoes,Yankılar
 JOURNAL_NOTES_COUNT,{count} notes written,{count} not yazıldı
 JOURNAL_NOTES_EMPTY,Nothing written down yet. Finish a search and the Marshal will have something to say.,"Henüz not yok. Bir aramayı bitir, Şerif'in söyleyecek bir şeyi olsun."
 JOURNAL_DISCOVERIES_COUNT,{found} of {total} found,{total} bulgudan {found} tanesi
 JOURNAL_DISCOVERIES_EMPTY,No evidence in hand. It is out there in the grass.,Elinde kanıt yok. Otların arasında duruyor.
-JOURNAL_ECHOES_COUNT,{found} of {total} found,{total} yankıdan {found} tanesi
 HUB_LEAD_LABEL,NEXT LEAD,SIRADAKİ İPUCU
 HUB_LEAD_DONE_LABEL,CASE CLOSED,VAKA KAPANDI
 SKY_MODE_AUTO,Light: story,Işık: hikâye
@@ -1221,22 +1177,6 @@ CASE_03_UNLOCKED,CASE 03 UNLOCKED,VAKA 03 AÇILDI
 UI_RESTART_CONFIRM,TAP AGAIN TO RESTART,SIFIRLAMAK İÇİN TEKRAR DOKUN
 PRO_07_L1,"They made me Marshal, in time. I never told them why I stayed.",Zamanla beni Şerif yaptılar. Neden kaldığımı hiç söylemedim.
 PRO_07_L2,"Nine years on, Ellie went missing. I sent for you: I hold the town, you look.",Dokuz yıl sonra Ellie kaybolduğunda seni çağırdım. Kasabayı ben tutarım. Bakmak senin işin.
-ECHO_CH19_NAME,Ration Ledger,Karne Defteri
-ECHO_CH19_LINE,"Names down the left, ticks across. The last column is headed with a date and nothing under it.","Solda isimler, yanlarında işaretler. Son sütunun başında bir tarih var, altında hiçbir şey."
-ECHO_CH20_NAME,Signal Tin,Sinyal Tenekesi
-ECHO_CH20_LINE,"A tin with a candle stub and a slit cut in the side. Somebody kept watch from up here, and wanted to be seen doing it.","İçinde mum dibi, yanında bir yarık açılmış teneke. Biri buradan nöbet tutmuş ve tutarken görülmek istemiş."
-ECHO_CH21_NAME,Chalk Alphabet,Tebeşir Alfabesi
-ECHO_CH21_LINE,"A to K on a board, then a different hand from L on. The lesson went on. The teacher did not.","Tahtada A'dan K'ye bir el, L'den sonra başka bir el. Ders devam etmiş. Öğretmen etmemiş."
-ECHO_CH22_NAME,Unsent Letter,Gönderilmemiş Mektup
-ECHO_CH22_LINE,"""We have room."" Folded, addressed, never carried. Whoever had room did not have a road.","""Yerimiz var."" Katlanmış, adresi yazılmış, hiç taşınmamış. Yeri olanın yolu yokmuş."
-ECHO_CH23_NAME,Grave Marker,Mezar Tahtası
-ECHO_CH23_LINE,"Fourteen boards in a row, each with a first name and a season. No years. Nobody was counting them any more.","Sıra sıra on dört tahta, her birinde bir ad ve bir mevsim. Yıl yok. Artık kimse saymıyormuş."
-ECHO_CH24_NAME,Boundary Sketch,Sınır Çizimi
-ECHO_CH24_LINE,"The town drawn from above with a line around it. The line is drawn twice: once tight, once wide.","Kasaba yukarıdan çizilmiş, etrafına bir çizgi. Çizgi iki kez çekilmiş: bir dar, bir geniş."
-ECHO_CH25_NAME,Watch Rota,Nöbet Çizelgesi
-ECHO_CH25_LINE,Two names a night for a year. The same two names for the last month.,Bir yıl boyunca her gece iki isim. Son ay boyunca hep aynı iki isim.
-ECHO_CH26_NAME,Welcome Sign,Hoş Geldiniz Tabelası
-ECHO_CH26_LINE,"Painted over once, then painted back. Somebody changed their mind about strangers, and then changed it again.","Bir kez üstü boyanmış, sonra yeniden yazılmış. Biri yabancılar hakkında fikrini değiştirmiş, sonra bir daha değiştirmiş."
 HUD_LANTERN_LINE,Night. The lantern shows what the moon will not.,"Gece. Fener, ayın göstermediğini gösterir."
 COLE_GARDEN_BEDS_CRUSHED,Run over. The stakes are down and the stems are broken at the tie. Whoever expected August will have to start again.,"Üstünden geçilmiş. Herekler yatmış, saplar bağ yerinden kırılmış. Ağustosu uman yeniden başlayacak."
 COLE_PHOTOGRAPH_CRUSHED,"Creased under a wheel, the emulsion cracked across the road. The man and the basket are still whole. The town behind them is not.","Tekerleğin altında kırışmış, yolun üstünde emülsiyon çatlamış. Adam ve sepet hâlâ bütün. Arkalarındaki kasaba değil."
@@ -1274,8 +1214,6 @@ DLG_DEB_CH27_F2,"They tried the polite way first. Years ago, by the look of the 
 DLG_DEB_CH27_F3,Read them before the gate. All of them.,Kapıdan önce oku. Hepsini.
 DLG_DEB_CH27_P1,"Half the shore. The letters are still in the reeds somewhere, and paper doesn't wait.","Kıyının yarısı. Mektuplar hâlâ sazlığın bir yerinde, ve kâğıt beklemez."
 RECLAIM_CH27,Town reclaimed: the lake road is open.,Kasaba geri alındı: göl yolu açık.
-ECHO_CH27_NAME,Ferry Ticket,Vapur Bileti
-ECHO_CH27_LINE,"Return half, never punched. Somebody paid to cross and never went back.","Dönüş parçası, hiç zımbalanmamış. Biri geçmek için ödemiş, bir daha dönmemiş."
 LOC_SHALLOWS,in the shallows,sığlıkta
 DLG_BRIEF_CH10_1B,"It burned two summers back — the relay, or the lightning that found it. Nothing has come back but black stalks.","İki yaz önce yandı; röle mi, onu bulan yıldırım mı. Kara saplardan başka hiçbir şey geri gelmedi."
 DLG_BRIEF_CH20_1B,First snow came early this year. Good. A road in snow shows who walked it.,"İlk kar bu yıl erken geldi. İyi. Kardaki yol, kimin yürüdüğünü gösterir."
@@ -1352,8 +1290,6 @@ ACH_POSTCARDS_5,Five postcards,Beş kartpostal
 ACH_POSTCARDS_5_LINE,Five yards in the album.,Albümde beş bahçe.
 ACH_EVERY_FIELD,Every field,Her tarla
 ACH_EVERY_FIELD_LINE,All seven fields cut at least once.,Yedi tarlanın hepsi en az bir kez biçildi.
-ACH_ECHOES_ALL,Every echo,Her yankı
-ACH_ECHOES_ALL_LINE,Everything the ground remembered.,Toprağın hatırladığı her şey.
 ACH_TOWN_REBUILT,Hollow Creek,Hollow Creek
 ACH_TOWN_REBUILT_LINE,The town rebuilt.,Kasaba yeniden kuruldu.
 ACH_SURPRISES_ALL,Looked up,Başını kaldırdı
@@ -1425,3 +1361,19 @@ GUIDE_LINK,"Two of your finds mean something together. Open the journal, tap one
 GUIDE_CASE_OPEN,"A new case is open, and there is a new place on the map. Your next yard is already marked on it — that is where this one starts.","Yeni bir vaka açıldı ve haritada yeni bir yer var. Sıradaki bahçe orada işaretli — bu vaka oradan başlıyor."
 GUIDE_GO_MAP,Show me on the map,Haritada göster
 MENU_NEXT,Next: {place},Sıradaki: {place}
+JOURNAL_DRAWINGS_COUNT,Ellie's drawings · {found}/{total},Ellie'nin çizimleri · {found}/{total}
+DRAWING_01_TITLE,The lawn,Bahçe
+DRAWING_01_LINE,"One stripe cut, the rest still standing, and the mower left in the middle of it. She drew the work while it was happening.","Bir şerit biçilmiş, gerisi hâlâ ayakta, makine de tam ortasında bırakılmış. İşi olurken çizmiş."
+DRAWING_02_TITLE,The lake,Göl
+DRAWING_02_LINE,"A hat, two oars, and the long-legged birds that only stand at the north end. She had been there, and not from the road.","Bir şapka, iki kürek ve bir de yalnızca kuzey uçta duran uzun bacaklı kuşlar. Orada bulunmuş, hem de yoldan değil."
+DRAWING_03_TITLE,The town,Kasaba
+DRAWING_03_LINE,"Seven at the table, one window lit, new boards on a roof that had none. She drew the town as it will be, not as she left it.","Masada yedi kişi, bir pencere yanıyor, çatıda daha hiç olmamış yeni tahtalar. Kasabayı bıraktığı gibi değil, olacağı gibi çizmiş."
+DRAWING_04_TITLE,What I saw,Ne gördüm
+DRAWING_04_LINE,"Two lights between the trees, and she stayed where she was to look at them. Whatever they were, they did not send her running.","Ağaçların arasında iki ışık; o da yerinden kıpırdamadan bakmış. Her ne idiyse, kızı kaçırtmamış."
+HUB_JOURNAL,JOURNAL,GÜNLÜK
+HUB_JOURNAL_HINT,"Notes, finds and postcards.","Notlar, bulgular ve kartpostallar."
+TOUR_LEAD,"This is where the next yard always is. Tap it and you are on your way — the mowing is the search.","Sıradaki bahçe her zaman burada durur. Dokun, yola çıkarsın — biçmek, aramanın kendisi."
+TOUR_WALLET,"Three numbers, and they are the town: the scrap you have earned, the food in the store, and how many people are still here. Mowing pays scrap. The town eats every day.","Üç sayı, ve üçü de kasabanın kendisi: kazandığın hurda, ambardaki gıda, ve hâlâ burada olan kişi sayısı. Biçmek hurda kazandırır. Kasaba her gün yer."
+TOUR_OBJECTIVES,"And when you are not sure what to do next, it is written behind this door.","Sırada ne olduğundan emin olmadığında, bu kapının arkasında yazıyor."
+TOUR_NEXT,GOT IT,ANLADIM
+TOUR_LAST,LET'S GO,BAŞLAYALIM

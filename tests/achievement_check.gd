@@ -57,7 +57,9 @@ func run() -> void:
 	for l in labels:
 		if (l as Label).text == tr("ACH_RINGS_1"):
 			has_earned = true
-		if (l as Label).text == tr("JOURNAL_RECORDS_OPEN").to_upper():
+		# LocaleSupport.upper, not to_upper: the journal shouts its headings in
+		# the reader's language now, so "Henüz değil" is HENÜZ DEĞİL (G67).
+		if (l as Label).text == LocaleSupport.upper(tr("JOURNAL_RECORDS_OPEN")):
 			has_open = true
 	ck("kayitlar sekmesi kazanilani listeler", has_earned, "")
 	ck("kayitlar sekmesi henuz olmayanlari da gosterir", has_open, "")

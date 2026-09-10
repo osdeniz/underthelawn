@@ -224,12 +224,6 @@ func _cards_in_the_yard() -> void:
 	game.hud._card_typer.finish()
 	ck("tamamlanir", game.hud._card_title.visible_characters == -1, "")
 
-	game.hud.show_echo_card("", "Yanki", "Bir satir", "")
-	await frames(2)
-	ck("yanki karti da yaziyor", game.hud._card_typer.typing()
-		and game.hud._card_title.text == "Yanki", game.hud._card_title.text)
-	game.hud._card_typer.finish()
-
 	game.hud.show_opening_title("OPENING_01_HEADLINE", "OPENING_01_SUBLINE")
 	await frames(2)
 	ck("acilis basligi yaziyor", game.hud._title_typer.typing(), "")

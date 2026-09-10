@@ -39,6 +39,36 @@ static func steps() -> Array:
 	]
 
 
+## The first visit home (G68). Everything above answers "what next?"; none of it
+## answers "what am I looking at?", and until this existed the game never named
+## its own interface. The player learned there was a town population by being
+## told there was not one.
+##
+## Three steps, no page navigation, and every one of them about something that
+## is on screen and true the moment the hub first opens: a tour that walks
+## somebody to the Restore page with nothing in their pocket teaches the same
+## nothing G56 was written to stop.
+static func tour() -> Array:
+	return [
+		# The primary action first: the one thing the hub is for.
+		{"id": "tour_lead", "line": "TOUR_LEAD", "point": "LeadCard"},
+		# Then the three numbers, which is where the town lives.
+		{"id": "tour_wallet", "line": "TOUR_WALLET", "point": "WalletRow"},
+		{"id": "tour_objectives", "line": "TOUR_OBJECTIVES", "point": "ObjectivesButton"},
+	]
+
+
+const TOUR_KEY := "tour_done"
+
+
+static func tour_done() -> bool:
+	return bool(GameState.get_setting(SECTION, TOUR_KEY, false))
+
+
+static func mark_tour() -> void:
+	GameState.set_setting(SECTION, TOUR_KEY, true)
+
+
 static func is_shown(id: String) -> bool:
 	return bool(GameState.get_setting(SECTION, id, false))
 
@@ -138,3 +168,4 @@ static func holds(side: String) -> bool:
 static func reset() -> void:
 	for any: Variant in steps():
 		GameState.set_setting(SECTION, str((any as Dictionary).get("id", "")), false)
+	GameState.set_setting(SECTION, TOUR_KEY, false)

@@ -90,6 +90,8 @@ func _ready() -> void:
 		for name: String in orphans:
 			print("      %s" % name)
 
+	_check_teaser_letters()
+
 	if _fails > 0:
 		push_error("%d VARLIK TESTI BASARISIZ" % _fails)
 		print("--- %d VARLIK TESTI BASARISIZ ---" % _fails)
@@ -140,3 +142,34 @@ func ck(label: String, passed: bool, detail: String) -> void:
 		return
 	_fails += 1
 	print("  FAIL %s  %s" % [label, detail])
+
+
+## The one image rule a rule cannot enforce: no text in the art (G68).
+##
+## hub/case2_teaser.jpg carried "YMMOM" in red crayon on the child's drawing —
+## the last violation left in the set, and the only one that survived the G63
+## audit because nobody was reading the picture. The letters were painted out by
+## rebuilding that band of the sheet from the paper above and below it, and this
+## claim is what stops the old file being dropped back in: bold crayon pigment
+## inside the sheet, where the words were, measured 1041 sampled pixels before
+## and 8 after.
+##
+## Sampled well inside the paper. The first version of this measurement reached
+## to x 630 and counted the brown cork wall beside the sheet as crayon, which
+## reported 2050 marks in a band that holds a few faint scribbles.
+func _check_teaser_letters() -> void:
+	var image := Image.new()
+	if image.load("res://textures/hub/case2_teaser.jpg") != OK:
+		ck("vaka 2 karti okunuyor", false, "yuklenemedi")
+		return
+	if image.get_width() < 640 or image.get_height() < 1200:
+		ck("vaka 2 karti beklenen boyutta", false,
+			"%dx%d" % [image.get_width(), image.get_height()])
+		return
+	var bold := 0
+	for y in range(1042, 1158, 2):
+		for x in range(330, 604, 2):
+			var c := image.get_pixel(x, y)
+			if c.r - c.g > 0.125 and c.r > 0.55:
+				bold += 1
+	ck("vaka 2 kartindaki kagitta yazi yok", bold <= 120, "%d piksel" % bold)

@@ -18,8 +18,8 @@ func _ready() -> void:
 
 
 func _check_variants() -> void:
-	# The harvest is a bonus level, not a chapter: it carries no evidence and no
-	# echo, so every case rule below is checked against the chapters only.
+	# The harvest is a bonus level, not a chapter: it carries no evidence, so
+	# every case rule below is checked against the chapters only.
 	var ids: Array = []
 	for any_id: Variant in LevelVariant.ids():
 		if not LevelVariant.of(str(any_id)).is_harvest():

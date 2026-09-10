@@ -12,7 +12,7 @@ func _ready() -> void:
 		["salvage", UiIcons.salvage()], ["evidence", UiIcons.evidence()],
 		["town", UiIcons.for_tile("town")], ["restore", UiIcons.for_tile("restore")],
 		["workshop", UiIcons.for_tile("workshop")],
-		["echoes", UiIcons.for_tile("echoes")],
+		["journal", UiIcons.for_tile("journal")],
 		["station", UiIcons.for_tile("station")],
 		["sound on", UiIcons.sound(true)], ["sound off", UiIcons.sound(false)],
 		["lock", UiIcons.lock()], ["house", UiIcons.house()],

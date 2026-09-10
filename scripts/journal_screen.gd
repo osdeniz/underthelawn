@@ -4,20 +4,19 @@ extends Control
 ##
 ## "Yankılar" was a hub tile whose name told the player nothing about what was
 ## behind it, and it held one flat list. The redesign brief asks for a named
-## hierarchy instead — CASE NOTES / DISCOVERIES / ECHOES — so the three kinds
-## of thing the player collects stop being one undifferentiated pile.
+## hierarchy instead — CASE NOTES / DISCOVERIES / ALBUM / RECORDS — so the
+## kinds of thing the player collects stop being one undifferentiated pile.
 ##
 ## Every section reads from data that already existed; nothing new is stored:
 ##   CASE NOTES  the Marshal's per-chapter deduction (story.json board pins)
-##   DISCOVERIES the evidence found, per chapter, across both cases
-##   ECHOES      the world-history finds (EchoLog)
+##   DISCOVERIES the evidence found, per chapter, and Ellie's drawings
 ##
 ## Built as its own screen rather than as a fourth hub page so the main menu can
 ## open it without the hub existing at all.
 
 signal closed()
 
-enum Section { NOTES, DISCOVERIES, ECHOES, ALBUM, RECORDS }
+enum Section { NOTES, DISCOVERIES, ALBUM, RECORDS }
 
 var _section: Section = Section.NOTES
 var _tabs: HBoxContainer
@@ -130,7 +129,6 @@ func _build() -> void:
 	add_child(_tabs)
 	for spec in [[Section.NOTES, "JOURNAL_TAB_NOTES"],
 			[Section.DISCOVERIES, "JOURNAL_TAB_DISCOVERIES"],
-			[Section.ECHOES, "JOURNAL_TAB_ECHOES"],
 			[Section.ALBUM, "JOURNAL_TAB_ALBUM"],
 			[Section.RECORDS, "JOURNAL_TAB_RECORDS"]]:
 		var tab := Button.new()
@@ -168,8 +166,12 @@ func _build() -> void:
 	scroll.add_child(_list)
 
 
-## Notes written, evidence found, echoes found and postcards kept, over what
-## the whole game holds of each — one percentage for the header.
+## Notes written, evidence found and postcards kept, over what the whole game
+## holds of each — one percentage for the header.
+##
+## Ellie's drawings are deliberately not counted (G67): they are given for
+## finishing a chapter, which the notes already count. The echoes used to be
+## counted here and are gone (G68).
 static func completion_percent() -> int:
 	var found := 0
 	var total := 0
@@ -184,10 +186,6 @@ static func completion_percent() -> int:
 		var variant := LevelVariant.of(vid)
 		total += variant.evidence_count()
 		found += mini(ChapterProgress.evidence_found(vid), variant.evidence_count())
-		if not variant.echo_info().is_empty():
-			total += 1
-			if EchoLog.is_found(vid):
-				found += 1
 		total += 1
 		if Postcard.has(vid):
 			found += 1
@@ -214,8 +212,6 @@ func _refresh() -> void:
 			_fill_notes()
 		Section.DISCOVERIES:
 			_fill_discoveries()
-		Section.ECHOES:
-			_fill_echoes()
 		Section.ALBUM:
 			_fill_album()
 		Section.RECORDS:
@@ -258,6 +254,12 @@ func _fill_notes() -> void:
 func _fill_discoveries() -> void:
 	var found := 0
 	var total := 0
+	# Ellie's drawings first, once there are any (G67): they are the one thing
+	# in this tab the player did not have to deduce, and a new one should be
+	# seen on opening the journal rather than found under a column of evidence.
+	# Before Case 02's first chapter this adds nothing and the tab looks exactly
+	# as it did.
+	_fill_drawings()
 	# The whole tutorial for the mechanic, in one line at the top (G48).
 	_list.add_child(_empty_note(tr("LINK_HINT")))
 	for chapter: Dictionary in ChapterProgress.chapters():
@@ -290,25 +292,6 @@ func _fill_discoveries() -> void:
 		_list.add_child(_empty_note(tr("JOURNAL_DISCOVERIES_EMPTY")))
 
 
-func _fill_echoes() -> void:
-	var found := 0
-	for chapter: Dictionary in ChapterProgress.chapters():
-		var vid := str(chapter.get("variant_id", ""))
-		var info := LevelVariant.of(vid).echo_info()
-		if info.is_empty() or not EchoLog.is_found(vid):
-			continue
-		found += 1
-		_list.add_child(_entry(str(info.get("name", "")),
-			str(info.get("line", "")), found))
-	_counter.text = tr("JOURNAL_ECHOES_COUNT").format(
-		{"found": found, "total": EchoLog.total()})
-	if found == 0:
-		_list.add_child(_empty_note(Story.text("echoes.empty")))
-
-
-## A heading over a run of entries — which chapter they came out of. Drawn as a
-## label over a hairline rather than as another panel, so the eye reads it as a
-## divider in a notebook and not as one more card in a stack.
 ## The records (G33): what has been done, dated, then what has not, greyed,
 ## each with the sentence that says what it is. Opening the tab also checks
 ## the list, so a record earned outside a yard (the dog's name) appears.
@@ -372,6 +355,54 @@ func _fill_album() -> void:
 		box.add_child(thumb)
 		var caption := Label.new()
 		caption.text = Postcard.title_for(str(card["id"]))
+		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		caption.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+		caption.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+		box.add_child(caption)
+		grid.add_child(box)
+
+
+## Ellie's drawings (G34, landed in G67): the sheets earned so far, in the
+## order she made them, two to a row and tappable to see whole.
+##
+## Only what has been earned is listed. The heading carries the count instead,
+## so the player can see there are more without the tab filling up with grey
+## rectangles — the notes tab settled this argument first: an empty journal that
+## grows is a better promise than a full one that is greyed.
+func _fill_drawings() -> void:
+	var have: Array[int] = []
+	for i in Drawings.total():
+		if Drawings.is_unlocked(i) and Drawings.texture(i) != null:
+			have.append(i)
+	if have.is_empty():
+		return
+	_list.add_child(_group(tr("JOURNAL_DRAWINGS_COUNT").format(
+		{"found": have.size(), "total": Drawings.total()})))
+	var grid := GridContainer.new()
+	grid.name = "DrawingStrip"
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", GameConfig.UI_GAP)
+	grid.add_theme_constant_override("v_separation", GameConfig.UI_GAP)
+	_list.add_child(grid)
+	var cell_w := (GameConfig.UI_MAX_WIDTH - 120.0 - float(GameConfig.UI_GAP)) * 0.5
+	for i in have:
+		var box := VBoxContainer.new()
+		box.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
+		var thumb := TextureButton.new()
+		thumb.name = "Drawing_" + Drawings.id_of(i)
+		thumb.texture_normal = Drawings.texture(i)
+		thumb.ignore_texture_size = true
+		thumb.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+		thumb.custom_minimum_size = Vector2(cell_w, cell_w / GameConfig.DRAWING_ASPECT)
+		var index := i
+		thumb.pressed.connect(func() -> void:
+			Haptics.light()
+			var card := DrawingCard.new()
+			add_child(card)
+			card.play(index))
+		box.add_child(thumb)
+		var caption := Label.new()
+		caption.text = Drawings.title(i)
 		caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		caption.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
 		caption.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
@@ -463,7 +494,7 @@ func _group(title: String) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", GameConfig.UI_GAP_TIGHT)
 	var label := Label.new()
-	label.text = title.to_upper()
+	label.text = LocaleSupport.upper(title)
 	label.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
 	label.add_theme_color_override("font_color", GameConfig.UI_BRASS_DEEP)
 	box.add_child(label)

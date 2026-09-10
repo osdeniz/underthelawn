@@ -212,7 +212,7 @@ func _add_section(title: String) -> void:
 	spacer.custom_minimum_size = Vector2(0, GameConfig.UI_GAP_SECTION)
 	_rows.add_child(spacer)
 	var label := Label.new()
-	label.text = title.to_upper()
+	label.text = LocaleSupport.upper(title)
 	label.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
 	label.add_theme_color_override("font_color", GameConfig.UI_BRASS_DEEP)
 	_rows.add_child(label)

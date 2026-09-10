@@ -31,10 +31,11 @@ func _check_journal() -> void:
 
 	# Three named sections, and each one switches.
 	var tabs: Control = journal.get("_tabs")
-	ck("bes bolum var", tabs.get_child_count() == 5,
+	# Four, not five: ECHOES is gone (G68).
+	ck("dort bolum var", tabs.get_child_count() == 4,
 		str(tabs.get_child_count()))
 	for section in [JournalScreen.Section.NOTES,
-			JournalScreen.Section.DISCOVERIES, JournalScreen.Section.ECHOES,
+			JournalScreen.Section.DISCOVERIES,
 			JournalScreen.Section.ALBUM, JournalScreen.Section.RECORDS]:
 		journal.set("_section", section)
 		journal.call("_refresh")

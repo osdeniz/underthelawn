@@ -1131,6 +1131,26 @@ const CONVOY_SCRIM := 0.22
 ## white type with a shadow. The party page has always set its own, for the
 ## same kind of reason.
 const REUNION_SCRIM := 0.30
+## Ellie's four crayon drawings (G34, landed in G67), in the order she made
+## them: one per Case 02 chapter, unlocked by finishing that chapter.
+##
+## Unlike every other picture in the game these are 4:3 — they are photographs
+## of a sheet of paper on the album's table, not story cards — so the card that
+## shows one lays it on its own dark ground and puts the words UNDER it. That is
+## also why there is no veil over the art: drawing_04 is a night scene and
+## averages 79 in brightness against 130-136 for the other three, and one scrim
+## that suited the daylight ones would have buried it (the mistake G61 and G65
+## each had to measure their way out of).
+const DRAWINGS: Array[Dictionary] = [
+	{"id": "drawing_01", "chapter": "ch09_radio_room"},
+	{"id": "drawing_02", "chapter": "ch10_relay_hill"},
+	{"id": "drawing_03", "chapter": "ch11_orchard"},
+	{"id": "drawing_04", "chapter": "ch12_river_crossing"},
+]
+## The dark the drawing is held up against — the postcard view's own value, for
+## the same reason: whatever is behind has to stop competing with the paper.
+const DRAWING_SCRIM := 0.82
+const DRAWING_ASPECT := 4.0 / 3.0
 ## Where a ground prop rests, how far under that it waits before the grass
 ## beside it is cut, and how long the rise takes.
 const PROP_GROUND_Y := 0.06
@@ -1144,11 +1164,41 @@ const PROP_REVEAL_TIME := 0.35
 const PICKUP_MARK_WIDTH := 0.42
 const PICKUP_MARK_LIFT := 0.62
 const PICKUP_MARK_TINT := Color(1.0, 1.0, 1.0, 0.94)
-## G10.1 carry stack: where the haul rides. On foot it sits between the
-## driver's shoulders; on the tractor and the blade there is no walking back, so
-## it rides the machine's rear deck.
-const CARRY_BACK_OFFSET := Vector3(0.0, 0.62, 0.16)
+## G10.1 carry stack: where the haul rides. On foot it rides the driver's back;
+## on the tractor and the blade there is no walking back, so it rides the
+## machine's rear deck.
+##
+## Measured and rebuilt in G68. These are LOCAL to the character, whose origin
+## is the torso pivot — so the nape is at CHAR_SHOULDER.y (0.455) and the top of
+## the head at about 0.79. The old back offset was 0.62: already above the head,
+## and from there the pile grew fourteen slabs of 0.075, another 1.05 m. A full
+## haul therefore stood a metre clear of the driver, which is what "çok saçma
+## duruyor" was looking at. It is pinned low on the back now and may not pass
+## the nape.
+const CARRY_BACK_OFFSET := Vector3(0.0, 0.13, 0.135)
 const CARRY_DECK_OFFSET := Vector3(0.0, 0.62, 0.55)
+## One bundle: small, and much flatter than it is wide, so nine of them read as
+## a bound load rather than as an extruded box. The old slab was 0.46 x 0.064 x
+## 0.26 — wider than the driver's own shoulders (0.35) and four times as thick.
+const CARRY_SLAB_SIZE := Vector3(0.22, 0.020, 0.15)
+const CARRY_SLAB_STEP := 0.026
+## Kept clear at the top of the budget so the evidence riding on the pile is
+## inside the ceiling too: the load stops at the nape INCLUDING its crown.
+const CARRY_EVIDENCE_ROOM := 0.09
+const CARRY_EVIDENCE_SCALE := 0.28
+## The pile leans into the back rather than standing plumb on it, so the weight
+## reads as carried.
+const CARRY_LEAN := 0.10
+## How tall the pile may get above its own origin, and how many bundles that
+## buys: the nape, less where the stack is pinned and less the crown's room.
+static func carry_stack_height() -> float:
+	return CHAR_SHOULDER.y - CARRY_BACK_OFFSET.y
+
+
+static func carry_slab_max() -> int:
+	return int(floor((carry_stack_height() - CARRY_EVIDENCE_ROOM) / CARRY_SLAB_STEP))
+
+
 ## Contact pickup radius, on top of the deck: driving near an object takes it.
 const PICKUP_REACH := 0.55
 ## Scrap pickup visuals.
@@ -3040,6 +3090,18 @@ static func wide_margin(viewport_width: float) -> float:
 ## separately cropped landscape variant, and it needs no second picture.
 static func fit_card(art: TextureRect) -> void:
 	if art == null or not is_instance_valid(art):
+		return
+	# The viewport belongs to the TREE, and every card in the game is built
+	# before it is added to one — so this ran on a node that had none, printed
+	# "!is_inside_tree()" and read the frame as 0x0. A zero frame happens to
+	# pick the phone's own mode, which is why nothing looked wrong on a phone
+	# and the error scrolled past for three sprints; on a desktop the first
+	# layout took the wrong branch until the window next changed size. Wait for
+	# the tree, then decide (the same trap G59 found in the postcard view).
+	if not art.is_inside_tree():
+		if not art.has_meta("card_wait"):
+			art.set_meta("card_wait", true)
+			art.tree_entered.connect(func() -> void: fit_card(art), CONNECT_ONE_SHOT)
 		return
 	if not art.has_meta("card_fit"):
 		art.set_meta("card_fit", true)

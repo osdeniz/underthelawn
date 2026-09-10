@@ -86,6 +86,48 @@ sırayla, **ilk build'de** yapılır ve sonuçlar README'ye ölçüm olarak yaz�
 - Pad sürükleme, İN/BİN, makine seçici, hub sayfa geçişleri — her biri tek elle,
   başparmakla, telefonu kılıf içinde tutarken.
 
+## Ellie'nin çizimleri (G67)
+- ch09'u bitir: Şerif konuşmasını bitirdikten sonra çizim kartı **bir kez**
+  gelmeli. KAPAT'a bas, hub'a dön, aynı bölümü tekrar oyna — kart bir daha
+  **gelmemeli**.
+- Günlük → Bulgular: şeridin başlığı tam olarak `ELLIE'NİN ÇİZİMLERİ · 1/4`
+  yazmalı — isimde noktasız I, Türkçe kısımda noktalı İ. Hepsi noktasız
+  çıkıyorsa `LocaleSupport.upper` devreye girmemiş; isim de `ELLİE` olduysa
+  `KEEP_CASE` düşmüş. Küçük hâle dokun, kart tam açılsın, kâğıt ekranın
+  neredeyse tamamını kaplasın.
+- `drawing_04` (gece) telefonun en düşük parlaklığında: iki sarı nokta ve
+  dolunay hâlâ görünüyor mu? Kâğıt gri bir lekeye dönüşmemeli.
+- Kartın KAPAT düğmesi ekranın içinde mi, başparmakla rahat basılıyor mu?
+
+## Tanıtım turu (G68)
+- Kaydı sil, oyuna baştan başla, hub'a ilk gelişte tur **kendiliğinden** açılsın:
+  üç adım — sıradaki bahçe kartı, üç sayı, görevler kapısı. Her adımda halkanın
+  doğru kontrolün etrafında olduğunu ve notun onu KAPATMADIĞINI gör.
+- Turu bitir, hub'dan çık gir: bir daha **açılmamalı**.
+- Turu yarıda bırak (uygulamayı kapat): açılışta kaldığı yerden değil baştan
+  gelmeli, ve yine bir kez.
+- Üç sayının anlattığı şey ekranda doğru mu: hurda biçince artıyor, gıda her
+  gün azalıyor, kişi sayısı kasabanın gerçek nüfusu.
+
+## Sırt yükü (G68)
+- Bir bahçede dokuz hurda topla: destelerin **ensede durduğunu**, kafaya
+  çıkmadığını gör. Onuncuyu topla — sayaç artsın, yığın büyümesin.
+- Üç kanıt topla: taç destelerin üstünde, omuz hattının içinde kalmalı.
+- Traktöre bin: yük sırttan makinenin kasasına geçmeli, sırtta kalmamalı.
+
+## Yankılar kaldırıldı (G68)
+- Hub'ın dördüncü kutucuğu artık GÜNLÜK yazmalı, YANKILAR değil, ve Günlük'ü
+  açmalı. Günlük'te **dört** sekme olmalı.
+- Eski kayıtla açılan bir oyunda yankı kaydı kalmışsa hiçbir yerde görünmemeli;
+  Kayıtlar sekmesinde "yankıların hepsi" başarımı olmamalı.
+
+## Vaka 2 kartı (G68.1)
+- Vaka 1 kapandıktan sonra gelen vaka 2 kartına bak: duvardaki çizimde **hiçbir
+  harf olmamalı**, ve kâğıt hâlâ bir çocuk çizimi gibi okunmalı (üstte ve altta
+  soluk pastel izler). Yamanın kenarı ya da parlaklık farkı görünmemeli.
+- Telefonun en yüksek parlaklığında bak: kâğıdın ortasında dikdörtgen bir leke
+  ya da dikey bir sürüklenme varsa yama tutmamış.
+
 ## Sonuç nereye
 README'ye `### Cihaz ölçümü — <cihaz> — <tarih>` başlığıyla tablo. Ölçülmemiş
 hiçbir eşik "geçti" sayılmaz.

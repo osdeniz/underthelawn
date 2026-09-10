@@ -401,6 +401,10 @@ func _open_hub() -> void:
 		_hub = HubScreen.new()
 		_hub.name = "Hub"
 		layer.add_child(_hub)
+		# The first visit home names the hub's own furniture, once (G68). Asked
+		# for HERE rather than in HubScreen._ready so that a HubScreen built by
+		# a test is never interrupted by a tour.
+		_hub.run_tour_if_new()
 		_hub.chapter_chosen.connect(_on_chapter_chosen)
 		_hub.replay_intro_requested.connect(_play_intro)
 		_hub.main_menu_requested.connect(_return_to_main_menu)
@@ -567,6 +571,8 @@ func _on_search_finished(evidence: int, total: int) -> void:
 	if lines.is_empty():
 		if scene != "":
 			_play_quiet_scene(scene)
+		else:
+			_show_drawing(_pending_variant)
 		return
 	# The offer comes ONCE, here: the third chapter's debrief has just been
 	# read and the player is looking for a girl they have started to know. The
@@ -576,7 +582,28 @@ func _on_search_finished(evidence: int, total: int) -> void:
 			_play_quiet_scene(scene)
 		elif _pending_variant == GameConfig.DEMO_GATE_AFTER and not Purchases.is_full():
 			_show_demo_card(func(_bought: bool) -> void: pass)
+		else:
+			# Ellie's drawing, if this chapter earned one (G67). Last, after the
+			# Marshal has finished talking: the debrief is what the two of them
+			# worked out, and the drawing is her answer to it.
+			_show_drawing(_pending_variant)
 	_play_dialogue(lines, "", after_debrief, Dialogue.backdrop(conv_id))
+
+
+## One of Ellie's drawings, shown once, over whatever is on screen. Silent for
+## every chapter that earns none and for every replay of the four that do, so
+## callers can hand it any chapter without asking first.
+func _show_drawing(variant_id: String) -> void:
+	var index := Drawings.pending_for(variant_id)
+	if index < 0:
+		return
+	var layer := CanvasLayer.new()
+	layer.layer = 68
+	add_child(layer)
+	var card := DrawingCard.new()
+	layer.add_child(card)
+	card.finished.connect(func() -> void: layer.queue_free())
+	card.play(index)
 
 
 ## The one card that asks for money (G16.6), over whatever is on screen.
