@@ -457,13 +457,22 @@ func _on_chapter_chosen(variant_id: String) -> void:
 	# built first and held at the gate (`autostart_search` false), the
 	# briefing plays over it, and the search starts when he has finished
 	# talking.
+	# The callback is named rather than written inline: a multi-line lambda
+	# followed by a fourth argument is exactly the shape GDScript reads wrong.
+	var start_search := func() -> void:
+		if _game != null and is_instance_valid(_game):
+			_game.call("_begin_search")
 	_start_chapter({}, false, func() -> void:
-		_play_dialogue(lines, Dialogue.accept_key(brief_id), func() -> void:
-			if _game != null and is_instance_valid(_game):
-				_game.call("_begin_search")))
+		_play_dialogue(lines, Dialogue.accept_key(brief_id), start_search,
+			Dialogue.backdrop(brief_id)))
 
 
-func _play_dialogue(lines: Array, accept_key: String, then: Callable) -> void:
+## `backdrop` is a `textures/` name for the place the conversation happens in
+## (G58); empty leaves the box transparent over whatever is on screen, which is
+## what a briefing over its own yard wants (G54). Callers pass
+## `Dialogue.backdrop(id)` — the data decides, not this function.
+func _play_dialogue(lines: Array, accept_key: String, then: Callable,
+		backdrop := "") -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 60
 	add_child(layer)
@@ -473,7 +482,7 @@ func _play_dialogue(lines: Array, accept_key: String, then: Callable) -> void:
 		_dialogue = null
 		layer.queue_free()
 		then.call())
-	_dialogue.play(lines, accept_key)
+	_dialogue.play(lines, accept_key, backdrop)
 
 
 ## Straight back into the half-cut yard, with no briefing: the player has
@@ -535,13 +544,13 @@ func _on_search_finished(evidence: int, total: int) -> void:
 			# Case 03 ends on the one choice the game asks (G17): the finale
 			# conversation, then the gate, then whichever morning follows.
 			_play_dialogue(Dialogue.conversation("finale_case03"), "",
-				func() -> void: _show_gate())
+				func() -> void: _show_gate(), Dialogue.backdrop("finale_case03"))
 		elif _in_case_two(_pending_variant):
 			_play_dialogue(Dialogue.conversation("debrief_ch18_full"), "",
-				func() -> void: _show_convoy())
+				func() -> void: _show_convoy(), Dialogue.backdrop("debrief_ch18_full"))
 		else:
 			_play_dialogue(Dialogue.conversation("finale_case01"), "",
-				func() -> void: _show_reunion())
+				func() -> void: _show_reunion(), Dialogue.backdrop("finale_case01"))
 		return
 	var key := "debrief_full" if evidence >= total else "debrief_partial"
 	var conv_id := str(chapter.get(key, ""))
@@ -559,14 +568,15 @@ func _on_search_finished(evidence: int, total: int) -> void:
 		if scene != "":
 			_play_quiet_scene(scene)
 		return
-	_play_dialogue(lines, "", func() -> void:
+	# The offer comes ONCE, here: the third chapter's debrief has just been
+	# read and the player is looking for a girl they have started to know. The
+	# results panel stays underneath either way (G16.6).
+	var after_debrief := func() -> void:
 		if scene != "":
 			_play_quiet_scene(scene)
-		# The offer comes ONCE, here: the third chapter's debrief has just been
-		# read and the player is looking for a girl they have started to know.
-		# The results panel stays underneath either way (G16.6).
 		elif _pending_variant == GameConfig.DEMO_GATE_AFTER and not Purchases.is_full():
-			_show_demo_card(func(_bought: bool) -> void: pass))
+			_show_demo_card(func(_bought: bool) -> void: pass)
+	_play_dialogue(lines, "", after_debrief, Dialogue.backdrop(conv_id))
 
 
 ## The one card that asks for money (G16.6), over whatever is on screen.

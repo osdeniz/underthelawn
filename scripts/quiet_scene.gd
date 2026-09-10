@@ -46,7 +46,11 @@ func play(scene_id: String) -> void:
 	var box := DialogueBox.new()
 	add_child(box)
 	box.finished.connect(_on_dialogue_done)
-	box.play(lines, str(_spec.get("accept", "")))
+	# The scene's own backdrop is DRAWN (_build_backdrop). If the conversation
+	# names a painted place as well, the box lays it over the drawing (G58) —
+	# and if that picture has not been made yet, the drawing is still there.
+	box.play(lines, str(_spec.get("accept", "")),
+		Dialogue.backdrop(str(_spec.get("dialogue", ""))))
 
 
 func _on_dialogue_done() -> void:
@@ -57,7 +61,7 @@ func _on_dialogue_done() -> void:
 			var box := DialogueBox.new()
 			add_child(box)
 			box.finished.connect(func() -> void: finished.emit())
-			box.play(lines)
+			box.play(lines, "", Dialogue.backdrop(after))
 			return
 	finished.emit()
 

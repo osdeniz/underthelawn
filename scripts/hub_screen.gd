@@ -831,11 +831,34 @@ func _build_tiles() -> Control:
 	greeting.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
 	greeting.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	greeting.add_theme_constant_override("shadow_offset_y", 2)
+	page.set_meta("column", column)
+	_fill_tile_column(column, greeting)
+	return page
+
+
+## Everything the hub's own page holds, in order, in ONE place (G60).
+##
+## _refresh_tiles() used to wipe this column and put back only the tiles — so
+## every purchase on the restore board destroyed the greeting AND the lead
+## card, which is the hub's single primary action and the only thing that says
+## which yard is next. It came back when the app was restarted, which is
+## exactly what "the second case does not show up until I close and reopen"
+## looked like from the outside.
+func _fill_tile_column(column: VBoxContainer, greeting: Label = null) -> void:
+	if greeting == null:
+		greeting = Label.new()
+		greeting.name = "Greeting"
+		greeting.text = greeting_text(Time.get_time_dict_from_system()["hour"])
+		greeting.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		greeting.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		greeting.add_theme_font_size_override("font_size", GameConfig.UI_LABEL)
+		greeting.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+		greeting.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+		greeting.add_theme_constant_override("shadow_offset_y", 2)
 	column.add_child(greeting)
 	column.add_child(_build_lead_card())
 	for tile: Dictionary in Story.list("hub.tiles"):
 		column.add_child(_make_tile(tile))
-	page.set_meta("column", column)
 	_add_harvest_tile(column)
 	_add_case_two_tile(column)
 
@@ -853,7 +876,6 @@ func _build_tiles() -> Control:
 		replay_intro_requested.emit())
 	column.add_child(story)
 	column.add_child(_main_menu_button())
-	return page
 
 
 ## "Good morning. Two yards left in this case." — the hour from the clock,
@@ -1518,6 +1540,7 @@ func _on_project(project_id: String, built: bool, source: Button) -> void:
 		_say_restore(Story.text("restore.locked_note"))
 		_shake(source)
 		return
+	var was_open := ChapterProgress.case_two_open()
 	if RestoreBoard.buy(project_id):
 		AudioDirector.play_scrap()
 		Haptics.success()
@@ -1525,11 +1548,26 @@ func _on_project(project_id: String, built: bool, source: Button) -> void:
 		if RestoreBoard.tier2_open() and not _tier2_announced:
 			_tier2_announced = true
 			Analytics.track(AnalyticsEvents.RESTORE_TIER2_UNLOCKED, {})
+		# The lead card and the board too (G60). Case 02 opens on the third
+		# project, and these two were left out of this list: the counter tile
+		# vanished, the lead card kept saying CASE CLOSED with its only button
+		# DISABLED, and the board still listed eight chapters. The new case
+		# appeared when the app was closed and opened again, which is not a
+		# thing a player should have to discover.
+		var opened := ChapterProgress.case_two_open() and not was_open
 		_refresh_restore()
 		_refresh_progress()
 		_refresh_tiles()
+		_refresh_board()
 		if _diorama != null and _diorama.has_building(project_id):
 			await _play_restore_scene(project_id)
+		if opened:
+			# And it is ANNOUNCED, on the spot, with the way there. Nothing in
+			# the game told the player that rebuilding the town was what the
+			# next case was waiting for.
+			Guide.mark("case_open")
+			_show_page(_tiles_page)
+			run_guide_step(Guide.step("case_open"))
 
 
 ## The live model of the town, rendered into the page behind the cards.
@@ -2174,6 +2212,10 @@ func _on_map_shortcut(page_id: String) -> void:
 ## chapter-end "next" button so a finished search leads back to the journey.
 func open_map_at(variant_id: String) -> void:
 	_show_page(_ensure_board_page())
+	# Rebuilt before it is shown: a case that opened in this session adds
+	# chapters to the list, and open_map() used to refresh and open_map_at()
+	# used not to (G60).
+	_refresh_board()
 	_show_board_tab(BOARD_MAP)
 	if _map != null and is_instance_valid(_map):
 		_map.focus_place(variant_id)
@@ -2238,10 +2280,11 @@ func open_echoes() -> void:
 ## It already existed as the first tab of the case board, which put the one
 ## screen that answers "where do I mow next" three taps deep behind a door
 ## named after a building. Same page, same map, reached directly.
+## The map, with the next yard already found for the player (G60). It used to
+## open on an unfocused sheet of a dozen pins, so the one screen that answers
+## "where do I mow next" made the player answer it themselves.
 func open_map() -> void:
-	_show_page(_ensure_board_page())
-	_refresh_board()
-	_show_board_tab(BOARD_MAP)
+	open_map_at(ChapterProgress.current_variant_id())
 
 
 # ---------------------------------------------------------------- the guide
@@ -2257,6 +2300,8 @@ func run_guide_step(step: Dictionary) -> void:
 		"workshop":
 			_workshop_page.refresh()
 			_show_page(_workshop_page)
+		"map":
+			open_map()
 		_:
 			_show_page(_tiles_page)
 	_show_guide_note(step)
@@ -2326,7 +2371,9 @@ func _show_guide_note(step: Dictionary) -> void:
 		Guide.mark(str(step.get("id", "")))
 		_clear_guide_note()
 		if action == "journal":
-			open_journal())
+			open_journal()
+		elif action == "map":
+			open_map())
 	rows.add_child(go)
 	# The Marshal's voice everywhere else in the game types itself (G37), and
 	# this is him talking.
@@ -2959,19 +3006,10 @@ func _refresh_tiles() -> void:
 		return
 	var column: VBoxContainer = _tiles_page.get_meta("column")
 	for child in column.get_children():
+		# Removed as well as freed: queue_free is deferred, so a rebuilt lead
+		# card would sit behind a dying one and find_child would hand callers
+		# the corpse (G60).
+		column.remove_child(child)
 		child.queue_free()
-	for tile: Dictionary in Story.list("hub.tiles"):
-		column.add_child(_make_tile(tile))
-	_add_harvest_tile(column)
-	_add_case_two_tile(column)
-	var story := Button.new()
-	story.text = tr("UI_STORY")
-	story.custom_minimum_size = Vector2(0, 110)
-	story.add_theme_font_size_override("font_size", 34)
-	story.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
-	_style_card(story, true)
-	story.pressed.connect(func() -> void:
-		Haptics.light()
-		replay_intro_requested.emit())
-	column.add_child(story)
-	column.add_child(_main_menu_button())
+	_fill_tile_column(column)
+	_refresh_lead_card()

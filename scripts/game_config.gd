@@ -1100,6 +1100,16 @@ const SALVAGE_COPPER := Color(0.60, 0.36, 0.20)
 const SALVAGE_TIN := Color(0.60, 0.62, 0.60)
 const SALVAGE_IRON := Color(0.28, 0.29, 0.32)
 const SALVAGE_GLOW := 0.14
+## The veil over the reunion card's photograph (G61).
+##
+## Measured, not chosen: the old storybook reunion art averaged 113 in
+## brightness and the card's 0.55 scrim put it on screen at 51. The painted
+## replacement averages 73, which the same scrim would drop to 33 — the
+## picture went murky and the sunset in it disappeared. 0.30 puts it back at
+## 51, and the text band (source 63) lands at 44, still dark enough under
+## white type with a shadow. The party page has always set its own, for the
+## same kind of reason.
+const REUNION_SCRIM := 0.30
 ## Where a ground prop rests, how far under that it waits before the grass
 ## beside it is cut, and how long the rise takes.
 const PROP_GROUND_Y := 0.06

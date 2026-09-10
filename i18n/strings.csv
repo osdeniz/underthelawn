@@ -1422,3 +1422,6 @@ GUIDE_OPEN_JOURNAL,Open the journal,Defteri aç
 GUIDE_RESTORE,"The salvage you brought back buys repairs. Pick one thing on this list and the town gets it back — every repair pays you more for the next yard.","Getirdiğin hurda tamirata gider. Bu listeden bir şey seç, kasaba onu geri kazansın — her tamirat sonraki bahçeden daha çok kazandırır."
 GUIDE_WORKSHOP,"You can afford a better machine. A faster blade means a yard in half the time — and time is the only thing this job costs you.","Daha iyi bir makine alabilirsin. Hızlı bir bıçak, bahçeyi yarı zamanda demek — bu işin sana tek bedeli zaman."
 GUIDE_LINK,"Two of your finds mean something together. Open the journal, tap one discovery, then tap another — if they fit, the Marshal writes down what they say.","Bulgularından ikisi bir arada bir şey söylüyor. Defteri aç, bir bulguya dokun, sonra bir başkasına — uyuyorlarsa Şerif ne dediklerini yazar."
+GUIDE_CASE_OPEN,"A new case is open, and there is a new place on the map. Your next yard is already marked on it — that is where this one starts.","Yeni bir vaka açıldı ve haritada yeni bir yer var. Sıradaki bahçe orada işaretli — bu vaka oradan başlıyor."
+GUIDE_GO_MAP,Show me on the map,Haritada göster
+MENU_NEXT,Next: {place},Sıradaki: {place}

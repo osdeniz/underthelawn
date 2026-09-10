@@ -189,6 +189,10 @@ func _apply() -> void:
 	_scrim.color.a = 0.55
 	_name_box.visible = _page == PAGE_NAME and not _named
 	_hint.visible = not _name_box.visible
+	if _page == PAGE_REUNION or _page == PAGE_NAME:
+		# The painted reunion (G61) is half the brightness of the storybook one
+		# it replaced; the old veil buried it. See GameConfig.REUNION_SCRIM.
+		_scrim.color.a = GameConfig.REUNION_SCRIM
 	if _page == PAGE_NAME:
 		# Ellie asks; the reunion photograph stays behind her. If a name was
 		# already given (a replay of the ending), the page just says it.

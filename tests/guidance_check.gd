@@ -145,7 +145,8 @@ func _guide_table() -> void:
 	var steps := Guide.steps()
 	ck("yol gosterici adimlari var", steps.size() >= 3, str(steps.size()))
 	var ids := {}
-	var pages := {"restore": true, "workshop": true, "tiles": true}
+	# "map" joined the list with the case-open step (G60).
+	var pages := {"restore": true, "workshop": true, "tiles": true, "map": true}
 	var ok_text := true
 	var ok_page := true
 	for any: Variant in steps:
@@ -247,7 +248,11 @@ func _guide_note() -> void:
 	hub.refresh()
 	await frames(2)
 
-	var step: Dictionary = Guide.steps()[0]
+	# By NAME, not by position: the restore step is the one whose page this
+	# section asserts, and a step added in front of it (G60) used to change
+	# what this test was about without saying so.
+	var step: Dictionary = Guide.step("restore")
+	ck("onarim adimi tabloda", not step.is_empty(), "")
 	hub.run_guide_step(step)
 	await frames(2)
 	var note: Node = hub.find_child("GuideNote", true, false)

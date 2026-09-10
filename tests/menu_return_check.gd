@@ -7,6 +7,14 @@ var _fails := 0
 func _ready() -> void:
 	GameState.set_setting("meta", "orientation_done", true)
 	GameState.set_setting("purchases", "full", true)  # gate open: tests test the game, DemoCheck tests the gate (G16.6)
+	# And the prologue: dismiss_main_menu() plays THE LONG WALK when the save
+	# has not finished it, so the very first claim here ("the hub opened")
+	# failed for whatever suite happened to run before this one and leave the
+	# flag down, and the intro cards when the save has done the walk but not
+	# the nine-year jump. It sets the two flags it depends on already; these
+	# are the third and fourth (G58).
+	GameState.set_setting("story", "prologue_done", true)
+	GameState.set_setting("story", "intro_seen", true)
 	var root: Node = load("res://scenes/Root.tscn").instantiate()
 	add_child(root)
 	await root.dismiss_main_menu()

@@ -1,5 +1,15 @@
 {
   "_comment": "STRUCTURE ONLY. Every 'text' is a translation key; sentences live in i18n/strings.csv. One format for every conversation in the game: a line list, where an entry is either a spoken line {speaker, text} or a flavour choice {choice:{...}}. A choice NEVER branches the flow - it appends one reaction line and continues. speaker ids double as portrait file names (textures/portraits/<id>.png).",
+  "backdrops": {
+    "_comment": "G58: the PLACE a conversation happens in, drawn behind DialogueBox's scrim. Longest matching id prefix wins; a conversation can override with its own \"backdrop\" field; an empty string draws nothing and leaves the box transparent over whatever is on screen. brief_ is deliberately empty - a briefing plays over the yard it is about (G54) - and so is debrief_, which plays over the yard just cut with the results panel underneath. Every rule is empty for now because the paintings do not exist yet: when they land, set finale_ to places/office_dusk and quiet_ to places/road_east (see docs/ART_PROMPTS_PLACES.md). A rule naming a missing picture warns on every line, which is why they are not set in advance.",
+    "default": "",
+    "brief_": "",
+    "debrief_": "",
+    "chat_": "",
+    "finale_": "",
+    "quiet_": "",
+    "pro_road": ""
+  },
   "speakers": [
     "marshal",
     "sarah",

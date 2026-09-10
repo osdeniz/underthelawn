@@ -367,8 +367,8 @@ func _fill_album() -> void:
 		thumb.pressed.connect(func() -> void:
 			Haptics.light()
 			var view := PostcardView.new()
-			view.setup(tex, path)
-			add_child(view))
+			add_child(view)
+			view.setup(tex, path))
 		box.add_child(thumb)
 		var caption := Label.new()
 		caption.text = Postcard.title_for(str(card["id"]))

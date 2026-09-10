@@ -73,6 +73,39 @@ func run() -> void:
 	await frames(2)
 	var view: Node = game.hud.find_child("PostcardClose", true, false)
 	ck("dugme karti acar", view != null, "")
+	# THE PICTURE, not just the buttons around it (G59). Both callers built the
+	# view and called setup() on it before adding it to the tree, so the width
+	# was measured against a viewport that did not exist yet: it came out
+	# negative, Godot clamped the minimum size to nothing, and the card the
+	# whole screen exists for was drawn at zero. The device log said so
+	# (get_viewport_rect(): "!is_inside_tree()" is true) and no suite looked.
+	# find_childREN for a type: find_child takes (pattern, recursive, owned)
+	# and no type at all, so the four-argument call I first wrote here was a
+	# runtime error that aborted the rest of run() — and the suite still
+	# printed a pass, because the claims before it had already cleared
+	# min_checks. Exactly the trap TestBase documents.
+	var views: Array = game.hud.find_children("*", "PostcardView", true, false)
+	var shown: PostcardView = views[0] if not views.is_empty() else null
+	ck("kart gorunumu sahnede", shown != null, "")
+	if shown != null:
+		var card: TextureRect = null
+		for any: Variant in shown.find_children("*", "TextureRect", true, false):
+			if (any as TextureRect).texture != null:
+				card = any as TextureRect
+		ck("kartin dokusu var", card != null, "")
+		if card != null:
+			var room := get_viewport().get_visible_rect().size.x
+			ck("kart bir genislik aldi", card.custom_minimum_size.x > 240.0,
+				"%.0f (ekran %.0f)" % [card.custom_minimum_size.x, room])
+			ck("kart ekrani asmaz", card.custom_minimum_size.x <= room - 80.0,
+				"%.0f / %.0f" % [card.custom_minimum_size.x, room - 80.0])
+			ck("kart oranini korur",
+				absf(card.custom_minimum_size.y / maxf(card.custom_minimum_size.x, 1.0)
+					- float(Postcard.CARD.y) / float(Postcard.CARD.x)) < 0.01,
+				"%.0fx%.0f" % [card.custom_minimum_size.x, card.custom_minimum_size.y])
+			ck("kart cizilecek boyda",
+				card.size.x > 240.0 and card.size.y > 240.0,
+				"%.0fx%.0f" % [card.size.x, card.size.y])
 	if view != null:
 		(view as Button).pressed.emit()
 		await frames(2)

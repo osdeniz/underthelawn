@@ -5265,9 +5265,11 @@ itself, because a hub built by hand has never been told it is on screen.
   instead of notes drawn from a hat. It is generated to
   `audio/theme_town_alt.wav` and **not wired in**: whether it is better is a
   decision by ear, and I cannot make that one. Both measure -17.6 dB RMS and
-  neither clips, so the comparison is fair. To try it:
-  `cp audio/theme_town_alt.wav audio/theme_town.wav` (keep a copy of the
-  original first — or just re-run `tools/gen_audio.py` to restore it).
+  neither clips, so the comparison is fair. To try it: run
+  `python3 tools/gen_audio.py` (the pre-release cleanup in G63 deleted the
+  1.3 MB wav rather than ship an unused one), then
+  `cp audio/theme_town_alt.wav audio/theme_town.wav` — keeping a copy of the
+  original first, or re-running the tool to restore it.
 
 **Measured, not changed:** the main menu's five rows come to 512 px in a
 640 px band, with or without large text, so there is nothing there to scroll.
@@ -5426,3 +5428,231 @@ them. Four new ones arrived, plus the seventh prologue card that was missing.
   of ASTC, read off the imported files, against ~22.1 MB with the chains.
 - `PrologueShot` walks the intro deck too, and still renders at the phone's
   letterboxed frame.
+
+## G58 — the art audit, and a place behind the talking
+
+Two things: an inventory of every picture in the game measured rather than
+eyeballed, and the ability for a conversation to happen somewhere.
+
+- **Measured the lot.** Mean luminance, mean saturation and the median hue of
+  the saturated pixels, for all 34 art textures. The card set holds 32–46°
+  (ochre to olive); what falls outside it, and what breaks the project's own
+  image rules, is tabulated in `docs/ART_PROMPTS_PLACES.md`. The findings that
+  matter: `story/ending_open` and `story/ending_closed` **do not exist** — the
+  game's two endings borrow older cards through the fallback — and
+  `portraits/marshal.jpg`, the single most-seen picture in the game, still
+  carries a rifle, a holstered pistol, a lettered SHERIFF badge and a HOPE
+  HOLLOW sign, none of which are allowed and the last of which is the wrong
+  town.
+- **The menu title is cropped, and the shot that was meant to prove otherwise
+  never looked.** `MenuShot` captured the whole desktop viewport, which is
+  landscape, so the one thing it exists for — a 4:5 cover covering a 0.46
+  screen — was never in frame. Letterboxed to 1170×2532 it is plain: the U of
+  UNDER and the N of LAWN are both cut off. The cover also has bones and
+  twisted roots in it, which matches nothing else in the game.
+- **Conversations can have a place now.** `DialogueBox.play(lines, accept,
+  backdrop)` draws a picture under its 55% scrim; `Dialogue.backdrop(id)`
+  resolves it from data — a conversation's own `backdrop` field, else the
+  longest matching id prefix in dialogue.json's `backdrops` block, else
+  nothing. Empty means the box stays transparent over whatever is on screen,
+  which is what `brief_` needs: the briefing plays over the yard it is about
+  (G54) and that is not being undone. Every shipped rule is empty for now,
+  because a rule naming a picture that does not exist warns on every line.
+- **What a dialogue backdrop may show, measured** (`BackdropShot`): the text
+  panel covers from 70% of the height down, and the portrait frame stands at
+  x 5–53%, y 35–72%. So a place painting is seen only in the top 35% at full
+  width plus a strip from x 53–100% down to 70% — its lower left half is
+  furniture. And because it sits under a 55% black veil, it reads at 0.45 of
+  its own brightness: the prompts ask for source luminance 130–175 where a
+  story card wants 80–120. Both numbers went into the prompt doc rather than
+  into a guess.
+- Two lambda shapes in `root.gd` were pulled out into named locals on the way
+  through: a multi-line inline lambda followed by a fourth argument is exactly
+  the construct GDScript reads wrong.
+- **`MenuReturnCheck` was failing its first claim on borrowed state**, and it
+  was not this change: `dismiss_main_menu()` plays the prologue when the save
+  has not finished it and the intro cards when it has done the walk but not the
+  nine-year jump, so "the hub opened" depended on whichever suite ran before
+  leaving `story/prologue_done` and `story/intro_seen` up. Measured both flags
+  from inside the suite to find it. It sets `meta/orientation_done` and
+  `purchases/full` for exactly this reason already; it sets these two now too.
+
+## G59 — the postcard was never drawn, and the device log had been saying so
+
+From an Xcode log off the phone, under a hundred lines of Metal warnings and
+one iOS sandbox complaint about `com.apple.CoreMotion.plist`:
+
+    canvas_item.cpp:1231:get_viewport_rect(): Condition "!is_inside_tree()"
+    is true. Returning: Rect2()
+       [0] setup (res://scripts/postcard_view.gd:34)
+       [1] show_postcard (res://scripts/hud.gd:722)
+
+- **The bug.** Both callers — the results panel's postcard button and the
+  Journal's album — built a `PostcardView`, called `setup()` on it, and *then*
+  added it to the tree. `setup` sized the card with
+  `minf(UI_MAX_WIDTH - 80, get_viewport_rect().size.x - 80)`, and outside the
+  tree there is no viewport: the width came out **-80**, Godot clamps a
+  negative minimum size away, and the picture was laid out at **639×0**. So
+  the screen showed a scrim, a caption, a stamp and two buttons with nothing
+  between them — the postcard, which is the entire point of that screen.
+- **The fix.** The width is measured in `_size_card()`, called from `setup`,
+  again from `_ready`, and again on `size_changed` (so a rotation re-fits it);
+  it returns early when there is no viewport worth measuring. Both call sites
+  add the view before setting it up as well.
+- **Proved both ways.** The three new claims in `PostcardCheck` fail on the
+  old code with the exact numbers above (`-80`, `-80x-64`, `639x0`) and pass
+  on the new. And writing them turned up a second thing: my first version
+  called `find_child("*", "PostcardView", true, false)` — `find_child` takes
+  `(pattern, recursive, owned)` and no type at all, so the four-argument call
+  was a runtime error that aborted the rest of `run()` **and the suite still
+  printed a pass**, because the claims before it had already cleared
+  `min_checks`. It is `find_children` now. That is the trap `TestBase`
+  documents, met in the wild.
+- `PostcardShot` now also renders the postcard SCREEN at the phone's
+  letterboxed frame, not just the composed image file, since the broken half
+  was the screen (`out/postcard_view.png`).
+- **The rest of the log is not ours.** The `CoreMotion.plist` denial is the
+  iOS sandbox and every app gets it. `mouse_get_position(): Mouse is not
+  supported by this display server` comes from the engine — nothing in
+  `scripts/` calls any mouse-position API. The Metal messages are all
+  "Compilation succeeded with:" warnings about unused variables in Godot's own
+  generated shader source.
+
+## G60 — the next case did not arrive until the app was restarted
+
+Reported from the phone: after Case 01 closes, Case 02 does not appear until
+the game is closed and opened again, and nothing says how to get there. Both
+halves turned out to be true, and the cause was not where the story logic is.
+
+- **`_refresh_tiles()` was demolishing the hub.** It wiped the whole tile
+  column and rebuilt only the tiles — so the greeting and, worse, the **lead
+  card** were destroyed by every call. The lead card is the hub's one primary
+  action and the only thing that names the next yard. `_on_project()` calls
+  `_refresh_tiles()`, so *buying anything on the restore board deleted it*, and
+  it came back only when the hub was rebuilt from scratch, i.e. on a restart.
+  The column is filled by one `_fill_tile_column()` now, used by both the build
+  and the refresh, and children are `remove_child`'d as well as freed —
+  `queue_free` is deferred, so a rebuilt lead card otherwise sits behind a
+  dying one and `find_child` hands the caller the corpse.
+- **The purchase that opens a case now says so.** Case 02 opens on the third
+  restore project (`case_one_finished() and town_ready()`), which happens while
+  the player is standing on the restore page. `_on_project` refreshes the board
+  as well as the tiles, and if that purchase opened the case it runs a new
+  `Guide` step (`case_open`) on the spot: the map, opened on the new yard, with
+  one line saying a case has opened. Before this, the hub kept saying CASE
+  CLOSED with its only button **disabled** — there was no way forward at all.
+- **The map answers "which one is mine".** `open_map()` — the hub's own map
+  tile — opened an unfocused sheet of a dozen pins; `open_map_at()` focused a
+  place but did not refresh the board, so a case opened in this session was
+  missing from it. `open_map()` now goes through `open_map_at()` with the
+  current chapter, and `open_map_at()` refreshes first.
+- **The front door says where you were.** The main menu offered CONTINUE and
+  nothing else; it prints the next yard's name under it (`MENU_NEXT`), on a
+  fresh save too.
+- **Written as a failing test first.** `CaseOpenCheck` sets up the exact state
+  — Case 01 closed, town not rebuilt — buys two projects, then buys the third
+  **through the hub's own handler**, and asserts that THIS hub, unrebuilt,
+  names the new yard and has a working button. Four claims failed on the old
+  code, including one that turned out to be a bare `MENU_NEXT` on screen:
+  appending to `strings.csv` without reimporting leaves `tr()` returning the
+  key and `format()` with nowhere to put the place.
+
+## G61 — the endings and the reunion, painted
+
+Three pictures arrived: `story/reunion`, `story/ending_open`,
+`story/ending_closed`. The last two are the images `story.json` has asked for
+since G17 and never had — the game's two final mornings were borrowing older
+cards through the fallback.
+
+- Installed the usual way: PNG → JPEG q90 at native size (7.6 MB → 1.2 MB),
+  VRAM compressed with no mipmaps (these are magnified, never minified),
+  `reunion.jpg` written over the old file so its `.import` and uid survive.
+- **Measured and in family.** `ending_open` 56/0.47/30°, `ending_closed`
+  66/0.44/31°, `reunion` 73/0.56/32° — the card set holds 32–46° and
+  `pro_5`/`pro_7` sit at 57/87, so these belong.
+- **One measured fix.** The reunion card veils its art with a 0.55 scrim. The
+  old storybook picture averaged 113 and read at 51 through it; the painted
+  replacement averages 73, which the same veil dropped to **33** — rendered at
+  the phone's frame it went murky and the sunset in it disappeared.
+  `GameConfig.REUNION_SCRIM` is 0.30 for the reunion and naming pages: the
+  picture is back at 51 and the text band at 44, still dark enough under white
+  type with a shadow. The party page has always set its own for the same kind
+  of reason.
+- `PrologueShot` walks both ending decks and the reunion card's two pages now,
+  so all sixteen story cards plus those two pages are rendered at 1170×2532
+  in one run.
+- **`ending_open`'s signboards, reported and then fixed (G62.1).** The first
+  take had three signs painted into it with English slogans, and the phone
+  shows the central 82% of the width, so the wall sign sat dead centre and
+  read; it could not be cropped out. The corrected prompt changed exactly one
+  thing — every wall, post and plinth described positively as bare weathered
+  board — since telling an image model "no text" is how you get text. The
+  second take is clean, and lands at 62/0.47/31° with thirds 99/59/27, next to
+  its twin's 66/0.44/31° and 107/57/34.
+- **Closed decision:** the Marshal's portrait keeps its rifle. That is the one
+  standing exception to the project's "no weapons" image rule, it is
+  deliberate, and it is off the audit list for good.
+
+## G62 — the birthday card, and why its average brightness was the wrong number
+
+The last storybook card was repainted. The prompt asked for a source
+brightness of 60–80 and 0.40–0.50 saturation; what came back measures **38**
+and **0.59**, under target on both — and I kept it unchanged, because the
+average was not the number that mattered.
+
+- **Measured the subject, not the frame.** The girl-and-cake region (x 25–75%,
+  y 38–58%) reads **56** and her face **50**; the same regions of the card it
+  replaces read **40** and **39**. The new painting is darker on average
+  precisely because its surround is properly dark and its light is gathered in
+  the middle — contrast, which is what a candle-lit night is made of. Through
+  the party page's own 0.22 veil the subject lands at 44 and the face at 39,
+  against 31 and 30 before. No curve applied to the file.
+- **The three defects of the old card, all gone.** It had two legible strings
+  painted into it ("ELLIE", "HAPPY BIRTHDAY ELLIE"), both inside the 82% of
+  the width a phone shows; its faces were photoreal and all resolved; and the
+  written line says *nine* candles where the picture had ten or eleven. The
+  new one has no lettering anywhere (the papers on the table carry drawn
+  flowers), the ring of townspeople is half in shadow and unresolved with only
+  the girl's face clear, and the flames were **counted by measurement** rather
+  than by eye: the brightest row is at 53.2% of the height and carries nine
+  peaks between x 38% and 58%. Nine candles, dead centre, well inside the safe
+  frame.
+- The cake sits at 50–53% of the height and the lower two fifths is quiet
+  table, which is where the card's own text goes. Rendered at the phone's
+  letterboxed frame with the veil on: `out/reunion_page_1.png`.
+- `PrologueShot` walks all three reunion pages now — the party page sets its
+  own veil, so it is the one page whose picture cannot be judged from the file.
+
+## G63 — pre-release cleanup, measured before anything was deleted
+
+Asked to clear out unused files. The inventory first: 98 asset files
+cross-referenced against every script, scene, data file and translation, plus
+the export presets read to find out what the shipped app actually contains.
+
+- **Nothing was deleted on suspicion.** The crude "is its name mentioned
+  anywhere" pass flagged six files; four of them — `portraits/face_cole`,
+  `face_marshal`, `face_sarah`, `face_stranger` — are loaded at runtime by a
+  name the code builds (`"portraits/face_" + id` in `hub_screen.gd`), which is
+  exactly why `AssetCheck` reports orphans instead of failing on them. They
+  stay.
+- **Deleted, each with the evidence:** `shaders/grass_tuft.gdshader` (+ uid) —
+  every shader load in the game is an explicit `res://shaders/…` path and
+  nothing loads this one; `TuftField` uses `grass_clump`, and the only mention
+  left is a sentence of README prose. `audio/theme_town_alt.wav` (+ import,
+  1.3 MB) — the G54 A/B theme, never wired in and regenerable with one command.
+  Two `.DS_Store` files. All four are in git history; the wav is also
+  reproducible from `tools/gen_audio.py`.
+- **The app was shipping its own test suite.** All three export presets
+  excluded only `docs/*`, and `export_filter` is `all_resources` — so
+  `tests/` (2.1 MB, 332 source files), `tools/`, and every root `.md` were
+  packed into the iOS, Android and macOS builds. The filter is
+  `docs/*, tests/*, tools/*, out/*, *.md` now. That is a config change, not a
+  deletion: the files stay in the repo where they belong.
+- **`out/` trimmed from 969 MB to 249 MB** — 417 render outputs older than
+  1 September. It is gitignored and carries a `.gdignore`, so none of it ever
+  reached the pack or the history; every file in it is the output of a shot
+  suite that can be re-run. This session's and last week's renders were kept.
+- **Checked, found clean:** no stale `.import` or `.uid` files anywhere, and
+  no unused scripts — every `class_name` in `scripts/` is referenced by
+  something the game loads.
+- AudioCheck, MusicCheck, AssetCheck and DioramaCheck pass after all of it.

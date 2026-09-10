@@ -53,6 +53,37 @@ static func accept_key(id: String) -> String:
 	return ""
 
 
+## The place a conversation happens in (G58), as a `textures/` name for
+## DialogueBox to draw behind its scrim.
+##
+## A conversation may name its own `backdrop`; otherwise the longest matching
+## prefix in dialogue.json's `backdrops` block decides, so ninety-nine
+## conversations do not need ninety-nine fields. An empty string means "draw
+## nothing" — the box stays transparent over whatever is on screen, which is
+## what a briefing over the yard it is about needs (G54).
+static func backdrop(id: String) -> String:
+	var all: Variant = data().get("conversations", {})
+	if all is Dictionary and (all as Dictionary).has(id):
+		var convo: Variant = (all as Dictionary)[id]
+		if convo is Dictionary and (convo as Dictionary).has("backdrop"):
+			return str((convo as Dictionary)["backdrop"])
+	var rules: Variant = data().get("backdrops", {})
+	if not (rules is Dictionary):
+		return ""
+	var best := ""
+	var best_len := -1
+	for key: Variant in (rules as Dictionary):
+		var prefix := str(key)
+		if prefix.begins_with("_") or prefix == "default":
+			continue
+		if id.begins_with(prefix) and prefix.length() > best_len:
+			best = str((rules as Dictionary)[prefix])
+			best_len = prefix.length()
+	if best_len >= 0:
+		return best
+	return str((rules as Dictionary).get("default", ""))
+
+
 ## Town chatter for one person, picking the highest variant whose `min_done` the
 ## player has reached — so the town reacts to case progress without any extra
 ## bookkeeping at the call site.

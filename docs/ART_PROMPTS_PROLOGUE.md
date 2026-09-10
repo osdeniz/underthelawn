@@ -1,5 +1,13 @@
 # Prolog kartları — Gemini için promptlar (pro_1 … pro_6)
 
+> **Durum: GELDİ (2026-09-10, G57).** Altısı da üretildi, JPEG'e çevrilip içe
+> alındı; `pro_7` de sonradan eklendi (G57.1). Bu dosyada bekleyen iş yok —
+> promptlar kayıt olarak duruyor, yeni bir kart yazılırsa biçim buradan
+> alınır. **Ölçülen hedef sayıları artık burada değil:** set büyüdüğü için
+> palet ve değer hedefleri gelen resimlerden yeniden ölçüldü, güncel tablo
+> [ART_PROMPTS_INTRO.md](ART_PROMPTS_INTRO.md) içinde. Aşağıdaki sayılar o
+> zamanki dört eski kartı hedefliyordu, artık geçerli değil.
+
 Altı resim de eksik (`textures/intro/` içinde yalnızca intro_1, intro_2,
 intro_2b, intro_3 var; prolog kartları şimdilik onlara düşüyor). Hedef:
 `textures/intro/pro_1.jpg` … `pro_6.jpg`.

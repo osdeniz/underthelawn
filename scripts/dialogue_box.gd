@@ -34,7 +34,9 @@ var _full_text := ""
 var _tap_lock := 0.0
 var _accept_key := ""
 var _awaiting_choice := false
+var _backdrop_name := ""
 
+var _backdrop: TextureRect
 var _scrim: ColorRect
 var _panel: PanelContainer
 var _portrait_frame: Panel
@@ -55,6 +57,9 @@ func _ready() -> void:
 	call_deferred("_fit_wide_controls")
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_build()
+	# play() can be called on the same frame the box is added, before _ready:
+	# whatever place it asked for is applied here (G58).
+	set_backdrop(_backdrop_name)
 	modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property(self, "modulate:a", 1.0, FADE_TIME)
@@ -63,7 +68,12 @@ func _ready() -> void:
 ## Plays `entries` (from Dialogue.conversation / Dialogue.town_lines).
 ## `accept_key` adds a confirm button on the LAST line, for conversations the
 ## player has to actively accept, like a briefing.
-func play(entries: Array, accept_key := "") -> void:
+## `backdrop` names a picture under `textures/` — a PLACE, not a portrait —
+## drawn behind the scrim for the length of the conversation (G58). Left empty,
+## the box is transparent over whatever is already on screen, which is what
+## every caller did before and still what a briefing over its own yard wants.
+func play(entries: Array, accept_key := "", backdrop := "") -> void:
+	set_backdrop(backdrop)
 	_entries = entries
 	_accept_key = accept_key
 	_index = -1
@@ -75,7 +85,31 @@ func play(entries: Array, accept_key := "") -> void:
 	_advance()
 
 
+## The place this conversation happens in. Safe to call before _ready: the
+## wanted name is remembered and applied when the tree is built.
+func set_backdrop(name: String) -> void:
+	_backdrop_name = name
+	if _backdrop == null or not is_instance_valid(_backdrop):
+		return
+	var tex: Texture2D = TextureLibrary.find(name) if name != "" else null
+	_backdrop.texture = tex
+	_backdrop.visible = tex != null
+	if tex == null and name != "":
+		TextureLibrary.warn_missing(name, "diyalog zemini")
+
+
 func _build() -> void:
+	# Under the scrim, so the same 55% black that keeps the type legible over a
+	# lawn keeps it legible over a painting.
+	_backdrop = TextureRect.new()
+	_backdrop.name = "Backdrop"
+	_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_backdrop.visible = false
+	add_child(_backdrop)
+
 	_scrim = ColorRect.new()
 	_scrim.color = Color(0, 0, 0, 0.55)
 	_scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

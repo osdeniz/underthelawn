@@ -719,8 +719,9 @@ func show_postcard(path: String) -> void:
 	if tex == null:
 		return
 	var view := PostcardView.new()
-	view.setup(tex, path)
+	# In the tree FIRST: setup sizes the card against the viewport (G59).
 	add_child(view)
+	view.setup(tex, path)
 
 
 ## Same treatment for a button that sits over the 3D scene.

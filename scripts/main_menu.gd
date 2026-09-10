@@ -126,6 +126,7 @@ func _build() -> void:
 	if has_progress:
 		rows.add_child(_action(tr("MENU_CONTINUE"), true,
 			func() -> void: continue_pressed.emit()))
+	rows.add_child(_next_yard_line())
 	rows.add_child(_action(
 		tr("MENU_NEW_GAME") if has_progress else tr("MENU_PLAY"),
 		not has_progress,
@@ -154,6 +155,25 @@ func _build() -> void:
 	version.add_theme_font_size_override("font_size", GameConfig.UI_MICRO)
 	version.add_theme_color_override("font_color", GameConfig.UI_INK_FAINT)
 	add_child(version)
+
+
+## What CONTINUE continues (G60). The front door said "Continue" and nothing
+## else, so the answer to "where was I" was three taps inside the game — and
+## after a case opened it was not even there.
+func _next_yard_line() -> Label:
+	var line := Label.new()
+	line.name = "NextYard"
+	var vid := ChapterProgress.current_variant_id()
+	var place := str(ChapterProgress.entry(vid).get("name", ""))
+	line.text = tr("MENU_NEXT").format({"place": tr(place) if place != "" else ""})
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	line.add_theme_font_size_override("font_size", GameConfig.fs(GameConfig.UI_LABEL))
+	line.add_theme_color_override("font_color", GameConfig.UI_INK_SOFT)
+	line.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	line.add_theme_constant_override("shadow_offset_y", 3)
+	# A save with no readable chapter would print "Next: " and nothing after it.
+	line.visible = place != ""
+	return line
 
 
 ## The cover, picked for the shape of the screen.
